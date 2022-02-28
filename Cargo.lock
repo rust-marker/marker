@@ -79,6 +79,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1bf2e165bb3457c8e098ea76f3e3bc9db55f87aa90d52d0e6be741470916aaa4"
 
 [[package]]
+name = "linter_adapter"
+version = "0.1.0"
+dependencies = [
+ "linter_api",
+]
+
+[[package]]
+name = "linter_api"
+version = "0.1.0"
+
+[[package]]
+name = "linter_driver-rustc"
+version = "0.1.0"
+dependencies = [
+ "linter_adapter",
+ "linter_api",
+]
+
+[[package]]
+name = "linter_test"
+version = "0.1.0"
+dependencies = [
+ "linter_api",
+]
+
+[[package]]
 name = "memchr"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
