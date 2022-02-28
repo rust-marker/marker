@@ -1,8 +1,3 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
+#![warn(clippy::pedantic, clippy::index_refutable_slice)]
+
+pub mod loader;

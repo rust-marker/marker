@@ -1,5 +1,5 @@
 [package]
-name = "linter_driver-rustc"
+name = "linter_driver_rustc"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
