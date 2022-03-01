@@ -2,6 +2,8 @@ use linter_api::LintPass;
 
 linter_api::interface::export_lint_pass!("linter_test", TestLintPass::new());
 
+linter_api::lint::declare_lint!(TEST_LINT, Allow, "");
+
 struct TestLintPass {}
 
 impl TestLintPass {

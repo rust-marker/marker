@@ -4,6 +4,7 @@ pub static LINTER_API_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub static RUSTC_VERSION: &str = env!("RUSTC_VERSION");
 
 pub mod interface;
+pub mod lint;
 
 /// A [`LintPass`] visits every node like a `Visitor`. The difference is that a
 /// [`LintPass`] provides some additional information about the implemented lints.
