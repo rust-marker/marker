@@ -33,6 +33,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "cfg-if"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
 name = "clap"
 version = "3.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -77,6 +83,43 @@ name = "libc"
 version = "0.2.119"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1bf2e165bb3457c8e098ea76f3e3bc9db55f87aa90d52d0e6be741470916aaa4"
+
+[[package]]
+name = "libloading"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "efbc0f03f9a775e9f6aed295c6a1ba2253c5757a9e03d55c6caa46a681abcddd"
+dependencies = [
+ "cfg-if",
+ "winapi",
+]
+
+[[package]]
+name = "linter_adapter"
+version = "0.1.0"
+dependencies = [
+ "libloading",
+ "linter_api",
+]
+
+[[package]]
+name = "linter_api"
+version = "0.1.0"
+
+[[package]]
+name = "linter_driver_rustc"
+version = "0.1.0"
+dependencies = [
+ "linter_adapter",
+ "linter_api",
+]
+
+[[package]]
+name = "linter_test"
+version = "0.1.0"
+dependencies = [
+ "linter_api",
+]
 
 [[package]]
 name = "memchr"

@@ -1,4 +1,9 @@
 [workspace]
 members = [
     "cargo-linter",
+    "linter_adapter",
+    "linter_api",
+    "linter_driver_rustc",
+    # This is temporary, lint crates like this one will be managed with `cargo-liner`
+    "linter_test",
 ]
