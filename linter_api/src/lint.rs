@@ -1,4 +1,3 @@
-
 #[derive(Debug)]
 // This can sadly not be marked as #[non_exhaustive] as the struct construction
 // has to be possible in a static context.
@@ -12,7 +11,7 @@ pub struct Lint {
     /// for guidelines on choosing a default level.
     pub default_level: Level,
     /// Warning, dealing with macros can be difficult. It's recommended to set this to `false`
-    /// 
+    ///
     /// FIXME: Here I would prefer an enum to enable users to also select between no
     /// linting, some linting in local macros and all linting in all macros.
     pub report_in_macro: bool,
