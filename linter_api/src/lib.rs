@@ -27,6 +27,7 @@ pub static LINTER_API_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub static RUSTC_VERSION: &str = env!("RUSTC_VERSION");
 
 pub mod ast;
+pub mod context;
 pub mod interface;
 pub mod lint;
 

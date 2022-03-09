@@ -1,5 +1,7 @@
 use std::fmt::Debug;
 
+use super::item::ItemId;
+
 /// A `Span` represents a span of source code. It can be part of the source code
 /// or part of generated logic using macros. Spans are used to determine the origin
 /// of elements and to create suggestions and lint messages.
@@ -29,7 +31,7 @@ pub trait Span<'ast>: Debug {
     ///     self lorem ipsum end
     ///     ^^^^^^^^^^^^^^^^^^^^
     /// ```
-    fn to(&'ast self, end: &dyn Span<'ast>) -> dyn Span<'ast>;
+    fn to(&'ast self, end: &dyn Span<'ast>) -> &dyn Span<'ast>;
 
     /// Returns a `Span` between the end of `self` to the beginning of `end`.
     ///
@@ -38,7 +40,7 @@ pub trait Span<'ast>: Debug {
     ///     self lorem ipsum end
     ///         ^^^^^^^^^^^^^
     /// ```
-    fn between(&'ast self, end: &dyn Span<'ast>) -> dyn Span<'ast>;
+    fn between(&'ast self, end: &dyn Span<'ast>) -> &dyn Span<'ast>;
 
     /// Returns a `Span` from the beginning of `self` until the beginning of `end`.
     ///
@@ -47,7 +49,7 @@ pub trait Span<'ast>: Debug {
     ///     self lorem ipsum end
     ///     ^^^^^^^^^^^^^^^^^
     /// ```
-    fn until(&'ast self, end: &dyn Span<'ast>) -> dyn Span<'ast>;
+    fn until(&'ast self, end: &dyn Span<'ast>) -> &dyn Span<'ast>;
 
     /// Returns the code that this span references or `None` if the code in unavailable
     fn snippet(&self) -> Option<String>;
@@ -130,4 +132,36 @@ pub enum Applicability {
 
     /// The suggestion can not be automatically applied or the applicability is unknown.
     Unspecified,
+}
+
+pub struct Spanned<'ast, T> {
+    pub node: T,
+    pub span: &'ast dyn Span<'ast>,
+}
+
+#[non_exhaustive]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub struct Symbol {
+    index: u32,
+}
+
+#[cfg(feature = "driver-api")]
+impl Symbol {
+    pub fn new(index: u32) -> Self {
+        Self { index }
+    }
+}
+
+pub type Ident<'ast> = Spanned<'ast, Symbol>;
+
+pub trait Attribute<'ast>: Debug {
+    // FIXME: Add attribute functions
+}
+
+pub trait SimplePath<'ast>: Debug {
+    fn get_segments(&'ast self) -> &'ast [Symbol];
+
+    /// FIXME: There might be a better return type for this function. This also
+    /// has to work for attributes like `#![clippy::msrv = "1.0.1"]`
+    fn resolve(&'ast self) -> Option<ItemId>;
 }
