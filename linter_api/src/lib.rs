@@ -1,6 +1,9 @@
 #![feature(rustc_private)]
 #![warn(clippy::pedantic, clippy::index_refutable_slice)]
 
+use ast::item::Item;
+use lint::Lint;
+
 extern crate rustc_ast;
 extern crate rustc_ast_pretty;
 extern crate rustc_attr;
@@ -35,6 +38,10 @@ pub mod lint;
 /// [`LintPass`] provides some additional information about the implemented lints.
 /// The adapter will walk through the entire AST once and give each node to the
 /// registered [`LintPass`]es.
-pub trait LintPass {
+pub trait LintPass<'ast> {
     fn test_call(&self, msg: &str);
+
+    fn registered_lints(&self) -> Vec<&'static Lint>;
+
+    fn check_item(&mut self, _: &'ast dyn Item<'ast>) {}
 }

@@ -11,8 +11,8 @@ pub struct LintPassDeclaration {
     pub register: unsafe extern "C" fn(&mut dyn LintPassRegistry),
 }
 
-pub trait LintPassRegistry {
-    fn register(&mut self, name: &str, init: Box<dyn LintPass>);
+pub trait LintPassRegistry<'ast> {
+    fn register(&mut self, name: &str, init: Box<dyn LintPass<'ast>>);
 }
 
 #[macro_export]

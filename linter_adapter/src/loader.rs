@@ -4,12 +4,12 @@ use linter_api::interface::{LintPassDeclaration, LintPassRegistry};
 use linter_api::LintPass;
 
 #[derive(Default)]
-pub struct ExternalLintPassRegistry {
-    pub lint_passes: Vec<Box<dyn LintPass>>,
+pub struct ExternalLintPassRegistry<'ast> {
+    pub lint_passes: Vec<Box<dyn LintPass<'ast>>>,
     libs: Vec<Library>,
 }
 
-impl ExternalLintPassRegistry {
+impl<'a> ExternalLintPassRegistry<'a> {
     /// # Errors
     /// This can return errors if the library couldn't be found or if the
     /// required symbols weren't provided.
@@ -37,8 +37,8 @@ impl ExternalLintPassRegistry {
     }
 }
 
-impl LintPassRegistry for ExternalLintPassRegistry {
-    fn register(&mut self, _name: &str, init: Box<dyn LintPass>) {
+impl<'ast> LintPassRegistry<'ast> for ExternalLintPassRegistry<'ast> {
+    fn register(&mut self, _name: &str, init: Box<dyn LintPass<'ast>>) {
         self.lint_passes.push(init);
     }
 }
