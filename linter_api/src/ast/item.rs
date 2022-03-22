@@ -5,16 +5,16 @@ use super::{Attribute, Ident, SimplePath, Span, Spanned, Symbol};
 pub trait Item<'ast>: Debug {
     fn get_id(&self) -> ItemId;
 
-    fn get_span(&'ast self) -> &dyn Span<'ast>;
+    fn get_span(&'ast self) -> &'ast dyn Span<'ast>;
 
-    fn get_vis(&self) -> Visibility;
+    fn get_vis(&self) -> &'ast Visibility<'ast>;
 
     /// This function can return `None` if the item was generated and has no real name
-    fn get_ident(&'ast self) -> Option<Ident>;
+    fn get_ident(&'ast self) -> Option<&'ast Ident<'ast>>;
 
-    fn get_kind(&'ast self) -> ItemKind;
+    fn get_kind(&'ast self) -> ItemKind<'ast>;
 
-    fn get_attrs(&'ast self) -> [&dyn Attribute<'ast>];
+    fn get_attrs(&'ast self) -> &'ast [&dyn Attribute<'ast>];
 }
 
 /// Every item has an ID that can be used to retive that item or compair it to
@@ -26,14 +26,14 @@ pub trait Item<'ast>: Debug {
 #[non_exhaustive]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct ItemId {
-    index: u32,
-    krate: u32,
+    index: usize,
+    krate: usize,
 }
 
 #[cfg(feature = "driver-api")]
 impl ItemId {
     #[must_use]
-    pub fn new(index: u32, krate: u32) -> Self {
+    pub fn new(index: usize, krate: usize) -> Self {
         Self { index, krate }
     }
 }

@@ -1,20 +1,27 @@
 #![feature(rustc_private)]
+#![feature(lint_reasons)]
 #![warn(rustc::internal)]
 #![warn(clippy::pedantic, clippy::index_refutable_slice)]
-
-use linter_adapter::loader::ExternalLintPassRegistry;
-
 
 use std::env;
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command};
 
+pub mod ast;
+mod conversion;
+
+extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_errors;
+extern crate rustc_hir;
 extern crate rustc_interface;
+extern crate rustc_lint;
+extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_span;
+
+use rustc_lint::LateLintPass;
 
 struct DefaultCallbacks;
 impl rustc_driver::Callbacks for DefaultCallbacks {}
@@ -28,13 +35,11 @@ impl rustc_driver::Callbacks for LinterCallback {
         // executed.
         assert!(config.register_lints.is_none());
 
-        let mut registry = ExternalLintPassRegistry::default();
-        registry.load_external_lib("./target/debug/liblinter_test.so").unwrap();
-        registry.lint_passes.iter().for_each(|pass| pass.test_call("It works"));
-
-        config.register_lints = Some(Box::new(|sess, lint_store| {
+        config.register_lints = Some(Box::new(|_sess, lint_store| {
             // Register plugins
             println!("Register Lints");
+
+            lint_store.register_late_pass(register);
         }))
     }
 
@@ -45,6 +50,12 @@ impl rustc_driver::Callbacks for LinterCallback {
     ) -> rustc_driver::Compilation {
         rustc_driver::Compilation::Stop
     }
+}
+
+fn register() -> Box<
+    dyn for<'tcx> LateLintPass<'tcx> + rustc_data_structures::sync::Send + rustc_data_structures::sync::Sync + 'static,
+> {
+    Box::new(conversion::ConverterLintPass::new())
 }
 
 /// If a command-line option matches `find_arg`, then apply the predicate `pred` on its value. If

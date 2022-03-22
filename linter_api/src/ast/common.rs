@@ -139,6 +139,14 @@ pub struct Spanned<'ast, T> {
     pub span: &'ast dyn Span<'ast>,
 }
 
+#[cfg(feature = "driver-api")]
+impl<'ast, T> Spanned<'ast, T> {
+    #[must_use]
+    pub fn new(node: T, span: &'ast dyn Span<'ast>) -> Self {
+        Self { node, span }
+    }
+}
+
 #[non_exhaustive]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Symbol {
