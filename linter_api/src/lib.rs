@@ -1,5 +1,6 @@
 #![feature(rustc_private)]
 #![warn(clippy::pedantic, clippy::index_refutable_slice)]
+#![allow(clippy::module_name_repetitions)]
 
 use ast::item::Item;
 use lint::Lint;

@@ -5,13 +5,14 @@ use std::fmt::Debug;
 use super::rustc::RustcContext;
 
 pub struct RustcItem<'ast, 'tcx> {
-    pub(crate) inner: &'tcx rustc_hir::Item<'tcx>,
     pub(crate) cx: &'ast RustcContext<'ast, 'tcx>,
+    pub(crate) inner: &'tcx rustc_hir::Item<'tcx>,
 }
 
 impl<'ast, 'tcx> RustcItem<'ast, 'tcx> {
+    #[must_use]
     pub fn new(inner: &'tcx rustc_hir::Item<'tcx>, cx: &'ast RustcContext<'ast, 'tcx>) -> Self {
-        Self { inner, cx }
+        Self { cx, inner }
     }
 }
 

@@ -2,7 +2,7 @@
 
 use std::fmt::Debug;
 
-use linter_api::ast::Attribute;
+use linter_api::ast::{Attribute, Lifetime};
 
 use super::rustc::RustcContext;
 
@@ -25,7 +25,7 @@ impl Debug for RustcSpan<'_, '_> {
 }
 
 impl<'ast, 'tcx> linter_api::ast::Span<'ast> for RustcSpan<'ast, 'tcx> {
-    fn from_expansion(&self) -> bool {
+    fn is_from_expansion(&self) -> bool {
         self.span.from_expansion()
     }
 
@@ -70,3 +70,15 @@ impl<'ast, 'tcx> linter_api::ast::Span<'ast> for RustcSpan<'ast, 'tcx> {
 pub struct RustcAttribute {}
 
 impl<'ast> Attribute<'ast> for RustcAttribute {}
+
+#[derive(Debug)]
+pub struct RustcLifetime {}
+
+impl<'ast> Lifetime<'ast> for RustcLifetime {}
+
+pub fn lifetime_from_region<'ast, 'tcx>(
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    _reg: rustc_middle::ty::Region<'tcx>,
+) -> &'ast dyn Lifetime<'ast> {
+    cx.new_lifetime()
+}

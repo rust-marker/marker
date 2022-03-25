@@ -43,6 +43,7 @@ impl ItemId {
 /// See: <https://doc.rust-lang.org/reference/visibility-and-privacy.html>
 #[non_exhaustive]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::enum_variant_names)]
 pub enum VisibilityKind {
     /// Visible in the current module, equivialent to `pub(in self)` or no visibility
     PubSelf,

@@ -2,6 +2,7 @@
 #![feature(lint_reasons)]
 #![warn(rustc::internal)]
 #![warn(clippy::pedantic, clippy::index_refutable_slice)]
+#![allow(clippy::module_name_repetitions)]
 
 use std::env;
 use std::ops::Deref;
@@ -40,7 +41,7 @@ impl rustc_driver::Callbacks for LinterCallback {
             println!("Register Lints");
 
             lint_store.register_late_pass(register);
-        }))
+        }));
     }
 
     fn after_analysis<'tcx>(

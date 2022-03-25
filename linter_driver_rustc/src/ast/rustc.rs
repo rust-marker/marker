@@ -3,10 +3,11 @@ use rustc_middle::ty::TyCtxt;
 
 use linter_api::ast::{
     item::{Visibility, VisibilityKind},
-    Ident, Span, Symbol,
+    ty::{Ty, TyKind},
+    Ident, Lifetime, Span, Symbol,
 };
 
-use super::RustcSpan;
+use super::{ty::RustcTy, RustcLifetime, RustcSpan};
 
 #[expect(unused)]
 pub struct RustcContext<'ast, 'tcx> {
@@ -24,6 +25,7 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     }
 
     #[must_use]
+    #[allow(clippy::unused_self)]
     pub fn new_symbol(&'ast self, sym: rustc_span::symbol::Symbol) -> Symbol {
         Symbol::new(sym.as_u32())
     }
@@ -46,6 +48,32 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     pub fn new_ident(&'ast self, ident: rustc_span::symbol::Ident) -> &'ast Ident<'ast> {
         self.buffer
             .alloc_with(|| Ident::new(self.new_symbol(ident.name), self.new_span(ident.span)))
+    }
+
+    #[must_use]
+    pub fn new_ty(&'ast self, kind: TyKind<'ast>, is_infered: bool) -> &'ast dyn Ty<'ast> {
+        self.buffer.alloc_with(|| RustcTy::new(self, kind, is_infered))
+    }
+
+    pub fn new_lifetime(&'ast self) -> &'ast dyn Lifetime<'ast> {
+        self.buffer.alloc_with(|| RustcLifetime {})
+    }
+
+    #[must_use]
+    pub fn alloc_slice_from_iter<T, I>(&self, iter: I) -> &mut [T]
+    where
+        I: IntoIterator<Item = T>,
+        I::IntoIter: ExactSizeIterator,
+    {
+        self.buffer.alloc_slice_fill_iter(iter)
+    }
+
+    #[must_use]
+    pub fn alloc_slice<T, F>(&self, len: usize, f: F) -> &'ast [T]
+    where
+        F: FnMut(usize) -> T,
+    {
+        self.buffer.alloc_slice_fill_with(len, f)
     }
 }
 

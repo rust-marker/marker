@@ -2,6 +2,24 @@ use std::fmt::Debug;
 
 use super::item::ItemId;
 
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct CrateId {
+    index: u32,
+}
+
+#[cfg(feature = "driver-api")]
+impl CrateId {
+    #[must_use]
+    pub fn new(index: u32) -> Self {
+        Self { index }
+    }
+
+    pub fn get_data(&self) -> u32 {
+        self.index
+    }
+}
+
 /// A `Span` represents a span of source code. It can be part of the source code
 /// or part of generated logic using macros. Spans are used to determine the origin
 /// of elements and to create suggestions and lint messages.
@@ -11,7 +29,7 @@ use super::item::ItemId;
 /// cases can cause panics if they are used to access the underlying source code. The
 /// normal provided [`Span`]s should all be fine.
 pub trait Span<'ast>: Debug {
-    fn from_expansion(&self) -> bool;
+    fn is_from_expansion(&self) -> bool;
 
     fn in_derive_expansion(&self) -> bool;
 
@@ -83,7 +101,7 @@ pub trait Span<'ast>: Debug {
     ///   to
     /// `HasPlaceholders`
     fn snippet_with_applicability(&self, default: &str, applicability: &mut Applicability) -> String {
-        if *applicability != Applicability::Unspecified && self.from_expansion() {
+        if *applicability != Applicability::Unspecified && self.is_from_expansion() {
             *applicability = Applicability::MaybeIncorrect;
         }
         self.snippet().unwrap_or_else(|| {
@@ -148,13 +166,14 @@ impl<'ast, T> Spanned<'ast, T> {
 }
 
 #[non_exhaustive]
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 pub struct Symbol {
     index: u32,
 }
 
 #[cfg(feature = "driver-api")]
 impl Symbol {
+    #[must_use]
     pub fn new(index: u32) -> Self {
         Self { index }
     }
@@ -172,4 +191,8 @@ pub trait SimplePath<'ast>: Debug {
     /// FIXME: There might be a better return type for this function. This also
     /// has to work for attributes like `#![clippy::msrv = "1.0.1"]`
     fn resolve(&'ast self) -> Option<ItemId>;
+}
+
+pub trait Lifetime<'ast>: Debug {
+    // FIXME: Add functions for lifetimes, see <https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.Region.html>
 }
