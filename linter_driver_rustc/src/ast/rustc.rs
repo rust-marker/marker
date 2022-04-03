@@ -37,7 +37,7 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
         let kind = match vis.node {
             rustc_hir::VisibilityKind::Public => VisibilityKind::PubSelf,
             rustc_hir::VisibilityKind::Crate(..) => VisibilityKind::PubCrate,
-            rustc_hir::VisibilityKind::Restricted { .. } => VisibilityKind::PubPath,
+            rustc_hir::VisibilityKind::Restricted { .. } => unimplemented!("VisibilityKind::PubPath"),
             rustc_hir::VisibilityKind::Inherited => VisibilityKind::PubSuper,
         };
 

@@ -20,6 +20,23 @@ impl CrateId {
     }
 }
 
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct BodyId {
+    krate: CrateId,
+    index: u32,
+}
+
+#[cfg(feature = "driver-api")]
+impl BodyId {
+    #[must_use]
+    pub fn new(krate: CrateId, index: u32) -> Self { Self { krate, index } }
+
+    pub fn get_data(&self) -> (CrateId, u32) {
+        (self.krate, self.index)
+    }
+}
+
 /// A `Span` represents a span of source code. It can be part of the source code
 /// or part of generated logic using macros. Spans are used to determine the origin
 /// of elements and to create suggestions and lint messages.
