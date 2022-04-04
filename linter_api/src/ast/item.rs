@@ -1,6 +1,9 @@
 use std::fmt::Debug;
 
-use super::{Attribute, Ident, SimplePath, Span, Spanned, Symbol, ty::{Ty, Mutability, TyId}, BodyId};
+use super::{
+    ty::{Mutability, Ty, TyId},
+    Attribute, BodyId, Ident, SimplePath, Span, Spanned, Symbol,
+};
 
 pub trait Item<'ast>: Debug {
     fn get_id(&self) -> ItemId;
@@ -42,7 +45,7 @@ impl ItemId {
 ///
 /// See: <https://doc.rust-lang.org/reference/visibility-and-privacy.html>
 #[non_exhaustive]
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 #[allow(clippy::enum_variant_names)]
 pub enum VisibilityKind<'ast> {
     /// Visible in the current module, equivialent to `pub(in self)` or no visibility
@@ -56,7 +59,7 @@ pub enum VisibilityKind<'ast> {
 pub type Visibility<'ast> = Spanned<'ast, VisibilityKind<'ast>>;
 
 #[non_exhaustive]
-#[derive(Copy, Clone, Debug)]
+#[derive(Debug)]
 pub enum ItemKind<'ast> {
     Mod(&'ast dyn ModuleItem<'ast>),
     /// An `extern crate` item, with an optional *original* create name. The given
@@ -67,7 +70,7 @@ pub enum ItemKind<'ast> {
     ConstItem(&'ast dyn ConstItem<'ast>),
     Function,
     TypeAlias,
-    Struct,
+    Struct(&'ast dyn StaticItem<'ast>),
     Enumeration,
     Union,
     Trait,
@@ -109,20 +112,32 @@ pub trait StaticItem<'ast>: Debug {
 /// ```
 pub trait ConstItem<'ast>: Debug {
     fn get_type(&'ast self) -> &'ast dyn Ty<'ast>;
-    
+
     fn get_body_id(&self) -> BodyId;
 }
 
-// FIXME: Support tuple structs and unit structs... Probably using an enum.
+/// A struct item like:
+///
+/// ```rs
+/// pub struct ExampleOne;
+///
+/// pub struct ExampleTwo(u32, &'static str);
+///
+/// pub struct ExampleThree<T> {
+///     field: T,
+/// }
+/// ```
 pub trait StructItem<'ast>: Debug {
     /// Returns the [`TyId`] for this struct.
     fn get_ty_id(&self) -> TyId;
 
     fn get_kind(&'ast self) -> StructItemKind<'ast>;
 
-    fn get_generics(&'ast self); // FIXME
+    fn get_generics(&'ast self) -> &'ast dyn Generics<'ast>;
 }
 
+#[non_exhaustive]
+#[derive(Debug)]
 pub enum StructItemKind<'ast> {
     /// A unit struct like:
     /// ```rs
@@ -146,7 +161,7 @@ pub enum StructItemKind<'ast> {
     /// Note: In the Rust Reference, this struct expression is called `StructExprStruct`
     /// here it has been called `Field`, to indicate that it uses fiels as opposed to the
     /// other kinds
-    Field(&'ast [&'ast dyn StructField<'ast>])
+    Field(&'ast [&'ast dyn StructField<'ast>]),
 }
 
 /// A field in a struct of the from
@@ -162,12 +177,115 @@ pub trait StructField<'ast>: Debug {
     /// This will return the span of the field, exclusing the field attributes.
     fn get_span(&'ast self) -> &'ast dyn Span<'ast>;
 
-    fn get_visibility(&self) -> VisibilityKind<'ast>;
+    fn get_visibility(&'ast self) -> VisibilityKind<'ast>;
 
     fn get_name(&'ast self) -> Symbol;
 
     fn get_type(&'ast self) -> &'ast dyn Ty<'ast>;
 }
 
-// generics, Lifetime, Type, Const
-// - Bounds: Lifetime, Type
+pub trait Generics<'ast>: Debug {
+    fn get_generics(&self) -> &'ast [&'ast dyn GenericParam<'ast>];
+}
+
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct GenericParamId {
+    krate: u32,
+    index: u32,
+}
+
+#[cfg(feature = "driver-api")]
+impl GenericParamId {
+    #[must_use]
+    pub fn new(krate: u32, index: u32) -> Self {
+        Self { krate, index }
+    }
+
+    pub fn get_data(&self) -> (u32, u32) {
+        (self.krate, self.index)
+    }
+}
+
+/// A generic parameter for a function or struct.
+pub trait GenericParam<'ast>: Debug {
+    fn get_id(&self) -> GenericParamId;
+
+    /// This returns the span of generic identifier.
+    fn get_span(&self) -> &'ast dyn Span<'ast>;
+
+    /// This returns the name of the generic, this can retrun `None` for unnamed
+    /// or implicit generics. For lifetimes this will include the leading apostrophe.
+    ///
+    /// Examples: `T`, `'ast`
+    fn get_name(&self) -> Option<Symbol>;
+
+    fn get_kind(&self) -> GenericKind<'ast>;
+}
+
+#[non_exhaustive]
+#[derive(Debug)]
+pub enum GenericKind<'ast> {
+    Lifetime,
+    Type {
+        default: Option<&'ast dyn Ty<'ast>>,
+    },
+    Const {
+        ty: &'ast dyn Ty<'ast>,
+        default: Option<&'ast dyn AnonConst<'ast>>,
+    },
+}
+
+/// An anonymous constant.
+pub trait AnonConst<'ast>: Debug {
+    fn get_ty(&self) -> &'ast dyn Ty<'ast>;
+
+    // FIXME: This should return a expression once they are implemented, it would
+    // probably be good to have an additional `get_value_lit` that returns a literal,
+    // if the value can be represented as one.
+    fn get_value(&self);
+}
+
+/// This represents a single bound for a given generic. Several bounds will be split up
+/// into multiple predicates:
+///
+/// | Rust                   | Simplified Representation                              |
+/// | ---------------------- | ------------------------------------------------------ |
+/// | `'x: 'a + 'b + 'c`     | [Outlives('x: 'a), Outlives('x: 'b), Outlives('x: 'c)] |
+/// | `T: Debug + 'a`        | [TraitBound(`T: Debug`), LifetimeBound(`T: 'a`)]       |
+///
+/// FIXME: This is still missing a representation for predicates with for lifetimes like:
+/// `for<'a> T: 'a`
+#[non_exhaustive]
+#[derive(Debug)]
+pub enum GenericPredicate<'ast> {
+    /// A outlive bound like:
+    /// * `'a: 'x`
+    Outlives {
+        lifetime: GenericParamId,
+        outlived_by: GenericParamId,
+    },
+    /// A trait bound like:
+    /// * `T: Debug`
+    /// * `T: ?Sized`
+    /// * `I::Item: Copy`
+    TraitBound {
+        ty: &'ast dyn Ty<'ast>,
+        bound: TyId,
+        modifier: TraitBoundModifier,
+    },
+    /// A type lifetime bound like: `T: 'a`
+    LifetimeBound {
+        ty: &'ast dyn Ty<'ast>,
+        outlived_by: GenericParamId,
+    },
+}
+
+#[non_exhaustive]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum TraitBoundModifier {
+    /// A trait like: `T: Debug`
+    None,
+    /// An optional trait like: `T: ?Sized`
+    Maybe,
+}

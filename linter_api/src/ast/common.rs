@@ -30,7 +30,9 @@ pub struct BodyId {
 #[cfg(feature = "driver-api")]
 impl BodyId {
     #[must_use]
-    pub fn new(krate: CrateId, index: u32) -> Self { Self { krate, index } }
+    pub fn new(krate: CrateId, index: u32) -> Self {
+        Self { krate, index }
+    }
 
     pub fn get_data(&self) -> (CrateId, u32) {
         (self.krate, self.index)
@@ -110,7 +112,7 @@ pub trait Span<'ast>: Debug {
         self.snippet().unwrap_or_else(|| default.to_string())
     }
 
-    /// Same as [`snippet`], but it adapts the applicability level by following rules:
+    /// Same as [`Span::snippet`], but it adapts the applicability level by following rules:
     ///
     /// - Applicability level `Unspecified` will never be changed.
     /// - If the span is inside a macro, change the applicability level to `MaybeIncorrect`.
