@@ -82,3 +82,10 @@ pub fn lifetime_from_region<'ast, 'tcx>(
 ) -> &'ast dyn Lifetime<'ast> {
     cx.new_lifetime()
 }
+
+pub fn lifetime_from_hir<'ast, 'tcx>(
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    r_lt: rustc_hir::Lifetime,
+) -> &'ast dyn Lifetime<'ast> {
+    cx.new_lifetime()
+}

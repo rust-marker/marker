@@ -1,4 +1,4 @@
-use linter_api::ast::item::Item;
+use linter_api::ast::{item::{Item, ItemKind}, Symbol};
 
 use std::fmt::Debug;
 
@@ -41,7 +41,27 @@ impl<'ast, 'tcx> Item<'ast> for RustcItem<'ast, 'tcx> {
     }
 
     fn get_kind(&'ast self) -> linter_api::ast::item::ItemKind<'ast> {
-        todo!()
+        match self.inner.kind {
+            rustc_hir::ItemKind::ExternCrate(sym) => ItemKind::ExternCrate(sym.map(|s| Symbol::new(s.as_u32()))),
+
+            _ => unimplemented!()
+            // rustc_hir::ItemKind::Use(&'hir Path<'hir>, UseKind),
+            // rustc_hir::ItemKind::Static(&'hir Ty<'hir>, Mutability, BodyId),
+            // rustc_hir::ItemKind::Const(&'hir Ty<'hir>, BodyId),
+            // rustc_hir::ItemKind::Fn(FnSig<'hir>, Generics<'hir>, BodyId),
+            // rustc_hir::ItemKind::Macro(MacroDef, MacroKind),
+            // rustc_hir::ItemKind::Mod(Mod<'hir>),
+            // rustc_hir::ItemKind::ForeignMod { .. },
+            // rustc_hir::ItemKind::GlobalAsm(&'hir InlineAsm<'hir>),
+            // rustc_hir::ItemKind::TyAlias(&'hir Ty<'hir>, Generics<'hir>),
+            // rustc_hir::ItemKind::OpaqueTy(OpaqueTy<'hir>),
+            // rustc_hir::ItemKind::Enum(EnumDef<'hir>, Generics<'hir>),
+            // rustc_hir::ItemKind::Struct(VariantData<'hir>, Generics<'hir>),
+            // rustc_hir::ItemKind::Union(VariantData<'hir>, Generics<'hir>),
+            // rustc_hir::ItemKind::Trait(IsAuto, Unsafety, Generics<'hir>, GenericBounds<'hir>, &'hir [TraitItemRef]),
+            // rustc_hir::ItemKind::TraitAlias(Generics<'hir>, GenericBounds<'hir>),
+            // rustc_hir::ItemKind::Impl(Impl<'hir>),
+        }
     }
 
     fn get_attrs(&'ast self) -> &'ast [&dyn linter_api::ast::Attribute<'ast>] {

@@ -5,7 +5,7 @@ use linter_api::ast::{
 
 use crate::ast::lifetime_from_region;
 
-use super::rustc::RustcContext;
+use super::{rustc::RustcContext, lifetime_from_hir};
 
 pub struct RustcTy<'ast, 'tcx> {
     pub cx: &'ast RustcContext<'ast, 'tcx>,
@@ -47,6 +47,13 @@ fn mutability_from_rustc(rustc_mut: rustc_middle::mir::Mutability) -> Mutability
     match rustc_mut {
         rustc_middle::mir::Mutability::Mut => Mutability::Mut,
         rustc_middle::mir::Mutability::Not => Mutability::Not,
+    }
+}
+
+fn mutability_from_hir(hir_mut: rustc_hir::Mutability) -> Mutability {
+    match hir_mut {
+        rustc_hir::Mutability::Mut => Mutability::Mut,
+        rustc_hir::Mutability::Not => Mutability::Not,
     }
 }
 
@@ -95,7 +102,7 @@ pub fn create_from_rustc_ty<'ast, 'tcx>(
             let ty_lst = cx.alloc_slice_from_iter(lst.iter().map(|rustc_ty| create_from_rustc_ty(cx, rustc_ty)));
             TyKind::Tuple(ty_lst)
         },
-        rustc_middle::ty::TyKind::Array(r_ty, _) => TyKind::Array(create_from_rustc_ty(cx, *r_ty)),
+        rustc_middle::ty::TyKind::Array(r_ty, _fixme) => TyKind::Array(create_from_rustc_ty(cx, *r_ty)),
         rustc_middle::ty::TyKind::Slice(r_ty) => TyKind::Slice(create_from_rustc_ty(cx, *r_ty)),
 
         rustc_middle::ty::TyKind::Adt(adt, _) => TyKind::Adt(ty_id_from_def_id(adt.did())),
@@ -130,5 +137,61 @@ pub fn create_from_rustc_ty<'ast, 'tcx>(
     };
 
     // These types are never infered as they are created from the exect rustc type
+    cx.new_ty(kind, false)
+}
+
+pub fn create_from_hir_ty<'ast, 'tcx>(
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    rustc_ty: &rustc_hir::Ty<'tcx>,
+) -> &'ast dyn Ty<'ast> {
+    let kind = match &rustc_ty.kind {
+        rustc_hir::TyKind::Slice(r_ty) => TyKind::Slice(create_from_hir_ty(cx, r_ty)),
+        rustc_hir::TyKind::Array(r_ty, _fixme) => TyKind::Array(create_from_hir_ty(cx, r_ty)),
+        rustc_hir::TyKind::Ptr(mut_ty) => TyKind::RawPtr(create_from_hir_ty(cx, mut_ty.ty), mutability_from_hir(mut_ty.mutbl)),
+        rustc_hir::TyKind::Rptr(r_lt, mut_ty) => TyKind::Ref(
+            create_from_hir_ty(cx, mut_ty.ty),
+            mutability_from_hir(mut_ty.mutbl),
+            lifetime_from_hir(cx, *r_lt),
+        ),
+        // rustc_hir::TyKind::BareFn(&'hir BareFnTy<'hir>),
+        rustc_hir::TyKind::Never => TyKind::Never,
+        rustc_hir::TyKind::Tup(lst) => {
+            let ty_lst = cx.alloc_slice_from_iter(lst.iter().map(|rustc_ty| create_from_hir_ty(cx, rustc_ty)));
+            TyKind::Tuple(ty_lst)
+        },
+        rustc_hir::TyKind::Path(qpath) => {
+            match qpath {
+                rustc_hir::QPath::Resolved(_opt_r_ty, path) => {
+                    match path.res {
+                        rustc_hir::def::Res::PrimTy(_prim) => {
+                            todo!()
+                        },
+                        // Def(DefKind, DefId),
+                        // SelfTy {
+                        //     trait_: Option<DefId>,
+                        //     alias_to: Option<(DefId, bool)>,
+                        // },
+                        // ToolMod,
+                        // SelfCtor(DefId),
+                        // Local(Id),
+                        // NonMacroAttr(NonMacroAttrKind),
+                        rustc_hir::def::Res::Err => unreachable!("At this point all types should be resolved"),
+                        _ => todo!(),
+                    }
+                },
+                // rustc_hir::QPath::TypeRelative(&'hir Ty<'hir>, &'hir PathSegment<'hir>),
+                // rustc_hir::QPath::LangItem(LangItem, Span, Option<HirId>),
+                _ => unimplemented!()
+            }
+        },
+        // rustc_hir::TyKind::OpaqueDef(ItemId, &'hir [GenericArg<'hir>]),
+        // rustc_hir::TyKind::TraitObject(&'hir [PolyTraitRef<'hir>], Lifetime, TraitObjectSyntax),
+        // rustc_hir::TyKind::Typeof(AnonConst),
+        // rustc_hir::TyKind::Infer,
+        rustc_hir::TyKind::Err => unreachable!(),
+        _ => todo!(),
+    };
+
+    // FIXME: Set infer correctly
     cx.new_ty(kind, false)
 }
