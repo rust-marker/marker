@@ -72,6 +72,13 @@ pub enum TyKind<'ast> {
 
     DynTrait(TyId),
 
+    /// A type alias like `type Foo = Bar`. The [`TyId`] belongs to the aliased
+    /// type, in this case it would be the id of `Bar`.
+    TyAlias(TyId),
+
+    /// A type from an `extern` block
+    ForeignTy(TyId),
+
     /// This value is used a type contains a type that is only available on nightly
     Unsupported,
 }

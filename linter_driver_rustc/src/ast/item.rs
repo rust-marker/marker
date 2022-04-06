@@ -1,4 +1,7 @@
-use linter_api::ast::{item::{Item, ItemKind}, Symbol};
+use linter_api::ast::{
+    item::{Item, ItemKind},
+    Symbol,
+};
 
 use std::fmt::Debug;
 

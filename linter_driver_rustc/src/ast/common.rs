@@ -2,9 +2,15 @@
 
 use std::fmt::Debug;
 
-use linter_api::ast::{Attribute, Lifetime};
+use linter_api::ast::{Attribute, Lifetime, CrateId};
 
-use super::rustc::RustcContext;
+use super::{rustc::RustcContext, ToApi};
+
+impl<'ast, 'tcx> ToApi<'ast, 'tcx, CrateId> for rustc_hir::def_id::CrateNum {
+    fn to_api(&self, _cx: &'ast RustcContext<'ast, 'tcx>) -> CrateId {
+        CrateId::new(self.as_u32())
+    }
+}
 
 pub struct RustcSpan<'ast, 'tcx> {
     span: rustc_span::Span,
