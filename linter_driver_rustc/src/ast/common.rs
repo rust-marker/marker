@@ -2,7 +2,7 @@
 
 use std::fmt::Debug;
 
-use linter_api::ast::{Attribute, Lifetime, CrateId};
+use linter_api::ast::{Attribute, CrateId, Lifetime};
 
 use super::{rustc::RustcContext, ToApi};
 

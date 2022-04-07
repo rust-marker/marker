@@ -1,11 +1,11 @@
 use linter_api::ast::{
-    item::{Item, ItemKind},
-    Symbol,
+    item::{Item, ItemKind, StaticItem},
+    Symbol, ty::Mutability,
 };
 
 use std::fmt::Debug;
 
-use super::rustc::RustcContext;
+use super::{rustc::RustcContext, ToApi};
 
 pub struct RustcItem<'ast, 'tcx> {
     pub(crate) cx: &'ast RustcContext<'ast, 'tcx>,
@@ -46,10 +46,11 @@ impl<'ast, 'tcx> Item<'ast> for RustcItem<'ast, 'tcx> {
     fn get_kind(&'ast self) -> linter_api::ast::item::ItemKind<'ast> {
         match self.inner.kind {
             rustc_hir::ItemKind::ExternCrate(sym) => ItemKind::ExternCrate(sym.map(|s| Symbol::new(s.as_u32()))),
+            rustc_hir::ItemKind::Static(ty, _mutability, _body_id) => ItemKind::StaticItem(self.cx.alloc_with(|| RustcStaticItem::new(self.cx, ty))),
 
-            _ => unimplemented!()
+            // FIXME
+            _ => ItemKind::Union,
             // rustc_hir::ItemKind::Use(&'hir Path<'hir>, UseKind),
-            // rustc_hir::ItemKind::Static(&'hir Ty<'hir>, Mutability, BodyId),
             // rustc_hir::ItemKind::Const(&'hir Ty<'hir>, BodyId),
             // rustc_hir::ItemKind::Fn(FnSig<'hir>, Generics<'hir>, BodyId),
             // rustc_hir::ItemKind::Macro(MacroDef, MacroKind),
@@ -68,6 +69,30 @@ impl<'ast, 'tcx> Item<'ast> for RustcItem<'ast, 'tcx> {
     }
 
     fn get_attrs(&'ast self) -> &'ast [&dyn linter_api::ast::Attribute<'ast>] {
+        todo!()
+    }
+}
+
+#[derive(Debug)]
+struct RustcStaticItem<'ast, 'tcx> {
+    pub(crate) cx: &'ast RustcContext<'ast, 'tcx>,
+    pub(crate) ty: &'tcx rustc_hir::Ty<'tcx>,
+}
+
+impl<'ast, 'tcx> RustcStaticItem<'ast, 'tcx> {
+    fn new(cx: &'ast RustcContext<'ast, 'tcx>, ty: &'tcx rustc_hir::Ty<'tcx>) -> Self { Self { cx, ty } }
+}
+
+impl<'ast, 'tcx> StaticItem<'ast> for RustcStaticItem<'ast, 'tcx> {
+    fn get_type(&'ast self) -> &'ast dyn linter_api::ast::ty::Ty<'ast> {
+        self.ty.to_api(self.cx)
+    }
+
+    fn get_mutability(&self) -> Mutability {
+        todo!()
+    }
+
+    fn get_body_id(&self) -> linter_api::ast::BodyId {
         todo!()
     }
 }

@@ -18,6 +18,38 @@ pub struct RustcContext<'ast, 'tcx> {
     buffer: &'ast bumpalo::Bump,
 }
 
+impl<'ast, 'tcx> std::fmt::Debug for RustcContext<'ast, 'tcx> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RustcContext").finish()
+    }
+}
+
+impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
+    pub fn alloc_with<F, T>(&self, f: F) -> &T
+    where
+        F: FnOnce() -> T,
+    {
+        self.buffer.alloc_with(f)
+    }
+    
+    #[must_use]
+    pub fn alloc_slice_from_iter<T, I>(&self, iter: I) -> &mut [T]
+    where
+        I: IntoIterator<Item = T>,
+        I::IntoIter: ExactSizeIterator,
+    {
+        self.buffer.alloc_slice_fill_iter(iter)
+    }
+
+    #[must_use]
+    pub fn alloc_slice<T, F>(&self, len: usize, f: F) -> &'ast [T]
+    where
+        F: FnMut(usize) -> T,
+    {
+        self.buffer.alloc_slice_fill_with(len, f)
+    }
+}
+
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     #[must_use]
     pub fn new_span(&'ast self, span: rustc_span::Span) -> &'ast dyn Span<'ast> {
@@ -59,22 +91,7 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
         self.buffer.alloc_with(|| RustcLifetime {})
     }
 
-    #[must_use]
-    pub fn alloc_slice_from_iter<T, I>(&self, iter: I) -> &mut [T]
-    where
-        I: IntoIterator<Item = T>,
-        I::IntoIter: ExactSizeIterator,
-    {
-        self.buffer.alloc_slice_fill_iter(iter)
-    }
 
-    #[must_use]
-    pub fn alloc_slice<T, F>(&self, len: usize, f: F) -> &'ast [T]
-    where
-        F: FnMut(usize) -> T,
-    {
-        self.buffer.alloc_slice_fill_with(len, f)
-    }
 }
 
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {

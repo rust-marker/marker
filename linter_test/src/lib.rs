@@ -22,6 +22,11 @@ impl<'ast> LintPass<'ast> for TestLintPass {
     }
 
     fn check_item(&mut self, item: &'ast dyn linter_api::ast::item::Item<'ast>) {
-        println!("* {:?}", item.get_span().snippet());
+        match item.get_kind() {
+            linter_api::ast::item::ItemKind::StaticItem(item) => {
+                dbg!(item.get_type());
+            },
+            _ => {},
+        }
     }
 }
