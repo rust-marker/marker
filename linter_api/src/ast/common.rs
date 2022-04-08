@@ -15,7 +15,7 @@ impl CrateId {
         Self { index }
     }
 
-    pub fn get_data(&self) -> u32 {
+    pub fn get_data(self) -> u32 {
         self.index
     }
 }
@@ -34,7 +34,7 @@ impl BodyId {
         Self { krate, index }
     }
 
-    pub fn get_data(&self) -> (CrateId, u32) {
+    pub fn get_data(self) -> (CrateId, u32) {
         (self.krate, self.index)
     }
 }

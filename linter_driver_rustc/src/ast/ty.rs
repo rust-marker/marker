@@ -91,7 +91,7 @@ impl<'ast, 'tcx> ToApiTy<'ast, 'tcx, TyKind<'ast>> for rustc_hir::PrimTy {
             rustc_hir::PrimTy::Uint(inner) => TyKind::Numeric(inner.to_api_ty(cx, tyccx)),
             rustc_hir::PrimTy::Float(inner) => TyKind::Numeric(inner.to_api_ty(cx, tyccx)),
             rustc_hir::PrimTy::Str => TyKind::Textual(TextualKind::Str),
-            rustc_hir::PrimTy::Char => TyKind::Textual(TextualKind::Str),
+            rustc_hir::PrimTy::Char => TyKind::Textual(TextualKind::Char),
             rustc_hir::PrimTy::Bool => TyKind::Bool,
         }
     }
@@ -110,7 +110,7 @@ impl<'ast, 'tcx> ToApiTy<'ast, 'tcx, TyKind<'ast>> for rustc_hir::Path<'tcx> {
                     rustc_hir::def::DefKind::TyAlias => TyKind::TyAlias(def_id.to_api_ty(cx, tyccx)),
                     rustc_hir::def::DefKind::ForeignTy => TyKind::ForeignTy(def_id.to_api_ty(cx, tyccx)),
                     rustc_hir::def::DefKind::OpaqueTy => TyKind::ImplTrait(def_id.to_api_ty(cx, tyccx)),
-                    // FIXME Add rustc_hir::def::DefKind::TyParam,
+                    rustc_hir::def::DefKind::TyParam => panic!("{self:#?}"),
                     // FIXME Add rustc_hir::def::DefKind::ConstParam,
                     // FIXME Add rustc_hir::def::DefKind::LifetimeParam,
                     rustc_hir::def::DefKind::Mod
@@ -169,9 +169,7 @@ impl<'ast, 'tcx> ToApiTy<'ast, 'tcx, &'ast dyn Ty<'ast>> for rustc_hir::Ty<'tcx>
         let kind = match &self.kind {
             rustc_hir::TyKind::Slice(r_ty) => TyKind::Slice(r_ty.to_api_ty(cx, tyccx)),
             rustc_hir::TyKind::Array(r_ty, _fixme) => TyKind::Array(r_ty.to_api_ty(cx, tyccx)),
-            rustc_hir::TyKind::Ptr(mut_ty) => {
-                TyKind::RawPtr(mut_ty.ty.to_api_ty(cx, tyccx), mut_ty.mutbl.to_api(cx))
-            },
+            rustc_hir::TyKind::Ptr(mut_ty) => TyKind::RawPtr(mut_ty.ty.to_api_ty(cx, tyccx), mut_ty.mutbl.to_api(cx)),
             rustc_hir::TyKind::Rptr(r_lt, mut_ty) => TyKind::Ref(
                 mut_ty.ty.to_api_ty(cx, tyccx),
                 mut_ty.mutbl.to_api(cx),
@@ -194,7 +192,7 @@ impl<'ast, 'tcx> ToApiTy<'ast, 'tcx, &'ast dyn Ty<'ast>> for rustc_hir::Ty<'tcx>
             rustc_hir::TyKind::Err => unreachable!(),
             _ => todo!(),
         };
-        
+
         // FIXME: Set infer correctly
         cx.alloc_with(|| RustcTy::new(cx, kind, tyccx.is_infered))
     }
@@ -220,6 +218,11 @@ impl<'ast, 'tcx> RustcTy<'ast, 'tcx> {
     #[must_use]
     pub fn new(cx: &'ast RustcContext<'ast, 'tcx>, kind: TyKind<'ast>, is_infered: bool) -> Self {
         Self { cx, kind, is_infered }
+    }
+
+    #[must_use]
+    pub fn from_rustc_hir_ty(cx: &'ast RustcContext<'ast, 'tcx>, hir_ty: &'tcx rustc_hir::Ty<'tcx>) ->  &'ast dyn Ty<'ast> {
+        hir_ty.to_api(cx)
     }
 }
 
@@ -296,10 +299,9 @@ pub fn create_from_rustc_ty<'ast, 'tcx>(
 
         rustc_middle::ty::TyKind::Adt(adt, _) => TyKind::Adt(ty_id_from_def_id(adt.did())),
         rustc_middle::ty::TyKind::Foreign(did) => TyKind::Adt(ty_id_from_def_id(*did)),
-        rustc_middle::ty::TyKind::RawPtr(ty_and_mut) => TyKind::RawPtr(
-            create_from_rustc_ty(cx, ty_and_mut.ty),
-            ty_and_mut.mutbl.to_api(cx),
-        ),
+        rustc_middle::ty::TyKind::RawPtr(ty_and_mut) => {
+            TyKind::RawPtr(create_from_rustc_ty(cx, ty_and_mut.ty), ty_and_mut.mutbl.to_api(cx))
+        },
         rustc_middle::ty::TyKind::Ref(r_lt, r_ty, r_mut) => TyKind::Ref(
             create_from_rustc_ty(cx, *r_ty),
             r_mut.to_api(cx),
@@ -327,11 +329,4 @@ pub fn create_from_rustc_ty<'ast, 'tcx>(
 
     // These types are never infered as they are created from the exect rustc type
     cx.new_ty(kind, false)
-}
-
-pub fn create_from_hir_ty<'ast, 'tcx>(
-    _cx: &'ast RustcContext<'ast, 'tcx>,
-    _rustc_ty: &rustc_hir::Ty<'tcx>,
-) -> &'ast dyn Ty<'ast> {
-    todo!()
 }

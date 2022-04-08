@@ -2,7 +2,7 @@
 
 use std::fmt::Debug;
 
-use linter_api::ast::{Attribute, CrateId, Lifetime};
+use linter_api::ast::{Attribute, CrateId, Lifetime, Span, Symbol};
 
 use super::{rustc::RustcContext, ToApi};
 
@@ -12,6 +12,7 @@ impl<'ast, 'tcx> ToApi<'ast, 'tcx, CrateId> for rustc_hir::def_id::CrateNum {
     }
 }
 
+#[derive(Debug)]
 pub struct RustcSpan<'ast, 'tcx> {
     span: rustc_span::Span,
     cx: &'ast RustcContext<'ast, 'tcx>,
@@ -24,9 +25,9 @@ impl<'ast, 'tcx> RustcSpan<'ast, 'tcx> {
     }
 }
 
-impl Debug for RustcSpan<'_, '_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("RustcSpan").field("span", &self.span).finish()
+impl<'ast, 'tcx> ToApi<'ast, 'tcx, &'ast dyn Span<'ast>> for rustc_span::Span {
+    fn to_api(&self, cx: &'ast RustcContext<'ast, 'tcx>) -> &'ast dyn Span<'ast> {
+        cx.alloc_with(|| RustcSpan::new(*self, cx))
     }
 }
 
@@ -94,4 +95,10 @@ pub fn lifetime_from_hir<'ast, 'tcx>(
     r_lt: rustc_hir::Lifetime,
 ) -> &'ast dyn Lifetime<'ast> {
     cx.new_lifetime()
+}
+
+impl<'ast, 'tcx> ToApi<'ast, 'tcx, Symbol> for rustc_span::Symbol {
+    fn to_api(&self, _cx: &'ast RustcContext<'ast, 'tcx>) -> Symbol {
+        Symbol::new(self.as_u32())
+    }
 }

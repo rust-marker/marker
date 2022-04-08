@@ -70,7 +70,7 @@ pub enum ItemKind<'ast> {
     ConstItem(&'ast dyn ConstItem<'ast>),
     Function,
     TypeAlias,
-    Struct(&'ast dyn StaticItem<'ast>),
+    Struct(&'ast dyn StructItem<'ast>),
     Enumeration,
     Union,
     Trait,
@@ -133,7 +133,7 @@ pub trait StructItem<'ast>: Debug {
 
     fn get_kind(&'ast self) -> StructItemKind<'ast>;
 
-    fn get_generics(&'ast self) -> &'ast dyn Generics<'ast>;
+    fn get_generics(&'ast self) -> &'ast dyn GenericDefs<'ast>;
 }
 
 #[non_exhaustive]
@@ -151,7 +151,7 @@ pub enum StructItemKind<'ast> {
     /// ```
     /// This representation doesn't contain spans of each individual type, for diagnostics
     /// please span over the entire struct.
-    Tuple(&'ast [&'ast dyn Ty<'ast>]),
+    Tuple(&'ast [&'ast dyn StructField<'ast>]),
     /// A field struct like:
     /// ```rs
     /// struct Name {
@@ -181,28 +181,29 @@ pub trait StructField<'ast>: Debug {
 
     fn get_name(&'ast self) -> Symbol;
 
-    fn get_type(&'ast self) -> &'ast dyn Ty<'ast>;
+    fn get_ty(&'ast self) -> &'ast dyn Ty<'ast>;
 }
 
-pub trait Generics<'ast>: Debug {
+/// The generic definitions belonging to an item
+pub trait GenericDefs<'ast>: Debug {
     fn get_generics(&self) -> &'ast [&'ast dyn GenericParam<'ast>];
 }
 
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct GenericParamId {
-    krate: u32,
-    index: u32,
+    krate: usize,
+    index: usize,
 }
 
 #[cfg(feature = "driver-api")]
 impl GenericParamId {
     #[must_use]
-    pub fn new(krate: u32, index: u32) -> Self {
+    pub fn new(krate: usize, index: usize) -> Self {
         Self { krate, index }
     }
 
-    pub fn get_data(&self) -> (u32, u32) {
+    pub fn get_data(&self) -> (usize, usize) {
         (self.krate, self.index)
     }
 }
@@ -249,10 +250,10 @@ pub trait AnonConst<'ast>: Debug {
 /// This represents a single bound for a given generic. Several bounds will be split up
 /// into multiple predicates:
 ///
-/// | Rust                   | Simplified Representation                              |
-/// | ---------------------- | ------------------------------------------------------ |
-/// | `'x: 'a + 'b + 'c`     | [Outlives('x: 'a), Outlives('x: 'b), Outlives('x: 'c)] |
-/// | `T: Debug + 'a`        | [TraitBound(`T: Debug`), LifetimeBound(`T: 'a`)]       |
+/// | Rust                   | Simplified Representation                                  |
+/// | ---------------------- | ---------------------------------------------------------  |
+/// | `'x: 'a + 'b + 'c`     | ``[Outlives('x: 'a), Outlives('x: 'b), Outlives('x: 'c)]`` |
+/// | `T: Debug + 'a`        | ``[TraitBound(`T: Debug`), LifetimeBound(`T: 'a`)]``       |
 ///
 /// FIXME: This is still missing a representation for predicates with for lifetimes like:
 /// `for<'a> T: 'a`

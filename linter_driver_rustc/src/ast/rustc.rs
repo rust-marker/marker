@@ -25,15 +25,15 @@ impl<'ast, 'tcx> std::fmt::Debug for RustcContext<'ast, 'tcx> {
 }
 
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
-    pub fn alloc_with<F, T>(&self, f: F) -> &T
+    pub fn alloc_with<F, T>(&self, f: F) -> &'ast T
     where
         F: FnOnce() -> T,
     {
         self.buffer.alloc_with(f)
     }
-    
+
     #[must_use]
-    pub fn alloc_slice_from_iter<T, I>(&self, iter: I) -> &mut [T]
+    pub fn alloc_slice_from_iter<T, I>(&self, iter: I) -> &'ast [T]
     where
         I: IntoIterator<Item = T>,
         I::IntoIter: ExactSizeIterator,
@@ -90,8 +90,6 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     pub fn new_lifetime(&'ast self) -> &'ast dyn Lifetime<'ast> {
         self.buffer.alloc_with(|| RustcLifetime {})
     }
-
-
 }
 
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {

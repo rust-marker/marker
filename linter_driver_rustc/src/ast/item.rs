@@ -1,12 +1,12 @@
 use linter_api::ast::{
-    item::{Item, ItemKind, StaticItem},
-    Symbol, ty::Mutability,
+    item::{Item, ItemKind, StaticItem, StructField, StructItem, StructItemKind, GenericDefs, GenericParam, GenericParamId},
+    ty::Mutability,
+    Symbol, Span,
 };
-
-use std::fmt::Debug;
 
 use super::{rustc::RustcContext, ToApi};
 
+#[derive(Debug)]
 pub struct RustcItem<'ast, 'tcx> {
     pub(crate) cx: &'ast RustcContext<'ast, 'tcx>,
     pub(crate) inner: &'tcx rustc_hir::Item<'tcx>,
@@ -19,19 +19,13 @@ impl<'ast, 'tcx> RustcItem<'ast, 'tcx> {
     }
 }
 
-impl Debug for RustcItem<'_, '_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("RustcItem").field("inner", &self.inner).finish()
-    }
-}
-
 impl<'ast, 'tcx> Item<'ast> for RustcItem<'ast, 'tcx> {
     fn get_id(&self) -> linter_api::ast::item::ItemId {
         let (i1, i2) = self.inner.hir_id().index();
         linter_api::ast::item::ItemId::new(i1, i2)
     }
 
-    fn get_span(&'ast self) -> &'ast dyn linter_api::ast::Span<'ast> {
+    fn get_span(&'ast self) -> &'ast dyn Span<'ast> {
         self.cx.new_span(self.inner.span)
     }
 
@@ -44,9 +38,15 @@ impl<'ast, 'tcx> Item<'ast> for RustcItem<'ast, 'tcx> {
     }
 
     fn get_kind(&'ast self) -> linter_api::ast::item::ItemKind<'ast> {
-        match self.inner.kind {
+        match &self.inner.kind {
             rustc_hir::ItemKind::ExternCrate(sym) => ItemKind::ExternCrate(sym.map(|s| Symbol::new(s.as_u32()))),
-            rustc_hir::ItemKind::Static(ty, _mutability, _body_id) => ItemKind::StaticItem(self.cx.alloc_with(|| RustcStaticItem::new(self.cx, ty))),
+            rustc_hir::ItemKind::Static(ty, _mutability, _body_id) => {
+                ItemKind::StaticItem(self.cx.alloc_with(|| RustcStaticItem::new(self.cx, ty)))
+            },
+            rustc_hir::ItemKind::Struct(var_data, generics) => ItemKind::Struct(
+                self.cx
+                    .alloc_with(|| RustcStructItem::from_rustc(self.cx, var_data, generics)),
+            ),
 
             // FIXME
             _ => ItemKind::Union,
@@ -60,7 +60,6 @@ impl<'ast, 'tcx> Item<'ast> for RustcItem<'ast, 'tcx> {
             // rustc_hir::ItemKind::TyAlias(&'hir Ty<'hir>, Generics<'hir>),
             // rustc_hir::ItemKind::OpaqueTy(OpaqueTy<'hir>),
             // rustc_hir::ItemKind::Enum(EnumDef<'hir>, Generics<'hir>),
-            // rustc_hir::ItemKind::Struct(VariantData<'hir>, Generics<'hir>),
             // rustc_hir::ItemKind::Union(VariantData<'hir>, Generics<'hir>),
             // rustc_hir::ItemKind::Trait(IsAuto, Unsafety, Generics<'hir>, GenericBounds<'hir>, &'hir [TraitItemRef]),
             // rustc_hir::ItemKind::TraitAlias(Generics<'hir>, GenericBounds<'hir>),
@@ -80,7 +79,9 @@ struct RustcStaticItem<'ast, 'tcx> {
 }
 
 impl<'ast, 'tcx> RustcStaticItem<'ast, 'tcx> {
-    fn new(cx: &'ast RustcContext<'ast, 'tcx>, ty: &'tcx rustc_hir::Ty<'tcx>) -> Self { Self { cx, ty } }
+    fn new(cx: &'ast RustcContext<'ast, 'tcx>, ty: &'tcx rustc_hir::Ty<'tcx>) -> Self {
+        Self { cx, ty }
+    }
 }
 
 impl<'ast, 'tcx> StaticItem<'ast> for RustcStaticItem<'ast, 'tcx> {
@@ -94,5 +95,148 @@ impl<'ast, 'tcx> StaticItem<'ast> for RustcStaticItem<'ast, 'tcx> {
 
     fn get_body_id(&self) -> linter_api::ast::BodyId {
         todo!()
+    }
+}
+
+#[derive(Debug)]
+#[expect(unused)]
+struct RustcStructItem<'ast, 'tcx> {
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    rustc_var_data: &'tcx rustc_hir::VariantData<'tcx>,
+    rustc_generics: &'tcx rustc_hir::Generics<'tcx>,
+}
+
+impl<'ast, 'tcx> RustcStructItem<'ast, 'tcx> {
+    fn from_rustc(
+        cx: &'ast RustcContext<'ast, 'tcx>,
+        rustc_var_data: &'tcx rustc_hir::VariantData<'tcx>,
+        rustc_generics: &'tcx rustc_hir::Generics<'tcx>,
+    ) -> Self {
+        Self {
+            cx,
+            rustc_var_data,
+            rustc_generics,
+        }
+    }
+}
+
+impl<'ast, 'tcx> StructItem<'ast> for RustcStructItem<'ast, 'tcx> {
+    fn get_ty_id(&self) -> linter_api::ast::ty::TyId {
+        todo!()
+    }
+
+    fn get_kind(&'ast self) -> linter_api::ast::item::StructItemKind<'ast> {
+        match &self.rustc_var_data {
+            rustc_hir::VariantData::Struct(fields, _recovered) => {
+                StructItemKind::Field(RustcStructField::from_rustc_slice(self.cx, fields))
+            },
+            rustc_hir::VariantData::Tuple(fields, _constructor_id) => {
+                StructItemKind::Tuple(RustcStructField::from_rustc_slice(self.cx, fields))
+            },
+            rustc_hir::VariantData::Unit(_constructor_id) => StructItemKind::Unit,
+        }
+    }
+
+    fn get_generics(&'ast self) -> &'ast dyn linter_api::ast::item::GenericDefs<'ast> {
+        todo!()
+    }
+}
+
+#[derive(Debug)]
+struct RustcStructField<'ast, 'tcx> {
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    rustc_field_def: &'tcx rustc_hir::FieldDef<'tcx>,
+}
+
+impl<'ast, 'tcx> RustcStructField<'ast, 'tcx> {
+    fn from_rustc(cx: &'ast RustcContext<'ast, 'tcx>, rustc_field_def: &'tcx rustc_hir::FieldDef<'tcx>) -> Self {
+        Self { cx, rustc_field_def }
+    }
+
+    fn from_rustc_slice(
+        cx: &'ast RustcContext<'ast, 'tcx>,
+        field_defs: &'tcx [rustc_hir::FieldDef<'tcx>],
+    ) -> &'ast [&'ast dyn StructField<'ast>] {
+        cx.alloc_slice_from_iter(
+            field_defs
+                .iter()
+                .map(|def| cx.alloc_with(|| Self::from_rustc(cx, def)) as &'ast dyn StructField<'ast>),
+        )
+    }
+}
+
+impl<'ast, 'tcx> StructField<'ast> for RustcStructField<'ast, 'tcx> {
+    fn get_attributes(&'ast self) -> &'ast dyn linter_api::ast::Attribute {
+        todo!()
+    }
+
+    fn get_span(&'ast self) -> &'ast dyn Span<'ast> {
+        todo!()
+    }
+
+    fn get_visibility(&'ast self) -> linter_api::ast::item::VisibilityKind<'ast> {
+        todo!()
+    }
+
+    fn get_name(&'ast self) -> Symbol {
+        todo!()
+    }
+
+    fn get_ty(&'ast self) -> &'ast dyn linter_api::ast::ty::Ty<'ast> {
+        self.rustc_field_def.ty.to_api(self.cx)
+    }
+}
+
+#[derive(Debug)]
+#[expect(unused)]
+struct RustcGenericDefs<'ast, 'tcx> {
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    inner: &'tcx rustc_hir::Generics<'tcx>,
+}
+
+impl<'ast, 'tcx> GenericDefs<'ast> for RustcGenericDefs<'ast, 'tcx> {
+    fn get_generics(&self) -> &'ast [&'ast dyn GenericParam<'ast>] {
+        todo!()
+    }
+}
+
+#[derive(Debug)]
+struct RustcGenericParam<'ast, 'tcx> {
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    inner: &'tcx rustc_hir::GenericParam<'tcx>,
+}
+
+impl<'ast, 'tcx> GenericParam<'ast> for RustcGenericParam<'ast, 'tcx> {
+    fn get_id(&self) -> linter_api::ast::item::GenericParamId {
+        todo!()
+    }
+
+    fn get_span(&self) -> &'ast dyn Span<'ast> {
+        self.inner.span.to_api(self.cx)
+    }
+
+    fn get_name(&self) -> Option<Symbol> {
+        self.inner.name.to_api(self.cx)
+    }
+
+    fn get_kind(&self) -> linter_api::ast::item::GenericKind<'ast> {
+        todo!()
+    }
+}
+
+impl ToApi<'_, '_, GenericParamId> for rustc_hir::HirId {
+    fn to_api(&self, _cx: &RustcContext<'_, '_>) -> GenericParamId {
+        let (krate, index) = self.index();
+        GenericParamId::new(krate, index)
+    }
+}
+
+impl<'ast, 'tcx> ToApi<'ast, 'tcx, Option<Symbol>> for rustc_hir::ParamName {
+    fn to_api(&self, cx: &'ast RustcContext<'ast, 'tcx>) -> Option<Symbol> {
+        match self {
+            rustc_hir::ParamName::Plain(ident) => Some(ident.name.to_api(cx)),
+            rustc_hir::ParamName::Fresh(_) => None,
+            rustc_hir::ParamName::Error => unreachable!(),
+        }
     }
 }
