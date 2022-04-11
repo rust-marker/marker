@@ -221,7 +221,10 @@ impl<'ast, 'tcx> RustcTy<'ast, 'tcx> {
     }
 
     #[must_use]
-    pub fn from_rustc_hir_ty(cx: &'ast RustcContext<'ast, 'tcx>, hir_ty: &'tcx rustc_hir::Ty<'tcx>) ->  &'ast dyn Ty<'ast> {
+    pub fn from_rustc_hir_ty(
+        cx: &'ast RustcContext<'ast, 'tcx>,
+        hir_ty: &'tcx rustc_hir::Ty<'tcx>,
+    ) -> &'ast dyn Ty<'ast> {
         hir_ty.to_api(cx)
     }
 }

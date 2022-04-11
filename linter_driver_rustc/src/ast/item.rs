@@ -1,7 +1,9 @@
 use linter_api::ast::{
-    item::{Item, ItemKind, StaticItem, StructField, StructItem, StructItemKind, GenericDefs, GenericParam, GenericParamId},
+    item::{
+        GenericDefs, GenericParam, GenericParamId, Item, ItemKind, StaticItem, AdtField, StructItem, AdtVariantData,
+    },
     ty::Mutability,
-    Symbol, Span,
+    Span, Symbol,
 };
 
 use super::{rustc::RustcContext, ToApi};
@@ -125,15 +127,15 @@ impl<'ast, 'tcx> StructItem<'ast> for RustcStructItem<'ast, 'tcx> {
         todo!()
     }
 
-    fn get_kind(&'ast self) -> linter_api::ast::item::StructItemKind<'ast> {
+    fn get_kind(&'ast self) -> linter_api::ast::item::AdtVariantData<'ast> {
         match &self.rustc_var_data {
             rustc_hir::VariantData::Struct(fields, _recovered) => {
-                StructItemKind::Field(RustcStructField::from_rustc_slice(self.cx, fields))
+                AdtVariantData::Field(RustcStructField::from_rustc_slice(self.cx, fields))
             },
             rustc_hir::VariantData::Tuple(fields, _constructor_id) => {
-                StructItemKind::Tuple(RustcStructField::from_rustc_slice(self.cx, fields))
+                AdtVariantData::Tuple(RustcStructField::from_rustc_slice(self.cx, fields))
             },
-            rustc_hir::VariantData::Unit(_constructor_id) => StructItemKind::Unit,
+            rustc_hir::VariantData::Unit(_constructor_id) => AdtVariantData::Unit,
         }
     }
 
@@ -156,16 +158,16 @@ impl<'ast, 'tcx> RustcStructField<'ast, 'tcx> {
     fn from_rustc_slice(
         cx: &'ast RustcContext<'ast, 'tcx>,
         field_defs: &'tcx [rustc_hir::FieldDef<'tcx>],
-    ) -> &'ast [&'ast dyn StructField<'ast>] {
+    ) -> &'ast [&'ast dyn AdtField<'ast>] {
         cx.alloc_slice_from_iter(
             field_defs
                 .iter()
-                .map(|def| cx.alloc_with(|| Self::from_rustc(cx, def)) as &'ast dyn StructField<'ast>),
+                .map(|def| cx.alloc_with(|| Self::from_rustc(cx, def)) as &'ast dyn AdtField<'ast>),
         )
     }
 }
 
-impl<'ast, 'tcx> StructField<'ast> for RustcStructField<'ast, 'tcx> {
+impl<'ast, 'tcx> AdtField<'ast> for RustcStructField<'ast, 'tcx> {
     fn get_attributes(&'ast self) -> &'ast dyn linter_api::ast::Attribute {
         todo!()
     }
@@ -198,6 +200,10 @@ impl<'ast, 'tcx> GenericDefs<'ast> for RustcGenericDefs<'ast, 'tcx> {
     fn get_generics(&self) -> &'ast [&'ast dyn GenericParam<'ast>] {
         todo!()
     }
+
+    fn get_bounds(&self) {
+        todo!()
+    }
 }
 
 #[derive(Debug)]
@@ -226,8 +232,8 @@ impl<'ast, 'tcx> GenericParam<'ast> for RustcGenericParam<'ast, 'tcx> {
 
 impl ToApi<'_, '_, GenericParamId> for rustc_hir::HirId {
     fn to_api(&self, _cx: &RustcContext<'_, '_>) -> GenericParamId {
-        let (krate, index) = self.index();
-        GenericParamId::new(krate, index)
+        let (_krate, _index) = self.index();
+        todo!() // FML GenericParamId::new(krate, index)
     }
 }
 

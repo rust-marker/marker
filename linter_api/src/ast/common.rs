@@ -171,6 +171,40 @@ pub enum Applicability {
     Unspecified,
 }
 
+/// Used to indicate the safety. [`Safety::Default`] is the default safe rust mode.
+#[non_exhaustive]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum Safety {
+    Default,
+    Unsafe,
+}
+
+#[non_exhaustive]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum Constness {
+    Default,
+    Const,
+}
+
+#[non_exhaustive]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum Asyncness {
+    Default,
+    Async,
+}
+
+#[non_exhaustive]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum Abi {
+    /// This is the default of the current driver, the actual ABI can vary between
+    /// implementations. In general this means that the user has not selected a
+    /// specific ABI.
+    Default,
+    /// FIXME: Remove this variant. See
+    /// <https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/spec/abi/enum.Abi.html>
+    Other,
+}
+
 pub struct Spanned<'ast, T> {
     pub node: T,
     pub span: &'ast dyn Span<'ast>,
@@ -215,3 +249,5 @@ pub trait SimplePath<'ast>: Debug {
 pub trait Lifetime<'ast>: Debug {
     // FIXME: Add functions for lifetimes, see <https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.Region.html>
 }
+
+pub trait Pattern<'ast> {}

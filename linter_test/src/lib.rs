@@ -13,10 +13,6 @@ impl TestLintPass {
 }
 
 impl<'ast> LintPass<'ast> for TestLintPass {
-    fn test_call(&self, msg: &str) {
-        println!("Message from test: {}", msg);
-    }
-
     fn registered_lints(&self) -> Vec<&'static Lint> {
         vec![TEST_LINT]
     }
@@ -26,17 +22,16 @@ impl<'ast> LintPass<'ast> for TestLintPass {
             linter_api::ast::item::ItemKind::StaticItem(item) => {
                 dbg!(item.get_type());
             },
-            linter_api::ast::item::ItemKind::Struct(item) => {
-                match item.get_kind() {
-                    linter_api::ast::item::StructItemKind::Unit => {},
-                    linter_api::ast::item::StructItemKind::Tuple(fiels) | linter_api::ast::item::StructItemKind::Field(fiels) => {
-                        dbg!(item);
-                        for field in fiels {
-                            dbg!(field.get_ty());
-                        }
-                    },
-                    _ => todo!(),
-                }
+            linter_api::ast::item::ItemKind::Struct(item) => match item.get_kind() {
+                linter_api::ast::item::AdtVariantData::Unit => {},
+                linter_api::ast::item::AdtVariantData::Tuple(fiels)
+                | linter_api::ast::item::AdtVariantData::Field(fiels) => {
+                    dbg!(item);
+                    for field in fiels {
+                        dbg!(field.get_ty());
+                    }
+                },
+                _ => todo!(),
             },
             _ => {},
         }

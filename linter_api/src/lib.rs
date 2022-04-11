@@ -40,8 +40,6 @@ pub mod lint;
 /// The adapter will walk through the entire AST once and give each node to the
 /// registered [`LintPass`]es.
 pub trait LintPass<'ast> {
-    fn test_call(&self, msg: &str);
-
     fn registered_lints(&self) -> Vec<&'static Lint>;
 
     fn check_item(&mut self, _: &'ast dyn Item<'ast>) {}
