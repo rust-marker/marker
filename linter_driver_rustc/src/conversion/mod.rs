@@ -1,6 +1,6 @@
 #![expect(unused)]
 
-use crate::ast::{item::RustcItem, rustc::RustcContext};
+use crate::ast::{itemos::RustcItem, rustc::RustcContext};
 use linter_adapter::loader::ExternalLintPassRegistry;
 use linter_api::LintPass;
 

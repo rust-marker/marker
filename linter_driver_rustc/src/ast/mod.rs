@@ -4,6 +4,7 @@ pub use common::*;
 use self::rustc::RustcContext;
 
 pub mod item;
+pub mod itemos;
 pub mod rustc;
 pub mod ty;
 

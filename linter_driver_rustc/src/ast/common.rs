@@ -2,7 +2,7 @@
 
 use std::fmt::Debug;
 
-use linter_api::ast::{Attribute, CrateId, Lifetime, Span, Symbol};
+use linter_api::ast::{Attribute, CrateId, Lifetime, Path, PathResolution, PathSegment, Span, Symbol};
 
 use super::{rustc::RustcContext, ToApi};
 
@@ -70,6 +70,62 @@ impl<'ast, 'tcx> linter_api::ast::Span<'ast> for RustcSpan<'ast, 'tcx> {
 
     fn get_source_file(&self) -> Option<(String, u32, u32)> {
         todo!()
+    }
+}
+
+#[derive(Debug)]
+pub struct RustcPath<'ast, 'tcx> {
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    inner: &'tcx rustc_hir::Path<'tcx>,
+}
+
+impl<'ast, 'tcx> RustcPath<'ast, 'tcx> {
+    pub fn from_rustc(cx: &'ast RustcContext<'ast, 'tcx>, inner: &'tcx rustc_hir::Path<'tcx>) -> Self {
+        RustcPath { cx, inner }
+    }
+}
+
+impl<'ast, 'tcx> Path<'ast> for RustcPath<'ast, 'tcx> {
+    fn get_segments(&self) -> &[linter_api::ast::PathSegment] {
+        self.cx
+            .alloc_slice_from_iter(self.inner.segments.iter().map(|seg| seg.to_api(self.cx)))
+    }
+
+    fn resolve(&self) -> PathResolution {
+        self.inner.res.to_api(self.cx)
+    }
+}
+
+impl<'ast, 'tcx> ToApi<'ast, 'tcx, PathSegment> for rustc_hir::PathSegment<'tcx> {
+    fn to_api(&self, cx: &'ast RustcContext<'ast, 'tcx>) -> PathSegment {
+        let name = self.ident.name.to_api(cx);
+        let target = self.res.to_api(cx);
+        PathSegment::new(name, target)
+    }
+}
+
+impl<'ast, 'tcx> ToApi<'ast, 'tcx, PathResolution> for Option<rustc_hir::def::Res> {
+    fn to_api(&self, cx: &'ast RustcContext<'ast, 'tcx>) -> PathResolution {
+        match self {
+            Option::Some(res) => res.to_api(cx),
+            Option::None => PathResolution::Unresolved,
+        }
+    }
+}
+
+impl<'ast, 'tcx> ToApi<'ast, 'tcx, PathResolution> for rustc_hir::def::Res {
+    fn to_api(&self, cx: &'ast RustcContext<'ast, 'tcx>) -> PathResolution {
+        match self {
+            rustc_hir::def::Res::Def(_def_kind, def_id) => PathResolution::Item(def_id.to_api(cx)),
+            rustc_hir::def::Res::ToolMod => PathResolution::ToolItem,
+            // rustc_hir::def::Res::PrimTy(PrimTy),
+            // rustc_hir::def::Res::SelfTy {..},
+            // rustc_hir::def::Res::SelfCtor(DefId),
+            // rustc_hir::def::Res::Local(Id),
+            // rustc_hir::def::Res::NonMacroAttr(NonMacroAttrKind),
+            rustc_hir::def::Res::Err => PathResolution::Unresolved,
+            _ => todo!(),
+        }
     }
 }
 

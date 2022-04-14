@@ -238,12 +238,60 @@ pub trait Attribute<'ast>: Debug {
     // FIXME: Add attribute functions
 }
 
-pub trait SimplePath<'ast>: Debug {
-    fn get_segments(&'ast self) -> &'ast [Symbol];
+pub trait Path<'ast>: Debug {
+    fn get_segments(&self) -> &[PathSegment];
 
-    /// FIXME: There might be a better return type for this function. This also
-    /// has to work for attributes like `#![clippy::msrv = "1.0.1"]`
-    fn resolve(&'ast self) -> Option<ItemId>;
+    /// The item or object, that this path resolves to.
+    fn resolve(&self) -> PathResolution;
+}
+
+#[non_exhaustive]
+#[derive(Debug)]
+pub struct PathSegment {
+    /// This symbol can correspond to an empty string in some cases for example
+    /// for [turbo fish paths](https://turbo.fish/::%3Cchecker%3E).
+    name: Symbol,
+    /// The item or object, that this segment resolves to.
+    target: PathResolution,
+    // FIXME: Represent more complext paths like:
+    // ```rs
+    // <S as Type>::item
+    // Vec::<u8>::with_capacity(1024)
+    // Iterator<Item = u32>
+    // ```
+}
+
+#[cfg(feature = "driver-api")]
+impl PathSegment {
+    #[must_use]
+    pub fn new(name: Symbol, target: PathResolution) -> Self {
+        Self { name, target }
+    }
+}
+
+impl PathSegment {
+    pub fn get_name(&self) -> Symbol {
+        self.name
+    }
+
+    pub fn get_target(&self) -> &PathResolution {
+        &self.target
+    }
+}
+
+#[non_exhaustive]
+#[derive(Debug)]
+pub enum PathResolution {
+    Item(ItemId),
+    /// An path belonging to a tool. This will for instance be used for attributes
+    /// like:
+    /// ```ignore
+    /// #[clippy::msrv]
+    /// #[rustfmt::skip]
+    /// ```
+    ToolItem,
+    /// The path could not be resolved.
+    Unresolved,
 }
 
 pub trait Lifetime<'ast>: Debug {
