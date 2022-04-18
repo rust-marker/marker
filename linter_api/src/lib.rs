@@ -2,7 +2,7 @@
 #![warn(clippy::pedantic, clippy::index_refutable_slice)]
 #![allow(clippy::module_name_repetitions)]
 
-use ast::item::Item;
+use ast::item::{ItemType};
 use lint::Lint;
 
 extern crate rustc_ast;
@@ -42,5 +42,5 @@ pub mod lint;
 pub trait LintPass<'ast> {
     fn registered_lints(&self) -> Vec<&'static Lint>;
 
-    fn check_item(&mut self, _: &'ast dyn Item<'ast>) {}
+    fn check_item(&mut self, _item: ItemType<'ast>) {}
 }

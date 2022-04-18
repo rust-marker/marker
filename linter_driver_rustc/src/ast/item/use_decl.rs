@@ -9,12 +9,12 @@ use crate::ast::{rustc::RustcContext, RustcPath, ToApi};
 use std::fmt::Debug;
 
 #[derive(Debug)]
-pub struct RustcUseDeclItemData<'ast, 'tcx> {
+pub struct RustcUseDeclItemData<'ast> {
     use_kind: UseKind,
-    path: RustcPath<'ast, 'tcx>, // FIXME: Add rustc path wrapper
+    path: RustcPath<'ast>, // FIXME: Add rustc path wrapper
 }
 
-pub type RustcUseDeclItem<'ast, 'tcx> = RustcItem<'ast, 'tcx, RustcUseDeclItemData<'ast, 'tcx>>;
+pub type RustcUseDeclItem<'ast, 'tcx> = RustcItem<'ast, 'tcx, RustcUseDeclItemData<'ast>>;
 
 impl<'ast, 'tcx> RustcItemData<'ast> for RustcUseDeclItem<'ast, 'tcx> {
     fn as_api_item(&'ast self) -> ItemType<'ast> {
@@ -24,7 +24,7 @@ impl<'ast, 'tcx> RustcItemData<'ast> for RustcUseDeclItem<'ast, 'tcx> {
 
 impl<'ast, 'tcx> UseDeclItem<'ast> for RustcUseDeclItem<'ast, 'tcx> {
     fn get_path(&self) -> &dyn Path<'ast> {
-        todo!()
+        &self.data.path
     }
 
     fn get_use_kind(&self) -> UseKind {
@@ -32,11 +32,11 @@ impl<'ast, 'tcx> UseDeclItem<'ast> for RustcUseDeclItem<'ast, 'tcx> {
     }
 }
 
-impl<'ast, 'tcx> RustcUseDeclItemData<'ast, 'tcx> {
+impl<'ast, 'tcx> RustcUseDeclItemData<'ast> {
     pub fn data_from_rustc(
         cx: &'ast RustcContext<'ast, 'tcx>,
         item: &'tcx rustc_hir::Item<'tcx>,
-    ) -> Option<RustcUseDeclItemData<'ast, 'tcx>> {
+    ) -> Option<RustcUseDeclItemData<'ast>> {
         if let rustc_hir::ItemKind::Use(rustc_path, rustc_kind) = &item.kind {
             let use_kind = match rustc_kind {
                 rustc_hir::UseKind::Single => UseKind::Single,

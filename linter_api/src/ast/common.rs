@@ -242,7 +242,7 @@ pub trait Path<'ast>: Debug {
     fn get_segments(&self) -> &[PathSegment];
 
     /// The item or object, that this path resolves to.
-    fn resolve(&self) -> PathResolution;
+    fn resolve(&self) -> &PathResolution;
 }
 
 #[non_exhaustive]

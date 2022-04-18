@@ -1,4 +1,4 @@
-use linter_api::{lint::Lint, LintPass};
+use linter_api::{lint::Lint, LintPass, ast::item::ItemType};
 
 linter_api::interface::export_lint_pass!("linter_test", TestLintPass::new());
 
@@ -17,23 +17,7 @@ impl<'ast> LintPass<'ast> for TestLintPass {
         vec![TEST_LINT]
     }
 
-    fn check_item(&mut self, item: &'ast dyn linter_api::ast::item::Item<'ast>) {
-        match item.get_kind() {
-            linter_api::ast::item::ItemKind::StaticItem(item) => {
-                dbg!(item.get_type());
-            },
-            linter_api::ast::item::ItemKind::Struct(item) => match item.get_kind() {
-                linter_api::ast::item::AdtVariantData::Unit => {},
-                linter_api::ast::item::AdtVariantData::Tuple(fiels)
-                | linter_api::ast::item::AdtVariantData::Field(fiels) => {
-                    dbg!(item);
-                    for field in fiels {
-                        dbg!(field.get_ty());
-                    }
-                },
-                _ => todo!(),
-            },
-            _ => {},
-        }
+    fn check_item(&mut self, item: ItemType<'ast>) {
+        dbg!(item);
     }
 }

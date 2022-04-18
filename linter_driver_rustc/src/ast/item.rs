@@ -67,7 +67,7 @@ where
     }
 }
 
-fn from_rustc<'ast, 'tcx>(
+pub fn from_rustc<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
     item: &'tcx rustc_hir::Item<'tcx>,
 ) -> Option<ItemType<'ast>> {
