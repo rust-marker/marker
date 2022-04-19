@@ -4,14 +4,14 @@ use linter_api::ast::{
 };
 
 use super::{RustcItem, RustcItemData};
-use crate::ast::{rustc::RustcContext, RustcPath, ToApi};
+use crate::ast::{path_from_rustc, rustc::RustcContext, ToApi};
 
 use std::fmt::Debug;
 
 #[derive(Debug)]
 pub struct RustcUseDeclItemData<'ast> {
     use_kind: UseKind,
-    path: RustcPath<'ast>, // FIXME: Add rustc path wrapper
+    path: Path<'ast>,
 }
 
 pub type RustcUseDeclItem<'ast, 'tcx> = RustcItem<'ast, 'tcx, RustcUseDeclItemData<'ast>>;
@@ -23,7 +23,7 @@ impl<'ast, 'tcx> RustcItemData<'ast> for RustcUseDeclItem<'ast, 'tcx> {
 }
 
 impl<'ast, 'tcx> UseDeclItem<'ast> for RustcUseDeclItem<'ast, 'tcx> {
-    fn get_path(&self) -> &dyn Path<'ast> {
+    fn get_path(&self) -> &Path<'ast> {
         &self.data.path
     }
 
@@ -44,7 +44,7 @@ impl<'ast, 'tcx> RustcUseDeclItemData<'ast> {
                 rustc_hir::UseKind::ListStem => return None,
             };
 
-            let path = RustcPath::from_rustc(cx, rustc_path);
+            let path = path_from_rustc(cx, rustc_path);
 
             Some(RustcUseDeclItemData { use_kind, path })
         } else {

@@ -2,7 +2,7 @@
 
 use crate::ast::{itemos::RustcItem, rustc::RustcContext};
 use linter_adapter::loader::ExternalLintPassRegistry;
-use linter_api::{LintPass, ast::item::ItemType};
+use linter_api::{ast::item::ItemType, context::Context, LintPass};
 
 use rustc_hir::Item;
 use rustc_lint::{LateContext, LateLintPass};
@@ -26,19 +26,20 @@ impl<'tcx> LateLintPass<'tcx> for ConverterLintPass {
         let bump = Bump::new();
 
         let context = bump.alloc_with(|| RustcContext::new(cx.tcx, cx.lint_store, &bump));
+        let api_cx = context.alloc_with(|| Context::new(context));
 
         for rustc_item in map.items() {
             if let Some(item) = crate::ast::item::from_rustc(context, rustc_item) {
-                process_item(item);
+                process_item(api_cx, item);
             }
         }
     }
 }
 
-fn process_item<'ast>(item: ItemType<'ast>) {
+fn process_item<'ast>(cx: &'ast Context<'ast>, item: ItemType<'ast>) {
     let mut registry = ExternalLintPassRegistry::default();
     registry.load_external_lib("./target/debug/liblinter_test.so").unwrap();
 
     let pass = &mut registry.lint_passes[0];
-    pass.check_item(item);
+    pass.check_item(cx, item);
 }

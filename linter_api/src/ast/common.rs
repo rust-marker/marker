@@ -238,11 +238,27 @@ pub trait Attribute<'ast>: Debug {
     // FIXME: Add attribute functions
 }
 
-pub trait Path<'ast>: Debug {
-    fn get_segments(&self) -> &[PathSegment];
+#[derive(Debug)]
+pub struct Path<'ast> {
+    segments: &'ast [PathSegment],
+    target: PathResolution,
+}
 
-    /// The item or object, that this path resolves to.
-    fn resolve(&self) -> &PathResolution;
+impl<'ast> Path<'ast> {
+    pub fn get_segments(&self) -> &[PathSegment] {
+        self.segments
+    }
+
+    pub fn resolve(&self) -> &PathResolution {
+        &self.target
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> Path<'ast> {
+    pub fn new(segments: &'ast [PathSegment], target: PathResolution) -> Self {
+        Self { segments, target }
+    }
 }
 
 #[non_exhaustive]

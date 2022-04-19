@@ -73,29 +73,13 @@ impl<'ast, 'tcx> linter_api::ast::Span<'ast> for RustcSpan<'ast, 'tcx> {
     }
 }
 
-#[derive(Debug)]
-pub struct RustcPath<'ast> {
-    segments: &'ast [linter_api::ast::PathSegment],
-    target: PathResolution,
-}
-
-impl<'ast, 'tcx> RustcPath<'ast> {
-    pub fn from_rustc(cx: &'ast RustcContext<'ast, 'tcx>, inner: &'tcx rustc_hir::Path<'tcx>) -> Self {
-        let target = inner.res.to_api(cx);
-        let segments = cx
-        .alloc_slice_from_iter(inner.segments.iter().map(|seg| seg.to_api(cx)));
-        RustcPath { target, segments }
-    }
-}
-
-impl<'ast> Path<'ast> for RustcPath<'ast> {
-    fn get_segments(&self) -> &[linter_api::ast::PathSegment] {
-        self.segments
-    }
-
-    fn resolve(&self) -> &PathResolution {
-        &self.target
-    }
+pub fn path_from_rustc<'ast, 'tcx>(
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    inner: &'tcx rustc_hir::Path<'tcx>,
+) -> Path<'ast> {
+    let target = inner.res.to_api(cx);
+    let segments = cx.alloc_slice_from_iter(inner.segments.iter().map(|seg| seg.to_api(cx)));
+    Path::new(segments, target)
 }
 
 impl<'ast, 'tcx> ToApi<'ast, 'tcx, PathSegment> for rustc_hir::PathSegment<'tcx> {

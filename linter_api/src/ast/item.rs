@@ -27,7 +27,7 @@ impl ItemId {
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
-    /// and to request items from the [`LintPassContext`][`crate::context::LintPassContext`].
+    /// and to request items from the [`Context`][`crate::context::Context`].
     fn get_id(&self) -> ItemId;
 
     /// The [`Span`] of the entire item. This span should be used for general item related
@@ -35,7 +35,7 @@ pub trait ItemData<'ast>: Debug {
     fn get_span(&self) -> &'ast dyn Span<'ast>;
 
     /// The visibility of this item.
-    fn get_vis(&self) -> VisibilityKind<'ast>;
+    fn get_vis(&self) -> &VisibilityKind<'ast>;
 
     /// This function can return `None` if the item was generated and has no real name
     fn get_name(&self) -> Option<Symbol>;
@@ -70,7 +70,7 @@ pub enum ItemType<'ast> {
 impl<'ast> ItemType<'ast> {
     impl_item_type_fn!(get_id() -> ItemId);
     impl_item_type_fn!(get_span() -> &'ast dyn Span<'ast>);
-    impl_item_type_fn!(get_vis() -> VisibilityKind<'ast>);
+    impl_item_type_fn!(get_vis() -> &VisibilityKind<'ast>);
     impl_item_type_fn!(get_name() -> Option<Symbol>);
     impl_item_type_fn!(get_attrs() -> ());
 }
@@ -93,7 +93,46 @@ macro_rules! impl_item_type_fn {
     };
 }
 
-pub(crate) use impl_item_type_fn;
+use impl_item_type_fn;
+
+#[derive(Debug)]
+struct ItemBase<'ast, T: ItemBaseData<'ast>> {
+    id: ItemId,
+    span: &'ast dyn Span<'ast>,
+    vis: VisibilityKind<'ast>,
+    name: Option<Symbol>,
+    data: T,
+}
+
+trait ItemBaseData<'ast>: Debug {
+    fn as_item(&self) -> ItemType<'ast>;
+}
+
+impl<'ast, T: ItemBaseData<'ast>> ItemData<'ast> for ItemBase<'ast, T> {
+    fn get_id(&self) -> ItemId {
+        self.id
+    }
+
+    fn get_span(&self) -> &'ast dyn Span<'ast> {
+        self.span
+    }
+
+    fn get_vis(&self) -> &VisibilityKind<'ast> {
+        &self.vis
+    }
+
+    fn get_name(&self) -> Option<Symbol> {
+        self.name
+    }
+
+    fn as_item(&'ast self) -> ItemType<'ast> {
+        self.data.as_item()
+    }
+
+    fn get_attrs(&self) {
+        todo!()
+    }
+}
 
 pub trait ModItem<'ast>: ItemData<'ast> {
     fn get_inner_attrs(&self); // FIXME: Add return type -> [&dyn Attribute<'ast>];
@@ -132,7 +171,7 @@ pub trait ExternCrateItem<'ast>: ItemData<'ast> {
 pub trait UseDeclItem<'ast>: ItemData<'ast> {
     /// Returns the path of this `use` item. For blob imports the `*` will
     /// be included in the simple path.
-    fn get_path(&self) -> &dyn Path<'ast>;
+    fn get_path(&self) -> &Path<'ast>;
 
     fn get_use_kind(&self) -> UseKind;
 }
@@ -421,7 +460,7 @@ pub enum VisibilityKind<'ast> {
     PubSelf,
     PubCrate,
     /// FIXME: Add a path value to this
-    PubPath(&'ast dyn Path<'ast>),
+    PubPath(&'ast Path<'ast>),
     PubSuper,
 }
 
@@ -453,7 +492,7 @@ pub enum ItemKind<'ast> {
     /// An `extern crate` item, with an optional *original* create name. The given
     /// and used name is the identifier of the [`Item`].
     ExternCrate(Option<Symbol>),
-    UseDeclaration(&'ast dyn Path<'ast>, UseKind),
+    UseDeclaration(&'ast Path<'ast>, UseKind),
     StaticItem(&'ast dyn StaticItem<'ast>),
     ConstItem(&'ast dyn ConstItem<'ast>),
     Function,

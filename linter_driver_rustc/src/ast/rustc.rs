@@ -1,10 +1,13 @@
 use rustc_lint::LintStore;
 use rustc_middle::ty::TyCtxt;
 
-use linter_api::ast::{
-    item::{Visibility, VisibilityKind},
-    ty::{Ty, TyKind},
-    Ident, Lifetime, Span, Symbol,
+use linter_api::{
+    ast::{
+        item::{Visibility, VisibilityKind},
+        ty::{Ty, TyKind},
+        Ident, Lifetime, Span, Symbol,
+    },
+    context::DriverContext,
 };
 
 use super::{ty::RustcTy, RustcLifetime, RustcSpan};
@@ -13,7 +16,7 @@ use super::{ty::RustcTy, RustcLifetime, RustcSpan};
 pub struct RustcContext<'ast, 'tcx> {
     pub(crate) tcx: TyCtxt<'tcx>,
     pub(crate) lint_store: &'tcx LintStore,
-    /// All items should be created using the `new_*` functions. This ensures
+    /// All items should be created using the `alloc_*` functions. This ensures
     /// that we can later change the way we allocate and manage our memory
     buffer: &'ast bumpalo::Bump,
 }
@@ -23,6 +26,8 @@ impl<'ast, 'tcx> std::fmt::Debug for RustcContext<'ast, 'tcx> {
         f.debug_struct("RustcContext").finish()
     }
 }
+
+impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {}
 
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     pub fn alloc_with<F, T>(&self, f: F) -> &'ast T

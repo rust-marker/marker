@@ -1,4 +1,4 @@
-use linter_api::{lint::Lint, LintPass, ast::item::ItemType};
+use linter_api::{ast::item::ItemType, context::Context, lint::Lint, LintPass};
 
 linter_api::interface::export_lint_pass!("linter_test", TestLintPass::new());
 
@@ -17,7 +17,7 @@ impl<'ast> LintPass<'ast> for TestLintPass {
         vec![TEST_LINT]
     }
 
-    fn check_item(&mut self, item: ItemType<'ast>) {
+    fn check_item(&mut self, _cx: &Context<'ast>, item: ItemType<'ast>) {
         dbg!(item);
     }
 }

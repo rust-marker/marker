@@ -45,13 +45,14 @@ where
         self.cx.new_span(self.item.span)
     }
 
-    fn get_vis(&self) -> VisibilityKind<'ast> {
-        match self.item.vis.node {
-            rustc_hir::VisibilityKind::Public => VisibilityKind::PubSelf,
-            rustc_hir::VisibilityKind::Crate(..) => VisibilityKind::PubCrate,
-            rustc_hir::VisibilityKind::Restricted { .. } => unimplemented!("VisibilityKind::PubPath"),
-            rustc_hir::VisibilityKind::Inherited => VisibilityKind::PubSuper,
-        }
+    fn get_vis(&self) -> &VisibilityKind<'ast> {
+        // match self.item.vis.node {
+        //     rustc_hir::VisibilityKind::Public => VisibilityKind::PubSelf,
+        //     rustc_hir::VisibilityKind::Crate(..) => VisibilityKind::PubCrate,
+        //     rustc_hir::VisibilityKind::Restricted { .. } => unimplemented!("VisibilityKind::PubPath"),
+        //     rustc_hir::VisibilityKind::Inherited => VisibilityKind::PubSuper,
+        // }
+        todo!()
     }
 
     fn get_name(&self) -> Option<Symbol> {
