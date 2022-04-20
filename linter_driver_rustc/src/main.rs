@@ -4,14 +4,6 @@
 #![warn(clippy::pedantic, clippy::index_refutable_slice)]
 #![allow(clippy::module_name_repetitions)]
 
-use std::env;
-use std::ops::Deref;
-use std::path::{Path, PathBuf};
-use std::process::{exit, Command};
-
-pub mod ast;
-mod conversion;
-
 extern crate rustc_ast;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
@@ -22,6 +14,14 @@ extern crate rustc_lint;
 extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_span;
+
+use std::env;
+use std::ops::Deref;
+use std::path::{Path, PathBuf};
+use std::process::{exit, Command};
+
+pub mod ast;
+mod conversion;
 
 use rustc_lint::LateLintPass;
 
@@ -142,50 +142,15 @@ fn main() {
     exit(rustc_driver::catch_with_exit_code(|| {
         let mut orig_args: Vec<String> = env::args().collect();
 
-        // Get the sysroot, looking from most specific to this invocation to the least:
-        // - command line
-        // - runtime environment
-        //    - SYSROOT
-        //    - RUSTUP_HOME, MULTIRUST_HOME, RUSTUP_TOOLCHAIN, MULTIRUST_TOOLCHAIN
-        // - sysroot from rustc in the path
-        // - compile-time environment
-        //    - SYSROOT
-        //    - RUSTUP_HOME, MULTIRUST_HOME, RUSTUP_TOOLCHAIN, MULTIRUST_TOOLCHAIN
         let sys_root_arg = arg_value(&orig_args, "--sysroot", |_| true);
         let have_sys_root_arg = sys_root_arg.is_some();
-        let sys_root = sys_root_arg
-            .map(PathBuf::from)
-            .or_else(|| std::env::var("SYSROOT").ok().map(PathBuf::from))
-            .or_else(|| {
-                let home = std::env::var("RUSTUP_HOME")
-                    .or_else(|_| std::env::var("MULTIRUST_HOME"))
-                    .ok();
-                let toolchain = std::env::var("RUSTUP_TOOLCHAIN")
-                    .or_else(|_| std::env::var("MULTIRUST_TOOLCHAIN"))
-                    .ok();
-                toolchain_path(home, toolchain)
-            })
-            .or_else(|| {
-                Command::new("rustc")
-                    .arg("--print")
-                    .arg("sysroot")
-                    .output()
-                    .ok()
-                    .and_then(|out| String::from_utf8(out.stdout).ok())
-                    .map(|s| PathBuf::from(s.trim()))
-            })
-            .or_else(|| option_env!("SYSROOT").map(PathBuf::from))
-            .or_else(|| {
-                let home = option_env!("RUSTUP_HOME")
-                    .or(option_env!("MULTIRUST_HOME"))
-                    .map(ToString::to_string);
-                let toolchain = option_env!("RUSTUP_TOOLCHAIN")
-                    .or(option_env!("MULTIRUST_TOOLCHAIN"))
-                    .map(ToString::to_string);
-                toolchain_path(home, toolchain)
-            })
-            .map(|pb| pb.to_string_lossy().to_string())
-            .expect("need to specify SYSROOT env var during linter compilation, or use rustup or multirust");
+        let sys_root = find_sys_root(sys_root_arg);
+
+        // Further invocation of rustc require the `--sysroot` flag. We add it here
+        // in preparation.
+        if !have_sys_root_arg {
+            orig_args.extend(vec!["--sysroot".into(), sys_root]);
+        };
 
         // make "linter-driver --rustc" work like a subcommand that passes further args to "rustc"
         // for example `linter-driver --rustc --version` will print the rustc version that linter-driver
@@ -194,13 +159,7 @@ fn main() {
             orig_args.remove(pos);
             orig_args[0] = "rustc".to_string();
 
-            // if we call "rustc", we need to pass --sysroot here as well
-            let mut args: Vec<String> = orig_args.clone();
-            if !have_sys_root_arg {
-                args.extend(vec!["--sysroot".into(), sys_root]);
-            };
-
-            return rustc_driver::RunCompiler::new(&args, &mut DefaultCallbacks).run();
+            return rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks).run();
         }
 
         if orig_args.iter().any(|a| a == "--version" || a == "-V") {
@@ -223,14 +182,6 @@ fn main() {
             exit(0);
         }
 
-        // this conditional check for the --sysroot flag is there so users can call
-        // `linter_driver` directly
-        // without having to pass --sysroot or anything
-        let mut args: Vec<String> = orig_args.clone();
-        if !have_sys_root_arg {
-            args.extend(vec!["--sysroot".into(), sys_root]);
-        };
-
         // We enable Linter if one of the following conditions is met
         // - IF Linter is run on its test suite OR
         // - IF Linter is run on the main crate, not on deps (`!cap_lints_allow`) THEN
@@ -240,11 +191,55 @@ fn main() {
         // FIXME: Add this:
         //  let in_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
 
-        let lints_enabled = !cap_lints_allow;
-        if lints_enabled {
-            rustc_driver::RunCompiler::new(&args, &mut LinterCallback).run()
+        if !cap_lints_allow {
+            rustc_driver::RunCompiler::new(&orig_args, &mut LinterCallback).run()
         } else {
-            rustc_driver::RunCompiler::new(&args, &mut DefaultCallbacks).run()
+            rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks).run()
         }
     }))
+}
+
+/// Get the sysroot, looking from most specific to this invocation to the least:
+/// - command line
+/// - runtime environment
+///    - `SYSROOT`
+///    - `RUSTUP_HOME`, `MULTIRUST_HOME`, `RUSTUP_TOOLCHAIN`, `MULTIRUST_TOOLCHAIN`
+/// - sysroot from rustc in the path
+/// - compile-time environment
+///    - `SYSROOT`
+///    - `RUSTUP_HOME`, `MULTIRUST_HOME`, `RUSTUP_TOOLCHAIN`, `MULTIRUST_TOOLCHAIN`
+fn find_sys_root(sys_root_arg: Option<&str>) -> String {
+    sys_root_arg
+        .map(PathBuf::from)
+        .or_else(|| std::env::var("SYSROOT").ok().map(PathBuf::from))
+        .or_else(|| {
+            let home = std::env::var("RUSTUP_HOME")
+                .or_else(|_| std::env::var("MULTIRUST_HOME"))
+                .ok();
+            let toolchain = std::env::var("RUSTUP_TOOLCHAIN")
+                .or_else(|_| std::env::var("MULTIRUST_TOOLCHAIN"))
+                .ok();
+            toolchain_path(home, toolchain)
+        })
+        .or_else(|| {
+            Command::new("rustc")
+                .arg("--print")
+                .arg("sysroot")
+                .output()
+                .ok()
+                .and_then(|out| String::from_utf8(out.stdout).ok())
+                .map(|s| PathBuf::from(s.trim()))
+        })
+        .or_else(|| option_env!("SYSROOT").map(PathBuf::from))
+        .or_else(|| {
+            let home = option_env!("RUSTUP_HOME")
+                .or(option_env!("MULTIRUST_HOME"))
+                .map(ToString::to_string);
+            let toolchain = option_env!("RUSTUP_TOOLCHAIN")
+                .or(option_env!("MULTIRUST_TOOLCHAIN"))
+                .map(ToString::to_string);
+            toolchain_path(home, toolchain)
+        })
+        .map(|pb| pb.to_string_lossy().to_string())
+        .expect("need to specify SYSROOT env var during linter compilation, or use rustup or multirust")
 }
