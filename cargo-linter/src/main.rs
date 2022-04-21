@@ -1,13 +1,44 @@
+#![feature(once_cell)]
 #![warn(clippy::pedantic, clippy::index_refutable_slice)]
 
-use std::{path::PathBuf, process::exit};
+use std::{
+    fs::create_dir_all,
+    lazy::Lazy,
+    path::{Path, PathBuf},
+    process::{exit, Command},
+};
 
-use clap::{self, Arg, ArgMatches};
+use clap::{self, Arg};
 
 const VERSION: &str = concat!("cargo-linter ", env!("CARGO_PKG_VERSION"));
+const LINT_KRATES_BASE_DIR: &str = "./target/linter";
+const LINT_KRATES_TARGET_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("build", "target"));
+const LINT_KRATES_OUT_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("lints", "out"));
+
+/// This creates the absolut path for a given build directory.
+fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
+    if !Path::new("./target").exists() {
+        // FIXME: This is a temporary check to ensure that we don't randomly create files.
+        // This should not be part of the release and maybe be replaced by something more
+        // elegant or removed completly.
+        eprintln!("No target directory exists, most likely running in the wrong directory");
+        exit(-1);
+    }
+
+    let path = Path::new(LINT_KRATES_BASE_DIR).join(dir_name);
+    if !path.exists() {
+        create_dir_all(&path).expect(&format!("Error while creating lint krate {info_name} directory"));
+    }
+
+    std::fs::canonicalize(path)
+        .expect("This should find the directory, as we just created it")
+        .display()
+        .to_string()
+}
 
 fn main() {
-    let matches = get_clap_config();
+    let args = std::env::args();
+    let matches = get_clap_config().get_matches_from(args.take_while(|s| s != "--"));
     if matches.is_present("version") {
         let version_info = env!("CARGO_PKG_VERSION");
         println!("{}", version_info);
@@ -17,9 +48,74 @@ fn main() {
     let verbose = matches.is_present("verbose");
     validate_driver(verbose);
 
-    // TODO xFrednet: check lint paths, compile lints, register lints in env
+    let mut lint_crates = vec![];
+    if let Some(cmd_lint_crates) = matches.values_of("lints") {
+        println!();
+        println!("Compiling Lints:");
+        lint_crates.reserve(cmd_lint_crates.len());
+        for krate in cmd_lint_crates {
+            if let Ok(krate_dir) = prepare_lint_crate(krate, verbose) {
+                lint_crates.push(krate_dir);
+            }
+        }
+    }
+    // TODO xFrednet: register lints in env
+    println!("Lints: {lint_crates:#?}");
 
+    // TODO xFrednet: Run cargo with wrapper
     println!("Hello from cargo-linter");
+}
+
+/// This function ensures that the given crate is compiled as a library and
+/// returns the compiled library path if everything was successful. Otherwise
+/// it'll issue a warning and return `Err`
+fn prepare_lint_crate(krate: &str, verbose: bool) -> Result<String, ()> {
+    let path = Path::new(krate);
+    if !path.exists() {
+        eprintln!("The given lint can't be found, searched at: `{}`", path.display());
+        return Err(());
+    }
+
+    let mut cmd = Command::new("cargo");
+    if verbose {
+        cmd.arg("--verbose");
+    }
+    let exit_status = cmd
+        .current_dir(std::fs::canonicalize(&path).unwrap())
+        .args([
+            "build",
+            "--lib",
+            "--target-dir",
+            &*LINT_KRATES_TARGET_DIR,
+            "-Z",
+            "unstable-options",
+            "--out-dir",
+            &*LINT_KRATES_OUT_DIR,
+        ])
+        .spawn()
+        .expect("could not run cargo")
+        .wait()
+        .expect("failed to wait for cargo?");
+
+    if !exit_status.success() {
+        return Err(());
+    }
+
+    // FIXME: currently this expect, that the lib name is the same as the crate dir.
+    let file_name = format!(
+        "lib{}",
+        path.file_name().map(|x| x.to_str()).flatten().unwrap_or_default()
+    );
+    let mut krate_path = Path::new(&*LINT_KRATES_OUT_DIR).join(file_name);
+
+    #[cfg(target_os = "linux")]
+    krate_path.set_extension("so");
+    #[cfg(target_os = "macos")]
+    krate_path.set_extension("dylib");
+    #[cfg(target_os = "windows")]
+    krate_path.set_extension("dll");
+
+    Ok(krate_path.display().to_string())
 }
 
 fn get_driver_path() -> PathBuf {
@@ -28,7 +124,7 @@ fn get_driver_path() -> PathBuf {
         .expect("current executable path invalid")
         .with_file_name("linter_driver_rustc");
 
-    #[cfg(feature = "windows")]
+    #[cfg(target_os = "windows")]
     path.with_extension("exe");
 
     path
@@ -38,9 +134,8 @@ fn get_driver_path() -> PathBuf {
 fn validate_driver(verbose: bool) {
     #[cfg(feature = "dev-build")]
     {
-        use std::process::Command;
-
         println!();
+        println!("Compiling Driver:");
         let mut cmd = Command::new("cargo");
         if verbose {
             cmd.arg("--verbose");
@@ -66,7 +161,7 @@ fn validate_driver(verbose: bool) {
     }
 }
 
-fn get_clap_config() -> ArgMatches {
+fn get_clap_config() -> clap::Command<'static> {
     clap::Command::new(VERSION)
         .arg(
             Arg::new("version")
@@ -82,10 +177,17 @@ fn get_clap_config() -> ArgMatches {
         )
         .arg(
             Arg::new("lints")
-                .short("l")
+                .short('l')
                 .long("lints")
                 .multiple_values(true)
+                .takes_value(true)
                 .help("Defines a set of lints crates that should be used"),
         )
-        .get_matches()
+        .after_help(AFTER_HELP_MSG)
+        .override_usage("cargo-linter [OPTIONS] -- <CARGO ARGS>")
 }
+
+const AFTER_HELP_MSG: &str = r#"CARGO ARGS
+    All arguments after double dashes(`--`) will be passed to cargo.
+    These options are the same as for `cargo check`.
+"#;
