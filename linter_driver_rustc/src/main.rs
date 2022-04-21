@@ -119,7 +119,7 @@ Common options:
     -h, --help               Print this message
         --rustc              Pass all args to rustc
     -V, --version            Print version info and exit
-
+e
 Other options are the same as `cargo check`.
 
 To allow or deny a lint from the command line you can use `cargo linter --`
@@ -129,6 +129,9 @@ with:
     -A --allow OPT      Set lint allowed
     -D --deny OPT       Set lint denied
     -F --forbid OPT     Set lint forbidden
+
+This message belongs to a specific driver, if possible you should avoid
+interfacing with the driver directly and use `cargo linter` instead.
 "
     );
 }

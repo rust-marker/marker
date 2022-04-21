@@ -7,3 +7,5 @@ members = [
     # This is temporary, lint crates like this one will be managed with `cargo-liner`
     "linter_test",
 ]
+
+default-members = ["cargo-linter"]

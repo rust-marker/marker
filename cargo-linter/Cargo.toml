@@ -8,3 +8,9 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 clap = "3.1.2"
+
+[features]
+default = ["dev-build"]
+# Indicates that development features like auto driver building etc should be enabled.
+# This option assumes that it's being executed at the project root.
+dev-build = []
