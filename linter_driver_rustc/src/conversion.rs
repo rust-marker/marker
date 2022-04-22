@@ -37,11 +37,12 @@ fn process_items<'tcx>(rustc_cx: &LateContext<'tcx>, allocator: &mut Bump) {
     let mut adapter = Adapter::new_from_env();
 
     // Setup context
-    let driver_cx = allocator.alloc_with(|| RustcContext::new(rustc_cx.tcx, rustc_cx.lint_store, &allocator));
+    let driver_cx = allocator.alloc_with(|| RustcContext::new(rustc_cx.tcx, rustc_cx.lint_store, allocator));
     let ast_cx = driver_cx.alloc_with(|| Context::new(driver_cx));
 
     let map = rustc_cx.tcx.hir();
     // Here we need to collect the items to have a knwon size for the allocation
+    #[allow(clippy::needless_collect, reason = "collect is required to know the size of the allocation")]
     let items: Vec<ItemType> = map
         .root_module()
         .item_ids

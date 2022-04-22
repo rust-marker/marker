@@ -43,7 +43,7 @@ impl<'a> ExternalLintCrateRegistry<'a> {
         let mut new_self = Self::default();
 
         if let Ok(lint_crates_lst) = std::env::var("LINTER_LINT_CRATES") {
-            for lint_crate in lint_crates_lst.split(";") {
+            for lint_crate in lint_crates_lst.split(';') {
                 if let Err(err) = new_self.load_external_lib(lint_crate) {
                     panic!("Unable to load `{lint_crate}`, reason: {err:?}");
                 }

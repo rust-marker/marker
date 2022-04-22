@@ -3,7 +3,7 @@
 
 use std::{
     fs::create_dir_all,
-    lazy::Lazy,
+    lazy::{SyncLazy},
     path::{Path, PathBuf},
     process::{exit, Command},
 };
@@ -13,8 +13,8 @@ use clap::{self, Arg};
 const CARGO_ARGS_SEPARATOR: &str = "--";
 const VERSION: &str = concat!("cargo-linter ", env!("CARGO_PKG_VERSION"));
 const LINT_KRATES_BASE_DIR: &str = "./target/linter";
-const LINT_KRATES_TARGET_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("build", "target"));
-const LINT_KRATES_OUT_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("lints", "out"));
+static LINT_KRATES_TARGET_DIR: SyncLazy<String> = SyncLazy::new(|| prepare_lint_build_dir("build", "target"));
+static LINT_KRATES_OUT_DIR: SyncLazy<String> = SyncLazy::new(|| prepare_lint_build_dir("lints", "out"));
 
 /// This creates the absolut path for a given build directory.
 fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
@@ -28,7 +28,7 @@ fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
 
     let path = Path::new(LINT_KRATES_BASE_DIR).join(dir_name);
     if !path.exists() {
-        create_dir_all(&path).expect(&format!("Error while creating lint krate {info_name} directory"));
+        create_dir_all(&path).unwrap_or_else(|_|panic!("Error while creating lint krate {info_name} directory"));
     }
 
     std::fs::canonicalize(path)
@@ -65,7 +65,7 @@ fn main() {
         exit(-1);
     }
 
-    if lint_crates.iter().any(|path| path.contains(";")) {
+    if lint_crates.iter().any(|path| path.contains(';')) {
         eprintln!("The absolut paths of lint crates are not allowed to contain a `;`");
         exit(-1);
     }
@@ -74,7 +74,7 @@ fn main() {
 }
 
 fn run_driver(lint_crates: Vec<String>) {
-    println!("");
+    println!();
     println!("Start linting:");
 
     let mut cmd = Command::new("cargo");
@@ -133,7 +133,7 @@ fn prepare_lint_crate(krate: &str, verbose: bool) -> Result<String, ()> {
     // FIXME: currently this expect, that the lib name is the same as the crate dir.
     let file_name = format!(
         "lib{}",
-        path.file_name().map(|x| x.to_str()).flatten().unwrap_or_default()
+        path.file_name().and_then(|x| x.to_str()).unwrap_or_default()
     );
     let mut krate_path = Path::new(&*LINT_KRATES_OUT_DIR).join(file_name);
 
