@@ -1,4 +1,4 @@
-#![warn(clippy::pedantic, clippy::index_refutable_slice)]
+#![warn(clippy::index_refutable_slice)]
 #![allow(clippy::module_name_repetitions)]
 
 use ast::item::ItemType;

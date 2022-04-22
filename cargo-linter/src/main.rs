@@ -1,5 +1,5 @@
 #![feature(once_cell)]
-#![warn(clippy::pedantic, clippy::index_refutable_slice)]
+#![warn(clippy::index_refutable_slice)]
 
 use std::{
     fs::create_dir_all,

@@ -1,8 +1,7 @@
 #![feature(rustc_private)]
 #![feature(lint_reasons)]
 #![warn(rustc::internal)]
-#![warn(clippy::pedantic, clippy::index_refutable_slice)]
-#![allow(clippy::module_name_repetitions)]
+#![warn(clippy::index_refutable_slice)]
 
 extern crate rustc_ast;
 extern crate rustc_data_structures;

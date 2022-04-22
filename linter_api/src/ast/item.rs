@@ -49,7 +49,7 @@ pub trait ItemData<'ast>: Debug {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 // TODO: Fix `ItemItem` names
 pub enum ItemType<'ast> {
     Mod(&'ast dyn ModItem<'ast>),
