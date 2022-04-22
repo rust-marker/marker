@@ -10,6 +10,7 @@ use std::{
 
 use clap::{self, Arg};
 
+const CARGO_ARGS_SEPARATOR: &str = "--";
 const VERSION: &str = concat!("cargo-linter ", env!("CARGO_PKG_VERSION"));
 const LINT_KRATES_BASE_DIR: &str = "./target/linter";
 const LINT_KRATES_TARGET_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("build", "target"));
@@ -37,8 +38,7 @@ fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
 }
 
 fn main() {
-    let args = std::env::args();
-    let matches = get_clap_config().get_matches_from(args.take_while(|s| s != "--"));
+    let matches = get_clap_config().get_matches_from(std::env::args().take_while(|s| s != CARGO_ARGS_SEPARATOR));
     if matches.is_present("version") {
         let version_info = env!("CARGO_PKG_VERSION");
         println!("{}", version_info);
@@ -59,11 +59,40 @@ fn main() {
             }
         }
     }
-    // TODO xFrednet: register lints in env
-    println!("Lints: {lint_crates:#?}");
 
-    // TODO xFrednet: Run cargo with wrapper
-    println!("Hello from cargo-linter");
+    if lint_crates.is_empty() {
+        eprintln!("Please provide at least one valid lint crate, with the `--lint` argument");
+        exit(-1);
+    }
+
+    if lint_crates.iter().any(|path| path.contains(";")) {
+        eprintln!("The absolut paths of lint crates are not allowed to contain a `;`");
+        exit(-1);
+    }
+
+    run_driver(lint_crates)
+}
+
+fn run_driver(lint_crates: Vec<String>) {
+    println!("");
+    println!("Start linting:");
+
+    let mut cmd = Command::new("cargo");
+    let cargo_args = std::env::args().skip_while(|c| c != CARGO_ARGS_SEPARATOR).skip(1);
+    cmd.env("RUSTC_WORKSPACE_WRAPPER", get_driver_path())
+        .env("LINTER_LINT_CRATES", lint_crates.join(";"))
+        .arg("check")
+        .args(cargo_args);
+
+    let exit_status = cmd
+        .spawn()
+        .expect("could not run cargo")
+        .wait()
+        .expect("failed to wait for cargo?");
+
+    if !exit_status.success() {
+        exit(exit_status.code().unwrap_or(-1));
+    }
 }
 
 /// This function ensures that the given crate is compiled as a library and
@@ -190,4 +219,7 @@ fn get_clap_config() -> clap::Command<'static> {
 const AFTER_HELP_MSG: &str = r#"CARGO ARGS
     All arguments after double dashes(`--`) will be passed to cargo.
     These options are the same as for `cargo check`.
+
+EXAMPLES:
+    * `cargo linter -l ./linter_test`
 "#;
