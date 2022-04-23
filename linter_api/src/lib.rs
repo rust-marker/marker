@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 #![warn(clippy::index_refutable_slice)]
 #![allow(clippy::module_name_repetitions)]
 
@@ -5,7 +6,9 @@ use ast::item::ItemType;
 use context::Context;
 use lint::Lint;
 
+#[doc(hidden)]
 pub static LINTER_API_VERSION: &str = env!("CARGO_PKG_VERSION");
+#[doc(hidden)]
 pub static RUSTC_VERSION: &str = env!("RUSTC_VERSION");
 
 pub mod ast;

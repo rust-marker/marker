@@ -42,7 +42,10 @@ fn process_items<'tcx>(rustc_cx: &LateContext<'tcx>, allocator: &mut Bump) {
 
     let map = rustc_cx.tcx.hir();
     // Here we need to collect the items to have a knwon size for the allocation
-    #[allow(clippy::needless_collect, reason = "collect is required to know the size of the allocation")]
+    #[allow(
+        clippy::needless_collect,
+        reason = "collect is required to know the size of the allocation"
+    )]
     let items: Vec<ItemType> = map
         .root_module()
         .item_ids

@@ -3,7 +3,7 @@
 
 use std::{
     fs::create_dir_all,
-    lazy::{SyncLazy},
+    lazy::SyncLazy,
     path::{Path, PathBuf},
     process::{exit, Command},
 };
@@ -28,7 +28,7 @@ fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
 
     let path = Path::new(LINT_KRATES_BASE_DIR).join(dir_name);
     if !path.exists() {
-        create_dir_all(&path).unwrap_or_else(|_|panic!("Error while creating lint krate {info_name} directory"));
+        create_dir_all(&path).unwrap_or_else(|_| panic!("Error while creating lint krate {info_name} directory"));
     }
 
     std::fs::canonicalize(path)
@@ -131,10 +131,7 @@ fn prepare_lint_crate(krate: &str, verbose: bool) -> Result<String, ()> {
     }
 
     // FIXME: currently this expect, that the lib name is the same as the crate dir.
-    let file_name = format!(
-        "lib{}",
-        path.file_name().and_then(|x| x.to_str()).unwrap_or_default()
-    );
+    let file_name = format!("lib{}", path.file_name().and_then(|x| x.to_str()).unwrap_or_default());
     let mut krate_path = Path::new(&*LINT_KRATES_OUT_DIR).join(file_name);
 
     #[cfg(target_os = "linux")]

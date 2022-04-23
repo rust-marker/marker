@@ -1,7 +1,7 @@
 use crate::LintPass;
 
 /// Warning, this is not part of the stable API. It should never be instantiated
-/// manually, please use [`export_plugin!`] instead.
+/// manually, please use [`export_lint_pass!`] instead.
 #[derive(Clone)]
 #[repr(C)]
 #[doc(hidden)]

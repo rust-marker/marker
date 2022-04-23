@@ -37,10 +37,14 @@ impl<'ast, 'tcx> RustcModItem<'ast, 'tcx> {
         item: &'tcx rustc_hir::Item<'tcx>,
     ) -> RustcModItemData<'ast> {
         if let rustc_hir::ItemKind::Mod(rustc_mod) = &item.kind {
-            #[allow(clippy::needless_collect, reason = "collect is required to know the size of the allocation")]
+            #[allow(
+                clippy::needless_collect,
+                reason = "collect is required to know the size of the allocation"
+            )]
             let items: Vec<ItemType<'_>> = rustc_mod
                 .item_ids
-                .iter().filter_map(|rustc_item| from_rustc(cx, cx.tcx.hir().item(*rustc_item)))
+                .iter()
+                .filter_map(|rustc_item| from_rustc(cx, cx.tcx.hir().item(*rustc_item)))
                 .collect();
             let items = cx.alloc_slice_from_iter(items.into_iter());
             RustcModItemData { items }

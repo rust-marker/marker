@@ -1,6 +1,7 @@
 #[derive(Debug)]
 // This can sadly not be marked as #[non_exhaustive] as the struct construction
 // has to be possible in a static context.
+#[doc(hidden)]
 pub struct Lint {
     /// See <https://rustc-dev-guide.rust-lang.org/diagnostics.html#lint-naming>
     /// for naming guidelines.
