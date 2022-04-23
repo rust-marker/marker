@@ -119,7 +119,7 @@ impl<'ast, 'tcx> ToApiTy<'ast, 'tcx, TyKind<'ast>> for rustc_hir::Path<'tcx> {
                     | rustc_hir::def::DefKind::AssocTy
                     | rustc_hir::def::DefKind::Fn
                     | rustc_hir::def::DefKind::Const
-                    | rustc_hir::def::DefKind::Static
+                    | rustc_hir::def::DefKind::Static(..)
                     | rustc_hir::def::DefKind::Ctor(..)
                     | rustc_hir::def::DefKind::AssocFn
                     | rustc_hir::def::DefKind::AssocConst
