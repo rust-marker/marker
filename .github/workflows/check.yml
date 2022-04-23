@@ -1,0 +1,45 @@
+name: Check
+
+on:
+  push:
+    # Don't run tests, when only text files were modified
+    paths-ignore:
+    - 'COPYRIGHT'
+    - 'LICENSE-*'
+    - '**.md'
+    - '**.txt'
+  pull_request:
+    # Don't run tests, when only text files were modified
+    paths-ignore:
+    - 'COPYRIGHT'
+    - 'LICENSE-*'
+    - '**.md'
+    - '**.txt'
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    # Setup
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions-rs/toolchain@v1
+      with:
+          toolchain: nightly-2022-04-07
+          components: cargo, clippy, rustfmt
+    - name: Rustc version info
+      run: rustc -vV
+    - name: Build
+      run: cargo build
+  
+    # Tests
+    - name: Cargo tests
+      run: cargo test
+    - name: Cargo clippy
+      run: cargo clippy
+    - name: Cargo fmt
+      run: cargo fmt --check
