@@ -7,3 +7,9 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+[features]
+# Some items should only be used by the driver implementing the functionality,
+# this feature enables the export of these items. Note that this interface is
+# unstable. All usage of the driver api can change between releases.
+driver-api = []

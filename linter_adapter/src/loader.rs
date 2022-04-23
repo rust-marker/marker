@@ -4,12 +4,12 @@ use linter_api::interface::{LintPassDeclaration, LintPassRegistry};
 use linter_api::LintPass;
 
 #[derive(Default)]
-pub struct ExternalLintPassRegistry {
-    pub lint_passes: Vec<Box<dyn LintPass>>,
-    libs: Vec<Library>,
+pub struct ExternalLintCrateRegistry<'ast> {
+    pub lint_passes: Vec<Box<dyn LintPass<'ast>>>,
+    _libs: Vec<Library>,
 }
 
-impl ExternalLintPassRegistry {
+impl<'a> ExternalLintCrateRegistry<'a> {
     /// # Errors
     /// This can return errors if the library couldn't be found or if the
     /// required symbols weren't provided.
@@ -31,15 +31,52 @@ impl ExternalLintPassRegistry {
             (decl.register)(self);
         }
 
-        self.libs.push(lib);
+        self._libs.push(lib);
 
         Ok(())
     }
+
+    /// # Panics
+    ///
+    /// Panics if a lint in the environment couln't be loaded.
+    pub fn new_from_env() -> Self {
+        let mut new_self = Self::default();
+
+        if let Ok(lint_crates_lst) = std::env::var("LINTER_LINT_CRATES") {
+            for lint_crate in lint_crates_lst.split(';') {
+                if let Err(err) = new_self.load_external_lib(lint_crate) {
+                    panic!("Unable to load `{lint_crate}`, reason: {err:?}");
+                }
+            }
+        }
+
+        new_self
+    }
 }
 
-impl LintPassRegistry for ExternalLintPassRegistry {
-    fn register(&mut self, _name: &str, init: Box<dyn LintPass>) {
+impl<'ast> LintPassRegistry<'ast> for ExternalLintCrateRegistry<'ast> {
+    fn register(&mut self, _name: &str, init: Box<dyn LintPass<'ast>>) {
         self.lint_passes.push(init);
+    }
+}
+
+impl<'ast> LintPass<'ast> for ExternalLintCrateRegistry<'ast> {
+    fn registered_lints(&self) -> Vec<&'static linter_api::lint::Lint> {
+        let mut all_lints = vec![];
+        self.lint_passes
+            .iter()
+            .for_each(|pass| all_lints.append(&mut pass.registered_lints()));
+        all_lints
+    }
+
+    fn check_item(
+        &mut self,
+        cx: &'ast linter_api::context::Context<'ast>,
+        item: linter_api::ast::item::ItemType<'ast>,
+    ) {
+        for lint_pass in self.lint_passes.iter_mut() {
+            lint_pass.check_item(cx, item);
+        }
     }
 }
 
