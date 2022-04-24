@@ -1,5 +1,5 @@
 use linter_api::ast::{
-    item::{ExternCrateItem, GenericParam, ItemData, ItemType, ModItem, VisibilityKind},
+    item::{ExternCrateItem, GenericParam, ItemData, ItemType, ModItem, Visibility},
     Symbol,
 };
 

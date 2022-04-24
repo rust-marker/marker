@@ -1,5 +1,5 @@
 use linter_api::ast::{
-    item::{ExternCrateItem, GenericParam, ItemData, ItemType, UseDeclItem, UseKind, VisibilityKind},
+    item::{ExternCrateItem, GenericParam, ItemData, ItemType, UseDeclItem, UseKind, Visibility},
     Path, Symbol,
 };
 
@@ -18,7 +18,7 @@ pub type RustcUseDeclItem<'ast, 'tcx> = RustcItem<'ast, 'tcx, RustcUseDeclItemDa
 
 impl<'ast, 'tcx> RustcItemData<'ast> for RustcUseDeclItem<'ast, 'tcx> {
     fn as_api_item(&'ast self) -> ItemType<'ast> {
-        ItemType::UseDeclaration(self)
+        ItemType::UseDecl(self)
     }
 }
 
