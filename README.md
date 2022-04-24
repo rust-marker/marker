@@ -8,7 +8,7 @@ The internal structure of the linter and its component is documented in [`docs/i
 
 ## Running
 
-The project is currently only available in this GitHub repo. For a quick test, checkout the repo and run `cargo run -- -l ./linter_lints`. This will start `cargo-linter` and load [`./linter_lints`](./linter_lints) as a *lint crate*.
+The project is currently only available in this GitHub repo. For a quick test, checkout the repo and run `cargo run --bin cargo-linter -- -l ./linter_lints`. This will start `cargo-linter` and load [`./linter_lints`](./linter_lints) as a *lint crate*.
 
 ## License
 
