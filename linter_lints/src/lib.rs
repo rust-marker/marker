@@ -1,6 +1,8 @@
+#![doc = include_str!("../README.md")]
+
 use linter_api::{ast::item::ItemType, context::Context, lint::Lint, LintPass};
 
-linter_api::interface::export_lint_pass!("linter_test", TestLintPass::new());
+linter_api::interface::export_lint_pass!("linter", TestLintPass::new());
 
 linter_api::lint::declare_lint!(TEST_LINT, Allow, "");
 

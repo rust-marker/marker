@@ -1,7 +1,7 @@
 #![expect(unused)]
 
 use linter_api::ast::{
-    item::{ExternCrateItem, GenericParam, ItemData, ItemId, ItemType, VisibilityKind},
+    item::{ExternCrateItem, GenericParam, ItemData, ItemId, ItemType, Visibility},
     CrateId, Symbol,
 };
 
@@ -45,7 +45,7 @@ where
         self.cx.new_span(self.item.span)
     }
 
-    fn get_vis(&self) -> &VisibilityKind<'ast> {
+    fn get_vis(&self) -> &Visibility<'ast> {
         // match self.item.vis.node {
         //     rustc_hir::VisibilityKind::Public => VisibilityKind::PubSelf,
         //     rustc_hir::VisibilityKind::Crate(..) => VisibilityKind::PubCrate,
@@ -85,7 +85,7 @@ pub fn from_rustc<'ast, 'tcx>(
         })),
         rustc_hir::ItemKind::Use(..) => {
             let data = RustcUseDeclItemData::data_from_rustc(cx, item)?;
-            ItemType::UseDeclaration(cx.alloc_with(|| RustcUseDeclItem { cx, item, data }))
+            ItemType::UseDecl(cx.alloc_with(|| RustcUseDeclItem { cx, item, data }))
         },
         rustc_hir::ItemKind::Static(..) => None?,
         rustc_hir::ItemKind::Const(..) => None?,

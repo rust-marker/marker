@@ -3,7 +3,6 @@ use rustc_middle::ty::TyCtxt;
 
 use linter_api::{
     ast::{
-        item::{Visibility, VisibilityKind},
         ty::{Ty, TyKind},
         Ident, Lifetime, Span, Symbol,
     },
@@ -65,20 +64,6 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     #[allow(clippy::unused_self)]
     pub fn new_symbol(&'ast self, sym: rustc_span::symbol::Symbol) -> Symbol {
         Symbol::new(sym.as_u32())
-    }
-
-    #[must_use]
-    pub fn new_visibility(&'ast self, vis: rustc_hir::Visibility<'tcx>) -> &'ast Visibility<'ast> {
-        let span = self.new_span(vis.span);
-
-        let kind = match vis.node {
-            rustc_hir::VisibilityKind::Public => VisibilityKind::PubSelf,
-            rustc_hir::VisibilityKind::Crate(..) => VisibilityKind::PubCrate,
-            rustc_hir::VisibilityKind::Restricted { .. } => unimplemented!("VisibilityKind::PubPath"),
-            rustc_hir::VisibilityKind::Inherited => VisibilityKind::PubSuper,
-        };
-
-        self.buffer.alloc_with(|| Visibility::new(kind, span))
     }
 
     #[must_use]

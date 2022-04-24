@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 #![feature(rustc_private)]
 #![feature(lint_reasons)]
 #![warn(rustc::internal)]

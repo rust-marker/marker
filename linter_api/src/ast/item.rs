@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use super::{
     ty::{Mutability, Ty, TyId},
-    Abi, Asyncness, Attribute, BodyId, Constness, CrateId, Ident, Path, Pattern, Safety, Span, Spanned, Symbol,
+    Abi, Asyncness, Attribute, BodyId, Constness, CrateId, Path, Pattern, Safety, Span, Symbol,
 };
 
 /// Every item has an ID that can be used to retive that item or compair it to
@@ -35,7 +35,7 @@ pub trait ItemData<'ast>: Debug {
     fn get_span(&self) -> &'ast dyn Span<'ast>;
 
     /// The visibility of this item.
-    fn get_vis(&self) -> &VisibilityKind<'ast>;
+    fn get_vis(&self) -> &Visibility<'ast>;
 
     /// This function can return `None` if the item was generated and has no real name
     fn get_name(&self) -> Option<Symbol>;
@@ -50,27 +50,26 @@ pub trait ItemData<'ast>: Debug {
 
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
-// TODO: Fix `ItemItem` names
 pub enum ItemType<'ast> {
     Mod(&'ast dyn ModItem<'ast>),
     ExternCrate(&'ast dyn ExternCrateItem<'ast>),
-    UseDeclaration(&'ast dyn UseDeclItem<'ast>),
-    StaticItem(&'ast dyn StaticItemItem<'ast>),
-    ConstItem(&'ast dyn ConstItemItem<'ast>),
+    UseDecl(&'ast dyn UseDeclItem<'ast>),
+    Static(&'ast dyn StaticItem<'ast>),
+    Const(&'ast dyn ConstItem<'ast>),
     Function(&'ast dyn FunctionItem<'ast>),
     TypeAlias(&'ast dyn TypeAliasItem<'ast>),
-    Struct(&'ast dyn StructItemItem<'ast>),
+    Struct(&'ast dyn StructItem<'ast>),
     Enum(&'ast dyn EnumItem<'ast>),
     Union(&'ast dyn UnionItem<'ast>),
     Trait(&'ast dyn TraitItem<'ast>),
-    Implementation(&'ast dyn ImplementationItem<'ast>),
+    Impl(&'ast dyn ImplItem<'ast>),
     ExternBlock(&'ast dyn ExternBlockItem<'ast>),
 }
 
 impl<'ast> ItemType<'ast> {
     impl_item_type_fn!(get_id() -> ItemId);
     impl_item_type_fn!(get_span() -> &'ast dyn Span<'ast>);
-    impl_item_type_fn!(get_vis() -> &VisibilityKind<'ast>);
+    impl_item_type_fn!(get_vis() -> &Visibility<'ast>);
     impl_item_type_fn!(get_name() -> Option<Symbol>);
     impl_item_type_fn!(get_attrs() -> ());
 }
@@ -80,8 +79,8 @@ impl<'ast> ItemType<'ast> {
 macro_rules! impl_item_type_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_item_type_fn!($method() -> $return_ty,
-            Mod, ExternCrate, UseDeclaration, StaticItem, ConstItem, Function,
-            TypeAlias, Struct, Enum, Union, Trait, Implementation, ExternBlock
+            Mod, ExternCrate, UseDecl, Static, Const, Function,
+            TypeAlias, Struct, Enum, Union, Trait, Impl, ExternBlock
         );
     };
     ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
@@ -99,7 +98,7 @@ use impl_item_type_fn;
 struct ItemBase<'ast, T: ItemBaseData<'ast>> {
     id: ItemId,
     span: &'ast dyn Span<'ast>,
-    vis: VisibilityKind<'ast>,
+    vis: Visibility<'ast>,
     name: Option<Symbol>,
     data: T,
 }
@@ -117,7 +116,7 @@ impl<'ast, T: ItemBaseData<'ast>> ItemData<'ast> for ItemBase<'ast, T> {
         self.span
     }
 
-    fn get_vis(&self) -> &VisibilityKind<'ast> {
+    fn get_vis(&self) -> &Visibility<'ast> {
         &self.vis
     }
 
@@ -183,7 +182,7 @@ pub trait UseDeclItem<'ast>: ItemData<'ast> {
 /// // `get_ty()` -> _Ty of u32_
 /// // `get_body_id()` -> _BodyId of `0`_
 /// ```
-pub trait StaticItemItem<'ast>: ItemData<'ast> {
+pub trait StaticItem<'ast>: ItemData<'ast> {
     /// The mutability of this item
     fn get_mutability(&self) -> Mutability;
 
@@ -201,7 +200,7 @@ pub trait StaticItemItem<'ast>: ItemData<'ast> {
 /// // `get_ty()` -> _Ty of u32_
 /// // `get_body_id()` -> _BodyId of `0xcafe`_
 /// ```
-pub trait ConstItemItem<'ast>: ItemData<'ast> {
+pub trait ConstItem<'ast>: ItemData<'ast> {
     fn get_ty(&'ast self) -> &'ast dyn Ty<'ast>;
 
     /// The [`BodyId`] of the initialization body.
@@ -265,7 +264,7 @@ pub trait TypeAliasItem<'ast>: ItemData<'ast> {
     fn get_aliased_ty(&self) -> Option<&dyn Ty<'ast>>;
 }
 
-pub trait StructItemItem<'ast>: ItemData<'ast> {
+pub trait StructItem<'ast>: ItemData<'ast> {
     /// Returns the [`TyId`] for this struct.
     fn get_ty_id(&self) -> TyId;
 
@@ -319,7 +318,7 @@ pub trait AdtField<'ast>: Debug {
     /// This will return the span of the field, exclusing the field attributes.
     fn get_span(&'ast self) -> &'ast dyn Span<'ast>;
 
-    fn get_visibility(&'ast self) -> VisibilityKind<'ast>;
+    fn get_visibility(&'ast self) -> Visibility<'ast>;
 
     fn get_name(&'ast self) -> Symbol;
 
@@ -389,11 +388,11 @@ pub trait TraitItem<'ast>: ItemData<'ast> {
 #[derive(Debug)]
 pub enum AssocItem<'ast> {
     TypeAlias(&'ast dyn TypeAliasItem<'ast>),
-    Const(&'ast dyn ConstItemItem<'ast>),
+    Const(&'ast dyn ConstItem<'ast>),
     Function(&'ast dyn FunctionItem<'ast>),
 }
 
-pub trait ImplementationItem<'ast>: ItemData<'ast> {
+pub trait ImplItem<'ast>: ItemData<'ast> {
     fn get_inner_attrs(&self); // FIXME: Add return type -> [&dyn Attribute<'ast>];
 
     fn get_safety(&self) -> Safety;
@@ -435,7 +434,7 @@ pub trait ExternBlockItem<'ast>: ItemData<'ast> {
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum ExternalItems<'ast> {
-    Static(&'ast dyn StaticItemItem<'ast>),
+    Static(&'ast dyn StaticItem<'ast>),
     Function(&'ast dyn FunctionItem<'ast>),
 }
 
@@ -455,104 +454,13 @@ pub enum UseKind {
 #[non_exhaustive]
 #[derive(Debug)]
 #[allow(clippy::enum_variant_names)]
-pub enum VisibilityKind<'ast> {
+pub enum Visibility<'ast> {
     /// Visible in the current module, equivialent to `pub(in self)` or no visibility
     PubSelf,
     PubCrate,
     /// FIXME: Add a path value to this
     PubPath(&'ast Path<'ast>),
     PubSuper,
-}
-
-// ===========================================================================
-// OLD ITEMS
-// ===========================================================================
-
-pub trait Item<'ast>: Debug {
-    fn get_id(&self) -> ItemId;
-
-    fn get_span(&'ast self) -> &'ast dyn Span<'ast>;
-
-    fn get_vis(&self) -> &'ast Visibility<'ast>;
-
-    /// This function can return `None` if the item was generated and has no real name
-    fn get_ident(&'ast self) -> Option<&'ast Ident<'ast>>;
-
-    fn get_kind(&'ast self) -> ItemKind<'ast>;
-
-    fn get_attrs(&'ast self) -> &'ast [&dyn Attribute<'ast>];
-}
-
-pub type Visibility<'ast> = Spanned<'ast, VisibilityKind<'ast>>;
-
-#[non_exhaustive]
-#[derive(Debug)]
-pub enum ItemKind<'ast> {
-    Mod(&'ast dyn ModuleItem<'ast>),
-    /// An `extern crate` item, with an optional *original* create name. The given
-    /// and used name is the identifier of the [`Item`].
-    ExternCrate(Option<Symbol>),
-    UseDeclaration(&'ast Path<'ast>, UseKind),
-    StaticItem(&'ast dyn StaticItem<'ast>),
-    ConstItem(&'ast dyn ConstItem<'ast>),
-    Function,
-    TypeAlias,
-    Struct(&'ast dyn StructItem<'ast>),
-    Enumeration,
-    Union,
-    Trait,
-    Implementation,
-    ExternBlock,
-}
-
-pub trait ModuleItem<'ast>: Debug {
-    fn get_inner_attrs(&'ast self) -> [&dyn Attribute<'ast>];
-
-    fn get_items(&'ast self) -> [&dyn Item<'ast>];
-}
-
-/// A static item like
-/// ```rs
-/// pub static STATIC_ITEM: u32 = 18;
-/// ```
-pub trait StaticItem<'ast>: Debug {
-    fn get_type(&'ast self) -> &'ast dyn Ty<'ast>;
-
-    fn get_mutability(&self) -> Mutability;
-
-    fn get_body_id(&self) -> BodyId;
-}
-
-/// A constant item like
-/// ```rs
-/// const CONST_ITEM: u32 = 0xcafe;
-/// ```
-pub trait ConstItem<'ast>: Debug {
-    fn get_type(&'ast self) -> &'ast dyn Ty<'ast>;
-
-    fn get_body_id(&self) -> BodyId;
-}
-
-/// A struct item like:
-///
-/// ```rs
-/// pub struct ExampleOne;
-///
-/// pub struct ExampleTwo(u32, &'static str);
-///
-/// pub struct ExampleThree<T> {
-///     field: T,
-/// }
-/// ```
-pub trait StructItem<'ast>: Debug {
-    /// Returns the [`TyId`] for this struct.
-    fn get_ty_id(&self) -> TyId;
-
-    fn get_kind(&'ast self) -> AdtVariantData<'ast>;
-
-    fn get_generics(&'ast self) -> &'ast dyn GenericDefs<'ast>;
-
-    // FIXME: Provide layout information for this ADT
 }
 
 /// The generic definitions belonging to an item
