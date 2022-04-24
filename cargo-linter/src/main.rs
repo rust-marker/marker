@@ -218,5 +218,5 @@ const AFTER_HELP_MSG: &str = r#"CARGO ARGS
     These options are the same as for `cargo check`.
 
 EXAMPLES:
-    * `cargo linter -l ./linter_test`
+    * `cargo linter -l ./linter_lints`
 "#;
