@@ -1,7 +1,7 @@
 use libloading::Library;
 
 use linter_api::ast::item::{ExternCrateItem, ModItem, UseDeclItem};
-use linter_api::context::Context;
+use linter_api::context::AstContext;
 use linter_api::interface::{LintPassDeclaration, LintPassRegistry};
 use linter_api::LintPass;
 
@@ -71,23 +71,23 @@ impl<'ast> LintPass<'ast> for ExternalLintCrateRegistry<'ast> {
         all_lints
     }
 
-    fn check_item(&mut self, cx: &'ast Context<'ast>, item: linter_api::ast::item::ItemType<'ast>) {
+    fn check_item(&mut self, cx: &'ast AstContext<'ast>, item: linter_api::ast::item::ItemType<'ast>) {
         for lint_pass in self.lint_passes.iter_mut() {
             lint_pass.check_item(cx, item);
         }
     }
 
-    fn check_mod(&mut self, cx: &'ast Context<'ast>, mod_item: &'ast dyn ModItem<'ast>) {
+    fn check_mod(&mut self, cx: &'ast AstContext<'ast>, mod_item: &'ast dyn ModItem<'ast>) {
         for lint_pass in self.lint_passes.iter_mut() {
             lint_pass.check_mod(cx, mod_item);
         }
     }
-    fn check_extern_crate(&mut self, cx: &'ast Context<'ast>, extern_crate_item: &'ast dyn ExternCrateItem<'ast>) {
+    fn check_extern_crate(&mut self, cx: &'ast AstContext<'ast>, extern_crate_item: &'ast dyn ExternCrateItem<'ast>) {
         for lint_pass in self.lint_passes.iter_mut() {
             lint_pass.check_extern_crate(cx, extern_crate_item);
         }
     }
-    fn check_use_decl(&mut self, cx: &'ast Context<'ast>, use_item: &'ast dyn UseDeclItem<'ast>) {
+    fn check_use_decl(&mut self, cx: &'ast AstContext<'ast>, use_item: &'ast dyn UseDeclItem<'ast>) {
         for lint_pass in self.lint_passes.iter_mut() {
             lint_pass.check_use_decl(cx, use_item);
         }

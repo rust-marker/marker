@@ -4,7 +4,7 @@
 mod loader;
 use linter_api::{
     ast::{item::ItemType, Crate},
-    context::Context,
+    context::AstContext,
     LintPass,
 };
 use loader::ExternalLintCrateRegistry;
@@ -23,7 +23,7 @@ impl<'ast> Adapter<'ast> {
         Self { external_lint_crates }
     }
 
-    pub fn process_krate(&mut self, cx: &'ast Context<'ast>, krate: &Crate<'ast>) {
+    pub fn process_krate(&mut self, cx: &'ast AstContext<'ast>, krate: &Crate<'ast>) {
         for item in krate.get_items() {
             self.external_lint_crates.check_item(cx, *item);
         }

@@ -3,7 +3,7 @@
 #![allow(clippy::module_name_repetitions)]
 
 use ast::item::{ExternCrateItem, ItemType, ModItem, UseDeclItem};
-use context::Context;
+use context::AstContext;
 use lint::Lint;
 
 #[doc(hidden)]
@@ -23,11 +23,12 @@ pub mod lint;
 pub trait LintPass<'ast> {
     fn registered_lints(&self) -> Vec<&'static Lint>;
 
-    fn check_item(&mut self, _cx: &'ast Context<'ast>, _item: ItemType<'ast>) {}
+    fn check_item(&mut self, _cx: &'ast AstContext<'ast>, _item: ItemType<'ast>) {}
 
-    fn check_mod(&mut self, _cx: &'ast Context<'ast>, _mod_item: &'ast dyn ModItem<'ast>) {}
+    fn check_mod(&mut self, _cx: &'ast AstContext<'ast>, _mod_item: &'ast dyn ModItem<'ast>) {}
 
-    fn check_extern_crate(&mut self, _cx: &'ast Context<'ast>, _extern_crate_item: &'ast dyn ExternCrateItem<'ast>) {}
+    fn check_extern_crate(&mut self, _cx: &'ast AstContext<'ast>, _extern_crate_item: &'ast dyn ExternCrateItem<'ast>) {
+    }
 
-    fn check_use_decl(&mut self, _cx: &'ast Context<'ast>, _use_item: &'ast dyn UseDeclItem<'ast>) {}
+    fn check_use_decl(&mut self, _cx: &'ast AstContext<'ast>, _use_item: &'ast dyn UseDeclItem<'ast>) {}
 }
