@@ -1,6 +1,11 @@
 #![doc = include_str!("../README.md")]
 
-use linter_api::{ast::item::ItemType, context::Context, lint::Lint, LintPass};
+use linter_api::{
+    ast::item::{ExternCrateItem, ItemType},
+    context::Context,
+    lint::Lint,
+    LintPass,
+};
 
 linter_api::interface::export_lint_pass!("linter", TestLintPass::new());
 
@@ -21,5 +26,9 @@ impl<'ast> LintPass<'ast> for TestLintPass {
 
     fn check_item(&mut self, _cx: &Context<'ast>, item: ItemType<'ast>) {
         dbg!(item);
+    }
+
+    fn check_extern_crate(&mut self, _cx: &'ast Context<'ast>, extern_crate_item: &'ast dyn ExternCrateItem<'ast>) {
+        dbg!(extern_crate_item);
     }
 }
