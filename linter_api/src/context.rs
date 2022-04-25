@@ -2,12 +2,12 @@ use crate::ast::Symbol;
 
 /// This context will be passed to each [`super::LintPass`] call to enable the user
 /// to emit lints and to retieve nodes by the given ids.
-pub struct Context<'ast> {
+pub struct AstContext<'ast> {
     _cx: &'ast dyn DriverContext<'ast>,
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> Context<'ast> {
+impl<'ast> AstContext<'ast> {
     pub fn new(cx: &'ast dyn DriverContext<'ast>) -> Self {
         Self { _cx: cx }
     }

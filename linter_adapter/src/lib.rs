@@ -2,7 +2,11 @@
 #![warn(clippy::index_refutable_slice)]
 
 mod loader;
-use linter_api::{ast::Crate, context::Context, LintPass};
+use linter_api::{
+    ast::{item::ItemType, Crate},
+    context::AstContext,
+    LintPass,
+};
 use loader::ExternalLintCrateRegistry;
 
 /// This struct is the interface used by lint drivers to pass transformed objects to
@@ -19,9 +23,18 @@ impl<'ast> Adapter<'ast> {
         Self { external_lint_crates }
     }
 
-    pub fn process_krate(&mut self, cx: &'ast Context<'ast>, krate: &Crate<'ast>) {
+    pub fn process_krate(&mut self, cx: &'ast AstContext<'ast>, krate: &Crate<'ast>) {
         for item in krate.get_items() {
             self.external_lint_crates.check_item(cx, *item);
+        }
+
+        for item in krate.get_items() {
+            match item {
+                ItemType::Mod(data) => self.external_lint_crates.check_mod(cx, *data),
+                ItemType::ExternCrate(data) => self.external_lint_crates.check_extern_crate(cx, *data),
+                ItemType::UseDecl(data) => self.external_lint_crates.check_use_decl(cx, *data),
+                _ => {},
+            }
         }
     }
 }
