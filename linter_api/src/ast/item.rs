@@ -1,5 +1,8 @@
 use std::fmt::Debug;
 
+mod static_item;
+pub use self::static_item::StaticItem;
+
 use super::{
     ty::{Mutability, Ty, TyId},
     Abi, Asyncness, Attribute, BodyId, Constness, CrateId, Path, Pattern, Safety, Span, Symbol,
@@ -43,7 +46,9 @@ pub trait ItemData<'ast>: Debug {
     /// This returns this [`ItemData`] instance as a [`ItemType`]. This can be usefull for
     /// functions that take [`ItemType`] as a parameter. For general function calls it's better
     /// to call them directoly on the item, instead of converting it to a [`ItemType`] first.
-    fn as_item(&'ast self) -> ItemType<'ast>;
+    fn as_item(&'ast self) -> ItemType<'ast> {
+        todo!()
+    }
 
     fn get_attrs(&self); // FIXME: Add return type: -> &'ast [&'ast dyn Attribute<'ast>];
 }
@@ -54,7 +59,7 @@ pub enum ItemType<'ast> {
     Mod(&'ast dyn ModItem<'ast>),
     ExternCrate(&'ast dyn ExternCrateItem<'ast>),
     UseDecl(&'ast dyn UseDeclItem<'ast>),
-    Static(&'ast dyn StaticItem<'ast>),
+    Static(&'ast StaticItem<'ast>),
     Const(&'ast dyn ConstItem<'ast>),
     Function(&'ast dyn FunctionItem<'ast>),
     TypeAlias(&'ast dyn TypeAliasItem<'ast>),
@@ -95,7 +100,7 @@ macro_rules! impl_item_type_fn {
 use impl_item_type_fn;
 
 #[derive(Debug)]
-struct ItemBase<'ast, T: ItemBaseData<'ast>> {
+pub struct ItemBase<'ast, T: ItemBaseData<'ast>> {
     id: ItemId,
     span: &'ast dyn Span<'ast>,
     vis: Visibility<'ast>,
@@ -103,8 +108,8 @@ struct ItemBase<'ast, T: ItemBaseData<'ast>> {
     data: T,
 }
 
-trait ItemBaseData<'ast>: Debug {
-    fn as_item(&self) -> ItemType<'ast>;
+pub trait ItemBaseData<'ast>: Debug + Sized {
+    fn as_item_type(base: &'ast ItemBase<'ast, Self>) -> ItemType<'ast>;
 }
 
 impl<'ast, T: ItemBaseData<'ast>> ItemData<'ast> for ItemBase<'ast, T> {
@@ -124,14 +129,18 @@ impl<'ast, T: ItemBaseData<'ast>> ItemData<'ast> for ItemBase<'ast, T> {
         self.name
     }
 
-    fn as_item(&'ast self) -> ItemType<'ast> {
-        self.data.as_item()
-    }
-
     fn get_attrs(&self) {
         todo!()
     }
+
+    fn as_item(&'ast self) -> ItemType<'ast> {
+        T::as_item_type(self)
+    }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// Items based on traits
+///////////////////////////////////////////////////////////////////////////////
 
 pub trait ModItem<'ast>: ItemData<'ast> {
     fn get_inner_attrs(&self); // FIXME: Add return type -> [&dyn Attribute<'ast>];
@@ -182,7 +191,7 @@ pub trait UseDeclItem<'ast>: ItemData<'ast> {
 /// // `get_ty()` -> _Ty of u32_
 /// // `get_body_id()` -> _BodyId of `0`_
 /// ```
-pub trait StaticItem<'ast>: ItemData<'ast> {
+pub trait StaticItemTrait<'ast>: ItemData<'ast> {
     /// The mutability of this item
     fn get_mutability(&self) -> Mutability;
 
@@ -434,7 +443,7 @@ pub trait ExternBlockItem<'ast>: ItemData<'ast> {
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum ExternalItems<'ast> {
-    Static(&'ast dyn StaticItem<'ast>),
+    Static(&'ast StaticItem<'ast>),
     Function(&'ast dyn FunctionItem<'ast>),
 }
 
