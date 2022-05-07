@@ -19,6 +19,8 @@ on:
 env:
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
+  RUSTDOCFLAGS: "-Dwarnings"
+  RUSTFLAGS: "-Dwarnings"
 
 jobs:
   check:
@@ -43,3 +45,5 @@ jobs:
       run: cargo clippy
     - name: Cargo fmt
       run: cargo fmt --check
+    - name: Cargo doc
+      run: cargo doc
