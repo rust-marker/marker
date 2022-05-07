@@ -30,7 +30,7 @@ impl ItemId {
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
-    /// and to request items from the [`Context`][`crate::context::Context`].
+    /// and to request items from the [`AstContext`][`crate::context::AstContext`].
     fn get_id(&self) -> ItemId;
 
     /// The [`Span`] of the entire item. This span should be used for general item related
@@ -214,7 +214,7 @@ pub trait ConstItem<'ast>: ItemData<'ast> {
 
     /// The [`BodyId`] of the initialization body.
     ///
-    /// This can return `None` for [`ConstItemItem`]s asscociated with a trait. For
+    /// This can return `None` for [`ConstItem`]s asscociated with a trait. For
     /// normal items this will always return `Some` at the time of writing this.
     fn get_body_id(&self) -> Option<BodyId>;
 }
