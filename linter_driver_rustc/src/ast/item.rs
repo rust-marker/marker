@@ -1,7 +1,7 @@
 #![expect(unused)]
 
 use linter_api::ast::{
-    item::{ExternCrateItem, GenericParam, ItemData, ItemId, ItemType, Visibility},
+    item::{CommonItemData, ExternCrateItem, GenericParam, ItemData, ItemId, ItemType, Visibility},
     CrateId, Symbol,
 };
 
@@ -107,3 +107,21 @@ pub fn from_rustc<'ast, 'tcx>(
 mod extern_crate_item;
 mod mod_item;
 mod use_decl;
+
+fn create_common_data<'ast, 'tcx>(
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    rustc_item: &'tcx rustc_hir::Item<'tcx>,
+) -> CommonItemData<'ast> {
+    CommonItemData::new(
+        rustc_item.def_id.to_def_id().to_api(cx),
+        rustc_item.span.to_api(cx),
+        rustc_item.vis.to_api(),
+        (!rustc_item.ident.name.is_empty()).then(|| rustc_item.ident.name.to_api(cx)),
+    )
+}
+
+impl<'ast, 'tcx> ToApi<'ast, 'tcx, ItemId> for rustc_hir::def_id::DefId {
+    fn to_api(&self, cx: &'ast RustcContext<'ast, 'tcx>) -> ItemId {
+        ItemId::new(self.krate.to_api(cx), self.index.as_u32())
+    }
+}

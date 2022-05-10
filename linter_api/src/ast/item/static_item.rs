@@ -3,7 +3,7 @@ use crate::ast::{
     BodyId,
 };
 
-use super::{ItemBase, ItemBaseData, ItemType};
+use super::CommonItemData;
 
 /// ```ignore
 /// static mut LEVELS: u32 = 0;
@@ -12,24 +12,19 @@ use super::{ItemBase, ItemBaseData, ItemType};
 /// // `get_ty()` -> _Ty of u32_
 /// // `get_body_id()` -> _BodyId of `0`_
 /// ```
-pub type StaticItem<'ast> = ItemBase<'ast, StaticItemData>;
-
 #[derive(Debug)]
-pub struct StaticItemData {
+pub struct StaticItem<'ast> {
+    data: CommonItemData<'ast>,
     mutability: Mutability,
     body_id: BodyId,
 }
 
-impl<'ast> ItemBaseData<'ast> for StaticItemData {
-    fn as_item_type(base: &'ast ItemBase<'ast, Self>) -> super::ItemType<'ast> {
-        ItemType::Static(base)
-    }
-}
+super::impl_item_data!(StaticItem, Static);
 
 impl<'ast> StaticItem<'ast> {
     /// The mutability of this item
     pub fn get_mutability(&self) -> Mutability {
-        self.data.mutability
+        self.mutability
     }
 
     /// The defined type of this static item
@@ -39,6 +34,17 @@ impl<'ast> StaticItem<'ast> {
 
     /// This returns the [`BodyId`] of the initialization body.
     pub fn get_body_id(&self) -> BodyId {
-        self.data.body_id
+        self.body_id
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> StaticItem<'ast> {
+    pub fn new(data: CommonItemData<'ast>, mutability: Mutability, body_id: BodyId) -> Self {
+        Self {
+            data,
+            mutability,
+            body_id,
+        }
     }
 }
