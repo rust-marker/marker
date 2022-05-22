@@ -1,4 +1,4 @@
-use rustc_lint::LintStore;
+use rustc_lint::{LintStore, LateContext};
 use rustc_middle::ty::TyCtxt;
 
 use linter_api::{
@@ -6,13 +6,14 @@ use linter_api::{
         ty::{Ty, TyKind},
         Ident, Lifetime, Span, Symbol,
     },
-    context::DriverContext,
+    context::DriverContext, lint::Lint,
 };
 
 use super::{ty::RustcTy, RustcLifetime, RustcSpan};
 
 #[expect(unused)]
 pub struct RustcContext<'ast, 'tcx> {
+    pub(crate) lint_ctx: LateLint
     pub(crate) tcx: TyCtxt<'tcx>,
     pub(crate) lint_store: &'tcx LintStore,
     /// All items should be created using the `alloc_*` functions. This ensures
@@ -26,7 +27,15 @@ impl<'ast, 'tcx> std::fmt::Debug for RustcContext<'ast, 'tcx> {
     }
 }
 
-impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {}
+impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
+    fn warn(&self, s: &str, lint: &Lint) {
+        self.tcx
+    }
+
+    fn warn_span(&self, s: &str, lint: &Lint, sp: &dyn Span<'_>) {
+        todo!()
+    }
+}
 
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     pub fn alloc_with<F, T>(&self, f: F) -> &'ast T
@@ -84,7 +93,7 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
 
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     #[must_use]
-    pub fn new(tcx: TyCtxt<'tcx>, lint_store: &'tcx LintStore, buffer: &'ast bumpalo::Bump) -> Self {
+    pub fn new(ctx: LateContext<>, buffer: &'ast bumpalo::Bump) -> Self {
         Self {
             tcx,
             lint_store,
