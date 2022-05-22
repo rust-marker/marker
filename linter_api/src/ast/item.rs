@@ -43,9 +43,9 @@ pub trait ItemData<'ast>: Debug {
     /// This function can return `None` if the item was generated and has no real name
     fn get_name(&self) -> Option<Symbol>;
 
-    /// This returns this [`ItemData`] instance as a [`ItemType`]. This can be usefull for
+    /// This returns this [`ItemData`] instance as a [`ItemType`]. This can be useful for
     /// functions that take [`ItemType`] as a parameter. For general function calls it's better
-    /// to call them directoly on the item, instead of converting it to a [`ItemType`] first.
+    /// to call them directly on the item, instead of converting it to a [`ItemType`] first.
     fn as_item(&'ast self) -> ItemType<'ast> {
         todo!()
     }
@@ -507,7 +507,7 @@ pub trait GenericParam<'ast>: Debug {
     /// This returns the span of generic identifier.
     fn get_span(&self) -> &'ast dyn Span<'ast>;
 
-    /// This returns the name of the generic, this can retrun `None` for unnamed
+    /// This returns the name of the generic, this can return `None` for unnamed
     /// or implicit generics. For lifetimes this will include the leading apostrophe.
     ///
     /// Examples: `T`, `'ast`

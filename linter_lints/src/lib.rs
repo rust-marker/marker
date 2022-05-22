@@ -25,7 +25,9 @@ impl<'ast> LintPass<'ast> for TestLintPass {
     }
 
     fn check_item(&mut self, _cx: &AstContext<'ast>, item: ItemType<'ast>) {
-        dbg!(item);
+        if let ItemType::Function(func) = item {
+            dbg!(func);
+        }
     }
 
     fn check_extern_crate(&mut self, _cx: &'ast AstContext<'ast>, extern_crate_item: &'ast dyn ExternCrateItem<'ast>) {

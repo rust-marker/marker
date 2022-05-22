@@ -66,7 +66,7 @@ fn main() {
     }
 
     if lint_crates.iter().any(|path| path.contains(';')) {
-        eprintln!("The absolut paths of lint crates are not allowed to contain a `;`");
+        eprintln!("The absolute paths of lint crates are not allowed to contain a `;`");
         exit(-1);
     }
 
