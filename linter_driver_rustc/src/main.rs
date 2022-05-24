@@ -44,14 +44,6 @@ impl rustc_driver::Callbacks for LinterCallback {
             lint_store.register_late_pass(register);
         }));
     }
-
-    fn after_analysis<'tcx>(
-        &mut self,
-        _compiler: &rustc_interface::interface::Compiler,
-        _queries: &'tcx rustc_interface::Queries<'tcx>,
-    ) -> rustc_driver::Compilation {
-        rustc_driver::Compilation::Stop
-    }
 }
 
 fn register() -> Box<
