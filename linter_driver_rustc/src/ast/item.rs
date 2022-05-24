@@ -1,9 +1,13 @@
 #![expect(unused)]
 
 use linter_api::ast::{
-    item::{CommonItemData, ExternCrateItem, GenericParam, ItemData, ItemId, ItemType, Visibility},
+    item::{CommonItemData, ExternCrateItem, GenericParam, ItemData, ItemId, ItemType, StaticItem, Visibility},
     CrateId, Symbol,
 };
+
+mod extern_crate_item;
+mod mod_item;
+mod use_decl;
 
 use self::{
     extern_crate_item::RustcExternCrateItem,
@@ -87,7 +91,13 @@ pub fn from_rustc<'ast, 'tcx>(
             let data = RustcUseDeclItemData::data_from_rustc(cx, item)?;
             ItemType::UseDecl(cx.alloc_with(|| RustcUseDeclItem { cx, item, data }))
         },
-        rustc_hir::ItemKind::Static(..) => None?,
+        rustc_hir::ItemKind::Static(_ty, rustc_mut, rustc_body_id) => ItemType::Static(cx.alloc_with(|| {
+            StaticItem::new(
+                create_common_data(cx, item),
+                rustc_mut.to_api(cx),
+                rustc_body_id.to_api(cx),
+            )
+        })),
         rustc_hir::ItemKind::Const(..) => None?,
         rustc_hir::ItemKind::Fn(..) => None?,
         rustc_hir::ItemKind::Macro(..) => None?,
@@ -104,10 +114,6 @@ pub fn from_rustc<'ast, 'tcx>(
     })
 }
 
-mod extern_crate_item;
-mod mod_item;
-mod use_decl;
-
 fn create_common_data<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
     rustc_item: &'tcx rustc_hir::Item<'tcx>,
@@ -115,13 +121,24 @@ fn create_common_data<'ast, 'tcx>(
     CommonItemData::new(
         rustc_item.def_id.to_def_id().to_api(cx),
         rustc_item.span.to_api(cx),
-        rustc_item.vis.to_api(),
+        rustc_item.vis.node.to_api(cx),
         (!rustc_item.ident.name.is_empty()).then(|| rustc_item.ident.name.to_api(cx)),
     )
 }
 
-impl<'ast, 'tcx> ToApi<'ast, 'tcx, ItemId> for rustc_hir::def_id::DefId {
-    fn to_api(&self, cx: &'ast RustcContext<'ast, 'tcx>) -> ItemId {
-        ItemId::new(self.krate.to_api(cx), self.index.as_u32())
+impl<'ast, 'tcx> ToApi<'ast, 'tcx, Visibility<'ast>> for rustc_hir::Visibility<'tcx> {
+    fn to_api(&self, cx: &'ast RustcContext<'ast, 'tcx>) -> Visibility<'ast> {
+        self.node.to_api(cx)
+    }
+}
+
+impl<'ast, 'tcx> ToApi<'ast, 'tcx, Visibility<'ast>> for rustc_hir::VisibilityKind<'tcx> {
+    fn to_api(&self, cx: &'ast RustcContext<'ast, 'tcx>) -> Visibility<'ast> {
+        match self {
+            rustc_hir::VisibilityKind::Public => Visibility::PubSelf,
+            rustc_hir::VisibilityKind::Crate(..) => Visibility::PubCrate,
+            rustc_hir::VisibilityKind::Restricted { .. } => unimplemented!("VisibilityKind::PubPath"),
+            rustc_hir::VisibilityKind::Inherited => Visibility::PubSuper,
+        }
     }
 }

@@ -1,6 +1,6 @@
 use libloading::Library;
 
-use linter_api::ast::item::{ExternCrateItem, ModItem, UseDeclItem};
+use linter_api::ast::item::{ExternCrateItem, ModItem, StaticItem, UseDeclItem};
 use linter_api::context::AstContext;
 use linter_api::interface::{LintPassDeclaration, LintPassRegistry};
 use linter_api::LintPass;
@@ -90,6 +90,12 @@ impl<'ast> LintPass<'ast> for ExternalLintCrateRegistry<'ast> {
     fn check_use_decl(&mut self, cx: &'ast AstContext<'ast>, use_item: &'ast dyn UseDeclItem<'ast>) {
         for lint_pass in self.lint_passes.iter_mut() {
             lint_pass.check_use_decl(cx, use_item);
+        }
+    }
+
+    fn check_static_item(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {
+        for lint_pass in self.lint_passes.iter_mut() {
+            lint_pass.check_static_item(cx, item);
         }
     }
 }

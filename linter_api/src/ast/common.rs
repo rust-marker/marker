@@ -23,19 +23,19 @@ impl CrateId {
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BodyId {
-    krate: CrateId,
-    index: u32,
+    owner: usize,
+    index: usize,
 }
 
 #[cfg(feature = "driver-api")]
 impl BodyId {
     #[must_use]
-    pub fn new(krate: CrateId, index: u32) -> Self {
-        Self { krate, index }
+    pub fn new(owner: usize, index: usize) -> Self {
+        Self { owner, index }
     }
 
-    pub fn get_data(self) -> (CrateId, u32) {
-        (self.krate, self.index)
+    pub fn get_data(self) -> (usize, usize) {
+        (self.owner, self.index)
     }
 }
 

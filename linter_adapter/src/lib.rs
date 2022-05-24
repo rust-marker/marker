@@ -33,6 +33,7 @@ impl<'ast> Adapter<'ast> {
                 ItemType::Mod(data) => self.external_lint_crates.check_mod(cx, *data),
                 ItemType::ExternCrate(data) => self.external_lint_crates.check_extern_crate(cx, *data),
                 ItemType::UseDecl(data) => self.external_lint_crates.check_use_decl(cx, *data),
+                ItemType::Static(data) => self.external_lint_crates.check_static_item(cx, data),
                 _ => {},
             }
         }

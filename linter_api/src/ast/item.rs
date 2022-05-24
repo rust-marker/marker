@@ -474,7 +474,6 @@ pub enum Visibility<'ast> {
     /// Visible in the current module, equivialent to `pub(in self)` or no visibility
     PubSelf,
     PubCrate,
-    /// FIXME: Add a path value to this
     PubPath(&'ast Path<'ast>),
     PubSuper,
 }

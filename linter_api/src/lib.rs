@@ -2,7 +2,7 @@
 #![warn(clippy::index_refutable_slice)]
 #![allow(clippy::module_name_repetitions)]
 
-use ast::item::{ExternCrateItem, ItemType, ModItem, UseDeclItem};
+use ast::item::{ExternCrateItem, ItemType, ModItem, StaticItem, UseDeclItem};
 use context::AstContext;
 use lint::Lint;
 
@@ -31,4 +31,6 @@ pub trait LintPass<'ast> {
     }
 
     fn check_use_decl(&mut self, _cx: &'ast AstContext<'ast>, _use_item: &'ast dyn UseDeclItem<'ast>) {}
+
+    fn check_static_item(&mut self, _cx: &'ast AstContext<'ast>, _item: &'ast StaticItem<'ast>) {}
 }
