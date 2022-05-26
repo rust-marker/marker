@@ -126,7 +126,7 @@ macro_rules! impl_item_data {
             }
 
             fn as_item(&'ast self) -> crate::ast::item::ItemType<'ast> {
-                crate::ast::item::ItemType::$enum_name(self)
+                $crate::ast::item::ItemType::$enum_name(self)
             }
 
             fn get_attrs(&self) {
