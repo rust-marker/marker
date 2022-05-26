@@ -14,7 +14,9 @@ impl<'ast> AstContext<'ast> {
     pub fn new(cx: &'ast dyn DriverContext<'ast>) -> Self {
         Self { _cx: cx }
     }
+}
 
+impl<'ast> AstContext<'ast> {
     pub fn warn(&self, s: &str, lint: &Lint) {
         self._cx.warn(s, lint);
     }
@@ -23,6 +25,7 @@ impl<'ast> AstContext<'ast> {
         self._cx.warn_span(s, lint, sp);
     }
 }
+
 
 /// This trait provides the actual implementation of [`AstContext`]. [`AstContext`] is just
 /// a wrapper type to avoid writing `dyn` for every context and to prevent users from

@@ -28,21 +28,17 @@ pub struct Lint {
     /// e.g., "imports that are never used"
     pub desc: &'static str,
 
-    /// Starting at the given edition, default to the given lint level. If this is
-    /// `None`, then use `default_level`.
-    pub edition_lint_opts: Option<(Edition, Level)>,
 
     /// The level of macro reporting.
     ///
     /// See `MacroReport` for the possible levels.
     pub report_in_macro: MacroReport,
 
-    pub future_incompatible: Option<FutureIncompatibleInfo>,
-
-    /// `Some` if this lint is feature gated, otherwise `None`.
-    pub feature_gate: Option<&'static str>,
-
-    pub crate_level_only: bool,
+    // TODO: do we want these
+    // pub edition_lint_opts: Option<(Edition, Level)>,
+    // pub future_incompatible: Option<FutureIncompatibleInfo>,
+    // pub feature_gate: Option<&'static str>,
+    // pub crate_level_only: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Hash)]
@@ -155,11 +151,7 @@ macro_rules! declare_lint {
             name: stringify!($NAME),
             default_level: $crate::lint::Level::$LEVEL,
             desc: $EXPLAINATION,
-            edition_lint_opts: None,
             report_in_macro: $REPORT_IN_MACRO,
-            future_incompatible: None,
-            feature_gate: None,
-            crate_level_only: false,
         };
     };
 }

@@ -21,7 +21,7 @@ impl<'ast, 'tcx> ToApi<'ast, 'tcx, BodyId> for rustc_hir::BodyId {
 
 #[derive(Debug)]
 pub struct RustcSpan<'ast, 'tcx> {
-    span: rustc_span::Span,
+    pub(crate) span: rustc_span::Span,
     cx: &'ast RustcContext<'ast, 'tcx>,
 }
 
