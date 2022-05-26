@@ -1,4 +1,4 @@
-use rustc_lint::{LintStore, LateContext};
+use rustc_lint::{LateContext, Level as RustcLevel, Lint as RustcLint, LintContext, LintStore};
 use rustc_middle::ty::TyCtxt;
 
 use linter_api::{
@@ -6,14 +6,15 @@ use linter_api::{
         ty::{Ty, TyKind},
         Ident, Lifetime, Span, Symbol,
     },
-    context::DriverContext, lint::Lint,
+    context::DriverContext,
+    lint::{Level, Lint, MacroReport},
 };
 
 use super::{ty::RustcTy, RustcLifetime, RustcSpan};
 
 #[expect(unused)]
 pub struct RustcContext<'ast, 'tcx> {
-    pub(crate) lint_ctx: LateLint
+    pub(crate) lint_ctx: &'ast LateContext<'tcx>,
     pub(crate) tcx: TyCtxt<'tcx>,
     pub(crate) lint_store: &'tcx LintStore,
     /// All items should be created using the `alloc_*` functions. This ensures
@@ -27,13 +28,59 @@ impl<'ast, 'tcx> std::fmt::Debug for RustcContext<'ast, 'tcx> {
     }
 }
 
+fn to_leaked_rustc_lint(lint: &Lint) -> &'static RustcLint {
+    Box::leak(Box::new(RustcLint {
+        name: lint.name,
+        default_level: match lint.default_level {
+            Level::Allow => RustcLevel::Allow,
+            Level::Warn => RustcLevel::Warn,
+            Level::Deny => RustcLevel::Deny,
+            Level::Forbid => RustcLevel::Forbid,
+            _ => unreachable!("added variant to lint::Level"),
+        },
+        desc: lint.desc,
+        edition_lint_opts: None,
+        report_in_external_macro: match lint.report_in_macro {
+            MacroReport::No | MacroReport::Local => false,
+            MacroReport::All => true,
+            _ => unreachable!("added variant to lint::MacroReport"),
+        },
+        future_incompatible: None,
+        is_plugin: true,
+        feature_gate: None,
+        crate_level_only: false,
+    }))
+}
+
 impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
     fn warn(&self, s: &str, lint: &Lint) {
-        self.tcx
+        self.lint_ctx.lint(to_leaked_rustc_lint(lint), |diag| {
+            let mut diag = diag.build(s);
+            diag.emit();
+        });
     }
 
     fn warn_span(&self, s: &str, lint: &Lint, sp: &dyn Span<'_>) {
-        todo!()
+        // Safety:
+        //
+        // Clearly this is probably not ideal but I did find this (answered by people much more
+        // knowledgeable about lifetime/unsafe/transmute)
+        // https://users.rust-lang.org/t/solved-transmute-between-trait-objects/13995/6
+        //
+        // In regard to the leak/forget, since we can keep this within the `'tcx` - `'ast` lifetime I don't
+        // think we have to. We aren't returning a `dyn Trait + 'static` like if we were actually using the
+        // `dyn Any` or the `dyn Span<'_>`. We can't use the `Any::downcast_ref` machinery here since we
+        // have a non `'static` trait object in `Span` (at least I couldn't get it to work)
+        let down_span: &RustcSpan<'ast, 'tcx> = unsafe {
+            let sp_ptr = sp as *const _ as *const (*mut (), *mut ());
+            &*(sp_ptr as *const dyn std::any::Any as *const _)
+        };
+
+        self.lint_ctx
+            .struct_span_lint(to_leaked_rustc_lint(lint), down_span.span, |diag| {
+                let mut diag = diag.build(s);
+                diag.emit();
+            });
     }
 }
 
@@ -93,10 +140,11 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
 
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     #[must_use]
-    pub fn new(ctx: LateContext<>, buffer: &'ast bumpalo::Bump) -> Self {
+    pub fn new(ctx: &'ast LateContext<'tcx>, buffer: &'ast bumpalo::Bump) -> Self {
         Self {
-            tcx,
-            lint_store,
+            lint_ctx: ctx,
+            tcx: ctx.tcx,
+            lint_store: ctx.lint_store,
             buffer,
         }
     }

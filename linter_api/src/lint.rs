@@ -28,12 +28,10 @@ pub struct Lint {
     /// e.g., "imports that are never used"
     pub desc: &'static str,
 
-
     /// The level of macro reporting.
     ///
     /// See `MacroReport` for the possible levels.
     pub report_in_macro: MacroReport,
-
     // TODO: do we want these
     // pub edition_lint_opts: Option<(Edition, Level)>,
     // pub future_incompatible: Option<FutureIncompatibleInfo>,

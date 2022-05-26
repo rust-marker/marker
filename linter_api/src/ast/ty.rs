@@ -15,7 +15,7 @@ pub trait Ty<'ast>: Debug {
     }
 
     /// In the expression `let v: Vec<_> = vec![1, 2, 3]`, the type would be
-    /// `Vec<i32>` with `i32` being infered by the usage.
+    /// `Vec<i32>` with `i32` being inferred by the usage.
     fn is_infered(&self) -> bool;
 }
 

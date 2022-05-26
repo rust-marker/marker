@@ -26,7 +26,6 @@ impl<'ast> AstContext<'ast> {
     }
 }
 
-
 /// This trait provides the actual implementation of [`AstContext`]. [`AstContext`] is just
 /// a wrapper type to avoid writing `dyn` for every context and to prevent users from
 /// implementing this trait.
