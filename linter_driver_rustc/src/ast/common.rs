@@ -2,13 +2,20 @@
 
 use std::fmt::Debug;
 
-use linter_api::ast::{Attribute, CrateId, Lifetime, Path, PathResolution, PathSegment, Span, Symbol};
+use linter_api::ast::{Attribute, BodyId, CrateId, Lifetime, Path, PathResolution, PathSegment, Span, Symbol};
 
 use super::{rustc::RustcContext, ToApi};
 
 impl<'ast, 'tcx> ToApi<'ast, 'tcx, CrateId> for rustc_hir::def_id::CrateNum {
     fn to_api(&self, _cx: &'ast RustcContext<'ast, 'tcx>) -> CrateId {
         CrateId::new(self.as_u32())
+    }
+}
+
+impl<'ast, 'tcx> ToApi<'ast, 'tcx, BodyId> for rustc_hir::BodyId {
+    fn to_api(&self, _cx: &'ast RustcContext<'ast, 'tcx>) -> BodyId {
+        let (x1, x2) = self.hir_id.index();
+        BodyId::new(x1, x2)
     }
 }
 

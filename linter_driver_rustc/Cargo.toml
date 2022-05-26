@@ -11,3 +11,6 @@ linter_api = { path = "../linter_api", features = ["driver-api"] }
 linter_adapter = { path = "../linter_adapter" }
 
 bumpalo = "3.9.1"
+
+[package.metadata.rust-analyzer]
+rustc_private=true

@@ -46,9 +46,7 @@ pub trait ItemData<'ast>: Debug {
     /// This returns this [`ItemData`] instance as a [`ItemType`]. This can be usefull for
     /// functions that take [`ItemType`] as a parameter. For general function calls it's better
     /// to call them directoly on the item, instead of converting it to a [`ItemType`] first.
-    fn as_item(&'ast self) -> ItemType<'ast> {
-        todo!()
-    }
+    fn as_item(&'ast self) -> ItemType<'ast>;
 
     fn get_attrs(&self); // FIXME: Add return type: -> &'ast [&'ast dyn Attribute<'ast>];
 }
@@ -100,41 +98,50 @@ macro_rules! impl_item_type_fn {
 use impl_item_type_fn;
 
 #[derive(Debug)]
-pub struct ItemBase<'ast, T: ItemBaseData<'ast>> {
+#[cfg_attr(feature = "driver-api", visibility::make(pub))]
+struct CommonItemData<'ast> {
     id: ItemId,
     span: &'ast dyn Span<'ast>,
     vis: Visibility<'ast>,
     name: Option<Symbol>,
-    data: T,
 }
 
-pub trait ItemBaseData<'ast>: Debug + Sized {
-    fn as_item_type(base: &'ast ItemBase<'ast, Self>) -> ItemType<'ast>;
+macro_rules! impl_item_data {
+    ($self_name:ident, $enum_name:ident) => {
+        impl<'ast> super::ItemData<'ast> for $self_name<'ast> {
+            fn get_id(&self) -> crate::ast::item::ItemId {
+                self.data.id
+            }
+
+            fn get_span(&self) -> &'ast dyn crate::ast::Span<'ast> {
+                self.data.span
+            }
+
+            fn get_vis(&self) -> &crate::ast::item::Visibility<'ast> {
+                &self.data.vis
+            }
+
+            fn get_name(&self) -> Option<crate::ast::Symbol> {
+                self.data.name
+            }
+
+            fn as_item(&'ast self) -> crate::ast::item::ItemType<'ast> {
+                $crate::ast::item::ItemType::$enum_name(self)
+            }
+
+            fn get_attrs(&self) {
+                todo!()
+            }
+        }
+    };
 }
 
-impl<'ast, T: ItemBaseData<'ast>> ItemData<'ast> for ItemBase<'ast, T> {
-    fn get_id(&self) -> ItemId {
-        self.id
-    }
+use impl_item_data;
 
-    fn get_span(&self) -> &'ast dyn Span<'ast> {
-        self.span
-    }
-
-    fn get_vis(&self) -> &Visibility<'ast> {
-        &self.vis
-    }
-
-    fn get_name(&self) -> Option<Symbol> {
-        self.name
-    }
-
-    fn get_attrs(&self) {
-        todo!()
-    }
-
-    fn as_item(&'ast self) -> ItemType<'ast> {
-        T::as_item_type(self)
+#[cfg(feature = "driver-api")]
+impl<'ast> CommonItemData<'ast> {
+    pub fn new(id: ItemId, span: &'ast dyn Span<'ast>, vis: Visibility<'ast>, name: Option<Symbol>) -> Self {
+        Self { id, span, vis, name }
     }
 }
 
@@ -467,7 +474,6 @@ pub enum Visibility<'ast> {
     /// Visible in the current module, equivialent to `pub(in self)` or no visibility
     PubSelf,
     PubCrate,
-    /// FIXME: Add a path value to this
     PubPath(&'ast Path<'ast>),
     PubSuper,
 }
