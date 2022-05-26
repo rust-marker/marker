@@ -1,5 +1,4 @@
-use rustc_lint::{LateContext, Level as RustcLevel, Lint as RustcLint, LintContext, LintStore};
-use rustc_middle::ty::TyCtxt;
+use rustc_lint::{LateContext, Level as RustcLevel, Lint as RustcLint, LintContext};
 
 use linter_api::{
     ast::{
@@ -12,11 +11,8 @@ use linter_api::{
 
 use super::{ty::RustcTy, RustcLifetime, RustcSpan};
 
-#[expect(unused)]
 pub struct RustcContext<'ast, 'tcx> {
     pub(crate) lint_ctx: &'ast LateContext<'tcx>,
-    pub(crate) tcx: TyCtxt<'tcx>,
-    pub(crate) lint_store: &'tcx LintStore,
     /// All items should be created using the `alloc_*` functions. This ensures
     /// that we can later change the way we allocate and manage our memory
     buffer: &'ast bumpalo::Bump,
@@ -141,11 +137,6 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     #[must_use]
     pub fn new(ctx: &'ast LateContext<'tcx>, buffer: &'ast bumpalo::Bump) -> Self {
-        Self {
-            lint_ctx: ctx,
-            tcx: ctx.tcx,
-            lint_store: ctx.lint_store,
-            buffer,
-        }
+        Self { lint_ctx: ctx, buffer }
     }
 }
