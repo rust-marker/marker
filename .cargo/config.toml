@@ -1,0 +1,2 @@
+[alias]
+linter = "run --bin cargo-linter -- -l ./linter_lints"
