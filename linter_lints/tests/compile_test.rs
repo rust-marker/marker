@@ -1,5 +1,8 @@
 //! This test runs the `linter_lints` crate on each file inside the `ui` directory
 //! and compares the output to the `.stderr` file next to it.
+//!
+//! * To update the output files, you can set the environment value `BLESS` to `1`.
+//! * Specific test files can be selected with the `TESTNAME` environment value.
 
 #![feature(test)] // compiletest_rs requires this attribute
 
@@ -22,7 +25,9 @@ fn base_config(test_dir: &str) -> compiletest::Config {
         env::set_var(key, val);
     }
 
+    let bless = std::env::var("BLESS").eq(&Ok("1".to_string()));
     let mut config = compiletest::Config {
+        bless,
         edition: Some("2021".into()),
         mode: compiletest::common::Mode::Ui,
         ..compiletest::Config::default()
@@ -44,22 +49,22 @@ struct TestSetup {
     env_vars: HashMap<String, String>,
 }
 
+/// This function calls `cargo-linter` for the basic test setup. For normal linting
+/// crates this will need to be adjusted to run the installed `cargo-linter` version
+/// and to build the local crate and not assume that we're in a cargo workspace.
+///
+/// In the future this function should probably be hidden in a nice wrapper library.
 fn run_test_setup() -> TestSetup {
-    // /home/xfrednet/workspace/rust/rust-linting/linter_lints
+    const CARGO_LINTER_INVOCATION: &[&str] = &["run", "--bin", "cargo-linter", "--"];
+
+    // ../rust-linting/linter_lints
     let current_dir = env::current_dir().unwrap();
     let lint_crate_src = fs::canonicalize(&current_dir).unwrap();
     let mut cmd = Command::new("cargo");
     let output = cmd
         .current_dir(current_dir.parent().unwrap())
-        .args([
-            "run",
-            "--bin",
-            "cargo-linter",
-            "--",
-            "-l",
-            &lint_crate_src.display().to_string(),
-            "--test-setup",
-        ])
+        .args(CARGO_LINTER_INVOCATION)
+        .args(["-l", &lint_crate_src.display().to_string(), "--test-setup"])
         .output()
         .expect("Unable to run the test setup using `cargo-linter`");
 
@@ -68,11 +73,11 @@ fn run_test_setup() -> TestSetup {
         .lines()
         .filter_map(|line| line.strip_prefix("env:"))
         .filter_map(|line| line.split_once('='))
-        .map(|(var, val)| (var.to_string(), val.to_string()) )
+        .map(|(var, val)| (var.to_string(), val.to_string()))
         .collect();
 
     TestSetup {
         rustc_path: env_vars.remove("RUSTC_WORKSPACE_WRAPPER").unwrap(),
-        env_vars
+        env_vars,
     }
 }

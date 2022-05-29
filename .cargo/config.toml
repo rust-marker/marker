@@ -1,2 +1,3 @@
 [alias]
 linter = "run --bin cargo-linter -- -l ./linter_lints"
+uitest = "test --test compile_test"
