@@ -22,7 +22,7 @@ fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
         // FIXME: This is a temporary check to ensure that we don't randomly create files.
         // This should not be part of the release and maybe be replaced by something more
         // elegant or removed completly.
-        eprintln!("No target directory exists, most likely running in the wrong directory");
+        eprintln!("No `target` directory exists, most likely running in the wrong directory");
         exit(-1);
     }
 
@@ -70,17 +70,24 @@ fn main() {
         exit(-1);
     }
 
-    run_driver(lint_crates)
+    let driver_path = get_driver_path();
+    let linter_crates_env = lint_crates.join(";");
+    if matches.is_present("test-setup") {
+        println!("env:RUSTC_WORKSPACE_WRAPPER={}", driver_path.display());
+        println!("env:LINTER_LINT_CRATES={linter_crates_env}");
+    } else {
+        run_driver(&driver_path, &linter_crates_env)
+    }
 }
 
-fn run_driver(lint_crates: Vec<String>) {
+fn run_driver(driver_path: &PathBuf, lint_crates: &str) {
     println!();
     println!("Start linting:");
 
     let mut cmd = Command::new("cargo");
     let cargo_args = std::env::args().skip_while(|c| c != CARGO_ARGS_SEPARATOR).skip(1);
-    cmd.env("RUSTC_WORKSPACE_WRAPPER", get_driver_path())
-        .env("LINTER_LINT_CRATES", lint_crates.join(";"))
+    cmd.env("RUSTC_WORKSPACE_WRAPPER", driver_path)
+        .env("LINTER_LINT_CRATES", lint_crates)
         .arg("check")
         .args(cargo_args);
 
@@ -208,6 +215,11 @@ fn get_clap_config() -> clap::Command<'static> {
                 .multiple_values(true)
                 .takes_value(true)
                 .help("Defines a set of lints crates that should be used"),
+        )
+        .arg(
+            Arg::new("test-setup")
+                .long("test-setup")
+                .help("This flag will compile the lint crate and print all relevant environment values"),
         )
         .after_help(AFTER_HELP_MSG)
         .override_usage("cargo-linter [OPTIONS] -- <CARGO ARGS>")

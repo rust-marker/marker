@@ -5,22 +5,23 @@
 
 use compiletest_rs as compiletest;
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::env;
 use std::process::Command;
+use std::{env, fs};
 
 #[test]
 fn ui_test() {
-    compile_driver();
-    run_ui();
-}
-
-fn run_ui() {
     let config = base_config("ui");
     compiletest::run_tests(&config);
 }
 
 fn base_config(test_dir: &str) -> compiletest::Config {
+    let setup = run_test_setup();
+    for (key, val) in setup.env_vars {
+        env::set_var(key, val);
+    }
+
     let mut config = compiletest::Config {
         edition: Some("2021".into()),
         mode: compiletest::common::Mode::Ui,
@@ -32,33 +33,46 @@ fn base_config(test_dir: &str) -> compiletest::Config {
     }
 
     config.src_base = Path::new("tests").join(test_dir);
-    config.rustc_path = get_rustc_driver_path();
+    config.rustc_path = PathBuf::from(setup.rustc_path);
     config
 }
 
-fn compile_driver() {
-    println!();
-    println!("Compiling Driver:");
-    let mut cmd = Command::new("cargo");
-    let exit_status = cmd
-        .args(["build", "-p", "linter_driver_rustc"])
-        .spawn()
-        .expect("could not run cargo")
-        .wait()
-        .expect("failed to wait for cargo?");
-
-    assert!(exit_status.success(), "Failed to compile `linter_driver_rustc`");
+struct TestSetup {
+    rustc_path: String,
+    /// The environment values that should be set. The first element is the
+    /// value name, the second is the value the it should be set to.
+    env_vars: HashMap<String, String>,
 }
 
-fn get_rustc_driver_path() -> PathBuf {
-    // `.../rust-linting/target/debug/deps/compile_test-<hash>`
-    let current_exe_path = env::current_exe().unwrap();
-    println!("{current_exe_path:?}");
-    
-    // `.../rust-linting/target/debug/linter_driver_rustc`
-    #[cfg(not(target_os = "windows"))]
-    let driver_file = "linter_driver_rustc";
-    #[cfg(target_os = "windows")]
-    let driver_file = "linter_driver_rustc.exe";
-    current_exe_path.parent().unwrap().with_file_name(driver_file)
+fn run_test_setup() -> TestSetup {
+    // /home/xfrednet/workspace/rust/rust-linting/linter_lints
+    let current_dir = env::current_dir().unwrap();
+    let lint_crate_src = fs::canonicalize(&current_dir).unwrap();
+    let mut cmd = Command::new("cargo");
+    let output = cmd
+        .current_dir(current_dir.parent().unwrap())
+        .args([
+            "run",
+            "--bin",
+            "cargo-linter",
+            "--",
+            "-l",
+            &lint_crate_src.display().to_string(),
+            "--test-setup",
+        ])
+        .output()
+        .expect("Unable to run the test setup using `cargo-linter`");
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let mut env_vars: HashMap<_, _> = stdout
+        .lines()
+        .filter_map(|line| line.strip_prefix("env:"))
+        .filter_map(|line| line.split_once('='))
+        .map(|(var, val)| (var.to_string(), val.to_string()) )
+        .collect();
+
+    TestSetup {
+        rustc_path: env_vars.remove("RUSTC_WORKSPACE_WRAPPER").unwrap(),
+        env_vars
+    }
 }
