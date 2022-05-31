@@ -1,17 +1,17 @@
 #![expect(unused)]
 
 use linter_api::ast::{
-    item::{CommonItemData, ExternCrateItem, GenericParam, ItemData, ItemId, ItemType, StaticItem, Visibility},
+    item::{
+        CommonItemData, ExternCrateItem, GenericParam, ItemData, ItemId, ItemType, ModItem, StaticItem, Visibility,
+    },
     CrateId, Symbol,
 };
 
 mod extern_crate_item;
-mod mod_item;
 mod use_decl;
 
 use self::{
     extern_crate_item::RustcExternCrateItem,
-    mod_item::RustcModItem,
     use_decl::{RustcUseDeclItem, RustcUseDeclItemData},
 };
 use super::rustc::RustcContext;
@@ -76,11 +76,19 @@ pub fn from_rustc<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
     item: &'tcx rustc_hir::Item<'tcx>,
 ) -> Option<ItemType<'ast>> {
-    Some(match item.kind {
-        rustc_hir::ItemKind::Mod(..) => ItemType::Mod(cx.alloc_with(|| RustcModItem {
-            cx,
-            item,
-            data: RustcModItem::data_from_rustc(cx, item),
+    Some(match &item.kind {
+        rustc_hir::ItemKind::Mod(rustc_mod) => ItemType::Mod(cx.alloc_with(|| {
+            #[expect(
+                clippy::needless_collect,
+                reason = "collect is required to know the size of the allocation"
+            )]
+            let items: Vec<ItemType<'_>> = rustc_mod
+                .item_ids
+                .iter()
+                .filter_map(|rustc_item| from_rustc(cx, cx.tcx.hir().item(*rustc_item)))
+                .collect();
+            let items = cx.alloc_slice_from_iter(items.into_iter());
+            ModItem::new(create_common_data(cx, item), items)
         })),
         rustc_hir::ItemKind::ExternCrate(..) => ItemType::ExternCrate(cx.alloc_with(|| RustcExternCrateItem {
             cx,

@@ -2,6 +2,8 @@ use std::fmt::Debug;
 
 mod static_item;
 pub use self::static_item::StaticItem;
+mod mod_item;
+pub use self::mod_item::ModItem;
 
 use super::{
     ty::{Mutability, Ty, TyId},
@@ -54,7 +56,7 @@ pub trait ItemData<'ast>: Debug {
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
 pub enum ItemType<'ast> {
-    Mod(&'ast dyn ModItem<'ast>),
+    Mod(&'ast ModItem<'ast>),
     ExternCrate(&'ast dyn ExternCrateItem<'ast>),
     UseDecl(&'ast dyn UseDeclItem<'ast>),
     Static(&'ast StaticItem<'ast>),
@@ -148,12 +150,6 @@ impl<'ast> CommonItemData<'ast> {
 ///////////////////////////////////////////////////////////////////////////////
 /// Items based on traits
 ///////////////////////////////////////////////////////////////////////////////
-
-pub trait ModItem<'ast>: ItemData<'ast> {
-    fn get_inner_attrs(&self); // FIXME: Add return type -> [&dyn Attribute<'ast>];
-
-    fn get_items(&self) -> &[ItemType<'ast>];
-}
 
 /// ```ignore
 /// extern crate std;

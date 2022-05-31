@@ -77,7 +77,7 @@ impl<'ast> LintPass<'ast> for ExternalLintCrateRegistry<'ast> {
         }
     }
 
-    fn check_mod(&mut self, cx: &'ast AstContext<'ast>, mod_item: &'ast dyn ModItem<'ast>) {
+    fn check_mod(&mut self, cx: &'ast AstContext<'ast>, mod_item: &'ast ModItem<'ast>) {
         for lint_pass in self.lint_passes.iter_mut() {
             lint_pass.check_mod(cx, mod_item);
         }

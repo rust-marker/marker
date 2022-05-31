@@ -25,7 +25,7 @@ pub trait LintPass<'ast> {
 
     fn check_item(&mut self, _cx: &'ast AstContext<'ast>, _item: ItemType<'ast>) {}
 
-    fn check_mod(&mut self, _cx: &'ast AstContext<'ast>, _mod_item: &'ast dyn ModItem<'ast>) {}
+    fn check_mod(&mut self, _cx: &'ast AstContext<'ast>, _mod_item: &'ast ModItem<'ast>) {}
 
     fn check_extern_crate(&mut self, _cx: &'ast AstContext<'ast>, _extern_crate_item: &'ast dyn ExternCrateItem<'ast>) {
     }
