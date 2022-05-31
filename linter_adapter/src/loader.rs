@@ -82,7 +82,7 @@ impl<'ast> LintPass<'ast> for ExternalLintCrateRegistry<'ast> {
             lint_pass.check_mod(cx, mod_item);
         }
     }
-    fn check_extern_crate(&mut self, cx: &'ast AstContext<'ast>, extern_crate_item: &'ast dyn ExternCrateItem<'ast>) {
+    fn check_extern_crate(&mut self, cx: &'ast AstContext<'ast>, extern_crate_item: &'ast ExternCrateItem<'ast>) {
         for lint_pass in self.lint_passes.iter_mut() {
             lint_pass.check_extern_crate(cx, extern_crate_item);
         }

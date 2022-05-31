@@ -8,9 +8,6 @@ use linter_api::ast::{
     CrateId, Symbol,
 };
 
-mod extern_crate_item;
-
-use self::extern_crate_item::RustcExternCrateItem;
 use super::{path_from_rustc, rustc::RustcContext};
 use crate::ast::ToApi;
 
@@ -87,10 +84,9 @@ pub fn from_rustc<'ast, 'tcx>(
             let items = cx.alloc_slice_from_iter(items.into_iter());
             ModItem::new(create_common_data(cx, item), items)
         })),
-        rustc_hir::ItemKind::ExternCrate(..) => ItemType::ExternCrate(cx.alloc_with(|| RustcExternCrateItem {
-            cx,
-            item,
-            data: RustcExternCrateItem::data_from_rustc(cx, item),
+        rustc_hir::ItemKind::ExternCrate(rustc_original_name) => ItemType::ExternCrate(cx.alloc_with(|| {
+            let original_name = rustc_original_name.unwrap_or(item.ident.name).to_api(cx);
+            ExternCrateItem::new(create_common_data(cx, item), original_name)
         })),
         rustc_hir::ItemKind::Use(rustc_path, rustc_use_kind) => {
             let use_kind = rustc_use_kind.to_api(cx)?;
