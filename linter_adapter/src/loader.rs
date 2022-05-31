@@ -87,7 +87,7 @@ impl<'ast> LintPass<'ast> for ExternalLintCrateRegistry<'ast> {
             lint_pass.check_extern_crate(cx, extern_crate_item);
         }
     }
-    fn check_use_decl(&mut self, cx: &'ast AstContext<'ast>, use_item: &'ast dyn UseDeclItem<'ast>) {
+    fn check_use_decl(&mut self, cx: &'ast AstContext<'ast>, use_item: &'ast UseDeclItem<'ast>) {
         for lint_pass in self.lint_passes.iter_mut() {
             lint_pass.check_use_decl(cx, use_item);
         }

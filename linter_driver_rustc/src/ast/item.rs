@@ -2,19 +2,16 @@
 
 use linter_api::ast::{
     item::{
-        CommonItemData, ExternCrateItem, GenericParam, ItemData, ItemId, ItemType, ModItem, StaticItem, Visibility,
+        CommonItemData, ExternCrateItem, GenericParam, ItemData, ItemId, ItemType, ModItem, StaticItem, UseDeclItem,
+        UseKind, Visibility,
     },
     CrateId, Symbol,
 };
 
 mod extern_crate_item;
-mod use_decl;
 
-use self::{
-    extern_crate_item::RustcExternCrateItem,
-    use_decl::{RustcUseDeclItem, RustcUseDeclItemData},
-};
-use super::rustc::RustcContext;
+use self::extern_crate_item::RustcExternCrateItem;
+use super::{path_from_rustc, rustc::RustcContext};
 use crate::ast::ToApi;
 
 use std::fmt::Debug;
@@ -95,9 +92,11 @@ pub fn from_rustc<'ast, 'tcx>(
             item,
             data: RustcExternCrateItem::data_from_rustc(cx, item),
         })),
-        rustc_hir::ItemKind::Use(..) => {
-            let data = RustcUseDeclItemData::data_from_rustc(cx, item)?;
-            ItemType::UseDecl(cx.alloc_with(|| RustcUseDeclItem { cx, item, data }))
+        rustc_hir::ItemKind::Use(rustc_path, rustc_use_kind) => {
+            let use_kind = rustc_use_kind.to_api(cx)?;
+            ItemType::UseDecl(cx.alloc_with(|| {
+                UseDeclItem::new(create_common_data(cx, item), path_from_rustc(cx, rustc_path), use_kind)
+            }))
         },
         rustc_hir::ItemKind::Static(_ty, rustc_mut, rustc_body_id) => ItemType::Static(cx.alloc_with(|| {
             StaticItem::new(
@@ -147,6 +146,16 @@ impl<'ast, 'tcx> ToApi<'ast, 'tcx, Visibility<'ast>> for rustc_hir::VisibilityKi
             rustc_hir::VisibilityKind::Crate(..) => Visibility::PubCrate,
             rustc_hir::VisibilityKind::Restricted { .. } => unimplemented!("VisibilityKind::PubPath"),
             rustc_hir::VisibilityKind::Inherited => Visibility::PubSuper,
+        }
+    }
+}
+
+impl<'ast, 'tcx> ToApi<'ast, 'tcx, Option<UseKind>> for rustc_hir::UseKind {
+    fn to_api(&self, cx: &'ast RustcContext<'ast, 'tcx>) -> Option<UseKind> {
+        match self {
+            rustc_hir::UseKind::Single => Some(UseKind::Single),
+            rustc_hir::UseKind::Glob => Some(UseKind::Glob),
+            rustc_hir::UseKind::ListStem => None,
         }
     }
 }

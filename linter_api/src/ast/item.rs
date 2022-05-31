@@ -4,6 +4,8 @@ mod static_item;
 pub use self::static_item::StaticItem;
 mod mod_item;
 pub use self::mod_item::ModItem;
+mod use_decl_item;
+pub use self::use_decl_item::UseDeclItem;
 
 use super::{
     ty::{Mutability, Ty, TyId},
@@ -58,7 +60,7 @@ pub trait ItemData<'ast>: Debug {
 pub enum ItemType<'ast> {
     Mod(&'ast ModItem<'ast>),
     ExternCrate(&'ast dyn ExternCrateItem<'ast>),
-    UseDecl(&'ast dyn UseDeclItem<'ast>),
+    UseDecl(&'ast UseDeclItem<'ast>),
     Static(&'ast StaticItem<'ast>),
     Const(&'ast dyn ConstItem<'ast>),
     Function(&'ast dyn FunctionItem<'ast>),
@@ -163,28 +165,6 @@ pub trait ExternCrateItem<'ast>: ItemData<'ast> {
     /// This will return the original name of external crate. This will only differ
     /// with [`ItemData::get_name`] if the user has declared an alias with as.
     fn get_original_name(&self) -> Symbol;
-}
-
-/// ```ignore
-/// pub use foo::bar::*;
-/// // `get_name()`     -> `None`
-/// // `get_path()`     -> `foo::bar::*`
-/// // `get_use_kind()` -> `Glob`
-/// pub use foo::bar;
-/// // `get_name()`     -> `Some(bar)`
-/// // `get_path()`     -> `foo::bar`
-/// // `get_use_kind()` -> `Single`
-/// pub use foo::bar as baz;
-/// // `get_name()`     -> `Some(baz)`
-/// // `get_path()`     -> `foo::bar`
-/// // `get_use_kind()` -> `Single`
-/// ```
-pub trait UseDeclItem<'ast>: ItemData<'ast> {
-    /// Returns the path of this `use` item. For blob imports the `*` will
-    /// be included in the simple path.
-    fn get_path(&self) -> &Path<'ast>;
-
-    fn get_use_kind(&self) -> UseKind;
 }
 
 /// ```ignore
