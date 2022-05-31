@@ -19,53 +19,6 @@ impl<'ast, 'tcx> ToApi<'ast, 'tcx, ItemId> for rustc_hir::def_id::DefId {
     }
 }
 
-#[derive(Debug)]
-pub struct RustcItem<'ast, 'tcx, T: Debug> {
-    pub(crate) cx: &'ast RustcContext<'ast, 'tcx>,
-    pub(crate) item: &'tcx rustc_hir::Item<'tcx>,
-    pub(crate) data: T,
-}
-
-pub trait RustcItemData<'ast> {
-    fn as_api_item(&'ast self) -> ItemType<'ast>;
-}
-
-impl<'ast, 'tcx, T: Debug> ItemData<'ast> for RustcItem<'ast, 'tcx, T>
-where
-    Self: RustcItemData<'ast>,
-{
-    fn get_id(&self) -> ItemId {
-        let def_id = self.item.def_id.to_def_id();
-        ItemId::new(def_id.krate.to_api(self.cx), def_id.index.as_u32())
-    }
-
-    fn get_span(&self) -> &'ast dyn linter_api::ast::Span<'ast> {
-        self.cx.new_span(self.item.span)
-    }
-
-    fn get_vis(&self) -> &Visibility<'ast> {
-        // match self.item.vis.node {
-        //     rustc_hir::VisibilityKind::Public => VisibilityKind::PubSelf,
-        //     rustc_hir::VisibilityKind::Crate(..) => VisibilityKind::PubCrate,
-        //     rustc_hir::VisibilityKind::Restricted { .. } => unimplemented!("VisibilityKind::PubPath"),
-        //     rustc_hir::VisibilityKind::Inherited => VisibilityKind::PubSuper,
-        // }
-        todo!()
-    }
-
-    fn get_name(&self) -> Option<Symbol> {
-        (!self.item.ident.name.is_empty()).then(|| self.item.ident.name.to_api(self.cx))
-    }
-
-    fn as_item(&'ast self) -> ItemType<'ast> {
-        self.as_api_item()
-    }
-
-    fn get_attrs(&self) {
-        todo!()
-    }
-}
-
 pub fn from_rustc<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
     item: &'tcx rustc_hir::Item<'tcx>,
