@@ -72,7 +72,7 @@ impl<'ast, 'tcx> linter_api::ast::Span<'ast> for RustcSpan<'ast, 'tcx> {
     }
 
     fn snippet(&self) -> Option<String> {
-        self.cx.lint_ctx.tcx.sess.source_map().span_to_snippet(self.span).ok()
+        self.cx.rustc_cx.tcx.sess.source_map().span_to_snippet(self.span).ok()
     }
 
     fn get_source_file(&self) -> Option<(String, u32, u32)> {

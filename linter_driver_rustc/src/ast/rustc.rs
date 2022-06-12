@@ -12,7 +12,7 @@ use linter_api::{
 use super::{ty::RustcTy, RustcLifetime, RustcSpan};
 
 pub struct RustcContext<'ast, 'tcx> {
-    pub(crate) lint_ctx: &'ast LateContext<'tcx>,
+    pub(crate) rustc_cx: &'ast LateContext<'tcx>,
     /// All items should be created using the `alloc_*` functions. This ensures
     /// that we can later change the way we allocate and manage our memory
     buffer: &'ast bumpalo::Bump,
@@ -50,7 +50,7 @@ fn to_leaked_rustc_lint(lint: &Lint) -> &'static RustcLint {
 
 impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
     fn emit_lint(&self, s: &str, lint: &Lint) {
-        self.lint_ctx.lint(to_leaked_rustc_lint(lint), |diag| {
+        self.rustc_cx.lint(to_leaked_rustc_lint(lint), |diag| {
             let mut diag = diag.build(s);
             diag.emit();
         });
@@ -72,7 +72,7 @@ impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
             &*(sp_ptr as *const dyn std::any::Any as *const _)
         };
 
-        self.lint_ctx
+        self.rustc_cx
             .struct_span_lint(to_leaked_rustc_lint(lint), down_span.span, |diag| {
                 let mut diag = diag.build(s);
                 diag.emit();
@@ -137,6 +137,6 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     #[must_use]
     pub fn new(ctx: &'ast LateContext<'tcx>, buffer: &'ast bumpalo::Bump) -> Self {
-        Self { lint_ctx: ctx, buffer }
+        Self { rustc_cx: ctx, buffer }
     }
 }
