@@ -49,14 +49,14 @@ fn to_leaked_rustc_lint(lint: &Lint) -> &'static RustcLint {
 }
 
 impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
-    fn warn(&self, s: &str, lint: &Lint) {
+    fn emit_lint(&self, s: &str, lint: &Lint) {
         self.lint_ctx.lint(to_leaked_rustc_lint(lint), |diag| {
             let mut diag = diag.build(s);
             diag.emit();
         });
     }
 
-    fn warn_span(&self, s: &str, lint: &Lint, sp: &dyn Span<'_>) {
+    fn emit_lint_span(&self, s: &str, lint: &Lint, sp: &dyn Span<'_>) {
         // Safety:
         //
         // Clearly this is probably not ideal but I did find this (answered by people much more

@@ -25,6 +25,6 @@ impl<'ast> LintPass<'ast> for TestLintPass {
     }
 
     fn check_static_item(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {
-        cx.warn_span("hey there is a static item here", TEST_LINT, item.get_span());
+        cx.emit_lint_span("hey there is a static item here", TEST_LINT, item.get_span());
     }
 }
