@@ -34,7 +34,7 @@ fn to_leaked_rustc_lint(lint: &Lint) -> &'static RustcLint {
             Level::Forbid => RustcLevel::Forbid,
             _ => unreachable!("added variant to lint::Level"),
         },
-        desc: lint.desc,
+        desc: lint.explaination,
         edition_lint_opts: None,
         report_in_external_macro: match lint.report_in_macro {
             MacroReport::No | MacroReport::Local => false,

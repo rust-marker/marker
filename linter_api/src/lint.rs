@@ -26,7 +26,7 @@ pub struct Lint {
     /// Description of the lint or the issue it detects.
     ///
     /// e.g., "imports that are never used"
-    pub desc: &'static str,
+    pub explaination: &'static str,
 
     /// The level of macro reporting.
     ///
@@ -83,57 +83,21 @@ pub enum Applicability {
 #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Debug, Hash)]
 #[non_exhaustive]
 pub enum Level {
+    /// The lint is allowed. A created diagnostic will not be emitted to the user.
+    /// This level can be overridden. It's useful for rather strict lints.
     Allow,
-    Warn,
-    Deny,
-    Forbid,
-}
-
-/// Extra information for a future incompatibility lint.
-#[derive(Copy, Clone, Debug)]
-#[non_exhaustive]
-pub struct FutureIncompatibleInfo {
-    /// e.g., a URL for an issue/PR/RFC or error code
-    pub reference: &'static str,
-    /// The reason for the lint used by diagnostics to provide
-    /// the right help message
-    pub reason: FutureIncompatibilityReason,
-    /// Whether to explain the reason to the user.
+    /// The `warn` level will produce a warning if the lint was violated, however the
+    /// compiler will continue with its execution.
     ///
-    /// Set to false for lints that already include a more detailed
-    /// explanation.
-    pub explain_reason: bool,
-}
-
-/// The reason for future incompatibility
-#[derive(Copy, Clone, Debug)]
-#[non_exhaustive]
-pub enum FutureIncompatibilityReason {
-    /// This will be an error in a future release
-    /// for all editions
-    FutureReleaseError,
-    /// This will be an error in a future release, and
-    /// Cargo should create a report even for dependencies
-    FutureReleaseErrorReportNow,
-    /// Previously accepted code that will become an
-    /// error in the provided edition
-    EditionError(Edition),
-    /// Code that changes meaning in some way in
-    /// the provided edition
-    EditionSemanticsChange(Edition),
-}
-
-/// The edition of the compiler. (See [RFC 2052](https://github.com/rust-lang/rfcs/blob/master/text/2052-epochs.md).)
-#[derive(Clone, Copy, Hash, PartialEq, PartialOrd, Debug, Eq)]
-#[non_exhaustive]
-pub enum Edition {
-    // Editions *must* be kept in order, oldest to newest.
-    /// The 2015 edition
-    Edition2015,
-    /// The 2018 edition
-    Edition2018,
-    /// The 2021 edition
-    Edition2021,
+    /// This level might also be used in instances were the diagnostic is not emitted
+    /// to the user but used internally. This can for instance happen for lint
+    /// expectations (RFC 2383).
+    Warn,
+    /// The `deny` level will produce an error and stop further execution after the lint
+    /// pass is complete.
+    Deny,
+    /// The `forbid` level will produce an error, see `Deny`.
+    Forbid,
 }
 
 #[macro_export]
@@ -146,9 +110,9 @@ macro_rules! declare_lint {
     ) => {
         $(#[$attr])*
         pub static $NAME: &$crate::lint::Lint = &$crate::lint::Lint {
-            name: stringify!($NAME),
+            name: concat!("linter::", stringify!($NAME)),
             default_level: $crate::lint::Level::$LEVEL,
-            desc: $EXPLAINATION,
+            explaination: $EXPLAINATION,
             report_in_macro: $REPORT_IN_MACRO,
         };
     };
