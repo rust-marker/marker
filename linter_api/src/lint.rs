@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 // This can sadly not be marked as #[non_exhaustive] as the struct construction
 // has to be possible in a static context.
 #[doc(hidden)]
@@ -39,7 +39,7 @@ pub struct Lint {
     // pub crate_level_only: bool,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum MacroReport {
     /// No reporting in local or external macros.

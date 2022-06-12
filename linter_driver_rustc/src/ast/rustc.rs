@@ -1,3 +1,6 @@
+use std::{cell::RefCell, ops::DerefMut};
+
+use rustc_data_structures::fx::FxHashMap;
 use rustc_lint::{LateContext, Level as RustcLevel, Lint as RustcLint, LintContext};
 
 use linter_api::{
@@ -13,6 +16,7 @@ use super::{ty::RustcTy, RustcLifetime, RustcSpan};
 
 pub struct RustcContext<'ast, 'tcx> {
     pub(crate) rustc_cx: &'ast LateContext<'tcx>,
+    pub(crate) lint_map: RefCell<FxHashMap<&'ast Lint, &'static RustcLint>>,
     /// All items should be created using the `alloc_*` functions. This ensures
     /// that we can later change the way we allocate and manage our memory
     buffer: &'ast bumpalo::Bump,
@@ -24,39 +28,45 @@ impl<'ast, 'tcx> std::fmt::Debug for RustcContext<'ast, 'tcx> {
     }
 }
 
-fn to_leaked_rustc_lint(lint: &Lint) -> &'static RustcLint {
-    Box::leak(Box::new(RustcLint {
-        name: lint.name,
-        default_level: match lint.default_level {
-            Level::Allow => RustcLevel::Allow,
-            Level::Warn => RustcLevel::Warn,
-            Level::Deny => RustcLevel::Deny,
-            Level::Forbid => RustcLevel::Forbid,
-            _ => unreachable!("added variant to lint::Level"),
-        },
-        desc: lint.explaination,
-        edition_lint_opts: None,
-        report_in_external_macro: match lint.report_in_macro {
-            MacroReport::No | MacroReport::Local => false,
-            MacroReport::All => true,
-            _ => unreachable!("added variant to lint::MacroReport"),
-        },
-        future_incompatible: None,
-        is_plugin: true,
-        feature_gate: None,
-        crate_level_only: false,
-    }))
+fn to_leaked_rustc_lint<'ast>(
+    map: &mut FxHashMap<&'ast Lint, &'static RustcLint>,
+    lint: &'ast Lint,
+) -> &'static RustcLint {
+    map.entry(lint).or_insert_with(|| {
+        Box::leak(Box::new(RustcLint {
+            name: lint.name,
+            default_level: match lint.default_level {
+                Level::Allow => RustcLevel::Allow,
+                Level::Warn => RustcLevel::Warn,
+                Level::Deny => RustcLevel::Deny,
+                Level::Forbid => RustcLevel::Forbid,
+                _ => unreachable!("added variant to lint::Level"),
+            },
+            desc: lint.explaination,
+            edition_lint_opts: None,
+            report_in_external_macro: match lint.report_in_macro {
+                MacroReport::No | MacroReport::Local => false,
+                MacroReport::All => true,
+                _ => unreachable!("added variant to lint::MacroReport"),
+            },
+            future_incompatible: None,
+            is_plugin: true,
+            feature_gate: None,
+            crate_level_only: false,
+        }))
+    })
 }
 
 impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
-    fn emit_lint(&self, s: &str, lint: &Lint) {
-        self.rustc_cx.lint(to_leaked_rustc_lint(lint), |diag| {
+    fn emit_lint(&self, s: &str, lint: &'ast Lint) {
+        let mut map = self.lint_map.borrow_mut();
+        self.rustc_cx.lint(to_leaked_rustc_lint(map.deref_mut(), lint), |diag| {
             let mut diag = diag.build(s);
             diag.emit();
         });
     }
 
-    fn emit_lint_span(&self, s: &str, lint: &Lint, sp: &dyn Span<'_>) {
+    fn emit_lint_span(&self, s: &str, lint: &'ast Lint, sp: &dyn Span<'_>) {
         // Safety:
         //
         // Clearly this is probably not ideal but I did find this (answered by people much more
@@ -72,8 +82,9 @@ impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
             &*(sp_ptr as *const dyn std::any::Any as *const _)
         };
 
+        let mut map = self.lint_map.borrow_mut();
         self.rustc_cx
-            .struct_span_lint(to_leaked_rustc_lint(lint), down_span.span, |diag| {
+            .struct_span_lint(to_leaked_rustc_lint(map.deref_mut(), lint), down_span.span, |diag| {
                 let mut diag = diag.build(s);
                 diag.emit();
             });
@@ -137,6 +148,10 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     #[must_use]
     pub fn new(ctx: &'ast LateContext<'tcx>, buffer: &'ast bumpalo::Bump) -> Self {
-        Self { rustc_cx: ctx, buffer }
+        Self {
+            rustc_cx: ctx,
+            lint_map: Default::default(),
+            buffer,
+        }
     }
 }

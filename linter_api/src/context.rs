@@ -17,11 +17,11 @@ impl<'ast> AstContext<'ast> {
 }
 
 impl<'ast> AstContext<'ast> {
-    pub fn emit_lint(&self, s: &str, lint: &Lint) {
+    pub fn emit_lint(&self, s: &str, lint: &'ast Lint) {
         self.cx.emit_lint(s, lint);
     }
 
-    pub fn emit_lint_span(&self, s: &str, lint: &Lint, sp: &dyn Span<'_>) {
+    pub fn emit_lint_span(&self, s: &str, lint: &'ast Lint, sp: &dyn Span<'_>) {
         self.cx.emit_lint_span(s, lint, sp);
     }
 }
@@ -30,8 +30,8 @@ impl<'ast> AstContext<'ast> {
 /// a wrapper type to avoid writing `dyn` for every context and to prevent users from
 /// implementing this trait.
 pub trait DriverContext<'ast> {
-    fn emit_lint(&self, s: &str, lint: &Lint);
-    fn emit_lint_span(&self, s: &str, lint: &Lint, sp: &dyn Span<'_>);
+    fn emit_lint(&self, s: &str, lint: &'ast Lint);
+    fn emit_lint_span(&self, s: &str, lint: &'ast Lint, sp: &dyn Span<'_>);
 }
 
 /// This trait is used to create [`Symbol`]s and to turn them back into
