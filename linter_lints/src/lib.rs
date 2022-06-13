@@ -19,7 +19,8 @@ impl<'ast> LintPass<'ast> for TestLintPass {
         vec![TEST_LINT]
     }
 
-    fn check_static_item(&mut self, _cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {
-        dbg!(item);
+    fn check_static_item(&mut self, _cx: &'ast AstContext<'ast>, _item: &'ast StaticItem<'ast>) {
+        // A placeholder output, to have a simple implementation independent ui test output
+        println!("Found static item!");
     }
 }

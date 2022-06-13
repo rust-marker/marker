@@ -38,9 +38,6 @@ impl rustc_driver::Callbacks for LinterCallback {
         assert!(config.register_lints.is_none());
 
         config.register_lints = Some(Box::new(|_sess, lint_store| {
-            // Register plugins
-            println!("Register Lints");
-
             lint_store.register_late_pass(register);
         }));
     }
