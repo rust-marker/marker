@@ -1,4 +1,4 @@
-name: Check
+name: Rust
 
 on:
   push:
@@ -8,6 +8,9 @@ on:
     - 'LICENSE-*'
     - '**.md'
     - '**.txt'
+    # Temporary branches for bors which should be ignored
+    branches-ignore:
+    - '**.tmp'
   pull_request:
     # Don't run tests, when only text files were modified
     paths-ignore:
@@ -33,17 +36,11 @@ jobs:
       with:
           toolchain: nightly-2022-04-07
           components: cargo, clippy, rustfmt
-    - name: Rustc version info
-      run: rustc -vV
-    - name: Build
-      run: cargo build
+    - run: rustc -vV
+    - run: cargo build
   
     # Tests
-    - name: Cargo tests
-      run: cargo test
-    - name: Cargo clippy
-      run: cargo clippy
-    - name: Cargo fmt
-      run: cargo fmt --check
-    - name: Cargo doc
-      run: cargo doc
+    - run: cargo test
+    - run: cargo clippy
+    - run: cargo fmt --check
+    - run: cargo doc
