@@ -67,8 +67,13 @@ fn run_test_setup() -> TestSetup {
         .args(["-l", &lint_crate_src.display().to_string(), "--test-setup"])
         .output()
         .expect("Unable to run the test setup using `cargo-linter`");
-
     let stdout = String::from_utf8(output.stdout).unwrap();
+
+    if !output.status.success() {
+        let stderr = String::from_utf8(output.stderr).unwrap();
+        panic!("Test setup failed:\n\n===STDOUT===\n{stdout}\n\n===STDERR===\n{stderr}\n");
+    }
+
     let mut env_vars: HashMap<_, _> = stdout
         .lines()
         .filter_map(|line| line.strip_prefix("env:"))

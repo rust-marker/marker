@@ -1,0 +1,46 @@
+# This file has to be kept in sync with `rust.yml`
+name: Rust (bors)
+
+on:
+  push:
+    # Don't run tests, when only text files were modified
+    paths-ignore:
+    - 'COPYRIGHT'
+    - 'LICENSE-*'
+    - '**.md'
+    - '**.txt'
+    # Bors magic branches
+    branches:
+    - 'staging'
+    - 'trying'
+    - 'master'
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+  RUSTDOCFLAGS: "-Dwarnings"
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  rust:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    # Setup
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions-rs/toolchain@v1
+      with:
+          toolchain: nightly-2022-04-07
+          components: cargo, clippy, rustfmt
+    - run: rustc -vV
+    - run: cargo build
+  
+    # Tests
+    - run: cargo test
+    - run: cargo clippy
+    - run: cargo fmt --check
+    - run: cargo doc

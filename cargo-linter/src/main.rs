@@ -137,8 +137,16 @@ fn prepare_lint_crate(krate: &str, verbose: bool) -> Result<String, ()> {
         return Err(());
     }
 
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    let lib_file_prefix = "lib";
+    #[cfg(target_os = "windows")]
+    let lib_file_prefix = "";
+
     // FIXME: currently this expect, that the lib name is the same as the crate dir.
-    let file_name = format!("lib{}", path.file_name().and_then(|x| x.to_str()).unwrap_or_default());
+    let file_name = format!(
+        "{lib_file_prefix}{}",
+        path.file_name().and_then(|x| x.to_str()).unwrap_or_default()
+    );
     let mut krate_path = Path::new(&*LINT_KRATES_OUT_DIR).join(file_name);
 
     #[cfg(target_os = "linux")]
@@ -158,7 +166,7 @@ fn get_driver_path() -> PathBuf {
         .with_file_name("linter_driver_rustc");
 
     #[cfg(target_os = "windows")]
-    path.with_extension("exe");
+    path.set_extension("exe");
 
     path
 }
