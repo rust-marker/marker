@@ -15,7 +15,7 @@ pub trait Ty<'ast>: Debug {
     }
 
     /// In the expression `let v: Vec<_> = vec![1, 2, 3]`, the type would be
-    /// `Vec<i32>` with `i32` being infered by the usage.
+    /// `Vec<i32>` with `i32` being inferred by the usage.
     fn is_infered(&self) -> bool;
 }
 
@@ -58,7 +58,7 @@ pub enum TyKind<'ast> {
     /// Algebraic data types (ADT) for instance structs, enums and unions.
     ///
     /// The inner type is linked with the given [`TyId`] this allows the representation
-    /// of recursive datatypes, containing variations of themself and simple type comparison
+    /// of recursive data types, containing variations of themselves and simple type comparison
     /// using the [`TyId`]
     Adt(TyId),
 

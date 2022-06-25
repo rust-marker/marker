@@ -21,7 +21,7 @@ impl<'ast, 'tcx> ToApi<'ast, 'tcx, BodyId> for rustc_hir::BodyId {
 
 #[derive(Debug)]
 pub struct RustcSpan<'ast, 'tcx> {
-    span: rustc_span::Span,
+    pub(crate) span: rustc_span::Span,
     cx: &'ast RustcContext<'ast, 'tcx>,
 }
 
@@ -72,7 +72,7 @@ impl<'ast, 'tcx> linter_api::ast::Span<'ast> for RustcSpan<'ast, 'tcx> {
     }
 
     fn snippet(&self) -> Option<String> {
-        self.cx.tcx.sess.source_map().span_to_snippet(self.span).ok()
+        self.cx.rustc_cx.tcx.sess.source_map().span_to_snippet(self.span).ok()
     }
 
     fn get_source_file(&self) -> Option<(String, u32, u32)> {

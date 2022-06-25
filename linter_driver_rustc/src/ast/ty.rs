@@ -15,7 +15,7 @@ struct TyConvContext {
 
 /// This trait is used to convert types like the normal [`ToApi`] trait. Additionally
 /// it carries the current [`TyConvContext`] used to pass information from one type to
-/// it's children. It's only intendet to be used inside this module
+/// it's children. It's only intended to be used inside this module.
 trait ToApiTy<'ast, 'tcx, T> {
     fn to_api_ty(&self, _cx: &'ast RustcContext<'ast, 'tcx>, _tccx: &mut TyConvContext) -> T;
 }
@@ -330,6 +330,6 @@ pub fn create_from_rustc_ty<'ast, 'tcx>(
         _ => todo!(),
     };
 
-    // These types are never infered as they are created from the exect rustc type
+    // These types are never infered as they are created from the exact rustc type
     cx.new_ty(kind, false)
 }

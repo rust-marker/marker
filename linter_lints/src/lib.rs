@@ -1,10 +1,15 @@
 #![doc = include_str!("../README.md")]
 
-use linter_api::{ast::item::StaticItem, context::AstContext, lint::Lint, LintPass};
+use linter_api::{
+    ast::item::{ItemData, StaticItem},
+    context::AstContext,
+    lint::Lint,
+    LintPass,
+};
 
 linter_api::interface::export_lint_pass!("linter", TestLintPass::new());
 
-linter_api::lint::declare_lint!(TEST_LINT, Allow, "");
+linter_api::lint::declare_lint!(TEST_LINT, Warn, "test lint warning");
 
 struct TestLintPass {}
 
@@ -19,8 +24,7 @@ impl<'ast> LintPass<'ast> for TestLintPass {
         vec![TEST_LINT]
     }
 
-    fn check_static_item(&mut self, _cx: &'ast AstContext<'ast>, _item: &'ast StaticItem<'ast>) {
-        // A placeholder output, to have a simple implementation independent ui test output
-        println!("Found static item!");
+    fn check_static_item(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {
+        cx.emit_lint_span("hey there is a static item here", TEST_LINT, item.get_span());
     }
 }

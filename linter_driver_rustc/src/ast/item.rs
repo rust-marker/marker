@@ -32,7 +32,7 @@ pub fn from_rustc<'ast, 'tcx>(
             let items: Vec<ItemType<'_>> = rustc_mod
                 .item_ids
                 .iter()
-                .filter_map(|rustc_item| from_rustc(cx, cx.tcx.hir().item(*rustc_item)))
+                .filter_map(|rustc_item| from_rustc(cx, cx.rustc_cx.tcx.hir().item(*rustc_item)))
                 .collect();
             let items = cx.alloc_slice_from_iter(items.into_iter());
             ModItem::new(create_common_data(cx, item), items)

@@ -37,7 +37,7 @@ fn process_items<'tcx>(rustc_cx: &LateContext<'tcx>, allocator: &mut Bump) {
     let mut adapter = Adapter::new_from_env();
 
     // Setup context
-    let driver_cx = allocator.alloc_with(|| RustcContext::new(rustc_cx.tcx, rustc_cx.lint_store, allocator));
+    let driver_cx = allocator.alloc_with(|| RustcContext::new(rustc_cx, allocator));
     let ast_cx = driver_cx.alloc_with(|| AstContext::new(driver_cx));
 
     let map = rustc_cx.tcx.hir();

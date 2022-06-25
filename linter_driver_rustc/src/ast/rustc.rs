@@ -1,5 +1,7 @@
-use rustc_lint::LintStore;
-use rustc_middle::ty::TyCtxt;
+use std::{cell::RefCell, ops::DerefMut};
+
+use rustc_data_structures::fx::FxHashMap;
+use rustc_lint::{LateContext, Level as RustcLevel, Lint as RustcLint, LintContext};
 
 use linter_api::{
     ast::{
@@ -7,14 +9,14 @@ use linter_api::{
         Ident, Lifetime, Span, Symbol,
     },
     context::DriverContext,
+    lint::{Level, Lint, MacroReport},
 };
 
 use super::{ty::RustcTy, RustcLifetime, RustcSpan};
 
-#[expect(unused)]
 pub struct RustcContext<'ast, 'tcx> {
-    pub(crate) tcx: TyCtxt<'tcx>,
-    pub(crate) lint_store: &'tcx LintStore,
+    pub(crate) rustc_cx: &'ast LateContext<'tcx>,
+    pub(crate) lint_map: RefCell<FxHashMap<&'ast Lint, &'static RustcLint>>,
     /// All items should be created using the `alloc_*` functions. This ensures
     /// that we can later change the way we allocate and manage our memory
     buffer: &'ast bumpalo::Bump,
@@ -26,7 +28,68 @@ impl<'ast, 'tcx> std::fmt::Debug for RustcContext<'ast, 'tcx> {
     }
 }
 
-impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {}
+fn to_leaked_rustc_lint<'ast>(
+    map: &mut FxHashMap<&'ast Lint, &'static RustcLint>,
+    lint: &'ast Lint,
+) -> &'static RustcLint {
+    map.entry(lint).or_insert_with(|| {
+        Box::leak(Box::new(RustcLint {
+            name: lint.name,
+            default_level: match lint.default_level {
+                Level::Allow => RustcLevel::Allow,
+                Level::Warn => RustcLevel::Warn,
+                Level::Deny => RustcLevel::Deny,
+                Level::Forbid => RustcLevel::Forbid,
+                _ => unreachable!("added variant to lint::Level"),
+            },
+            desc: lint.explaination,
+            edition_lint_opts: None,
+            report_in_external_macro: match lint.report_in_macro {
+                MacroReport::No | MacroReport::Local => false,
+                MacroReport::All => true,
+                _ => unreachable!("added variant to lint::MacroReport"),
+            },
+            future_incompatible: None,
+            is_plugin: true,
+            feature_gate: None,
+            crate_level_only: false,
+        }))
+    })
+}
+
+impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
+    fn emit_lint(&self, s: &str, lint: &'ast Lint) {
+        let mut map = self.lint_map.borrow_mut();
+        self.rustc_cx.lint(to_leaked_rustc_lint(map.deref_mut(), lint), |diag| {
+            let mut diag = diag.build(s);
+            diag.emit();
+        });
+    }
+
+    fn emit_lint_span(&self, s: &str, lint: &'ast Lint, sp: &dyn Span<'_>) {
+        // Safety:
+        //
+        // Clearly this is probably not ideal but I did find this (answered by people much more
+        // knowledgeable about lifetime/unsafe/transmute)
+        // https://users.rust-lang.org/t/solved-transmute-between-trait-objects/13995/6
+        //
+        // In regard to the leak/forget, since we can keep this within the `'tcx` - `'ast` lifetime I don't
+        // think we have to. We aren't returning a `dyn Trait + 'static` like if we were actually using the
+        // `dyn Any` or the `dyn Span<'_>`. We can't use the `Any::downcast_ref` machinery here since we
+        // have a non `'static` trait object in `Span` (at least I couldn't get it to work)
+        let down_span: &RustcSpan<'ast, 'tcx> = unsafe {
+            let sp_ptr = sp as *const _ as *const (*mut (), *mut ());
+            &*(sp_ptr as *const dyn std::any::Any as *const _)
+        };
+
+        let mut map = self.lint_map.borrow_mut();
+        self.rustc_cx
+            .struct_span_lint(to_leaked_rustc_lint(map.deref_mut(), lint), down_span.span, |diag| {
+                let mut diag = diag.build(s);
+                diag.emit();
+            });
+    }
+}
 
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     pub fn alloc_with<F, T>(&self, f: F) -> &'ast T
@@ -84,10 +147,10 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
 
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     #[must_use]
-    pub fn new(tcx: TyCtxt<'tcx>, lint_store: &'tcx LintStore, buffer: &'ast bumpalo::Bump) -> Self {
+    pub fn new(ctx: &'ast LateContext<'tcx>, buffer: &'ast bumpalo::Bump) -> Self {
         Self {
-            tcx,
-            lint_store,
+            rustc_cx: ctx,
+            lint_map: Default::default(),
             buffer,
         }
     }
