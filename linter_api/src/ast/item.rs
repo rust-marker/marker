@@ -1,10 +1,16 @@
 use std::fmt::Debug;
 
+mod extern_crate_item;
+pub use self::extern_crate_item::ExternCrateItem;
+mod mod_item;
+pub use self::mod_item::ModItem;
 mod static_item;
 pub use self::static_item::StaticItem;
+mod use_decl_item;
+pub use self::use_decl_item::UseDeclItem;
 
 use super::{
-    ty::{Mutability, Ty, TyId},
+    ty::{Ty, TyId},
     Abi, Asyncness, Attribute, BodyId, Constness, CrateId, Path, Pattern, Safety, Span, Symbol,
 };
 
@@ -54,9 +60,9 @@ pub trait ItemData<'ast>: Debug {
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
 pub enum ItemType<'ast> {
-    Mod(&'ast dyn ModItem<'ast>),
-    ExternCrate(&'ast dyn ExternCrateItem<'ast>),
-    UseDecl(&'ast dyn UseDeclItem<'ast>),
+    Mod(&'ast ModItem<'ast>),
+    ExternCrate(&'ast ExternCrateItem<'ast>),
+    UseDecl(&'ast UseDeclItem<'ast>),
     Static(&'ast StaticItem<'ast>),
     Const(&'ast dyn ConstItem<'ast>),
     Function(&'ast dyn FunctionItem<'ast>),
@@ -148,66 +154,6 @@ impl<'ast> CommonItemData<'ast> {
 ///////////////////////////////////////////////////////////////////////////////
 /// Items based on traits
 ///////////////////////////////////////////////////////////////////////////////
-
-pub trait ModItem<'ast>: ItemData<'ast> {
-    fn get_inner_attrs(&self); // FIXME: Add return type -> [&dyn Attribute<'ast>];
-
-    fn get_items(&self) -> &[ItemType<'ast>];
-}
-
-/// ```ignore
-/// extern crate std;
-/// // `get_name()`          -> "std"
-/// // `get_original_name()` -> "std"
-/// extern crate std as ruststd;
-/// // `get_name()`          -> "ruststd"
-/// // `get_original_name()` -> "std"
-/// ```
-pub trait ExternCrateItem<'ast>: ItemData<'ast> {
-    /// This will return the original name of external crate. This will only differ
-    /// with [`ItemData::get_name`] if the user has declared an alias with as.
-    fn get_original_name(&self) -> Symbol;
-}
-
-/// ```ignore
-/// pub use foo::bar::*;
-/// // `get_name()`     -> `None`
-/// // `get_path()`     -> `foo::bar::*`
-/// // `get_use_kind()` -> `Glob`
-/// pub use foo::bar;
-/// // `get_name()`     -> `Some(bar)`
-/// // `get_path()`     -> `foo::bar`
-/// // `get_use_kind()` -> `Single`
-/// pub use foo::bar as baz;
-/// // `get_name()`     -> `Some(baz)`
-/// // `get_path()`     -> `foo::bar`
-/// // `get_use_kind()` -> `Single`
-/// ```
-pub trait UseDeclItem<'ast>: ItemData<'ast> {
-    /// Returns the path of this `use` item. For blob imports the `*` will
-    /// be included in the simple path.
-    fn get_path(&self) -> &Path<'ast>;
-
-    fn get_use_kind(&self) -> UseKind;
-}
-
-/// ```ignore
-/// static mut LEVELS: u32 = 0;
-/// // `get_name()` -> `LEVELS`
-/// // `get_mutability()` -> _Mutable_
-/// // `get_ty()` -> _Ty of u32_
-/// // `get_body_id()` -> _BodyId of `0`_
-/// ```
-pub trait StaticItemTrait<'ast>: ItemData<'ast> {
-    /// The mutability of this item
-    fn get_mutability(&self) -> Mutability;
-
-    /// The defined type of this static item
-    fn get_ty(&'ast self) -> &'ast dyn Ty<'ast>;
-
-    /// This returns the [`BodyId`] of the initialization body.
-    fn get_body_id(&self) -> BodyId;
-}
 
 /// A constant item like
 /// ```rs
