@@ -1,0 +1,10 @@
+warning: hey there is a static item here
+ --> $DIR/find_static.rs:2:1
+  |
+2 | static TEST: u32 = 4;
+  | ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(linter::test_lint)]` on by default
+
+warning: 1 warning emitted
+
