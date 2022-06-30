@@ -55,7 +55,7 @@ pub enum MacroReport {
 /// All suggestions are marked with an `Applicability`. Tools use the applicability of a
 /// suggestion to determine whether it should be automatically applied or if the user
 /// should be consulted before applying the suggestion.
-#[derive(Copy, Clone, Debug, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum Applicability {
     /// The suggestion is definitely what the user intended, or maintains the exact

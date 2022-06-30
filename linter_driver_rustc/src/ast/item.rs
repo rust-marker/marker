@@ -77,25 +77,24 @@ fn create_common_data<'ast, 'tcx>(
     CommonItemData::new(
         rustc_item.def_id.to_def_id().to_api(cx),
         rustc_item.span.to_api(cx),
-        rustc_item.vis.node.to_api(cx),
+        vis_from_rustc(cx, rustc_item),
         (!rustc_item.ident.name.is_empty()).then(|| rustc_item.ident.name.to_api(cx)),
     )
 }
 
-impl<'ast, 'tcx> ToApi<'ast, 'tcx, Visibility<'ast>> for rustc_hir::Visibility<'tcx> {
-    fn to_api(&self, cx: &'ast RustcContext<'ast, 'tcx>) -> Visibility<'ast> {
-        self.node.to_api(cx)
-    }
-}
-
-impl<'ast, 'tcx> ToApi<'ast, 'tcx, Visibility<'ast>> for rustc_hir::VisibilityKind<'tcx> {
-    fn to_api(&self, cx: &'ast RustcContext<'ast, 'tcx>) -> Visibility<'ast> {
-        match self {
-            rustc_hir::VisibilityKind::Public => Visibility::PubSelf,
-            rustc_hir::VisibilityKind::Crate(..) => Visibility::PubCrate,
-            rustc_hir::VisibilityKind::Restricted { .. } => unimplemented!("VisibilityKind::PubPath"),
-            rustc_hir::VisibilityKind::Inherited => Visibility::PubSuper,
-        }
+fn vis_from_rustc<'ast, 'tcx>(
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    item: &'tcx rustc_hir::Item<'tcx>,
+) -> Visibility<'ast> {
+    match cx.rustc_cx.tcx.visibility(item.def_id) {
+        rustc_middle::ty::Visibility::Public => Visibility::Pub,
+        rustc_middle::ty::Visibility::Restricted(rustc_def_id)
+            if rustc_def_id == rustc_hir::def_id::CRATE_DEF_ID.to_def_id() =>
+        {
+            Visibility::PubCrate
+        },
+        rustc_middle::ty::Visibility::Invisible => Visibility::None,
+        _ => Visibility::None, // FIXME: Fix visibility conversion. See #26
     }
 }
 
