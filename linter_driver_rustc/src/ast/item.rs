@@ -82,10 +82,17 @@ fn create_common_data<'ast, 'tcx>(
     )
 }
 
-fn vis_from_rustc<'ast, 'tcx>(cx: &'ast RustcContext<'ast, 'tcx>, item: &'tcx rustc_hir::Item<'tcx>) -> Visibility<'ast> {
+fn vis_from_rustc<'ast, 'tcx>(
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    item: &'tcx rustc_hir::Item<'tcx>,
+) -> Visibility<'ast> {
     match cx.rustc_cx.tcx.visibility(item.def_id) {
         rustc_middle::ty::Visibility::Public => Visibility::Pub,
-        rustc_middle::ty::Visibility::Restricted(rustc_def_id) if rustc_def_id == rustc_hir::def_id::CRATE_DEF_ID.to_def_id() => Visibility::PubCrate,
+        rustc_middle::ty::Visibility::Restricted(rustc_def_id)
+            if rustc_def_id == rustc_hir::def_id::CRATE_DEF_ID.to_def_id() =>
+        {
+            Visibility::PubCrate
+        },
         rustc_middle::ty::Visibility::Invisible => Visibility::None,
         _ => Visibility::None, // FIXME: Fix visibility conversion. See #26
     }

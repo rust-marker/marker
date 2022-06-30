@@ -3,9 +3,9 @@
 
 use std::{
     fs::create_dir_all,
-    sync::LazyLock,
     path::{Path, PathBuf},
     process::{exit, Command},
+    sync::LazyLock,
 };
 
 use clap::{self, Arg};
