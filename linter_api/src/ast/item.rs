@@ -417,11 +417,13 @@ pub enum UseKind {
 #[derive(Debug)]
 #[allow(clippy::enum_variant_names)]
 pub enum Visibility<'ast> {
+    Pub,
     /// Visible in the current module, equivialent to `pub(in self)` or no visibility
     PubSelf,
     PubCrate,
     PubPath(&'ast Path<'ast>),
     PubSuper,
+    None,
 }
 
 /// The generic definitions belonging to an item

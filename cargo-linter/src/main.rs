@@ -3,7 +3,7 @@
 
 use std::{
     fs::create_dir_all,
-    lazy::SyncLazy,
+    sync::LazyLock,
     path::{Path, PathBuf},
     process::{exit, Command},
 };
@@ -13,8 +13,8 @@ use clap::{self, Arg};
 const CARGO_ARGS_SEPARATOR: &str = "--";
 const VERSION: &str = concat!("cargo-linter ", env!("CARGO_PKG_VERSION"));
 const LINT_KRATES_BASE_DIR: &str = "./target/linter";
-static LINT_KRATES_TARGET_DIR: SyncLazy<String> = SyncLazy::new(|| prepare_lint_build_dir("build", "target"));
-static LINT_KRATES_OUT_DIR: SyncLazy<String> = SyncLazy::new(|| prepare_lint_build_dir("lints", "out"));
+static LINT_KRATES_TARGET_DIR: LazyLock<String> = LazyLock::new(|| prepare_lint_build_dir("build", "target"));
+static LINT_KRATES_OUT_DIR: LazyLock<String> = LazyLock::new(|| prepare_lint_build_dir("lints", "out"));
 
 /// This creates the absolut path for a given build directory.
 fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
