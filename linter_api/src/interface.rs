@@ -15,8 +15,50 @@ pub trait LintPassRegistry<'ast> {
     fn register(&mut self, name: &str, init: Box<dyn LintPass<'ast>>);
 }
 
+/// This macro requires [`LintPass`] to be in scope of the macro as it will call
+/// trait methods on the given object.
 #[macro_export]
 macro_rules! export_lint_pass {
+    ($pass_ty:ident, $pass_init:expr) => {
+        std::thread_local! {
+            #[doc(hidden)]
+            static __LINTER_STATE: std::cell::RefCell<$pass_ty> = std::cell::RefCell::new($pass_init);
+        }
+        
+        #[doc(hidden)]
+        mod __linter {
+            use $crate::LintPass;
+    
+            $crate::interface::export_lint_pass_fn!(registered_lints(&self) -> Vec<&'static $crate::lint::Lint>;);
+            $crate::interface::export_lint_pass_fn!(check_mod(
+                &mut self,
+                _cx: &'ast $crate::context::AstContext<'ast>,
+                _mod_item: &'ast $crate::ast::item::ModItem<'ast>) -> (););
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! export_lint_pass_fn {
+    ($fn_name:ident(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty;) => {
+        #[no_mangle]
+        pub extern "C" fn $fn_name<'ast>($($arg_name: $arg_ty),*) -> $ret_ty {
+            super::__LINTER_STATE.with(|state| state.borrow().$fn_name($($arg_name),*))
+        }
+    };
+    ($fn_name:ident(&mut self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty;) => {
+        #[no_mangle]
+        pub extern "C" fn $fn_name<'ast>($($arg_name: $arg_ty),*) -> $ret_ty {
+            super::__LINTER_STATE.with(|state| state.borrow_mut().$fn_name($($arg_name),*))
+        }
+    };
+}
+
+pub use export_lint_pass;
+pub use export_lint_pass_fn;
+
+#[macro_export]
+macro_rules! export_lint_pass_old {
     ($name:literal, $lint_pass_instance:expr) => {
         #[doc(hidden)]
         #[no_mangle]
@@ -30,6 +72,8 @@ macro_rules! export_lint_pass {
         /// This function will only be called once it was determined that the
         /// creation was compiled with the same version of rustc. Therefore,
         /// it's safe to pass in an improper type for c.
+        ///
+        /// It is actually not save, and I have a lot of work left ...
         #[allow(improper_ctypes_definitions)]
         #[doc(hidden)]
         pub extern "C" fn __register(registry: &mut dyn $crate::interface::LintPassRegistry) {
@@ -38,4 +82,4 @@ macro_rules! export_lint_pass {
     };
 }
 
-pub use export_lint_pass;
+pub use export_lint_pass_old;

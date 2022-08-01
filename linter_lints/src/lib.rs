@@ -8,7 +8,8 @@ use linter_api::{
     LintPass,
 };
 
-linter_api::interface::export_lint_pass!("linter", TestLintPass::new());
+linter_api::interface::export_lint_pass_old!("linter", TestLintPass::new());
+linter_api::interface::export_lint_pass!(TestLintPass, TestLintPass::new());
 
 linter_api::lint::declare_lint!(TEST_LINT, Warn, "test lint warning");
 
