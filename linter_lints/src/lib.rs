@@ -8,18 +8,13 @@ use linter_api::{
     LintPass,
 };
 
-linter_api::interface::export_lint_pass_old!("linter", TestLintPass::new());
-linter_api::interface::export_lint_pass!(TestLintPass, TestLintPass::new());
+linter_api::interface::export_lint_pass_old!("linter", TestLintPass::default());
+linter_api::interface::export_lint_pass!(TestLintPass);
 
 linter_api::lint::declare_lint!(TEST_LINT, Warn, "test lint warning");
 
+#[derive(Default)]
 struct TestLintPass {}
-
-impl TestLintPass {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
 
 impl<'ast> LintPass<'ast> for TestLintPass {
     fn registered_lints(&self) -> Vec<&'static Lint> {
