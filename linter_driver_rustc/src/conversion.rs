@@ -35,6 +35,7 @@ impl<'tcx> LateLintPass<'tcx> for ConverterLintPass {
 fn process_items<'tcx>(rustc_cx: &LateContext<'tcx>, allocator: &mut Bump) {
     // Setup adapter from environment
     let mut adapter = Adapter::new_from_env();
+    adapter.registered_lints();
 
     // Setup context
     let driver_cx = allocator.alloc_with(|| RustcContext::new(rustc_cx, allocator));

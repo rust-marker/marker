@@ -17,8 +17,8 @@ linter_api::lint::declare_lint!(TEST_LINT, Warn, "test lint warning");
 struct TestLintPass {}
 
 impl<'ast> LintPass<'ast> for TestLintPass {
-    fn registered_lints(&self) -> Vec<&'static Lint> {
-        vec![TEST_LINT]
+    fn registered_lints(&self) -> Box<[&'static Lint]> {
+        Box::new([TEST_LINT])
     }
 
     fn check_static_item(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {

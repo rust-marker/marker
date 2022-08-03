@@ -18,18 +18,18 @@ pub trait LintPassRegistry<'ast> {
 #[macro_export]
 macro_rules! export_lint_pass {
     ($pass_ty:ident) => {
-        $crate::interface::export_lint_pass!($pass_ty, $pass_ty :: default());
+        $crate::interface::export_lint_pass!($pass_ty, $pass_ty::default());
     };
     ($pass_ty:ident, $pass_init:expr) => {
         std::thread_local! {
             #[doc(hidden)]
             static __LINTER_STATE: std::cell::RefCell<$pass_ty> = std::cell::RefCell::new($pass_init);
         }
-        
+
         #[doc(hidden)]
         mod __linter {
             use $crate::LintPass;
-    
+
             $crate::for_each_lint_pass_fn!($crate::interface::export_lint_pass_fn);
         }
     };
@@ -51,7 +51,6 @@ macro_rules! export_lint_pass_fn {
         }
     };
 }
-
 
 pub use export_lint_pass;
 pub use export_lint_pass_fn;

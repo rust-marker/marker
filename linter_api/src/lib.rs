@@ -27,14 +27,14 @@ pub mod lint;
 ///     };
 /// }
 /// ```
-/// 
+///
 /// Note that this macro is not part of the stable ABI, it might be changed or expanded
 /// in the future.
 #[macro_export]
 #[doc(hidden)]
 macro_rules! for_each_lint_pass_fn {
     ($name:path) => {
-        $name !(fn registered_lints(&self) -> Vec<&'static $crate::lint::Lint>);
+        $name !(fn registered_lints(&self) -> Box<[&'static $crate::lint::Lint]>);
 
         $name !(fn check_item(
             &mut self,
@@ -84,4 +84,3 @@ macro_rules! decl_lint_pass_fn {
     };
 }
 use decl_lint_pass_fn;
-

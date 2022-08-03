@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![feature(lint_reasons)]
 #![warn(clippy::pedantic)]
 #![warn(clippy::index_refutable_slice)]
 
@@ -38,5 +39,9 @@ impl<'ast> Adapter<'ast> {
                 _ => {},
             }
         }
+    }
+
+    pub fn registered_lints(&self) {
+        dbg!(self.external_lint_crates.registered_lints());
     }
 }
