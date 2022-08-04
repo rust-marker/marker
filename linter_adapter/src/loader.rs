@@ -1,15 +1,10 @@
-use std::marker::PhantomData;
-
 use libloading::Library;
 
-use linter_api::ast::item::{ExternCrateItem, ModItem, StaticItem, UseDeclItem};
-use linter_api::context::AstContext;
 use linter_api::lint::Lint;
 use linter_api::LintPass;
 
 #[derive(Default)]
 pub struct ExternalLintCrateRegistry<'ast> {
-    pub lint_passes: Vec<Box<dyn LintPass<'ast>>>,
     passes: Vec<LoadedLintCrate<'ast>>,
 }
 
@@ -45,73 +40,78 @@ impl<'a> ExternalLintCrateRegistry<'a> {
 
         new_self
     }
-
-    pub fn registered_lints(&self) -> Box<[&'static linter_api::lint::Lint]> {
-        todo!()
-    }
 }
 
-struct LoadedLintCrate<'ast> {
-    _lib: &'static Library,
-    _ast: PhantomData<&'ast ()>,
+#[macro_export]
+#[doc(hidden)]
+macro_rules! gen_LoadedLintCrate {
+    (($dollar:tt) $(fn $fn_name:ident(& $(($mut_:tt))? self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty;)+) => {
+        struct LoadedLintCrate<'ast> {
+            _lib: &'static Library,
+            $(
+                $fn_name: libloading::Symbol<'ast, unsafe extern "C" fn($($arg_ty,)*) -> $ret_ty>,
+            )*
+        }
+
+        impl<'ast> LoadedLintCrate<'ast> {
+            fn try_from_lib(lib: &'static Library) -> Result<Self, LoadingError> {
+                // get function pointers
+                $(
+                    let $fn_name = {
+                        let name: Vec<u8> = stringify!($fn_name).bytes().chain(std::iter::once(b'\0')).collect();
+                        unsafe {
+                            lib.get::<unsafe extern "C" fn($($arg_ty,)*) -> $ret_ty>(&name)
+                                .map_err(|_| LoadingError::MissingLintDeclaration)?
+                        }
+                    };
+                )*
+                // create Self
+                Ok(Self {
+                    _lib: lib,
+                    $(
+                        $fn_name,
+                    )*
+                })
+            }
+
+            // safe wrapper to external functions
+            $(
+                fn $fn_name(& $($mut_)* self $(, $arg_name: $arg_ty)*) -> $ret_ty {
+                    unsafe {
+                        (self.$fn_name)($($arg_name,)*)
+                    }
+                }
+            )*
+        }
+
+    };
 }
-
-impl<'ast> LoadedLintCrate<'ast> {
-    fn try_from_lib(lib: &'static Library) -> Result<Self, LoadingError> {
-        let _registered_lints = unsafe {
-            lib.get::<unsafe extern "C" fn() -> Box<[&'static Lint]>>(b"registered_lints\0")
-                .map_err(|_| LoadingError::MissingLintDeclaration)?
-        };
-
-        Ok(Self {
-            _lib: lib,
-            _ast: PhantomData,
-        })
-    }
-}
-
-// macro_rules! lint_pass_fn_ptr_field {
-//     (fn $fn_name:ident(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
-//         $fn_name: Symbol<'static, unsafe extern "C" fn($($arg_ty,)*) -> $ret_ty>,
-//     };
-//     (fn $fn_name:ident(&mut self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
-//         $fn_name: Symbol<'static, unsafe extern "C" fn($($arg_ty,)*) -> $ret_ty>,
-//     };
-// }
-// use lint_pass_fn_ptr_field;
+linter_api::lint_pass_fns!(crate::gen_LoadedLintCrate);
 
 impl<'ast> LintPass<'ast> for ExternalLintCrateRegistry<'ast> {
-    fn registered_lints(&self) -> Box<[&'static linter_api::lint::Lint]> {
-        Box::new([])
+    fn registered_lints(&self) -> Box<[&'static Lint]> {
+        let mut lints = vec![];
+        for lint_pass in self.passes.iter() {
+            lints.extend_from_slice(&lint_pass.registered_lints());
+        }
+        lints.into_boxed_slice()
     }
 
-    fn check_item(&mut self, cx: &'ast AstContext<'ast>, item: linter_api::ast::item::ItemType<'ast>) {
-        for lint_pass in &mut self.lint_passes {
-            lint_pass.check_item(cx, item);
-        }
-    }
+    linter_api::for_each_lint_pass_fn!(crate::gen_lint_crate_reg_lint_pass_fn);
+}
 
-    fn check_mod(&mut self, cx: &'ast AstContext<'ast>, mod_item: &'ast ModItem<'ast>) {
-        for lint_pass in &mut self.lint_passes {
-            lint_pass.check_mod(cx, mod_item);
+#[macro_export]
+macro_rules! gen_lint_crate_reg_lint_pass_fn {
+    (fn $fn_name:ident(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
+        // Nothing these will be implemented manually
+    };
+    (fn $fn_name:ident(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> ()) => {
+        fn $fn_name(&mut self $(, $arg_name: $arg_ty)*) {
+            for lint_pass in self.passes.iter_mut() {
+                lint_pass.$fn_name($($arg_name, )*);
+            }
         }
-    }
-    fn check_extern_crate(&mut self, cx: &'ast AstContext<'ast>, extern_crate_item: &'ast ExternCrateItem<'ast>) {
-        for lint_pass in &mut self.lint_passes {
-            lint_pass.check_extern_crate(cx, extern_crate_item);
-        }
-    }
-    fn check_use_decl(&mut self, cx: &'ast AstContext<'ast>, use_item: &'ast UseDeclItem<'ast>) {
-        for lint_pass in &mut self.lint_passes {
-            lint_pass.check_use_decl(cx, use_item);
-        }
-    }
-
-    fn check_static_item(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {
-        for lint_pass in &mut self.lint_passes {
-            lint_pass.check_static_item(cx, item);
-        }
-    }
+    };
 }
 
 #[derive(Debug)]

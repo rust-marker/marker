@@ -7,6 +7,7 @@ mod loader;
 use linter_api::{
     ast::{item::ItemType, Crate},
     context::AstContext,
+    lint::Lint,
     LintPass,
 };
 use loader::ExternalLintCrateRegistry;
@@ -41,7 +42,7 @@ impl<'ast> Adapter<'ast> {
         }
     }
 
-    pub fn registered_lints(&self) {
-        dbg!(self.external_lint_crates.registered_lints());
+    pub fn registered_lints(&self) -> Box<[&'static Lint]> {
+        self.external_lint_crates.registered_lints()
     }
 }

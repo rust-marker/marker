@@ -51,7 +51,7 @@ macro_rules! lint_pass_fns {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! gen_for_each_lint_pass_fn {
-    (($dollar:tt) $(fn $fn_name:ident(& $(($mutability:tt))? self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty;)+) => {
+    (($dollar:tt) $(fn $fn_name:ident(& $(($mut_:tt))? self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty;)+) => {
         /// This calls a macro for each function available in the [`LintPass`] trait.
         /// The given macro can use the following template:
         /// ```
@@ -72,7 +72,7 @@ macro_rules! gen_for_each_lint_pass_fn {
         macro_rules! for_each_lint_pass_fn {
             ($dollar macro_name:path) => {
                 $(
-                    $dollar macro_name !(fn $fn_name(& $(($mutability))? self $(, $arg_name: $arg_ty)*) -> $ret_ty);
+                    $dollar macro_name !(fn $fn_name(& $(($mut_))? self $(, $arg_name: $arg_ty)*) -> $ret_ty);
                 )*
                 // Pass $ as agument, this is fun ...
             }
