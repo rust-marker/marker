@@ -3,16 +3,18 @@ use libloading::Library;
 use linter_api::lint::Lint;
 use linter_api::LintPass;
 
+/// This struct loads external lint crates into memory and provides a safe API
+/// to call the respective methods on all of them.
 #[derive(Default)]
-pub struct ExternalLintCrateRegistry<'ast> {
+pub struct LintCrateRegistry<'ast> {
     passes: Vec<LoadedLintCrate<'ast>>,
 }
 
-impl<'a> ExternalLintCrateRegistry<'a> {
+impl<'a> LintCrateRegistry<'a> {
     /// # Errors
     /// This can return errors if the library couldn't be found or if the
     /// required symbols weren't provided.
-    pub fn load_external_lib(&mut self, lib_path: &str) -> Result<(), LoadingError> {
+    fn load_external_lib(&mut self, lib_path: &str) -> Result<(), LoadingError> {
         let lib: &'static Library = Box::leak(Box::new(
             unsafe { Library::new(lib_path) }.map_err(|_| LoadingError::FileNotFound)?,
         ));
@@ -26,7 +28,7 @@ impl<'a> ExternalLintCrateRegistry<'a> {
 
     /// # Panics
     ///
-    /// Panics if a lint in the environment couln't be loaded.
+    /// Panics if a lint in the environment couldn't be loaded.
     pub fn new_from_env() -> Self {
         let mut new_self = Self::default();
 
@@ -42,10 +44,41 @@ impl<'a> ExternalLintCrateRegistry<'a> {
     }
 }
 
+impl<'ast> LintPass<'ast> for LintCrateRegistry<'ast> {
+    fn registered_lints(&self) -> Box<[&'static Lint]> {
+        let mut lints = vec![];
+        for lint_pass in &self.passes {
+            lints.extend_from_slice(&lint_pass.registered_lints());
+        }
+        lints.into_boxed_slice()
+    }
+
+    linter_api::for_each_lint_pass_fn!(crate::gen_lint_crate_reg_lint_pass_fn);
+}
+
 #[macro_export]
-#[doc(hidden)]
+macro_rules! gen_lint_crate_reg_lint_pass_fn {
+    (fn $fn_name:ident(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
+        // Nothing these will be implemented manually
+    };
+    (fn $fn_name:ident(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> ()) => {
+        fn $fn_name(&mut self $(, $arg_name: $arg_ty)*) {
+            for lint_pass in self.passes.iter_mut() {
+                lint_pass.$fn_name($($arg_name, )*);
+            }
+        }
+    };
+}
+
+/// This macro generates the `LoadedLintCrate` struct, and functions for
+/// calling the [`LintPass`] functions. It's the counter part to
+/// [`linter_api::interface::export_lint_pass`]
+#[macro_export]
 macro_rules! gen_LoadedLintCrate {
     (($dollar:tt) $(fn $fn_name:ident(& $(($mut_:tt))? self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty;)+) => {
+        /// This struct holds function pointers to api functions in the loaded lint crate
+        /// It owns the library instance. It sadly has to be stored as a `'static`
+        /// reference due to lifetime restrictions.
         struct LoadedLintCrate<'ast> {
             _lib: &'static Library,
             $(
@@ -54,6 +87,7 @@ macro_rules! gen_LoadedLintCrate {
         }
 
         impl<'ast> LoadedLintCrate<'ast> {
+            /// This function tries to resolve all api functions in the given library.
             fn try_from_lib(lib: &'static Library) -> Result<Self, LoadingError> {
                 // get function pointers
                 $(
@@ -87,32 +121,6 @@ macro_rules! gen_LoadedLintCrate {
     };
 }
 linter_api::lint_pass_fns!(crate::gen_LoadedLintCrate);
-
-impl<'ast> LintPass<'ast> for ExternalLintCrateRegistry<'ast> {
-    fn registered_lints(&self) -> Box<[&'static Lint]> {
-        let mut lints = vec![];
-        for lint_pass in self.passes.iter() {
-            lints.extend_from_slice(&lint_pass.registered_lints());
-        }
-        lints.into_boxed_slice()
-    }
-
-    linter_api::for_each_lint_pass_fn!(crate::gen_lint_crate_reg_lint_pass_fn);
-}
-
-#[macro_export]
-macro_rules! gen_lint_crate_reg_lint_pass_fn {
-    (fn $fn_name:ident(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
-        // Nothing these will be implemented manually
-    };
-    (fn $fn_name:ident(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> ()) => {
-        fn $fn_name(&mut self $(, $arg_name: $arg_ty)*) {
-            for lint_pass in self.passes.iter_mut() {
-                lint_pass.$fn_name($($arg_name, )*);
-            }
-        }
-    };
-}
 
 #[derive(Debug)]
 #[expect(dead_code)]

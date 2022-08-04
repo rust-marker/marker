@@ -18,7 +18,7 @@ linter_api = "<version>"
 
 Now that everything is setup, we jump into `src/lib.rs` where we add everything needed for the linter to load the crate:
 
-```rust
+```rust,ignore
 use linter_api::{lint::Lint, LintPass};
 
 // With the [`declare_lint!`] macro we define a new lint. The macro accepts a
@@ -28,14 +28,15 @@ linter_api::lint::declare_lint!(YOUR_LINT_NAME, Allow, "the lint descritpion");
 // Here we create an object that'll implement `LintPass<'ast>`. This struct can
 // hold data used for linting. A mutable reference of this struct is passed to
 // each check in `LintPass<'ast>`
+#[derive(Debug)]
 struct TestLintPass;
 
 // Here we implement the `LintPass` for our struct. It only requires the
 // implementation of one function, that returns all lints which are implemented
 // by this crate.
 impl<'ast> LintPass<'ast> for TestLintPass {
-    fn registered_lints(&self) -> Vec<&'static Lint> {
-        vec![YOUR_LINT_NAME]
+    fn registered_lints(&self) -> Box<[&'static Lint]> {
+        Box::new([YOUR_LINT_NAME])
     }
 
     // Here we can finally start linting, by implementing `check_*` functions.
@@ -45,6 +46,6 @@ impl<'ast> LintPass<'ast> for TestLintPass {
 // Last but not least, we have to mark our object that implements `LintPass`.
 // Each lint crate requires exactly one marker. All lints have to be implemented
 // in one lint pass. For multiple lints it can be helpful to extract the individual
-// linting logic called by the `check_*` functions into separate files
-linter_api::interface::export_lint_pass!("lint_crate_name", TestLintPass);
+// linting logic called by the `check_*` functions into separate module.
+linter_api::interface::export_lint_pass!(TestLintPass);
 ```

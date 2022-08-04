@@ -7,16 +7,30 @@
 
 #[doc(hidden)]
 pub static LINTER_API_VERSION: &str = env!("CARGO_PKG_VERSION");
-#[doc(hidden)]
-pub static RUSTC_VERSION: &str = env!("RUSTC_VERSION");
 
 pub mod ast;
 pub mod context;
 pub mod interface;
 pub mod lint;
 
-/// This macro returns a list of all functions declared for lintpasses. The mutability
-/// of self is is brackets, to support optional mutability matching
+/// **!Unstable!**
+///
+/// This macro returns a list of all functions declared for the [`LintPass`] trait.
+/// All references use the `'ast` lifetime, this needs to be provided in the given
+/// scope. The first token is a dollar sign `$` in brackets to support macro creation
+/// based on these declarations. The mutability of `self` is wrapped in brackets to
+/// support optional matching.
+///
+/// The functions can be categorized as follows:
+///
+/// 1. Informative functions used to retrieve information from the [`LintPass`]
+///    implementation. These functions take an unmutable reference to self and
+///    require a manual implementation
+/// 2. Check functions, which can be implemented to check specific nodes from the
+///    AST. All of these are optional and have no return type. For us, they are
+///    *fire and forget*.
+///
+/// [`for_each_lint_pass_fn`] can be used to process each item individually.
 #[macro_export]
 #[doc(hidden)]
 macro_rules! lint_pass_fns {
@@ -48,14 +62,20 @@ macro_rules! lint_pass_fns {
     };
 }
 
+/// **!Unstable!**
+///
+/// This generates the [`for_each_lint_pass_fn`] macro.
 #[macro_export]
 #[doc(hidden)]
 macro_rules! gen_for_each_lint_pass_fn {
     (($dollar:tt) $(fn $fn_name:ident(& $(($mut_:tt))? self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty;)+) => {
-        /// This calls a macro for each function available in the [`LintPass`] trait.
-        /// The given macro can use the following template:
+        /// **!Unstable!**
+        ///
+        /// This calls a macro for each function available in the [`LintPass`] trait. The following
+        /// patterns can be used to match the two different types of functions currently defined for
+        /// the trait. See [`lint_pass_fns`] for more information.
         /// ```
-        /// macro_rules! lint_pass_fn {
+        /// macro_rules! lint_pass_macro {
         ///     (fn $fn_name:ident(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
         ///         // TODO
         ///     };
@@ -64,9 +84,6 @@ macro_rules! gen_for_each_lint_pass_fn {
         ///     };
         /// }
         /// ```
-        ///
-        /// Note that this macro is not part of the stable ABI, it might be changed or expanded
-        /// in the future.
         #[macro_export]
         #[doc(hidden)]
         macro_rules! for_each_lint_pass_fn {
@@ -74,7 +91,6 @@ macro_rules! gen_for_each_lint_pass_fn {
                 $(
                     $dollar macro_name !(fn $fn_name(& $(($mut_))? self $(, $arg_name: $arg_ty)*) -> $ret_ty);
                 )*
-                // Pass $ as agument, this is fun ...
             }
         }
     };
