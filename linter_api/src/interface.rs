@@ -42,6 +42,11 @@ macro_rules! export_lint_pass {
         mod __linter {
             use $crate::LintPass;
 
+            #[no_mangle]
+            pub extern "C" fn get_linter_api_version() -> &'static str {
+                $crate::LINTER_API_VERSION
+            }
+
             $crate::for_each_lint_pass_fn!($crate::interface::export_lint_pass_fn);
         }
     };

@@ -5,7 +5,6 @@
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::trivially_copy_pass_by_ref)]
 
-#[doc(hidden)]
 pub static LINTER_API_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub mod ast;

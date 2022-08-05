@@ -20,6 +20,7 @@ impl<'a> LintCrateRegistry<'a> {
         ));
 
         let pass = LoadedLintCrate::try_from_lib(lib)?;
+
         self.passes.push(pass);
         // FIXME: Create issue for lifetimes and fix droping and pointer decl stuff
 
@@ -90,6 +91,16 @@ macro_rules! gen_LoadedLintCrate {
             /// This function tries to resolve all api functions in the given library.
             fn try_from_lib(lib: &'static Library) -> Result<Self, LoadingError> {
                 // get function pointers
+                let get_linter_api_version = {
+                    unsafe {
+                        lib.get::<unsafe extern "C" fn() -> &'static str>(b"get_linter_api_version\0")
+                            .map_err(|_| LoadingError::MissingLintDeclaration)?
+                    }
+                };
+                if unsafe { get_linter_api_version() } != linter_api::LINTER_API_VERSION {
+                    return Err(LoadingError::IncompatibleVersion);
+                }
+
                 $(
                     let $fn_name = {
                         let name: Vec<u8> = stringify!($fn_name).bytes().chain(std::iter::once(b'\0')).collect();
@@ -123,7 +134,6 @@ macro_rules! gen_LoadedLintCrate {
 linter_api::lint_pass_fns!(crate::gen_LoadedLintCrate);
 
 #[derive(Debug)]
-#[expect(dead_code)]
 pub enum LoadingError {
     FileNotFound,
     IncompatibleVersion,
