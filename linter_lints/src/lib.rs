@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![warn(clippy::pedantic)]
 
 use linter_api::{
     ast::item::{ItemData, StaticItem},

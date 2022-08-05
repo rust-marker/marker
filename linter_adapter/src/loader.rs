@@ -8,7 +8,7 @@ use linter_api::LintPass;
 #[derive(Default)]
 pub struct ExternalLintCrateRegistry<'ast> {
     pub lint_passes: Vec<Box<dyn LintPass<'ast>>>,
-    _libs: Vec<Library>,
+    libs: Vec<Library>,
 }
 
 impl<'a> ExternalLintCrateRegistry<'a> {
@@ -33,7 +33,7 @@ impl<'a> ExternalLintCrateRegistry<'a> {
             (decl.register)(self);
         }
 
-        self._libs.push(lib);
+        self.libs.push(lib);
 
         Ok(())
     }
@@ -72,29 +72,29 @@ impl<'ast> LintPass<'ast> for ExternalLintCrateRegistry<'ast> {
     }
 
     fn check_item(&mut self, cx: &'ast AstContext<'ast>, item: linter_api::ast::item::ItemType<'ast>) {
-        for lint_pass in self.lint_passes.iter_mut() {
+        for lint_pass in &mut self.lint_passes {
             lint_pass.check_item(cx, item);
         }
     }
 
     fn check_mod(&mut self, cx: &'ast AstContext<'ast>, mod_item: &'ast ModItem<'ast>) {
-        for lint_pass in self.lint_passes.iter_mut() {
+        for lint_pass in &mut self.lint_passes {
             lint_pass.check_mod(cx, mod_item);
         }
     }
     fn check_extern_crate(&mut self, cx: &'ast AstContext<'ast>, extern_crate_item: &'ast ExternCrateItem<'ast>) {
-        for lint_pass in self.lint_passes.iter_mut() {
+        for lint_pass in &mut self.lint_passes {
             lint_pass.check_extern_crate(cx, extern_crate_item);
         }
     }
     fn check_use_decl(&mut self, cx: &'ast AstContext<'ast>, use_item: &'ast UseDeclItem<'ast>) {
-        for lint_pass in self.lint_passes.iter_mut() {
+        for lint_pass in &mut self.lint_passes {
             lint_pass.check_use_decl(cx, use_item);
         }
     }
 
     fn check_static_item(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {
-        for lint_pass in self.lint_passes.iter_mut() {
+        for lint_pass in &mut self.lint_passes {
             lint_pass.check_static_item(cx, item);
         }
     }

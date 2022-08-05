@@ -1,7 +1,9 @@
 #![feature(once_cell)]
+#![warn(clippy::pedantic)]
 #![warn(clippy::index_refutable_slice)]
 
 use std::{
+    ffi::OsStr,
     fs::create_dir_all,
     path::{Path, PathBuf},
     process::{exit, Command},
@@ -76,7 +78,7 @@ fn main() {
         println!("env:RUSTC_WORKSPACE_WRAPPER={}", driver_path.display());
         println!("env:LINTER_LINT_CRATES={linter_crates_env}");
     } else {
-        run_driver(&driver_path, &linter_crates_env)
+        run_driver(&driver_path, &linter_crates_env);
     }
 }
 
@@ -145,7 +147,7 @@ fn prepare_lint_crate(krate: &str, verbose: bool) -> Result<String, ()> {
     // FIXME: currently this expect, that the lib name is the same as the crate dir.
     let file_name = format!(
         "{lib_file_prefix}{}",
-        path.file_name().and_then(|x| x.to_str()).unwrap_or_default()
+        path.file_name().and_then(OsStr::to_str).unwrap_or_default()
     );
     let mut krate_path = Path::new(&*LINT_KRATES_OUT_DIR).join(file_name);
 

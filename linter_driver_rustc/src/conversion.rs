@@ -24,7 +24,7 @@ impl_lint_pass!(ConverterLintPass => []);
 impl<'tcx> LateLintPass<'tcx> for ConverterLintPass {
     fn check_crate(&mut self, rustc_cx: &LateContext<'tcx>) {
         let mut bump = Bump::new();
-        process_items(rustc_cx, &mut bump)
+        process_items(rustc_cx, &mut bump);
     }
 }
 

@@ -1,4 +1,4 @@
-use std::{cell::RefCell, ops::DerefMut};
+use std::cell::RefCell;
 
 use rustc_data_structures::fx::FxHashMap;
 use rustc_lint::{LateContext, Level as RustcLevel, Lint as RustcLint, LintContext};
@@ -60,7 +60,7 @@ fn to_leaked_rustc_lint<'ast>(
 impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
     fn emit_lint(&self, s: &str, lint: &'ast Lint) {
         let mut map = self.lint_map.borrow_mut();
-        self.rustc_cx.lint(to_leaked_rustc_lint(map.deref_mut(), lint), |diag| {
+        self.rustc_cx.lint(to_leaked_rustc_lint(&mut *map, lint), |diag| {
             let mut diag = diag.build(s);
             diag.emit();
         });
@@ -77,6 +77,7 @@ impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         // think we have to. We aren't returning a `dyn Trait + 'static` like if we were actually using the
         // `dyn Any` or the `dyn Span<'_>`. We can't use the `Any::downcast_ref` machinery here since we
         // have a non `'static` trait object in `Span` (at least I couldn't get it to work)
+        #[allow(clippy::ptr_as_ptr, clippy::cast_ptr_alignment)]
         let down_span: &RustcSpan<'ast, 'tcx> = unsafe {
             let sp_ptr = sp as *const _ as *const (*mut (), *mut ());
             &*(sp_ptr as *const dyn std::any::Any as *const _)
@@ -84,7 +85,7 @@ impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
 
         let mut map = self.lint_map.borrow_mut();
         self.rustc_cx
-            .struct_span_lint(to_leaked_rustc_lint(map.deref_mut(), lint), down_span.span, |diag| {
+            .struct_span_lint(to_leaked_rustc_lint(&mut *map, lint), down_span.span, |diag| {
                 let mut diag = diag.build(s);
                 diag.emit();
             });
@@ -150,7 +151,7 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     pub fn new(ctx: &'ast LateContext<'tcx>, buffer: &'ast bumpalo::Bump) -> Self {
         Self {
             rustc_cx: ctx,
-            lint_map: Default::default(),
+            lint_map: RefCell::default(),
             buffer,
         }
     }
