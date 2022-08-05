@@ -2,7 +2,9 @@
 #![feature(rustc_private)]
 #![feature(lint_reasons)]
 #![warn(rustc::internal)]
+#![warn(clippy::pedantic)]
 #![warn(clippy::index_refutable_slice)]
+#![allow(clippy::module_name_repetitions)]
 
 extern crate rustc_ast;
 extern crate rustc_data_structures;
@@ -183,10 +185,10 @@ fn main() {
         // FIXME: Add this:
         //  let in_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
 
-        if !cap_lints_allow {
-            rustc_driver::RunCompiler::new(&orig_args, &mut LinterCallback).run()
-        } else {
+        if cap_lints_allow {
             rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks).run()
+        } else {
+            rustc_driver::RunCompiler::new(&orig_args, &mut LinterCallback).run()
         }
     }))
 }

@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![warn(clippy::pedantic)]
 #![warn(clippy::index_refutable_slice)]
 
 mod loader;

@@ -252,6 +252,7 @@ fn ty_id_from_def_id(did: rustc_span::def_id::DefId) -> TyId {
     TyId::new(CrateId::new(did.krate.as_u32()), did.index.as_u32())
 }
 
+#[allow(clippy::missing_panics_doc)] // TODO
 pub fn create_from_rustc_ty<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
     rustc_ty: rustc_middle::ty::Ty<'tcx>,

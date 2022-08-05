@@ -29,6 +29,7 @@ impl<'ast> StaticItem<'ast> {
 
     /// The defined type of this static item
     pub fn get_ty(&'ast self) -> &'ast dyn Ty<'ast> {
+        #![allow(clippy::missing_panics_doc, clippy::unused_self)]
         todo!()
     }
 

@@ -54,19 +54,19 @@ pub fn from_rustc<'ast, 'tcx>(
                 rustc_body_id.to_api(cx),
             )
         })),
-        rustc_hir::ItemKind::Const(..) => None?,
-        rustc_hir::ItemKind::Fn(..) => None?,
-        rustc_hir::ItemKind::Macro(..) => None?,
-        rustc_hir::ItemKind::ForeignMod { .. } => None?,
-        rustc_hir::ItemKind::GlobalAsm(..) => None?,
-        rustc_hir::ItemKind::TyAlias(..) => None?,
-        rustc_hir::ItemKind::OpaqueTy(..) => None?,
-        rustc_hir::ItemKind::Enum(..) => None?,
-        rustc_hir::ItemKind::Struct(..) => None?,
-        rustc_hir::ItemKind::Union(..) => None?,
-        rustc_hir::ItemKind::Trait(..) => None?,
-        rustc_hir::ItemKind::TraitAlias(..) => None?,
-        rustc_hir::ItemKind::Impl(..) => None?,
+        rustc_hir::ItemKind::Const(..)
+        | rustc_hir::ItemKind::Fn(..)
+        | rustc_hir::ItemKind::Macro(..)
+        | rustc_hir::ItemKind::ForeignMod { .. }
+        | rustc_hir::ItemKind::GlobalAsm(..)
+        | rustc_hir::ItemKind::TyAlias(..)
+        | rustc_hir::ItemKind::OpaqueTy(..)
+        | rustc_hir::ItemKind::Enum(..)
+        | rustc_hir::ItemKind::Struct(..)
+        | rustc_hir::ItemKind::Union(..)
+        | rustc_hir::ItemKind::Trait(..)
+        | rustc_hir::ItemKind::TraitAlias(..)
+        | rustc_hir::ItemKind::Impl(..) => return None,
     })
 }
 
@@ -93,8 +93,8 @@ fn vis_from_rustc<'ast, 'tcx>(
         {
             Visibility::PubCrate
         },
-        rustc_middle::ty::Visibility::Invisible => Visibility::None,
-        _ => Visibility::None, // FIXME: Fix visibility conversion. See #26
+        // FIXME: Fix visibility conversion. See #26
+        rustc_middle::ty::Visibility::Restricted(_) | rustc_middle::ty::Visibility::Invisible => Visibility::None,
     }
 }
 
