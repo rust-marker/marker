@@ -1,43 +1,10 @@
+mod id;
+pub use id::*;
+//mod span;
+
 use std::fmt::Debug;
 
 use super::item::ItemId;
-
-#[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct CrateId {
-    index: u32,
-}
-
-#[cfg(feature = "driver-api")]
-impl CrateId {
-    #[must_use]
-    pub fn new(index: u32) -> Self {
-        Self { index }
-    }
-
-    pub fn get_data(self) -> u32 {
-        self.index
-    }
-}
-
-#[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct BodyId {
-    owner: usize,
-    index: usize,
-}
-
-#[cfg(feature = "driver-api")]
-impl BodyId {
-    #[must_use]
-    pub fn new(owner: usize, index: usize) -> Self {
-        Self { owner, index }
-    }
-
-    pub fn get_data(self) -> (usize, usize) {
-        (self.owner, self.index)
-    }
-}
 
 /// A `Span` represents a span of source code. It can be part of the source code
 /// or part of generated logic using macros. Spans are used to determine the origin
