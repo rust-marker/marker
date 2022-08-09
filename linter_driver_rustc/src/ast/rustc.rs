@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 
+use linter_adapter::context::DriverContext;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_lint::{LateContext, Level as RustcLevel, Lint as RustcLint, LintContext};
 
@@ -56,30 +57,8 @@ fn to_leaked_rustc_lint<'ast>(
     })
 }
 
-pub extern "C" fn context_emit_lint<'ast, 'tcx: 'ast>(
-    data: *const (),
-    lint: &'static Lint,
-    msg: &str,
-    span: &dyn Span<'ast>,
-) {
-    let cx = data as *const RustcContext<'ast, 'tcx>;
-    unsafe { cx.as_ref() }.unwrap().emit_lint_span(lint, msg, span);
-}
-pub extern "C" fn context_emit_lint_without_span<'ast, 'tcx: 'ast>(data: *const (), lint: &'static Lint, msg: &str) {
-    let cx = data as *const RustcContext<'ast, 'tcx>;
-    unsafe { cx.as_ref() }.unwrap().emit_lint(lint, msg);
-}
-
-impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
-    fn emit_lint(&self, lint: &'ast Lint, s: &str) {
-        let mut map = self.lint_map.borrow_mut();
-        self.rustc_cx.lint(to_leaked_rustc_lint(&mut *map, lint), |diag| {
-            let mut diag = diag.build(s);
-            diag.emit();
-        });
-    }
-
-    fn emit_lint_span(&self, lint: &'ast Lint, s: &str, sp: &dyn Span<'_>) {
+impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
+    fn emit_lint(&self, lint: &'static Lint, msg: &str, span: &dyn Span<'ast>) {
         // Safety:
         //
         // Clearly this is probably not ideal but I did find this (answered by people much more
@@ -92,14 +71,14 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
         // have a non `'static` trait object in `Span` (at least I couldn't get it to work)
         #[allow(clippy::ptr_as_ptr, clippy::cast_ptr_alignment)]
         let down_span: &RustcSpan<'ast, 'tcx> = unsafe {
-            let sp_ptr = sp as *const _ as *const (*mut (), *mut ());
+            let sp_ptr = span as *const _ as *const (*mut (), *mut ());
             &*(sp_ptr as *const dyn std::any::Any as *const _)
         };
 
         let mut map = self.lint_map.borrow_mut();
         self.rustc_cx
             .struct_span_lint(to_leaked_rustc_lint(&mut *map, lint), down_span.span, |diag| {
-                let mut diag = diag.build(s);
+                let mut diag = diag.build(msg);
                 diag.emit();
             });
     }
