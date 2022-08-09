@@ -8,7 +8,6 @@ use linter_api::{
         ty::{Ty, TyKind},
         Ident, Lifetime, Span, Symbol,
     },
-    context::DriverContext,
     lint::{Level, Lint, MacroReport},
 };
 
@@ -57,8 +56,22 @@ fn to_leaked_rustc_lint<'ast>(
     })
 }
 
-impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
-    fn emit_lint(&self, s: &str, lint: &'ast Lint) {
+pub extern "C" fn context_emit_lint<'ast, 'tcx: 'ast>(
+    data: *const (),
+    lint: &'static Lint,
+    msg: &str,
+    span: &dyn Span<'ast>,
+) {
+    let cx = data as *const RustcContext<'ast, 'tcx>;
+    unsafe { cx.as_ref() }.unwrap().emit_lint_span(lint, msg, span);
+}
+pub extern "C" fn context_emit_lint_without_span<'ast, 'tcx: 'ast>(data: *const (), lint: &'static Lint, msg: &str) {
+    let cx = data as *const RustcContext<'ast, 'tcx>;
+    unsafe { cx.as_ref() }.unwrap().emit_lint(lint, msg);
+}
+
+impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
+    fn emit_lint(&self, lint: &'ast Lint, s: &str) {
         let mut map = self.lint_map.borrow_mut();
         self.rustc_cx.lint(to_leaked_rustc_lint(&mut *map, lint), |diag| {
             let mut diag = diag.build(s);
@@ -66,7 +79,7 @@ impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         });
     }
 
-    fn emit_lint_span(&self, s: &str, lint: &'ast Lint, sp: &dyn Span<'_>) {
+    fn emit_lint_span(&self, lint: &'ast Lint, s: &str, sp: &dyn Span<'_>) {
         // Safety:
         //
         // Clearly this is probably not ideal but I did find this (answered by people much more

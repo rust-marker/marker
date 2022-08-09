@@ -1,9 +1,9 @@
-use crate::ast::rustc::RustcContext;
+use crate::ast::rustc::{context_emit_lint, context_emit_lint_without_span, RustcContext};
 use crate::ast::ToApi;
 use linter_adapter::Adapter;
 use linter_api::{
     ast::{item::ItemType, Crate},
-    context::AstContext,
+    context::{AstContext, DriverCallbacks},
 };
 
 use rustc_lint::{LateContext, LateLintPass};
@@ -38,7 +38,11 @@ fn process_items<'tcx>(rustc_cx: &LateContext<'tcx>, allocator: &mut Bump) {
 
     // Setup context
     let driver_cx = allocator.alloc_with(|| RustcContext::new(rustc_cx, allocator));
-    let ast_cx = driver_cx.alloc_with(|| AstContext::new(driver_cx));
+    let ptr: *const RustcContext = driver_cx;
+    let callbacks = allocator.alloc_with(|| DriverCallbacks::new(ptr as *const ()));
+    callbacks.emit_lint = context_emit_lint;
+    callbacks.emit_lint_without_span = context_emit_lint_without_span;
+    let ast_cx = driver_cx.alloc_with(|| AstContext::new(callbacks));
 
     let map = rustc_cx.tcx.hir();
     // Here we need to collect the items to have a knwon size for the allocation
