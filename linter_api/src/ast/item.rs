@@ -1,6 +1,8 @@
 use std::fmt::Debug;
 
 mod extern_crate_item;
+use crate::context::AstContext;
+
 pub use self::extern_crate_item::ExternCrateItem;
 mod mod_item;
 pub use self::mod_item::ModItem;
@@ -11,7 +13,7 @@ pub use self::use_decl_item::UseDeclItem;
 
 use super::{
     ty::{Ty, TyId},
-    Abi, Asyncness, Attribute, BodyId, Constness, CrateId, Path, Pattern, Safety, Span, Symbol,
+    Abi, Asyncness, Attribute, BodyId, Constness, CrateId, ItemPath, Pattern, Safety, Span, SpanOld, Symbol,
 };
 
 /// Every item has an ID that can be used to retive that item or compair it to
@@ -32,6 +34,10 @@ impl ItemId {
     pub fn new(krate: CrateId, index: u32) -> Self {
         Self { krate, index }
     }
+
+    pub fn get_data(&self) -> (CrateId, u32) {
+        (self.krate, self.index)
+    }
 }
 
 pub trait ItemData<'ast>: Debug {
@@ -41,7 +47,7 @@ pub trait ItemData<'ast>: Debug {
 
     /// The [`Span`] of the entire item. This span should be used for general item related
     /// diagnostics.
-    fn get_span(&self) -> &'ast dyn Span<'ast>;
+    fn get_span(&self) -> &'ast Span<'ast>;
 
     /// The visibility of this item.
     fn get_vis(&self) -> &Visibility<'ast>;
@@ -77,7 +83,7 @@ pub enum ItemType<'ast> {
 
 impl<'ast> ItemType<'ast> {
     impl_item_type_fn!(get_id() -> ItemId);
-    impl_item_type_fn!(get_span() -> &'ast dyn Span<'ast>);
+    impl_item_type_fn!(get_span() -> &'ast Span<'ast>);
     impl_item_type_fn!(get_vis() -> &Visibility<'ast>);
     impl_item_type_fn!(get_name() -> Option<Symbol>);
     impl_item_type_fn!(get_attrs() -> ());
@@ -106,8 +112,8 @@ use impl_item_type_fn;
 #[derive(Debug)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 struct CommonItemData<'ast> {
+    cx: &'ast AstContext<'ast>,
     id: ItemId,
-    span: &'ast dyn Span<'ast>,
     vis: Visibility<'ast>,
     name: Option<Symbol>,
 }
@@ -119,8 +125,8 @@ macro_rules! impl_item_data {
                 self.data.id
             }
 
-            fn get_span(&self) -> &'ast dyn crate::ast::Span<'ast> {
-                self.data.span
+            fn get_span(&self) -> &'ast crate::ast::Span<'ast> {
+                self.data.cx.get_span(&crate::ast::SpanOwner::Item(self.data.id))
             }
 
             fn get_vis(&self) -> &crate::ast::item::Visibility<'ast> {
@@ -146,8 +152,8 @@ use impl_item_data;
 
 #[cfg(feature = "driver-api")]
 impl<'ast> CommonItemData<'ast> {
-    pub fn new(id: ItemId, span: &'ast dyn Span<'ast>, vis: Visibility<'ast>, name: Option<Symbol>) -> Self {
-        Self { id, span, vis, name }
+    pub fn new(cx: &'ast AstContext<'ast>, id: ItemId, vis: Visibility<'ast>, name: Option<Symbol>) -> Self {
+        Self { cx, id, vis, name }
     }
 }
 
@@ -209,7 +215,7 @@ pub trait FnDeclaration<'ast>: Debug {
 pub trait FnParam<'ast>: Debug {
     fn get_pattern(&self) -> &dyn Pattern<'ast>;
 
-    fn get_span(&self) -> &dyn Span<'ast>;
+    fn get_span(&self) -> &dyn SpanOld<'ast>;
 
     fn get_ty(&self) -> &dyn Ty<'ast>;
 }
@@ -278,7 +284,7 @@ pub trait AdtField<'ast>: Debug {
     fn get_attributes(&'ast self) -> &'ast dyn Attribute;
 
     /// This will return the span of the field, exclusing the field attributes.
-    fn get_span(&'ast self) -> &'ast dyn Span<'ast>;
+    fn get_span(&'ast self) -> &'ast dyn SpanOld<'ast>;
 
     fn get_visibility(&'ast self) -> Visibility<'ast>;
 
@@ -421,7 +427,7 @@ pub enum Visibility<'ast> {
     /// Visible in the current module, equivialent to `pub(in self)` or no visibility
     PubSelf,
     PubCrate,
-    PubPath(&'ast Path<'ast>),
+    PubPath(&'ast ItemPath<'ast>),
     PubSuper,
     None,
 }
@@ -459,7 +465,7 @@ pub trait GenericParam<'ast>: Debug {
     fn get_id(&self) -> GenericParamId;
 
     /// This returns the span of generic identifier.
-    fn get_span(&self) -> &'ast dyn Span<'ast>;
+    fn get_span(&self) -> &'ast dyn SpanOld<'ast>;
 
     /// This returns the name of the generic, this can return `None` for unnamed
     /// or implicit generics. For lifetimes this will include the leading apostrophe.

@@ -1,10 +1,19 @@
-use crate::{ast::Span, lint::Lint};
+use crate::{
+    ast::{Span, SpanOwner},
+    lint::Lint,
+};
 
 /// This context will be passed to each [`super::LintPass`] call to enable the user
 /// to emit lints and to retieve nodes by the given ids.
 #[repr(C)]
 pub struct AstContext<'ast> {
     driver: &'ast DriverCallbacks<'ast>,
+}
+
+impl<'ast> std::fmt::Debug for AstContext<'ast> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AstContext").finish()
+    }
 }
 
 #[cfg(feature = "driver-api")]
@@ -26,8 +35,18 @@ impl<'ast> AstContext<'ast> {
     /// 17 |     println!("The duck said: 'Hello, World!'");
     ///    |
     /// ```
-    pub fn emit_lint(&self, lint: &'static Lint, msg: &str, span: &dyn Span<'ast>) {
+    pub fn emit_lint(&self, lint: &'static Lint, msg: &str, span: &Span<'ast>) {
         self.driver.call_emit_lint(lint, msg, span);
+    }
+}
+
+impl<'ast> AstContext<'ast> {
+    pub(crate) fn span_snipped(&self, span: &Span) -> Option<String> {
+        self.driver.call_span_snippet(span)
+    }
+
+    pub(crate) fn get_span(&self, span_owner: &SpanOwner) -> &'ast Span<'ast> {
+        self.driver.call_get_span(span_owner)
     }
 }
 
@@ -55,11 +74,19 @@ struct DriverCallbacks<'ast> {
     /// driver-specific type by the driver. A driver is always guaranteed to
     /// get its own context.
     pub driver_context: *const (),
-    pub emit_lint: extern "C" fn(*const (), &'static Lint, &str, &dyn Span<'ast>),
+    pub emit_lint: extern "C" fn(*const (), &'static Lint, &str, &Span<'ast>),
+    pub get_span: extern "C" fn(*const (), &SpanOwner) -> &'ast Span<'ast>,
+    pub span_snippet: extern "C" fn(*const (), &Span) -> Option<&'ast str>,
 }
 
 impl<'ast> DriverCallbacks<'ast> {
-    fn call_emit_lint(&self, lint: &'static Lint, msg: &str, span: &dyn Span<'ast>) {
+    fn call_emit_lint(&self, lint: &'static Lint, msg: &str, span: &Span<'ast>) {
         (self.emit_lint)(self.driver_context, lint, msg, span);
+    }
+    fn call_get_span(&self, span_owner: &SpanOwner) -> &'ast Span<'ast> {
+        (self.get_span)(self.driver_context, span_owner)
+    }
+    fn call_span_snippet(&self, span: &Span) -> Option<String> {
+        (self.span_snippet)(self.driver_context, span).map(str::to_string)
     }
 }

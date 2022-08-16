@@ -1,8 +1,9 @@
 warning: hey there is a static item here
- --> $DIR/find_static.rs:2:1
+ --> $DIR/find_static.rs:1:1
   |
-2 | static TEST: u32 = 4;
-  | ^^^^^^^^^^^^^^^^^^^^^
+1 | /
+2 | | static TEST: u32 = 4;
+  | |_____________________^
   |
   = note: `#[warn(linter::test_lint)]` on by default
 

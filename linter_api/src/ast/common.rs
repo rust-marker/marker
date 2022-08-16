@@ -1,5 +1,7 @@
 mod id;
 pub use id::*;
+mod span;
+pub use span::*;
 
 use std::fmt::Debug;
 
@@ -13,16 +15,16 @@ use super::item::ItemId;
 /// they end inside a unicode character as they often safe the unicode position. These
 /// cases can cause panics if they are used to access the underlying source code. The
 /// normal provided [`Span`]s should all be fine.
-pub trait Span<'ast>: Debug {
+pub trait SpanOld<'ast>: Debug {
     fn is_from_expansion(&self) -> bool;
 
     fn in_derive_expansion(&self) -> bool;
 
     // Returns `true` if `self` fully encloses `other`
-    fn contains(&self, other: &dyn Span<'ast>) -> bool;
+    fn contains(&self, other: &dyn SpanOld<'ast>) -> bool;
 
     // Returns `true` if `self` touches `other`
-    fn overlaps(&self, other: &dyn Span<'ast>) -> bool;
+    fn overlaps(&self, other: &dyn SpanOld<'ast>) -> bool;
 
     // Edition of the crate from which this span came.
     fn edition(&self) -> Edition;
@@ -34,7 +36,7 @@ pub trait Span<'ast>: Debug {
     ///     self lorem ipsum end
     ///     ^^^^^^^^^^^^^^^^^^^^
     /// ```
-    fn to(&'ast self, end: &dyn Span<'ast>) -> &dyn Span<'ast>;
+    fn to(&'ast self, end: &dyn SpanOld<'ast>) -> &dyn SpanOld<'ast>;
 
     /// Returns a `Span` between the end of `self` to the beginning of `end`.
     ///
@@ -43,7 +45,7 @@ pub trait Span<'ast>: Debug {
     ///     self lorem ipsum end
     ///         ^^^^^^^^^^^^^
     /// ```
-    fn between(&'ast self, end: &dyn Span<'ast>) -> &dyn Span<'ast>;
+    fn between(&'ast self, end: &dyn SpanOld<'ast>) -> &dyn SpanOld<'ast>;
 
     /// Returns a `Span` from the beginning of `self` until the beginning of `end`.
     ///
@@ -52,7 +54,7 @@ pub trait Span<'ast>: Debug {
     ///     self lorem ipsum end
     ///     ^^^^^^^^^^^^^^^^^
     /// ```
-    fn until(&'ast self, end: &dyn Span<'ast>) -> &dyn Span<'ast>;
+    fn until(&'ast self, end: &dyn SpanOld<'ast>) -> &dyn SpanOld<'ast>;
 
     /// Returns the code that this span references or `None` if the code in unavailable
     fn snippet(&self) -> Option<String>;
@@ -173,13 +175,13 @@ pub enum Abi {
 
 pub struct Spanned<'ast, T> {
     pub node: T,
-    pub span: &'ast dyn Span<'ast>,
+    pub span: &'ast dyn SpanOld<'ast>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast, T> Spanned<'ast, T> {
     #[must_use]
-    pub fn new(node: T, span: &'ast dyn Span<'ast>) -> Self {
+    pub fn new(node: T, span: &'ast dyn SpanOld<'ast>) -> Self {
         Self { node, span }
     }
 }
@@ -204,13 +206,14 @@ pub trait Attribute<'ast>: Debug {
     // FIXME: Add attribute functions
 }
 
-#[derive(Debug)]
-pub struct Path<'ast> {
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct ItemPath<'ast> {
     segments: &'ast [PathSegment],
     target: PathResolution,
 }
 
-impl<'ast> Path<'ast> {
+impl<'ast> ItemPath<'ast> {
     pub fn get_segments(&self) -> &[PathSegment] {
         self.segments
     }
@@ -221,14 +224,14 @@ impl<'ast> Path<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> Path<'ast> {
+impl<'ast> ItemPath<'ast> {
     pub fn new(segments: &'ast [PathSegment], target: PathResolution) -> Self {
         Self { segments, target }
     }
 }
 
 #[non_exhaustive]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PathSegment {
     /// This symbol can correspond to an empty string in some cases for example
     /// for [turbo fish paths](https://turbo.fish/::%3Cchecker%3E).
@@ -261,8 +264,9 @@ impl PathSegment {
     }
 }
 
+#[repr(C)]
 #[non_exhaustive]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum PathResolution {
     Item(ItemId),
     /// An path belonging to a tool. This will for instance be used for attributes
