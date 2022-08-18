@@ -35,6 +35,7 @@ pub fn rustc_crate_id_from_api_create_id(api_id: CrateId) -> rustc_hir::def_id::
 
 #[cfg(test)]
 pub mod test {
+    #[allow(clippy::missing_panics_doc)]
     #[test]
     pub fn test_magic_sizes() {
         assert_eq!(std::mem::size_of::<rustc_hir::def_id::DefIndex>(), 4);

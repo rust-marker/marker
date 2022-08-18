@@ -73,10 +73,10 @@ struct DriverCallbacks<'ast> {
     /// unknown to the api and adapter. The context has to be casted into the
     /// driver-specific type by the driver. A driver is always guaranteed to
     /// get its own context.
-    pub driver_context: *const (),
-    pub emit_lint: extern "C" fn(*const (), &'static Lint, &str, &Span<'ast>),
-    pub get_span: extern "C" fn(*const (), &SpanOwner) -> &'ast Span<'ast>,
-    pub span_snippet: extern "C" fn(*const (), &Span) -> Option<&'ast str>,
+    pub driver_context: &'ast (),
+    pub emit_lint: extern "C" fn(&'ast (), &'static Lint, &str, &Span<'ast>),
+    pub get_span: extern "C" fn(&'ast (), &SpanOwner) -> &'ast Span<'ast>,
+    pub span_snippet: extern "C" fn(&'ast (), &Span) -> Option<&'ast str>,
 }
 
 impl<'ast> DriverCallbacks<'ast> {

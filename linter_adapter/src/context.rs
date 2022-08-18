@@ -28,9 +28,8 @@ impl<'ast> DriverContextWrapper<'ast> {
 
     #[must_use]
     pub fn create_driver_callback(&'ast self) -> DriverCallbacks<'ast> {
-        let wrapper_ptr: *const Self = self;
         DriverCallbacks {
-            driver_context: wrapper_ptr.cast::<()>(),
+            driver_context:  unsafe { &*(self as *const DriverContextWrapper).cast::<()>() },
             emit_lint,
             get_span,
             span_snippet,
@@ -39,25 +38,19 @@ impl<'ast> DriverContextWrapper<'ast> {
 }
 
 #[expect(improper_ctypes_definitions)]
-extern "C" fn emit_lint<'ast>(data: *const (), lint: &'static Lint, msg: &str, span: &Span<'ast>) {
-    let data = data.cast::<DriverContextWrapper<'ast>>();
-    let wrapper: &'ast DriverContextWrapper<'ast> = unsafe { data.as_ref() }.unwrap();
-
+extern "C" fn emit_lint<'ast>(data: &(), lint: &'static Lint, msg: &str, span: &Span<'ast>) {
+    let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
     wrapper.driver_cx.emit_lint(lint, msg, span);
 }
 
-extern "C" fn get_span<'ast>(data: *const (), owner: &SpanOwner) -> &'ast Span<'ast> {
-    let data = data.cast::<DriverContextWrapper<'ast>>();
-    let wrapper: &'ast DriverContextWrapper<'ast> = unsafe { data.as_ref() }.unwrap();
-
+extern "C" fn get_span<'ast>(data: &(), owner: &SpanOwner) -> &'ast Span<'ast> {
+    let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
     wrapper.driver_cx.get_span(owner)
 }
 
 #[expect(improper_ctypes_definitions)]
-extern "C" fn span_snippet<'ast>(data: *const (), span: &Span) -> Option<&'ast str> {
-    let data = data.cast::<DriverContextWrapper<'ast>>();
-    let wrapper: &'ast DriverContextWrapper<'ast> = unsafe { data.as_ref() }.unwrap();
-
+extern "C" fn span_snippet<'ast>(data: &(), span: &Span) -> Option<&'ast str> {
+    let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
     wrapper.driver_cx.span_snippet(span)
 }
 
