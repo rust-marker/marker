@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![feature(lint_reasons)]
 #![warn(clippy::pedantic)]
 #![warn(clippy::index_refutable_slice)]
 
@@ -6,21 +7,22 @@ mod loader;
 use linter_api::{
     ast::{item::ItemType, Crate},
     context::AstContext,
+    lint::Lint,
     LintPass,
 };
-use loader::ExternalLintCrateRegistry;
+use loader::LintCrateRegistry;
 
 /// This struct is the interface used by lint drivers to pass transformed objects to
 /// external lint passes.
 pub struct Adapter<'ast> {
     #[allow(unused)]
-    external_lint_crates: ExternalLintCrateRegistry<'ast>,
+    external_lint_crates: LintCrateRegistry<'ast>,
 }
 
 impl<'ast> Adapter<'ast> {
     #[must_use]
     pub fn new_from_env() -> Self {
-        let external_lint_crates = ExternalLintCrateRegistry::new_from_env();
+        let external_lint_crates = LintCrateRegistry::new_from_env();
         Self { external_lint_crates }
     }
 
@@ -38,5 +40,10 @@ impl<'ast> Adapter<'ast> {
                 _ => {},
             }
         }
+    }
+
+    #[must_use]
+    pub fn registered_lints(&self) -> Box<[&'static Lint]> {
+        self.external_lint_crates.registered_lints()
     }
 }

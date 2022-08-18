@@ -1,46 +1,35 @@
 use libloading::Library;
 
-use linter_api::ast::item::{ExternCrateItem, ModItem, StaticItem, UseDeclItem};
-use linter_api::context::AstContext;
-use linter_api::interface::{LintPassDeclaration, LintPassRegistry};
+use linter_api::lint::Lint;
 use linter_api::LintPass;
 
+/// This struct loads external lint crates into memory and provides a safe API
+/// to call the respective methods on all of them.
 #[derive(Default)]
-pub struct ExternalLintCrateRegistry<'ast> {
-    pub lint_passes: Vec<Box<dyn LintPass<'ast>>>,
-    libs: Vec<Library>,
+pub struct LintCrateRegistry<'ast> {
+    passes: Vec<LoadedLintCrate<'ast>>,
 }
 
-impl<'a> ExternalLintCrateRegistry<'a> {
+impl<'a> LintCrateRegistry<'a> {
     /// # Errors
     /// This can return errors if the library couldn't be found or if the
     /// required symbols weren't provided.
-    pub fn load_external_lib(&mut self, lib_path: &str) -> Result<(), LoadingError> {
-        let lib = unsafe { Library::new(lib_path) }.map_err(|_| LoadingError::FileNotFound)?;
+    fn load_external_lib(&mut self, lib_path: &str) -> Result<(), LoadingError> {
+        let lib: &'static Library = Box::leak(Box::new(
+            unsafe { Library::new(lib_path) }.map_err(|_| LoadingError::FileNotFound)?,
+        ));
 
-        let decl = unsafe {
-            lib.get::<*mut LintPassDeclaration>(b"__lint_pass_declaration\0")
-                .map_err(|_| LoadingError::MissingLintDeclaration)?
-                .read()
-        };
+        let pass = LoadedLintCrate::try_from_lib(lib)?;
 
-        if decl.linter_api_version != linter_api::LINTER_API_VERSION || decl.rustc_version != linter_api::RUSTC_VERSION
-        {
-            return Err(LoadingError::IncompatibleVersion);
-        }
-
-        unsafe {
-            (decl.register)(self);
-        }
-
-        self.libs.push(lib);
+        self.passes.push(pass);
+        // FIXME: Create issue for lifetimes and fix droping and pointer decl stuff
 
         Ok(())
     }
 
     /// # Panics
     ///
-    /// Panics if a lint in the environment couln't be loaded.
+    /// Panics if a lint in the environment couldn't be loaded.
     pub fn new_from_env() -> Self {
         let mut new_self = Self::default();
 
@@ -56,49 +45,93 @@ impl<'a> ExternalLintCrateRegistry<'a> {
     }
 }
 
-impl<'ast> LintPassRegistry<'ast> for ExternalLintCrateRegistry<'ast> {
-    fn register(&mut self, _name: &str, init: Box<dyn LintPass<'ast>>) {
-        self.lint_passes.push(init);
+impl<'ast> LintPass<'ast> for LintCrateRegistry<'ast> {
+    fn registered_lints(&self) -> Box<[&'static Lint]> {
+        let mut lints = vec![];
+        for lint_pass in &self.passes {
+            lints.extend_from_slice(&lint_pass.registered_lints());
+        }
+        lints.into_boxed_slice()
     }
+
+    linter_api::for_each_lint_pass_fn!(crate::gen_lint_crate_reg_lint_pass_fn);
 }
 
-impl<'ast> LintPass<'ast> for ExternalLintCrateRegistry<'ast> {
-    fn registered_lints(&self) -> Vec<&'static linter_api::lint::Lint> {
-        let mut all_lints = vec![];
-        self.lint_passes
-            .iter()
-            .for_each(|pass| all_lints.append(&mut pass.registered_lints()));
-        all_lints
-    }
-
-    fn check_item(&mut self, cx: &'ast AstContext<'ast>, item: linter_api::ast::item::ItemType<'ast>) {
-        for lint_pass in &mut self.lint_passes {
-            lint_pass.check_item(cx, item);
+#[macro_export]
+macro_rules! gen_lint_crate_reg_lint_pass_fn {
+    (fn $fn_name:ident(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
+        // Nothing these will be implemented manually
+    };
+    (fn $fn_name:ident(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> ()) => {
+        fn $fn_name(&mut self $(, $arg_name: $arg_ty)*) {
+            for lint_pass in self.passes.iter_mut() {
+                lint_pass.$fn_name($($arg_name, )*);
+            }
         }
-    }
-
-    fn check_mod(&mut self, cx: &'ast AstContext<'ast>, mod_item: &'ast ModItem<'ast>) {
-        for lint_pass in &mut self.lint_passes {
-            lint_pass.check_mod(cx, mod_item);
-        }
-    }
-    fn check_extern_crate(&mut self, cx: &'ast AstContext<'ast>, extern_crate_item: &'ast ExternCrateItem<'ast>) {
-        for lint_pass in &mut self.lint_passes {
-            lint_pass.check_extern_crate(cx, extern_crate_item);
-        }
-    }
-    fn check_use_decl(&mut self, cx: &'ast AstContext<'ast>, use_item: &'ast UseDeclItem<'ast>) {
-        for lint_pass in &mut self.lint_passes {
-            lint_pass.check_use_decl(cx, use_item);
-        }
-    }
-
-    fn check_static_item(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {
-        for lint_pass in &mut self.lint_passes {
-            lint_pass.check_static_item(cx, item);
-        }
-    }
+    };
 }
+
+/// This macro generates the `LoadedLintCrate` struct, and functions for
+/// calling the [`LintPass`] functions. It's the counter part to
+/// [`linter_api::interface::export_lint_pass`]
+#[macro_export]
+macro_rules! gen_LoadedLintCrate {
+    (($dollar:tt) $(fn $fn_name:ident(& $(($mut_:tt))? self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty;)+) => {
+        /// This struct holds function pointers to api functions in the loaded lint crate
+        /// It owns the library instance. It sadly has to be stored as a `'static`
+        /// reference due to lifetime restrictions.
+        struct LoadedLintCrate<'ast> {
+            _lib: &'static Library,
+            $(
+                $fn_name: libloading::Symbol<'ast, unsafe extern "C" fn($($arg_ty,)*) -> $ret_ty>,
+            )*
+        }
+
+        impl<'ast> LoadedLintCrate<'ast> {
+            /// This function tries to resolve all api functions in the given library.
+            fn try_from_lib(lib: &'static Library) -> Result<Self, LoadingError> {
+                // get function pointers
+                let get_linter_api_version = {
+                    unsafe {
+                        lib.get::<unsafe extern "C" fn() -> &'static str>(b"get_linter_api_version\0")
+                            .map_err(|_| LoadingError::MissingLintDeclaration)?
+                    }
+                };
+                if unsafe { get_linter_api_version() } != linter_api::LINTER_API_VERSION {
+                    return Err(LoadingError::IncompatibleVersion);
+                }
+
+                $(
+                    let $fn_name = {
+                        let name: Vec<u8> = stringify!($fn_name).bytes().chain(std::iter::once(b'\0')).collect();
+                        unsafe {
+                            lib.get::<unsafe extern "C" fn($($arg_ty,)*) -> $ret_ty>(&name)
+                                .map_err(|_| LoadingError::MissingLintDeclaration)?
+                        }
+                    };
+                )*
+                // create Self
+                Ok(Self {
+                    _lib: lib,
+                    $(
+                        $fn_name,
+                    )*
+                })
+            }
+
+            // safe wrapper to external functions
+            $(
+                fn $fn_name(& $($mut_)* self $(, $arg_name: $arg_ty)*) -> $ret_ty {
+                    unsafe {
+                        (self.$fn_name)($($arg_name,)*)
+                    }
+                }
+            )*
+        }
+
+    };
+}
+linter_api::lint_pass_fns!(crate::gen_LoadedLintCrate);
 
 #[derive(Debug)]
 pub enum LoadingError {
