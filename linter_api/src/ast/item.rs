@@ -13,7 +13,7 @@ pub use self::use_decl_item::UseDeclItem;
 
 use super::{
     ty::{Ty, TyId},
-    Abi, Asyncness, Attribute, BodyId, Constness, CrateId, ItemPath, Pattern, Safety, Span, SpanOld, Symbol,
+    Abi, Asyncness, Attribute, BodyId, Constness, CrateId, ItemPath, Pattern, Safety, Span, Symbol,
 };
 
 /// Every item has an ID that can be used to retive that item or compair it to
@@ -215,7 +215,7 @@ pub trait FnDeclaration<'ast>: Debug {
 pub trait FnParam<'ast>: Debug {
     fn get_pattern(&self) -> &dyn Pattern<'ast>;
 
-    fn get_span(&self) -> &dyn SpanOld<'ast>;
+    fn get_span(&self) -> &Span<'ast>;
 
     fn get_ty(&self) -> &dyn Ty<'ast>;
 }
@@ -284,7 +284,7 @@ pub trait AdtField<'ast>: Debug {
     fn get_attributes(&'ast self) -> &'ast dyn Attribute;
 
     /// This will return the span of the field, exclusing the field attributes.
-    fn get_span(&'ast self) -> &'ast dyn SpanOld<'ast>;
+    fn get_span(&'ast self) -> &'ast Span<'ast>;
 
     fn get_visibility(&'ast self) -> Visibility<'ast>;
 
@@ -465,7 +465,7 @@ pub trait GenericParam<'ast>: Debug {
     fn get_id(&self) -> GenericParamId;
 
     /// This returns the span of generic identifier.
-    fn get_span(&self) -> &'ast dyn SpanOld<'ast>;
+    fn get_span(&self) -> &'ast Span<'ast>;
 
     /// This returns the name of the generic, this can return `None` for unnamed
     /// or implicit generics. For lifetimes this will include the leading apostrophe.

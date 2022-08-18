@@ -7,14 +7,14 @@ use rustc_lint::{LateContext, Level as RustcLevel, Lint as RustcLint, LintContex
 use linter_api::{
     ast::{
         ty::{Ty, TyKind},
-        Ident, Lifetime, Span, SpanOld, SpanOwner, SpanSource, Symbol,
+        Lifetime, Span, SpanOwner, SpanSource, Symbol,
     },
     context::AstContext,
     lint::{Level, Lint, MacroReport},
 };
 use rustc_span::BytePos;
 
-use super::{api_span_from_rustc_span, item::rustc_item_id_from_api_item_id, ty::RustcTy, RustcLifetime, RustcSpan};
+use super::{api_span_from_rustc_span, item::rustc_item_id_from_api_item_id, ty::RustcTy, RustcLifetime};
 
 pub struct RustcContext<'ast, 'tcx> {
     pub(crate) ast_cx: OnceCell<&'ast AstContext<'ast>>,
@@ -162,20 +162,9 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
 
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     #[must_use]
-    pub fn new_span(&'ast self, span: rustc_span::Span) -> &'ast dyn SpanOld<'ast> {
-        self.buffer.alloc_with(|| RustcSpan::new(span, self))
-    }
-
-    #[must_use]
     #[allow(clippy::unused_self)]
     pub fn new_symbol(&'ast self, sym: rustc_span::symbol::Symbol) -> Symbol {
         Symbol::new(sym.as_u32())
-    }
-
-    #[must_use]
-    pub fn new_ident(&'ast self, ident: rustc_span::symbol::Ident) -> &'ast Ident<'ast> {
-        self.buffer
-            .alloc_with(|| Ident::new(self.new_symbol(ident.name), self.new_span(ident.span)))
     }
 
     #[must_use]

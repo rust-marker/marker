@@ -19,7 +19,8 @@ impl<'ast, 'tcx> ToApi<'ast, 'tcx, ItemId> for rustc_hir::def_id::DefId {
     }
 }
 
-#[must_use] pub fn rustc_item_id_from_api_item_id(api_id: ItemId) -> rustc_hir::def_id::DefId {
+#[must_use]
+pub fn rustc_item_id_from_api_item_id(api_id: ItemId) -> rustc_hir::def_id::DefId {
     let (krate, index) = api_id.get_data();
     rustc_hir::def_id::DefId {
         index: unsafe { std::mem::transmute::<u32, rustc_hir::def_id::DefIndex>(index) },
@@ -27,7 +28,8 @@ impl<'ast, 'tcx> ToApi<'ast, 'tcx, ItemId> for rustc_hir::def_id::DefId {
     }
 }
 
-#[must_use] pub fn rustc_crate_id_from_api_create_id(api_id: CrateId) -> rustc_hir::def_id::CrateNum {
+#[must_use]
+pub fn rustc_crate_id_from_api_create_id(api_id: CrateId) -> rustc_hir::def_id::CrateNum {
     unsafe { transmute::<CrateId, rustc_hir::def_id::CrateNum>(api_id) }
 }
 

@@ -3,7 +3,7 @@
 use std::{fmt::Debug, mem::transmute};
 
 use linter_api::ast::{
-    Attribute, BodyId, CrateId, ItemPath, Lifetime, PathResolution, PathSegment, Span, SpanId, SpanOld, SpanSource, Symbol,
+    Attribute, BodyId, CrateId, ItemPath, Lifetime, PathResolution, PathSegment, Span, SpanId, SpanSource, Symbol,
 };
 
 use super::{rustc::RustcContext, ToApi};
@@ -37,7 +37,12 @@ pub fn api_span_from_rustc_span<'ast, 'tcx>(
     let rustc_data = span.data();
     let span_file = cx.rustc_cx.sess().source_map().lookup_source_file(span.lo());
     if let rustc_span::FileName::Real(path) = &span_file.name {
-        let thing = path.clone().into_local_path().as_ref().map(std::clone::Clone::clone).unwrap();
+        let thing = path
+            .clone()
+            .into_local_path()
+            .as_ref()
+            .map(std::clone::Clone::clone)
+            .unwrap();
         let thing = cx.alloc_with(move || thing);
         let source = SpanSource::File(thing);
         let start = span.lo() - span_file.start_pos;
@@ -47,68 +52,8 @@ pub fn api_span_from_rustc_span<'ast, 'tcx>(
     unimplemented!()
 }
 
-#[derive(Debug)]
-pub struct RustcSpan<'ast, 'tcx> {
-    pub(crate) span: rustc_span::Span,
-    cx: &'ast RustcContext<'ast, 'tcx>,
-}
-
-impl<'ast, 'tcx> RustcSpan<'ast, 'tcx> {
-    #[must_use]
-    pub fn new(span: rustc_span::Span, cx: &'ast RustcContext<'ast, 'tcx>) -> Self {
-        Self { span, cx }
-    }
-}
-
-impl<'ast, 'tcx> ToApi<'ast, 'tcx, &'ast dyn SpanOld<'ast>> for rustc_span::Span {
-    fn to_api(&self, cx: &'ast RustcContext<'ast, 'tcx>) -> &'ast dyn SpanOld<'ast> {
-        cx.alloc_with(|| RustcSpan::new(*self, cx))
-    }
-}
-
-impl<'ast, 'tcx> linter_api::ast::SpanOld<'ast> for RustcSpan<'ast, 'tcx> {
-    fn is_from_expansion(&self) -> bool {
-        self.span.from_expansion()
-    }
-
-    fn in_derive_expansion(&self) -> bool {
-        self.span.in_derive_expansion()
-    }
-
-    fn contains(&self, other: &dyn linter_api::ast::SpanOld<'ast>) -> bool {
-        todo!()
-    }
-
-    fn overlaps(&self, other: &dyn linter_api::ast::SpanOld<'ast>) -> bool {
-        todo!()
-    }
-
-    fn edition(&self) -> linter_api::ast::Edition {
-        todo!()
-    }
-
-    fn to(&'ast self, end: &dyn linter_api::ast::SpanOld<'ast>) -> &dyn linter_api::ast::SpanOld<'ast> {
-        todo!()
-    }
-
-    fn between(&'ast self, end: &dyn linter_api::ast::SpanOld<'ast>) -> &dyn linter_api::ast::SpanOld<'ast> {
-        todo!()
-    }
-
-    fn until(&'ast self, end: &dyn linter_api::ast::SpanOld<'ast>) -> &dyn linter_api::ast::SpanOld<'ast> {
-        todo!()
-    }
-
-    fn snippet(&self) -> Option<String> {
-        self.cx.rustc_cx.tcx.sess.source_map().span_to_snippet(self.span).ok()
-    }
-
-    fn get_source_file(&self) -> Option<(String, u32, u32)> {
-        todo!()
-    }
-}
-
-#[must_use] pub fn rustc_span_from_span_id(span_id: SpanId) -> rustc_span::Span {
+#[must_use]
+pub fn rustc_span_from_span_id(span_id: SpanId) -> rustc_span::Span {
     // # Safety
     //
     // [`SpanId`]s are only created by [`span_id_from_rustc_span`] which uses
@@ -121,7 +66,8 @@ impl<'ast, 'tcx> linter_api::ast::SpanOld<'ast> for RustcSpan<'ast, 'tcx> {
     unsafe { transmute::<SpanId, rustc_span::Span>(span_id) }
 }
 
-#[must_use] pub fn span_id_from_rustc_span(rustc_span: rustc_span::Span) -> SpanId {
+#[must_use]
+pub fn span_id_from_rustc_span(rustc_span: rustc_span::Span) -> SpanId {
     // # Safety
     //
     // The here created [`SpanId`]s are transformed back by [`rustc_span_from_span_id`]
@@ -132,20 +78,20 @@ impl<'ast, 'tcx> linter_api::ast::SpanOld<'ast> for RustcSpan<'ast, 'tcx> {
 
 #[cfg(test)]
 mod tests {
-use std::mem::size_of;
+    use std::mem::size_of;
 
-/// These tests validate that the size of transmutation sources and targets
-/// doesn't change unexpected. If a size is changed all transmutational usages
-/// will need to be checked.
-#[test]
-pub fn check_transmute_target_sizes() {
-    assert_eq!(size_of::<rustc_span::Span>(), 8, "Test `rustc_span::Span`");
-    assert_eq!(
-        size_of::<linter_api::ast::SpanId>(),
-        8,
-        "Test `linter_api::ast::SpanId`"
-    );
-}
+    /// These tests validate that the size of transmutation sources and targets
+    /// doesn't change unexpected. If a size is changed all transmutational usages
+    /// will need to be checked.
+    #[test]
+    pub fn check_transmute_target_sizes() {
+        assert_eq!(size_of::<rustc_span::Span>(), 8, "Test `rustc_span::Span`");
+        assert_eq!(
+            size_of::<linter_api::ast::SpanId>(),
+            8,
+            "Test `linter_api::ast::SpanId`"
+        );
+    }
 }
 
 pub fn path_from_rustc<'ast, 'tcx>(
