@@ -11,6 +11,9 @@ pub mod context;
 pub mod interface;
 pub mod lint;
 
+#[doc(hidden)]
+pub mod ffi;
+
 /// **!Unstable!**
 ///
 /// This macro returns a list of all functions declared for the [`LintPass`] trait.

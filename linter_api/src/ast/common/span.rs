@@ -124,8 +124,7 @@ impl<'ast> Span<'ast> {
 #[repr(C)]
 #[doc(hidden)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
-#[cfg_attr(not(feature = "driver-api"), visibility::make(pub(crate)))]
-enum SpanOwner {
+pub(crate) enum SpanOwner {
     /// This requrests the `Span` belonging to the [`ItemId`].
     Item(ItemId),
     /// This requrests the `Span` belonging to the [`BodyId`].

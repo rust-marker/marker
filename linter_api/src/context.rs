@@ -1,5 +1,6 @@
 use crate::{
     ast::{Span, SpanOwner},
+    ffi,
     lint::Lint,
 };
 
@@ -74,19 +75,20 @@ struct DriverCallbacks<'ast> {
     /// driver-specific type by the driver. A driver is always guaranteed to
     /// get its own context.
     pub driver_context: &'ast (),
-    pub emit_lint: extern "C" fn(&'ast (), &'static Lint, &str, &Span<'ast>),
+    pub emit_lint: for<'a> extern "C" fn(&'ast (), &'static Lint, ffi::Str<'a>, &Span<'ast>),
     pub get_span: extern "C" fn(&'ast (), &SpanOwner) -> &'ast Span<'ast>,
-    pub span_snippet: extern "C" fn(&'ast (), &Span) -> Option<&'ast str>,
+    pub span_snippet: extern "C" fn(&'ast (), &Span) -> ffi::FfiOption<ffi::Str<'ast>>,
 }
 
 impl<'ast> DriverCallbacks<'ast> {
     fn call_emit_lint(&self, lint: &'static Lint, msg: &str, span: &Span<'ast>) {
-        (self.emit_lint)(self.driver_context, lint, msg, span);
+        (self.emit_lint)(self.driver_context, lint, msg.into(), span);
     }
     fn call_get_span(&self, span_owner: &SpanOwner) -> &'ast Span<'ast> {
         (self.get_span)(self.driver_context, span_owner)
     }
     fn call_span_snippet(&self, span: &Span) -> Option<String> {
-        (self.span_snippet)(self.driver_context, span).map(str::to_string)
+        let result: Option<ffi::Str> = (self.span_snippet)(self.driver_context, span).into();
+        result.map(|x| x.to_string())
     }
 }
