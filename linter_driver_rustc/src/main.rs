@@ -4,29 +4,30 @@
 #![feature(once_cell)]
 #![warn(rustc::internal)]
 #![warn(clippy::pedantic)]
-#![warn(clippy::index_refutable_slice)]
+#![allow(clippy::missing_panics_doc)]
 #![allow(clippy::module_name_repetitions)]
 
 extern crate rustc_ast;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_errors;
+extern crate rustc_hash;
 extern crate rustc_hir;
 extern crate rustc_interface;
 extern crate rustc_lint;
+extern crate rustc_lint_defs;
 extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_span;
+
+pub mod ast;
+pub mod context;
+mod entry;
 
 use std::env;
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command};
-
-pub mod ast;
-mod conversion;
-
-use rustc_lint::LateLintPass;
 
 struct DefaultCallbacks;
 impl rustc_driver::Callbacks for DefaultCallbacks {}
@@ -41,15 +42,9 @@ impl rustc_driver::Callbacks for LinterCallback {
         assert!(config.register_lints.is_none());
 
         config.register_lints = Some(Box::new(|_sess, lint_store| {
-            lint_store.register_late_pass(register);
+            lint_store.register_late_pass(|| Box::new(entry::LinterLintPass));
         }));
     }
-}
-
-fn register() -> Box<
-    dyn for<'tcx> LateLintPass<'tcx> + rustc_data_structures::sync::Send + rustc_data_structures::sync::Sync + 'static,
-> {
-    Box::new(conversion::ConverterLintPass::new())
 }
 
 /// If a command-line option matches `find_arg`, then apply the predicate `pred` on its value. If

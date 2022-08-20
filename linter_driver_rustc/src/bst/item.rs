@@ -9,7 +9,7 @@ use linter_api::ast::{
 };
 
 use super::{path_from_rustc, rustc::RustcContext};
-use crate::ast::ToApi;
+use crate::bst::ToApi;
 
 use std::{fmt::Debug, mem::transmute};
 
@@ -75,7 +75,7 @@ pub fn from_rustc<'ast, 'tcx>(
         rustc_hir::ItemKind::Static(_ty, rustc_mut, rustc_body_id) => ItemType::Static(cx.alloc_with(|| {
             StaticItem::new(
                 create_common_data(cx, item),
-                rustc_mut.to_api(cx),
+                todo!(),
                 rustc_body_id.to_api(cx),
             )
         })),

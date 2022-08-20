@@ -18,7 +18,6 @@ use loader::LintCrateRegistry;
 /// This struct is the interface used by lint drivers to pass transformed objects to
 /// external lint passes.
 pub struct Adapter<'ast> {
-    #[allow(unused)]
     external_lint_crates: LintCrateRegistry<'ast>,
 }
 

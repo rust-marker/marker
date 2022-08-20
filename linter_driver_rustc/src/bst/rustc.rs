@@ -6,7 +6,6 @@ use rustc_lint::{LateContext, Level as RustcLevel, Lint as RustcLint, LintContex
 
 use linter_api::{
     ast::{
-        ty::{Ty, TyKind},
         Lifetime, Span, SpanOwner, SpanSource, Symbol,
     },
     context::AstContext,
@@ -14,7 +13,7 @@ use linter_api::{
 };
 use rustc_span::BytePos;
 
-use super::{api_span_from_rustc_span, item::rustc_item_id_from_api_item_id, ty::RustcTy, RustcLifetime};
+use super::{api_span_from_rustc_span, item::rustc_item_id_from_api_item_id, RustcLifetime};
 
 pub struct RustcContext<'ast, 'tcx> {
     pub(crate) ast_cx: OnceCell<&'ast AstContext<'ast>>,
@@ -165,11 +164,6 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     #[allow(clippy::unused_self)]
     pub fn new_symbol(&'ast self, sym: rustc_span::symbol::Symbol) -> Symbol {
         Symbol::new(sym.as_u32())
-    }
-
-    #[must_use]
-    pub fn new_ty(&'ast self, kind: TyKind<'ast>, is_infered: bool) -> &'ast dyn Ty<'ast> {
-        self.buffer.alloc_with(|| RustcTy::new(self, kind, is_infered))
     }
 
     pub fn new_lifetime(&'ast self) -> &'ast dyn Lifetime<'ast> {
