@@ -182,14 +182,16 @@ fn main() {
         // - IF Linter is run on the main crate, not on deps (`!cap_lints_allow`) THEN
         //    - IF `--no-deps` is not set (`!no_deps`) OR
         //    - IF `--no-deps` is set and Linter is run on the specified primary package
-        let cap_lints_allow = arg_value(&orig_args, "--cap-lints", |val| val == "allow").is_some();
-        // FIXME: Add this:
-        //  let in_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
+        let cap_lints_allow = arg_value(&orig_args, "--cap-lints", |val| val == "allow").is_some()
+            && arg_value(&orig_args, "--force-warn", |_| true).is_none();
+        let no_deps = orig_args.iter().any(|arg| arg == "--no-deps");
+        let in_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
 
-        if cap_lints_allow {
-            rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks).run()
-        } else {
+        let enable_linter = !cap_lints_allow && (!no_deps || in_primary_package);
+        if enable_linter {
             rustc_driver::RunCompiler::new(&orig_args, &mut LinterCallback).run()
+        } else {
+            rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks).run()
         }
     }))
 }
