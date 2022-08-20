@@ -7,6 +7,7 @@ use super::{Applicability, BodyId, ItemPath, SpanId};
 #[repr(C)]
 #[doc(hidden)]
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(not(feature = "driver-api"), allow(dead_code))]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 enum SpanSource<'ast> {
     File(&'ast PathBuf),
