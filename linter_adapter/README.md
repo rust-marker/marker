@@ -1,16 +1,21 @@
-# _The Adapter_
+# Linter Adapter 🔌
 
-The adapter connects the lint driver with lint crates. :electric_plug:
+The adapter provides a common interface for linter drivers to communicate with lint crates. It does some heavy lifting which would otherwise need to be done by each individual driver.
 
-:warning: This crate is not part of the stable API :warning: 
+⚠️ This is not part of the stable API, the adapter might change in between releases ⚠️
 
 ## Interface
 
-The adapter usually gets created from the environment. The following environment values can be used:
-* `LINTER_LINT_CRATES`: A semicolon separated list of dynamic libraries belonging to lint crates. Ideally, these should hold absolute paths.
+### Driver -> lint crate communication
 
-  Example: `/path/to/lint_crates/one.so;/path/to/lint_crates/two.so`
+The adapter can load defined lint crates and send information from the driver to all lint crates. The driver takes care of save ABI communication from the driver to the lint crates.
 
-## Implementation
+### Lint crate -> driver communication
 
-This crate currently loads lint crates as dynamic libraries. The general concept is based on [this article](https://adventures.michaelfbryan.com/posts/plugins-in-rust/). The implementation transfers a trait object over the C ABI, which is kind of undefined. See [`improper_ctypes_definitions`](https://doc.rust-lang.org/rustc/lints/listing/warn-by-default.html#improper-ctypes-definitions) for a brief explanation. This currently works but might break in the future, this should be changed before `v1.0.0`.
+The linting API and lint crates require some callbacks into the driver. These callbacks use `extern "C"` functions with FFI safe types. Drivers can just implement the `DriverContext` trait provided by the adapter, all FFI related conversion is done by the adapter.
+
+### Creating an adapter instance
+
+An adapter instance for the specific driver can be crated from the environment. For this, the following environment values are read:
+
+* `LINTER_LINT_CRATES`: A semicolon separated list of lint crates in the form of compiled dynamic libraries.

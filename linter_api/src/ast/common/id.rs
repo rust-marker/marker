@@ -54,8 +54,7 @@ impl BodyId {
 #[repr(C)]
 #[doc(hidden)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
-#[cfg_attr(not(feature = "driver-api"), visibility::make(pub(crate)))]
-struct SpanId {
+pub(crate) struct SpanId {
     data: u64,
 }
 
