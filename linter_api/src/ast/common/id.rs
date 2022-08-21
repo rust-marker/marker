@@ -79,10 +79,12 @@ impl BodyId {
 ///
 /// This id is used to identify [`Span`]s. This type is only intended for internal
 /// use. Lint crates should always get a [`Span`] object.
+///
+/// FIXME: Don't leak the type once the common data macro was fixed
 #[repr(C)]
-#[doc(hidden)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
-pub(crate) struct SpanId {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct SpanId {
     /// The layout of the data is up to the driver implementation. The API will never
     /// create custom IDs and pass them to the driver. The size of this type might
     /// change. Drivers should validate the size with tests.
@@ -97,6 +99,34 @@ impl SpanId {
     }
 
     pub fn data(self) -> u64 {
+        self.data
+    }
+}
+
+/// **Unstable**
+///
+/// This id is used to identify symbols. This type is only intended for internal
+/// use. Lint crates should always get [`String`] or `&str`.
+///
+/// FIXME: Don't leak the type once the common data macro was fixed
+#[repr(C)]
+#[doc(hidden)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct SymbolId {
+    /// The layout of the data is up to the driver implementation. The API will never
+    /// create custom IDs and pass them to the driver. The size of this type might
+    /// change. Drivers should validate the size with tests.
+    data: u32,
+}
+
+#[cfg(feature = "driver-api")]
+impl SymbolId {
+    #[must_use]
+    pub fn new(data: u32) -> Self {
+        Self { data }
+    }
+
+    pub fn data(self) -> u32 {
         self.data
     }
 }
