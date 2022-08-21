@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
-use crate::{ast::item::ItemId, context::AstContext};
+use crate::context::AstContext;
 
-use super::{Applicability, BodyId, ItemPath, SpanId};
+use super::{Applicability, BodyId, ItemId, ItemPath, SpanId};
 
 #[repr(C)]
 #[doc(hidden)]

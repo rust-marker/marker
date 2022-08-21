@@ -18,6 +18,6 @@ fn process_crate(rustc_cx: &rustc_lint::LateContext<'_>) {
 /// This function marks the start of the `'ast` lifetime. The lifetime is defined
 /// by the [`Storage`] object.
 fn process_crate_lifetime<'ast, 'tcx: 'ast>(rustc_cx: &rustc_lint::LateContext<'tcx>, storage: &'ast Storage<'ast>) {
-    let driver_cx = RustcContext::new(rustc_cx.tcx, rustc_cx.lint_store, storage);
+    let _driver_cx = RustcContext::new(rustc_cx.tcx, rustc_cx.lint_store, storage);
     // let mut adapter = Adapter::new_from_env();
 }

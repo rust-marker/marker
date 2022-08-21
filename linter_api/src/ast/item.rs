@@ -13,32 +13,8 @@ pub use self::use_decl_item::UseDeclItem;
 
 use super::{
     ty::{Ty, TyId},
-    Abi, Asyncness, Attribute, BodyId, Constness, CrateId, ItemPath, Pattern, Safety, Span, Symbol,
+    Abi, Asyncness, Attribute, BodyId, Constness, ItemId, ItemPath, Pattern, Safety, Span, Symbol,
 };
-
-/// Every item has an ID that can be used to retive that item or compair it to
-/// another id. The ID's can change in between linting sessions.
-///
-/// The interal representation is currently based on rustc's `DefId`. This might
-/// change in the future. The struct will continue to provide the current trait
-/// implementations.
-#[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ItemId {
-    krate: CrateId,
-    index: u32,
-}
-
-#[cfg(feature = "driver-api")]
-impl ItemId {
-    pub fn new(krate: CrateId, index: u32) -> Self {
-        Self { krate, index }
-    }
-
-    pub fn get_data(&self) -> (CrateId, u32) {
-        (self.krate, self.index)
-    }
-}
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison

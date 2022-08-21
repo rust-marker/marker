@@ -20,8 +20,8 @@ extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_span;
 
-pub mod ast;
 pub mod context;
+pub mod conversion;
 mod entry;
 
 use std::env;
