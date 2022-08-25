@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::context::AstContext;
 
-use super::{Applicability, BodyId, ItemId, ItemPath, SpanId};
+use super::{Applicability, ItemId, ItemPath, SpanId};
 
 #[repr(C)]
 #[doc(hidden)]
@@ -14,6 +14,7 @@ enum SpanSource<'ast> {
     Macro(&'ast ItemPath<'ast>),
 }
 
+#[repr(C)]
 #[derive(Clone)]
 pub struct Span<'ast> {
     cx: &'ast AstContext<'ast>,
@@ -112,7 +113,7 @@ impl<'ast> Span<'ast> {
         Self { cx, source, start, end }
     }
 
-    pub fn source(&self) -> SpanSource {
+    pub fn source(&self) -> SpanSource<'ast> {
         self.source
     }
 }
@@ -128,8 +129,6 @@ impl<'ast> Span<'ast> {
 pub(crate) enum SpanOwner {
     /// This requrests the `Span` belonging to the [`ItemId`].
     Item(ItemId),
-    /// This requrests the `Span` belonging to the [`BodyId`].
-    Body(BodyId),
     /// This requests the `Span` belonging to a driver generated [`SpanId`]
     SpecificSpan(SpanId),
 }
@@ -137,12 +136,6 @@ pub(crate) enum SpanOwner {
 impl From<ItemId> for SpanOwner {
     fn from(id: ItemId) -> Self {
         Self::Item(id)
-    }
-}
-
-impl From<BodyId> for SpanOwner {
-    fn from(id: BodyId) -> Self {
-        Self::Body(id)
     }
 }
 

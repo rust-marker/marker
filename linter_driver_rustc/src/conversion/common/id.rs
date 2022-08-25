@@ -1,6 +1,6 @@
 use std::mem::{size_of, transmute};
 
-use linter_api::ast::{BodyId, CrateId, ItemId, SymbolId};
+use linter_api::ast::{BodyId, CrateId, ItemId, SpanId, SymbolId};
 
 use crate::context::RustcContext;
 
@@ -46,6 +46,18 @@ pub fn to_rustc_def_id(_cx: &RustcContext<'_, '_>, api_id: ItemId) -> rustc_hir:
     }
 }
 
+pub fn to_rustc_item_id(_cx: &RustcContext<'_, '_>, api_id: ItemId) -> rustc_hir::ItemId {
+    assert_eq!(size_of::<ItemId>(), size_of::<ItemIdLayout>(), "the layout is invalid");
+    // # Safety
+    // The layout is validated with the `assert` above
+    let layout: ItemIdLayout = unsafe { transmute(api_id) };
+    rustc_hir::ItemId {
+        def_id: rustc_hir::def_id::LocalDefId {
+            local_def_index: rustc_hir::def_id::DefIndex::from_u32(layout.index),
+        },
+    }
+}
+
 #[repr(C)]
 struct BodyIdLayout {
     // Note: AFAIK rustc only loads bodies from the current crate, this allows
@@ -80,6 +92,28 @@ pub fn to_rustc_body_id(_cx: &RustcContext<'_, '_>, api_id: BodyId) -> rustc_hir
             local_id: rustc_hir::hir_id::ItemLocalId::from_u32(layout.index),
         },
     }
+}
+
+pub fn to_api_span_id(_cx: &RustcContext<'_, '_>, rustc_span: rustc_span::Span) -> SpanId {
+    assert_eq!(
+        size_of::<SpanId>(),
+        size_of::<rustc_span::Span>(),
+        "the size of `Span` or `SpanId` has changed"
+    );
+    // # Safety
+    // The site was validated with the `assert` above, the layout is provided by rustc
+    unsafe { transmute(rustc_span) }
+}
+
+pub fn to_rustc_span_from_id(_cx: &RustcContext<'_, '_>, api_id: SpanId) -> rustc_span::Span {
+    assert_eq!(
+        size_of::<SpanId>(),
+        size_of::<rustc_span::Span>(),
+        "the size of `Span` or `SpanId` has changed"
+    );
+    // # Safety
+    // The site was validated with the `assert` above, the layout is provided by rustc
+    unsafe { transmute(api_id) }
 }
 
 pub fn to_api_symbol_id(_cx: &RustcContext<'_, '_>, sym: rustc_span::Symbol) -> SymbolId {

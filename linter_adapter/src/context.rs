@@ -54,7 +54,7 @@ extern "C" fn span_snippet<'ast>(data: &(), span: &Span) -> ffi::FfiOption<ffi::
 }
 
 pub trait DriverContext<'ast> {
-    fn emit_lint(&self, lint: &'static Lint, msg: &str, span: &Span<'ast>);
+    fn emit_lint(&'ast self, lint: &'static Lint, msg: &str, span: &Span<'ast>);
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast>;
-    fn span_snippet(&self, span: &Span) -> Option<&'ast str>;
+    fn span_snippet(&'ast self, span: &Span) -> Option<&'ast str>;
 }

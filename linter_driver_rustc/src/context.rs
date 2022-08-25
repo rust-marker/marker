@@ -1,9 +1,15 @@
 use std::cell::OnceCell;
 
 use linter_adapter::context::{DriverContext, DriverContextWrapper};
-use linter_api::context::AstContext;
+use linter_api::{
+    ast::{Span, SpanOwner},
+    context::AstContext,
+    lint::Lint,
+};
 use rustc_lint::LintStore;
 use rustc_middle::ty::TyCtxt;
+
+use crate::conversion::{to_api_span, to_rustc_item_id, to_rustc_lint, to_rustc_span, to_rustc_span_from_id};
 
 use self::storage::Storage;
 
@@ -53,16 +59,29 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     }
 }
 
-impl<'ast, 'tcx> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
-    fn emit_lint(&self, _lint: &'static linter_api::lint::Lint, _msg: &str, _span: &linter_api::ast::Span<'ast>) {
-        todo!()
+impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
+    fn emit_lint(&'ast self, api_lint: &'static Lint, msg: &str, api_span: &Span<'ast>) {
+        let rustc_lint = to_rustc_lint(self, api_lint);
+        self.rustc_cx.struct_span_lint_hir(
+            rustc_lint,
+            rustc_hir::CRATE_HIR_ID,
+            to_rustc_span(self, api_span),
+            |diag| {
+                let mut diag = diag.build(msg);
+                diag.emit();
+            },
+        );
     }
 
-    fn get_span(&'ast self, _owner: &linter_api::ast::SpanOwner) -> &'ast linter_api::ast::Span<'ast> {
-        todo!()
+    fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast> {
+        let rustc_span = match owner {
+            SpanOwner::Item(item) => self.rustc_cx.hir().item(to_rustc_item_id(self, *item)).span,
+            SpanOwner::SpecificSpan(span_id) => to_rustc_span_from_id(self, *span_id),
+        };
+        to_api_span(self, rustc_span)
     }
 
-    fn span_snippet(&self, _span: &linter_api::ast::Span) -> Option<&'ast str> {
+    fn span_snippet(&self, _span: &Span) -> Option<&'ast str> {
         todo!()
     }
 }
