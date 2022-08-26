@@ -1,4 +1,4 @@
-use crate::ast::Path;
+use crate::ast::ItemPath;
 
 use super::{CommonItemData, UseKind};
 
@@ -23,7 +23,7 @@ use super::{CommonItemData, UseKind};
 #[derive(Debug)]
 pub struct UseDeclItem<'ast> {
     data: CommonItemData<'ast>,
-    use_path: Path<'ast>,
+    use_path: ItemPath<'ast>,
     use_kind: UseKind,
 }
 
@@ -32,7 +32,7 @@ super::impl_item_data!(UseDeclItem, UseDecl);
 impl<'ast> UseDeclItem<'ast> {
     /// Returns the path of this `use` item. For blob imports the `*` will
     /// be included in the simple path.
-    pub fn get_use_path(&self) -> &Path<'ast> {
+    pub fn get_use_path(&self) -> &ItemPath<'ast> {
         &self.use_path
     }
 
@@ -43,7 +43,7 @@ impl<'ast> UseDeclItem<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> UseDeclItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, use_path: Path<'ast>, use_kind: UseKind) -> Self {
+    pub fn new(data: CommonItemData<'ast>, use_path: ItemPath<'ast>, use_kind: UseKind) -> Self {
         Self {
             data,
             use_path,

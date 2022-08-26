@@ -2,8 +2,11 @@
 #![feature(lint_reasons)]
 #![warn(clippy::pedantic)]
 #![warn(clippy::index_refutable_slice)]
+#![allow(clippy::module_name_repetitions)]
 
+pub mod context;
 mod loader;
+
 use linter_api::{
     ast::{item::ItemType, Crate},
     context::AstContext,

@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
 #![warn(clippy::pedantic)]
-#![warn(clippy::index_refutable_slice)]
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::trivially_copy_pass_by_ref)]
@@ -11,6 +10,9 @@ pub mod ast;
 pub mod context;
 pub mod interface;
 pub mod lint;
+
+#[doc(hidden)]
+pub mod ffi;
 
 /// **!Unstable!**
 ///

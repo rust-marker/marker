@@ -46,6 +46,6 @@ impl<'ast> LintPass<'ast> for TestLintPass {
 // Last but not least, we have to mark our object that implements `LintPass`.
 // Each lint crate requires exactly one marker. All lints have to be implemented
 // in one lint pass. For multiple lints it can be helpful to extract the individual
-// linting logic called by the `check_*` functions into separate module.
+// linting logic called by the `check_*` functions into separate modules.
 linter_api::interface::export_lint_pass!(TestLintPass);
 ```

@@ -11,11 +11,36 @@ use linter_api::ast::{
 use super::{path_from_rustc, rustc::RustcContext};
 use crate::ast::ToApi;
 
-use std::fmt::Debug;
+use std::{fmt::Debug, mem::transmute};
 
 impl<'ast, 'tcx> ToApi<'ast, 'tcx, ItemId> for rustc_hir::def_id::DefId {
     fn to_api(&self, cx: &'ast RustcContext<'ast, 'tcx>) -> ItemId {
         ItemId::new(self.krate.to_api(cx), self.index.as_u32())
+    }
+}
+
+#[must_use]
+pub fn rustc_item_id_from_api_item_id(api_id: ItemId) -> rustc_hir::def_id::DefId {
+    let (krate, index) = api_id.get_data();
+    rustc_hir::def_id::DefId {
+        index: unsafe { std::mem::transmute::<u32, rustc_hir::def_id::DefIndex>(index) },
+        krate: rustc_crate_id_from_api_create_id(krate),
+    }
+}
+
+#[must_use]
+pub fn rustc_crate_id_from_api_create_id(api_id: CrateId) -> rustc_hir::def_id::CrateNum {
+    unsafe { transmute::<CrateId, rustc_hir::def_id::CrateNum>(api_id) }
+}
+
+#[cfg(test)]
+pub mod test {
+    #[allow(clippy::missing_panics_doc)]
+    #[test]
+    pub fn test_magic_sizes() {
+        assert_eq!(std::mem::size_of::<rustc_hir::def_id::DefIndex>(), 4);
+        assert_eq!(std::mem::size_of::<rustc_hir::def_id::CrateNum>(), 4);
+        assert_eq!(std::mem::size_of::<linter_api::ast::CrateId>(), 4);
     }
 }
 
@@ -75,8 +100,8 @@ fn create_common_data<'ast, 'tcx>(
     rustc_item: &'tcx rustc_hir::Item<'tcx>,
 ) -> CommonItemData<'ast> {
     CommonItemData::new(
+        cx.ast_cx(),
         rustc_item.def_id.to_def_id().to_api(cx),
-        rustc_item.span.to_api(cx),
         vis_from_rustc(cx, rustc_item),
         (!rustc_item.ident.name.is_empty()).then(|| rustc_item.ident.name.to_api(cx)),
     )
