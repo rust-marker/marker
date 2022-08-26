@@ -61,7 +61,9 @@ pub fn to_rustc_span<'ast, 'tcx: 'ast>(cx: &'ast RustcContext<'ast, 'tcx>, api_s
         .span_src_info(api_span.source())
         .expect("all driver created `SpanSources` have a matching info");
 
+    #[expect(clippy::cast_possible_truncation, reason = "`u32` is set by rustc and will be fine")]
     let lo = BytePos((api_span.start() + src_info.rustc_start_offset) as u32);
+    #[expect(clippy::cast_possible_truncation, reason = "`u32` is set by rustc and will be fine")]
     let hi = BytePos((api_span.end() + src_info.rustc_start_offset) as u32);
     rustc_span::Span::new(lo, hi, src_info.rustc_span_cx, None)
 }

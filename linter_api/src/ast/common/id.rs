@@ -77,8 +77,8 @@ impl BodyId {
 
 /// **Unstable**
 ///
-/// This id is used to identify [`Span`]s. This type is only intended for internal
-/// use. Lint crates should always get a [`Span`] object.
+/// This id is used to identify `Span`s. This type is only intended for internal
+/// use. Lint crates should always get a `Span` object.
 ///
 /// FIXME: Don't leak the type once the common data macro was fixed
 #[repr(C)]
