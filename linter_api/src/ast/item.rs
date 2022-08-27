@@ -19,24 +19,24 @@ use super::{
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
     /// and to request items from the [`AstContext`][`crate::context::AstContext`].
-    fn get_id(&self) -> ItemId;
+    fn id(&self) -> ItemId;
 
     /// The [`Span`] of the entire item. This span should be used for general item related
     /// diagnostics.
-    fn get_span(&self) -> &'ast Span<'ast>;
+    fn span(&self) -> &'ast Span<'ast>;
 
     /// The visibility of this item.
-    fn get_vis(&self) -> &Visibility<'ast>;
+    fn visibility(&self) -> &Visibility<'ast>;
 
     /// This function can return `None` if the item was generated and has no real name
-    fn get_name(&self) -> Option<SymbolId>;
+    fn name(&self) -> Option<SymbolId>;
 
     /// This returns this [`ItemData`] instance as a [`ItemType`]. This can be useful for
     /// functions that take [`ItemType`] as a parameter. For general function calls it's better
     /// to call them directoly on the item, instead of converting it to a [`ItemType`] first.
     fn as_item(&'ast self) -> ItemType<'ast>;
 
-    fn get_attrs(&self); // FIXME: Add return type: -> &'ast [&'ast dyn Attribute<'ast>];
+    fn attrs(&self); // FIXME: Add return type: -> &'ast [&'ast dyn Attribute<'ast>];
 }
 
 #[non_exhaustive]
@@ -58,11 +58,11 @@ pub enum ItemType<'ast> {
 }
 
 impl<'ast> ItemType<'ast> {
-    impl_item_type_fn!(get_id() -> ItemId);
-    impl_item_type_fn!(get_span() -> &'ast Span<'ast>);
-    impl_item_type_fn!(get_vis() -> &Visibility<'ast>);
-    impl_item_type_fn!(get_name() -> Option<SymbolId>);
-    impl_item_type_fn!(get_attrs() -> ());
+    impl_item_type_fn!(id() -> ItemId);
+    impl_item_type_fn!(span() -> &'ast Span<'ast>);
+    impl_item_type_fn!(visibility() -> &Visibility<'ast>);
+    impl_item_type_fn!(name() -> Option<SymbolId>);
+    impl_item_type_fn!(attrs() -> ());
 }
 
 /// Until [trait upcasting](https://github.com/rust-lang/rust/issues/65991) has been implemented
@@ -97,19 +97,19 @@ struct CommonItemData<'ast> {
 macro_rules! impl_item_data {
     ($self_name:ident, $enum_name:ident) => {
         impl<'ast> super::ItemData<'ast> for $self_name<'ast> {
-            fn get_id(&self) -> crate::ast::item::ItemId {
+            fn id(&self) -> crate::ast::item::ItemId {
                 self.data.id
             }
 
-            fn get_span(&self) -> &'ast crate::ast::Span<'ast> {
+            fn span(&self) -> &'ast crate::ast::Span<'ast> {
                 self.data.cx.get_span(&crate::ast::SpanOwner::Item(self.data.id))
             }
 
-            fn get_vis(&self) -> &crate::ast::item::Visibility<'ast> {
+            fn visibility(&self) -> &crate::ast::item::Visibility<'ast> {
                 &self.data.vis
             }
 
-            fn get_name(&self) -> Option<crate::ast::SymbolId> {
+            fn name(&self) -> Option<crate::ast::SymbolId> {
                 Some(self.data.name)
             }
 
@@ -117,7 +117,7 @@ macro_rules! impl_item_data {
                 $crate::ast::item::ItemType::$enum_name(self)
             }
 
-            fn get_attrs(&self) {
+            fn attrs(&self) {
                 todo!()
             }
         }

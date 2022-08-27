@@ -6,17 +6,17 @@ use super::{CommonItemData, UseKind};
 ///
 /// ```ignore
 /// pub use foo::bar::*;
-/// // `get_name()`     -> `None`
-/// // `get_use_path()` -> `foo::bar::*`
-/// // `get_use_kind()` -> `Glob`
+/// // `name()`     -> `None`
+/// // `use_path()` -> `foo::bar::*`
+/// // `use_kind()` -> `Glob`
 /// pub use foo::bar;
-/// // `get_name()`     -> `Some(bar)`
-/// // `get_use_path()` -> `foo::bar`
-/// // `get_use_kind()` -> `Single`
+/// // `name()`     -> `Some(bar)`
+/// // `use_path()` -> `foo::bar`
+/// // `use_kind()` -> `Single`
 /// pub use foo::bar as baz;
-/// // `get_name()`     -> `Some(baz)`
-/// // `get_use_path()` -> `foo::bar`
-/// // `get_use_kind()` -> `Single`
+/// // `name()`     -> `Some(baz)`
+/// // `use_path()` -> `foo::bar`
+/// // `use_kind()` -> `Single`
 /// ```
 ///
 /// See <https://doc.rust-lang.org/stable/reference/items/use-declarations.html>
@@ -32,11 +32,11 @@ super::impl_item_data!(UseDeclItem, UseDecl);
 impl<'ast> UseDeclItem<'ast> {
     /// Returns the path of this `use` item. For blob imports the `*` will
     /// be included in the simple path.
-    pub fn get_use_path(&self) -> &ItemPath<'ast> {
+    pub fn use_path(&self) -> &ItemPath<'ast> {
         &self.use_path
     }
 
-    pub fn get_use_kind(&self) -> UseKind {
+    pub fn use_kind(&self) -> UseKind {
         self.use_kind
     }
 }

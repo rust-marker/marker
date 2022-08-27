@@ -71,6 +71,13 @@ pub enum Abi {
     Other,
 }
 
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Mutability {
+    Mut,
+    Not,
+}
+
 pub struct Spanned<'ast, T> {
     pub node: T,
     pub span: &'ast Span<'ast>,

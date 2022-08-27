@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use super::{CrateId, Lifetime};
+use super::{CrateId, Lifetime, Mutability};
 
 /// Rustc uses two different types, one for the IR and one for type resolution
 /// and type checking. In this crate, we attempt to combine both into one trait
@@ -109,13 +109,6 @@ pub enum NumericKind {
 pub enum TextualKind {
     Char,
     Str,
-}
-
-#[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Mutability {
-    Mut,
-    Not,
 }
 
 // This is an extra type as I expect that this can be expanded in the future
