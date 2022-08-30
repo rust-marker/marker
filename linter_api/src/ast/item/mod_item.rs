@@ -21,7 +21,7 @@ pub struct ModItem<'ast> {
 super::impl_item_data!(ModItem, Mod);
 
 impl<'ast> ModItem<'ast> {
-    pub fn get_items(&self) -> &[ItemType<'ast>] {
+    pub fn items(&self) -> &[ItemType<'ast>] {
         self.items
     }
 }

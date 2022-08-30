@@ -46,19 +46,23 @@ macro_rules! lint_pass_fns {
             fn check_mod(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
-                _mod_item: &'ast $crate::ast::item::ModItem<'ast>) -> ();
+                _item: &'ast $crate::ast::item::ModItem<'ast>) -> ();
             fn check_extern_crate(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
-                _extern_crate_item: &'ast $crate::ast::item::ExternCrateItem<'ast>) -> ();
+                _item: &'ast $crate::ast::item::ExternCrateItem<'ast>) -> ();
             fn check_use_decl(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
-                _use_item: &'ast $crate::ast::item::UseDeclItem<'ast>) -> ();
+                _item: &'ast $crate::ast::item::UseDeclItem<'ast>) -> ();
             fn check_static_item(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _item: &'ast $crate::ast::item::StaticItem<'ast>) -> ();
+            fn check_const_item(
+                &(mut) self,
+                _cx: &'ast $crate::context::AstContext<'ast>,
+                _item: &'ast $crate::ast::item::ConstItem<'ast>) -> ();
         );
     };
 }

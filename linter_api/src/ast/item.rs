@@ -10,6 +10,8 @@ mod static_item;
 pub use self::static_item::StaticItem;
 mod use_decl_item;
 pub use self::use_decl_item::UseDeclItem;
+mod const_item;
+pub use self::const_item::ConstItem;
 
 use super::{
     ty::{Ty, TyId},
@@ -46,7 +48,7 @@ pub enum ItemType<'ast> {
     ExternCrate(&'ast ExternCrateItem<'ast>),
     UseDecl(&'ast UseDeclItem<'ast>),
     Static(&'ast StaticItem<'ast>),
-    Const(&'ast dyn ConstItem<'ast>),
+    Const(&'ast ConstItem<'ast>),
     Function(&'ast dyn FunctionItem<'ast>),
     TypeAlias(&'ast dyn TypeAliasItem<'ast>),
     Struct(&'ast dyn StructItem<'ast>),
@@ -154,23 +156,6 @@ impl<'ast> Visibility<'ast> {
 ///////////////////////////////////////////////////////////////////////////////
 /// Items based on traits
 ///////////////////////////////////////////////////////////////////////////////
-
-/// A constant item like
-/// ```rs
-/// const CONST_ITEM: u32 = 0xcafe;
-/// // `get_name()` -> `CONST_ITEM`
-/// // `get_ty()` -> _Ty of u32_
-/// // `get_body_id()` -> _BodyId of `0xcafe`_
-/// ```
-pub trait ConstItem<'ast>: ItemData<'ast> {
-    fn get_ty(&'ast self) -> &'ast dyn Ty<'ast>;
-
-    /// The [`BodyId`] of the initialization body.
-    ///
-    /// This can return `None` for [`ConstItem`]s asscociated with a trait. For
-    /// normal items this will always return `Some` at the time of writing this.
-    fn get_body_id(&self) -> Option<BodyId>;
-}
 
 pub trait FunctionItem<'ast>: ItemData<'ast> + FnDeclaration<'ast> {
     fn get_generics(&self) -> &dyn GenericDefs<'ast>;
@@ -350,7 +335,7 @@ pub trait TraitItem<'ast>: ItemData<'ast> {
 #[derive(Debug)]
 pub enum AssocItem<'ast> {
     TypeAlias(&'ast dyn TypeAliasItem<'ast>),
-    Const(&'ast dyn ConstItem<'ast>),
+    Const(&'ast ConstItem<'ast>),
     Function(&'ast dyn FunctionItem<'ast>),
 }
 
