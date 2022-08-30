@@ -14,6 +14,7 @@ use super::CommonItemData;
 /// ```
 ///
 /// * See <https://doc.rust-lang.org/stable/reference/items/extern-crates.html>
+#[repr(C)]
 #[derive(Debug)]
 pub struct ExternCrateItem<'ast> {
     data: CommonItemData<'ast>,

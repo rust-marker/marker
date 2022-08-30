@@ -12,6 +12,7 @@ use super::{CommonItemData, ItemType};
 /// ```
 ///
 /// * See <https://doc.rust-lang.org/stable/reference/items/modules.html>
+#[repr(C)]
 #[derive(Debug)]
 pub struct ModItem<'ast> {
     data: CommonItemData<'ast>,

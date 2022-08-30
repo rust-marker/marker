@@ -20,6 +20,7 @@ use super::{CommonItemData, UseKind};
 /// ```
 ///
 /// See <https://doc.rust-lang.org/stable/reference/items/use-declarations.html>
+#[repr(C)]
 #[derive(Debug)]
 pub struct UseDeclItem<'ast> {
     data: CommonItemData<'ast>,

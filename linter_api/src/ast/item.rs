@@ -87,6 +87,7 @@ macro_rules! impl_item_type_fn {
 
 use impl_item_type_fn;
 
+#[repr(C)]
 #[derive(Debug)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 struct CommonItemData<'ast> {
@@ -137,6 +138,7 @@ impl<'ast> CommonItemData<'ast> {
 
 /// FIXME: Add function as  discussed in <https://github.com/rust-linting/design/issues/22>
 /// this will require new driver callback functions
+#[repr(C)]
 #[derive(Debug)]
 pub struct Visibility<'ast> {
     _cx: &'ast AstContext<'ast>,
@@ -385,6 +387,7 @@ pub enum ExternalItems<'ast> {
     Function(&'ast dyn FunctionItem<'ast>),
 }
 
+#[repr(C)]
 #[non_exhaustive]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum UseKind {

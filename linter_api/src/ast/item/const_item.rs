@@ -9,6 +9,7 @@ use super::CommonItemData;
 /// ```
 ///
 /// * See <https://doc.rust-lang.org/stable/reference/items/constant-items.html>
+#[repr(C)]
 #[derive(Debug)]
 pub struct ConstItem<'ast> {
     data: CommonItemData<'ast>,
