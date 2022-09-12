@@ -4,29 +4,30 @@
 #![feature(once_cell)]
 #![warn(rustc::internal)]
 #![warn(clippy::pedantic)]
-#![warn(clippy::index_refutable_slice)]
+#![allow(clippy::missing_panics_doc)]
 #![allow(clippy::module_name_repetitions)]
 
 extern crate rustc_ast;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_errors;
+extern crate rustc_hash;
 extern crate rustc_hir;
 extern crate rustc_interface;
 extern crate rustc_lint;
+extern crate rustc_lint_defs;
 extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_span;
+
+pub mod context;
+pub mod conversion;
+mod entry;
 
 use std::env;
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command};
-
-pub mod ast;
-mod conversion;
-
-use rustc_lint::LateLintPass;
 
 struct DefaultCallbacks;
 impl rustc_driver::Callbacks for DefaultCallbacks {}
@@ -41,15 +42,9 @@ impl rustc_driver::Callbacks for LinterCallback {
         assert!(config.register_lints.is_none());
 
         config.register_lints = Some(Box::new(|_sess, lint_store| {
-            lint_store.register_late_pass(register);
+            lint_store.register_late_pass(|| Box::new(entry::LinterLintPass));
         }));
     }
-}
-
-fn register() -> Box<
-    dyn for<'tcx> LateLintPass<'tcx> + rustc_data_structures::sync::Send + rustc_data_structures::sync::Sync + 'static,
-> {
-    Box::new(conversion::ConverterLintPass::new())
 }
 
 /// If a command-line option matches `find_arg`, then apply the predicate `pred` on its value. If
@@ -182,14 +177,16 @@ fn main() {
         // - IF Linter is run on the main crate, not on deps (`!cap_lints_allow`) THEN
         //    - IF `--no-deps` is not set (`!no_deps`) OR
         //    - IF `--no-deps` is set and Linter is run on the specified primary package
-        let cap_lints_allow = arg_value(&orig_args, "--cap-lints", |val| val == "allow").is_some();
-        // FIXME: Add this:
-        //  let in_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
+        let cap_lints_allow = arg_value(&orig_args, "--cap-lints", |val| val == "allow").is_some()
+            && arg_value(&orig_args, "--force-warn", |_| true).is_none();
+        let no_deps = orig_args.iter().any(|arg| arg == "--no-deps");
+        let in_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
 
-        if cap_lints_allow {
-            rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks).run()
-        } else {
+        let enable_linter = !cap_lints_allow && (!no_deps || in_primary_package);
+        if enable_linter {
             rustc_driver::RunCompiler::new(&orig_args, &mut LinterCallback).run()
+        } else {
+            rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks).run()
         }
     }))
 }

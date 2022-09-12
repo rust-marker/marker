@@ -13,32 +13,8 @@ pub use self::use_decl_item::UseDeclItem;
 
 use super::{
     ty::{Ty, TyId},
-    Abi, Asyncness, Attribute, BodyId, Constness, CrateId, ItemPath, Pattern, Safety, Span, Symbol,
+    Abi, Asyncness, Attribute, BodyId, Constness, ItemId, ItemPath, Pattern, Safety, Span, Symbol, SymbolId,
 };
-
-/// Every item has an ID that can be used to retive that item or compair it to
-/// another id. The ID's can change in between linting sessions.
-///
-/// The interal representation is currently based on rustc's `DefId`. This might
-/// change in the future. The struct will continue to provide the current trait
-/// implementations.
-#[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ItemId {
-    krate: CrateId,
-    index: u32,
-}
-
-#[cfg(feature = "driver-api")]
-impl ItemId {
-    pub fn new(krate: CrateId, index: u32) -> Self {
-        Self { krate, index }
-    }
-
-    pub fn get_data(&self) -> (CrateId, u32) {
-        (self.krate, self.index)
-    }
-}
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
@@ -53,7 +29,7 @@ pub trait ItemData<'ast>: Debug {
     fn get_vis(&self) -> &Visibility<'ast>;
 
     /// This function can return `None` if the item was generated and has no real name
-    fn get_name(&self) -> Option<Symbol>;
+    fn get_name(&self) -> Option<SymbolId>;
 
     /// This returns this [`ItemData`] instance as a [`ItemType`]. This can be useful for
     /// functions that take [`ItemType`] as a parameter. For general function calls it's better
@@ -85,7 +61,7 @@ impl<'ast> ItemType<'ast> {
     impl_item_type_fn!(get_id() -> ItemId);
     impl_item_type_fn!(get_span() -> &'ast Span<'ast>);
     impl_item_type_fn!(get_vis() -> &Visibility<'ast>);
-    impl_item_type_fn!(get_name() -> Option<Symbol>);
+    impl_item_type_fn!(get_name() -> Option<SymbolId>);
     impl_item_type_fn!(get_attrs() -> ());
 }
 
@@ -115,7 +91,7 @@ struct CommonItemData<'ast> {
     cx: &'ast AstContext<'ast>,
     id: ItemId,
     vis: Visibility<'ast>,
-    name: Option<Symbol>,
+    name: SymbolId,
 }
 
 macro_rules! impl_item_data {
@@ -133,8 +109,8 @@ macro_rules! impl_item_data {
                 &self.data.vis
             }
 
-            fn get_name(&self) -> Option<crate::ast::Symbol> {
-                self.data.name
+            fn get_name(&self) -> Option<crate::ast::SymbolId> {
+                Some(self.data.name)
             }
 
             fn as_item(&'ast self) -> crate::ast::item::ItemType<'ast> {
@@ -152,8 +128,26 @@ use impl_item_data;
 
 #[cfg(feature = "driver-api")]
 impl<'ast> CommonItemData<'ast> {
-    pub fn new(cx: &'ast AstContext<'ast>, id: ItemId, vis: Visibility<'ast>, name: Option<Symbol>) -> Self {
+    pub fn new(cx: &'ast AstContext<'ast>, id: ItemId, vis: Visibility<'ast>, name: SymbolId) -> Self {
         Self { cx, id, vis, name }
+    }
+}
+
+/// FIXME: Add function as  discussed in <https://github.com/rust-linting/design/issues/22>
+/// this will require new driver callback functions
+#[derive(Debug)]
+pub struct Visibility<'ast> {
+    _cx: &'ast AstContext<'ast>,
+    _item_id: ItemId,
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> Visibility<'ast> {
+    pub fn new(cx: &'ast AstContext<'ast>, item_id: ItemId) -> Self {
+        Self {
+            _cx: cx,
+            _item_id: item_id,
+        }
     }
 }
 
@@ -286,7 +280,7 @@ pub trait AdtField<'ast>: Debug {
     /// This will return the span of the field, exclusing the field attributes.
     fn get_span(&'ast self) -> &'ast Span<'ast>;
 
-    fn get_visibility(&'ast self) -> Visibility<'ast>;
+    fn get_visibility(&'ast self) -> VisibilityOld<'ast>;
 
     fn get_name(&'ast self) -> Symbol;
 
@@ -422,7 +416,7 @@ pub enum UseKind {
 #[non_exhaustive]
 #[derive(Debug)]
 #[allow(clippy::enum_variant_names)]
-pub enum Visibility<'ast> {
+pub enum VisibilityOld<'ast> {
     Pub,
     /// Visible in the current module, equivialent to `pub(in self)` or no visibility
     PubSelf,

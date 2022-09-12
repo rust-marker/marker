@@ -21,13 +21,13 @@ impl<'ast> Crate<'ast> {
 
 impl<'ast> Crate<'ast> {
     /// This returns the ID of this crate object.
-    pub fn get_id(&self) -> CrateId {
+    pub fn id(&self) -> CrateId {
         self.id
     }
 
     /// This is a list of all items in the root file of the crate. Nested items
     /// will be represented in the form of items and sub-items
-    pub fn get_items(&self) -> &[ItemType<'ast>] {
+    pub fn items(&self) -> &[ItemType<'ast>] {
         self.items
     }
 }

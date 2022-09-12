@@ -5,8 +5,6 @@ pub use span::*;
 
 use std::fmt::Debug;
 
-use super::item::ItemId;
-
 #[non_exhaustive]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Edition {

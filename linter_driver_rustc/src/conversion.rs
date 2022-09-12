@@ -1,66 +1,26 @@
-use crate::ast::rustc::RustcContext;
-use crate::ast::ToApi;
-use linter_adapter::context::DriverContextWrapper;
-use linter_adapter::Adapter;
-use linter_api::{
-    ast::{item::ItemType, Crate},
-    context::AstContext,
-};
+mod common;
+pub use common::*;
+use linter_api::ast::{item::ItemType, Crate};
 
-use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::impl_lint_pass;
+use crate::context::RustcContext;
 
-use bumpalo::Bump;
+pub mod item;
 
-pub struct ConverterLintPass {}
-
-impl ConverterLintPass {
-    pub fn new() -> ConverterLintPass {
-        Self {}
-    }
-}
-
-impl_lint_pass!(ConverterLintPass => []);
-
-impl<'tcx> LateLintPass<'tcx> for ConverterLintPass {
-    fn check_crate(&mut self, rustc_cx: &LateContext<'tcx>) {
-        let mut bump = Bump::new();
-        process_items(rustc_cx, &mut bump);
-    }
-}
-
-/// This function converts the current crate into api types and passes them to
-/// the adapter for further distribution. This function is used to ensure that
-/// the allocator outlives every item created in this function. This is basically
-/// the start if the `'ast` lifetime
-fn process_items<'tcx>(rustc_cx: &LateContext<'tcx>, allocator: &mut Bump) {
-    // Setup adapter from environment
-    let mut adapter = Adapter::new_from_env();
-
-    // Setup context
-    let driver_cx = allocator.alloc_with(|| RustcContext::new(rustc_cx, allocator));
-    let callbacks_wrapper = allocator.alloc_with(|| DriverContextWrapper::new(driver_cx));
-    let callbacks = allocator.alloc_with(|| callbacks_wrapper.create_driver_callback());
-    let ast_cx = driver_cx.alloc_with(|| AstContext::new(callbacks));
-    let _ = driver_cx.ast_cx.set(ast_cx);
-
-    let map = rustc_cx.tcx.hir();
-    // Here we need to collect the items to have a knwon size for the allocation
-    #[allow(
+pub fn to_api_crate<'ast, 'tcx>(
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    rustc_crate_id: rustc_hir::def_id::CrateNum,
+    rustc_root_mod: &'tcx rustc_hir::Mod<'tcx>,
+) -> &'ast Crate<'ast> {
+    #[expect(
         clippy::needless_collect,
         reason = "collect is required to know the size of the allocation"
     )]
-    let items: Vec<ItemType> = map
-        .root_module()
+    let items: Vec<ItemType<'_>> = rustc_root_mod
         .item_ids
         .iter()
-        .map(|id| map.item(*id))
-        .filter_map(|rustc_item| crate::ast::item::from_rustc(driver_cx, rustc_item))
+        .filter_map(|rustc_item| item::to_api_item(cx, cx.rustc_cx.hir().item(*rustc_item)))
         .collect();
-    let krate = Crate::new(
-        rustc_hir::def_id::LOCAL_CRATE.to_api(driver_cx),
-        driver_cx.alloc_slice_from_iter(items.into_iter()),
-    );
-
-    adapter.process_krate(ast_cx, &krate);
+    let items = cx.storage.alloc_slice_iter(items.into_iter());
+    cx.storage
+        .alloc(|| Crate::new(to_api_crate_id(cx, rustc_crate_id), items))
 }
