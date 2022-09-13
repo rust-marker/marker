@@ -49,7 +49,6 @@ impl ItemId {
     }
 }
 
-
 /// This ID uniquely identifies a type during linting, the id is not stable
 /// between different sessions.
 ///
@@ -57,7 +56,7 @@ impl ItemId {
 /// provide the current trait implementations.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct TypeId {
+pub struct TyId {
     /// The layout of the data is up to the driver implementation. The API will never
     /// create custom IDs and pass them to the driver. The size of this type might
     /// change. Drivers should validate the size with tests.
@@ -65,7 +64,7 @@ pub struct TypeId {
 }
 
 #[cfg(feature = "driver-api")]
-impl TypeId {
+impl TyId {
     pub fn new(data: u64) -> Self {
         Self { data }
     }

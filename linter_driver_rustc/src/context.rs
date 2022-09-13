@@ -2,14 +2,16 @@ use std::cell::OnceCell;
 
 use linter_adapter::context::{DriverContext, DriverContextWrapper};
 use linter_api::{
-    ast::{Span, SpanOwner},
+    ast::{Span, SpanOwner, SymbolId},
     context::AstContext,
     lint::Lint,
 };
 use rustc_lint::LintStore;
 use rustc_middle::ty::TyCtxt;
 
-use crate::conversion::{to_api_span, to_rustc_item_id, to_rustc_lint, to_rustc_span, to_rustc_span_from_id};
+use crate::conversion::{
+    to_api_span, to_rustc_item_id, to_rustc_lint, to_rustc_span, to_rustc_span_from_id, to_rustc_symbol,
+};
 
 use self::storage::Storage;
 
@@ -83,5 +85,11 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
 
     fn span_snippet(&self, _span: &Span) -> Option<&'ast str> {
         todo!()
+    }
+
+    fn symbol_str(&'ast self, sym: SymbolId) -> &'ast str {
+        let sym = to_rustc_symbol(self, sym);
+        // Based on the comment of `rustc_span::Symbol::as_str` this should be fine.
+        unsafe { std::mem::transmute(sym.as_str()) }
     }
 }

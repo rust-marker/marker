@@ -31,7 +31,7 @@ pub trait ItemData<'ast>: Debug {
     fn visibility(&self) -> &Visibility<'ast>;
 
     /// This function can return `None` if the item was generated and has no real name
-    fn name(&self) -> Option<SymbolId>;
+    fn name(&self) -> Option<String>;
 
     /// This returns this [`ItemData`] instance as a [`ItemType`]. This can be useful for
     /// functions that take [`ItemType`] as a parameter. For general function calls it's better
@@ -63,7 +63,7 @@ impl<'ast> ItemType<'ast> {
     impl_item_type_fn!(id() -> ItemId);
     impl_item_type_fn!(span() -> &'ast Span<'ast>);
     impl_item_type_fn!(visibility() -> &Visibility<'ast>);
-    impl_item_type_fn!(name() -> Option<SymbolId>);
+    impl_item_type_fn!(name() -> Option<String>);
     impl_item_type_fn!(attrs() -> ());
 }
 
@@ -112,8 +112,8 @@ macro_rules! impl_item_data {
                 &self.data.vis
             }
 
-            fn name(&self) -> Option<crate::ast::SymbolId> {
-                Some(self.data.name)
+            fn name(&self) -> Option<String> {
+                Some(self.data.cx.symbol_str(self.data.name))
             }
 
             fn as_item(&'ast self) -> crate::ast::item::ItemType<'ast> {
