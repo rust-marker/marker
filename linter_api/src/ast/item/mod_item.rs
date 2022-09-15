@@ -12,6 +12,7 @@ use super::{CommonItemData, ItemType};
 /// ```
 ///
 /// * See <https://doc.rust-lang.org/stable/reference/items/modules.html>
+#[repr(C)]
 #[derive(Debug)]
 pub struct ModItem<'ast> {
     data: CommonItemData<'ast>,
@@ -21,7 +22,7 @@ pub struct ModItem<'ast> {
 super::impl_item_data!(ModItem, Mod);
 
 impl<'ast> ModItem<'ast> {
-    pub fn get_items(&self) -> &[ItemType<'ast>] {
+    pub fn items(&self) -> &[ItemType<'ast>] {
         self.items
     }
 }

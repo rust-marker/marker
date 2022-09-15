@@ -5,7 +5,7 @@ pub use span::*;
 mod unstable;
 pub use unstable::*;
 
-use linter_api::{ast::ty::Mutability, lint::Level};
+use linter_api::{ast::Mutability, lint::Level};
 
 use crate::context::RustcContext;
 

@@ -6,14 +6,15 @@ use super::CommonItemData;
 ///
 /// ```ignore
 /// extern crate std;
-/// // `get_name()`          -> "std"
-/// // `get_crate_name()` -> "std"
+/// // `name()`       -> "std"
+/// // `crate_name()` -> "std"
 /// extern crate std as ruststd;
-/// // `get_name()`          -> "ruststd"
-/// // `get_crate_name()` -> "std"
+/// // `name()`       -> "ruststd"
+/// // `crate_name()` -> "std"
 /// ```
 ///
 /// * See <https://doc.rust-lang.org/stable/reference/items/extern-crates.html>
+#[repr(C)]
 #[derive(Debug)]
 pub struct ExternCrateItem<'ast> {
     data: CommonItemData<'ast>,
@@ -24,11 +25,11 @@ super::impl_item_data!(ExternCrateItem, ExternCrate);
 
 impl<'ast> ExternCrateItem<'ast> {
     /// This will return the original name of external crate. This will only differ
-    /// with [`ItemData::get_name`][`super::ItemData::get_name`] if the user has
+    /// with [`ItemData::get_name`][`super::ItemData::name`] if the user has
     /// declared an alias with as.
     ///
     /// In most cases, you want to use this over the `get_name()` function.
-    pub fn get_crate_name(&self) -> Symbol {
+    pub fn crate_name(&self) -> Symbol {
         self.crate_name
     }
 }
