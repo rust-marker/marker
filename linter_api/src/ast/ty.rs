@@ -2,6 +2,7 @@ use crate::context::AstContext;
 
 use super::{Span, SpanId};
 
+// Primitive types
 mod boolean_ty;
 pub use boolean_ty::*;
 mod textual_ty;
@@ -10,6 +11,13 @@ mod numeric_ty;
 pub use numeric_ty::*;
 mod never_ty;
 pub use never_ty::*;
+// Sequence types
+mod tuple_ty;
+pub use tuple_ty::*;
+mod array_ty;
+pub use array_ty::*;
+mod slice_ty;
+pub use slice_ty::*;
 
 pub trait TyData<'ast> {
     fn as_kind(&'ast self) -> TyKind<'ast>;
@@ -45,7 +53,7 @@ pub trait TyData<'ast> {
 
 #[repr(C)]
 #[non_exhaustive]
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum TyKind<'ast> {
     // Primitive types
     Boolean(&'ast BooleanTy<'ast>),
@@ -53,9 +61,9 @@ pub enum TyKind<'ast> {
     Textual(&'ast TextualTy<'ast>),
     Never(&'ast NeverTy<'ast>),
     // Sequence types
-    Tuple, // (&'ast TupleTy<'ast>),
-    Array, // (&'ast ArrayTy<'ast>),
-    Slice, // (&'ast SliceTy<'ast>),
+    Tuple(&'ast TupleTy<'ast>),
+    Array(&'ast ArrayTy<'ast>),
+    Slice(&'ast SliceTy<'ast>),
     // User define types
     Struct, // (&'ast StructTy<'ast>),
     Enum,   // (&'ast EnumTy<'ast>),
@@ -105,6 +113,45 @@ impl<'ast> TyKind<'ast> {
     #[must_use]
     pub fn is_never(&self) -> bool {
         matches!(self, Self::Never(..))
+    }
+
+    /// Returns `true` if this is a primitive type.
+    #[must_use]
+    pub fn is_primitive_ty(&self) -> bool {
+        matches!(
+            self,
+            Self::Boolean(..) | Self::Numeric(..) | Self::Textual(..) | Self::Never(..)
+        )
+    }
+
+    /// Returns `true` if the ty kind is [`Tuple`].
+    ///
+    /// [`Tuple`]: TyKind::Tuple
+    #[must_use]
+    pub fn is_tuple(&self) -> bool {
+        matches!(self, Self::Tuple(..))
+    }
+
+    /// Returns `true` if the ty kind is [`Array`].
+    ///
+    /// [`Array`]: TyKind::Array
+    #[must_use]
+    pub fn is_array(&self) -> bool {
+        matches!(self, Self::Array(..))
+    }
+
+    /// Returns `true` if the ty kind is [`Slice`].
+    ///
+    /// [`Slice`]: TyKind::Slice
+    #[must_use]
+    pub fn is_slice(&self) -> bool {
+        matches!(self, Self::Slice(..))
+    }
+
+    /// Returns `true` if this is a sequence type.
+    #[must_use]
+    pub fn is_sequence_ty(&self) -> bool {
+        matches!(self, Self::Tuple(..) | Self::Array(..) | Self::Slice(..))
     }
 }
 
