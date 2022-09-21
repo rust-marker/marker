@@ -2,6 +2,8 @@ mod id;
 pub use id::*;
 mod span;
 pub use span::*;
+mod lifetime;
+pub use lifetime::*;
 
 use std::fmt::Debug;
 
@@ -184,10 +186,6 @@ pub enum PathResolution {
     ToolItem,
     /// The path could not be resolved.
     Unresolved,
-}
-
-pub trait Lifetime<'ast>: Debug {
-    // FIXME: Add functions for lifetimes, see <https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.Region.html>
 }
 
 pub trait Pattern<'ast> {}

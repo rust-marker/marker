@@ -18,6 +18,11 @@ mod array_ty;
 pub use array_ty::*;
 mod slice_ty;
 pub use slice_ty::*;
+// Pointer types
+mod ref_ty;
+pub use ref_ty::*;
+mod raw_ptr_ty;
+pub use raw_ptr_ty::*;
 
 pub trait TyData<'ast> {
     fn as_kind(&'ast self) -> TyKind<'ast>;
@@ -55,32 +60,57 @@ pub trait TyData<'ast> {
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
 pub enum TyKind<'ast> {
+    // ================================
     // Primitive types
+    // ================================
+    /// The `bool` type
     Boolean(&'ast BooleanTy<'ast>),
+    /// A numeric type like `u32`, `i32`, `f64`
     Numeric(&'ast NumericTy<'ast>),
+    /// A textual type like `char` or `str`
     Textual(&'ast TextualTy<'ast>),
+    /// The never type `!`
     Never(&'ast NeverTy<'ast>),
+    // ================================
     // Sequence types
+    // ================================
+    /// A tuple type like `()`, `(T, U)`
     Tuple(&'ast TupleTy<'ast>),
+    /// An array with a known size like: `[T; n]`
     Array(&'ast ArrayTy<'ast>),
+    /// A variable length slice like `[T]`
     Slice(&'ast SliceTy<'ast>),
+    // ================================
     // User define types
+    // ================================
     Struct, // (&'ast StructTy<'ast>),
     Enum,   // (&'ast EnumTy<'ast>),
     Union,  // (&'ast UnionTy<'ast>),
+    // ================================
     // Function types
+    // ================================
     Function, // (&'ast FunctionTy<'ast>),
     Closure,  // (&'ast ClosureTy<'ast>),
+    // ================================
     // Pointer types
-    Reference,       // (&'ast ReferenceTy<'ast>),
-    RawPointer,      // (&'ast RawPointerTy<'ast>),
-    FunctionPointer, // (&'ast FunctionPointerTy<'ast>),
+    // ================================
+    /// A reference like `&T` or `&mut T`
+    Ref(&'ast RefTy<'ast>),
+    /// A raw pointer like `*const T` or `*mut T`
+    RawPtr(&'ast RawPtrTy<'ast>),
+    /// A function pointer like `fn (T) -> U`
+    FunctionPtr, // (&'ast FunctionPointerTy<'ast>),
+    // ================================
     // Trait types
+    // ================================
     TraitObject, // (&'ast TraitObjectTy<'ast>),
     ImplTrait,   // (&'ast ImplTraitTy<'ast>),
+    // ================================
     // Syntactic type
+    // ================================
     Inferred, // (&'ast InferredTy<'ast>),
 }
+// FIXME: Do we want to keep the abbreviated pointer type names?
 
 impl<'ast> TyKind<'ast> {
     /// Returns `true` if the ty kind is [`Boolean`].
@@ -156,6 +186,7 @@ impl<'ast> TyKind<'ast> {
 }
 
 #[repr(C)]
+#[derive(Debug)]
 #[non_exhaustive]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) struct CommonTyData<'ast> {

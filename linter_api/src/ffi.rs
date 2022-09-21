@@ -49,10 +49,19 @@ impl<'a> ToString for Str<'a> {
 /// This is an FFI save option. In most cases it's better to pass a pointer and
 /// then use `as_ref()` but this doesn't work for owned return values.
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum FfiOption<T> {
     Some(T),
     None,
+}
+
+impl<T> FfiOption<T> {
+    pub fn get(&self) -> Option<&T> {
+        match self {
+            FfiOption::Some(x) => Some(x),
+            FfiOption::None => None,
+        }
+    }
 }
 
 impl<T> From<FfiOption<T>> for Option<T> {

@@ -1,6 +1,10 @@
 use std::fmt::Debug;
 
-use super::{CrateId, Lifetime, Mutability};
+pub trait Lifetime<'ast>: Debug {
+    // FIXME: Add functions for lifetimes, see <https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.Region.html>
+}
+
+use super::{CrateId, Mutability};
 
 /// Rustc uses two different types, one for the IR and one for type resolution
 /// and type checking. In this crate, we attempt to combine both into one trait
