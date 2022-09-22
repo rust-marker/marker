@@ -27,7 +27,7 @@ pub fn to_api_item<'ast, 'tcx>(
         to_api_symbol_id(cx, rustc_item.ident.name),
     );
     let item = match rustc_item.kind {
-        rustc_hir::ItemKind::Mod(ref rustc_mod) => ItemType::Mod(to_mod_item(cx, common_data, rustc_mod)),
+        rustc_hir::ItemKind::Mod(rustc_mod) => ItemType::Mod(to_mod_item(cx, common_data, rustc_mod)),
         rustc_hir::ItemKind::Static(ty, mt, rust_body_id) => {
             ItemType::Static(to_static_item(cx, common_data, ty, mt, rust_body_id))
         },

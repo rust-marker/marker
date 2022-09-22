@@ -119,7 +119,7 @@ fn prepare_lint_crate(krate: &str, verbose: bool) -> Result<String, ()> {
         cmd.arg("--verbose");
     }
     let exit_status = cmd
-        .current_dir(std::fs::canonicalize(&path).unwrap())
+        .current_dir(std::fs::canonicalize(path).unwrap())
         .args([
             "build",
             "--lib",

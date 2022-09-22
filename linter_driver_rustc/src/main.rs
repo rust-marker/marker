@@ -42,7 +42,7 @@ impl rustc_driver::Callbacks for LinterCallback {
         assert!(config.register_lints.is_none());
 
         config.register_lints = Some(Box::new(|_sess, lint_store| {
-            lint_store.register_late_pass(|| Box::new(entry::LinterLintPass));
+            lint_store.register_late_pass(|_| Box::new(entry::LinterLintPass));
         }));
     }
 }
