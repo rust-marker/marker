@@ -4,6 +4,8 @@ mod span;
 pub use span::*;
 mod lifetime;
 pub use lifetime::*;
+mod callable;
+pub use callable::*;
 
 use std::fmt::Debug;
 

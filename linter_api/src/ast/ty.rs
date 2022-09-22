@@ -23,6 +23,8 @@ mod ref_ty;
 pub use ref_ty::*;
 mod raw_ptr_ty;
 pub use raw_ptr_ty::*;
+mod function_ptr_ty;
+pub use function_ptr_ty::*;
 
 pub trait TyData<'ast> {
     fn as_kind(&'ast self) -> TyKind<'ast>;
@@ -99,7 +101,7 @@ pub enum TyKind<'ast> {
     /// A raw pointer like `*const T` or `*mut T`
     RawPtr(&'ast RawPtrTy<'ast>),
     /// A function pointer like `fn (T) -> U`
-    FunctionPtr, // (&'ast FunctionPointerTy<'ast>),
+    FunctionPtr(&'ast FunctionPtrTy<'ast>),
     // ================================
     // Trait types
     // ================================
@@ -187,7 +189,6 @@ impl<'ast> TyKind<'ast> {
 
 #[repr(C)]
 #[derive(Debug)]
-#[non_exhaustive]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) struct CommonTyData<'ast> {
     cx: &'ast AstContext<'ast>,
