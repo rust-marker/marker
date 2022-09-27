@@ -76,12 +76,44 @@ impl<'ast> Parameter<'ast> {
 #[derive(Debug)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) struct CallableData<'ast> {
-    is_const: bool,
-    is_async: bool,
-    is_unsafe: bool,
-    is_extern: bool,
-    abi: FfiOption<Abi>,
-    has_self: bool,
-    params: FfiSlice<'ast, &'ast Parameter<'ast>>,
-    return_ty: FfiOption<TyKind<'ast>>,
+    pub(crate) is_const: bool,
+    pub(crate) is_async: bool,
+    pub(crate) is_unsafe: bool,
+    pub(crate) is_extern: bool,
+    pub(crate) abi: FfiOption<Abi>,
+    pub(crate) has_self: bool,
+    pub(crate) params: FfiSlice<'ast, &'ast Parameter<'ast>>,
+    pub(crate) return_ty: FfiOption<TyKind<'ast>>,
 }
+
+macro_rules! impl_callable_trait {
+    ($self_ty:ty) => {
+        impl<'ast> $crate::ast::common::Callable<'ast> for $self_ty {
+            fn is_const(&self) -> bool {
+                self.callable_data.is_const
+            }
+            fn is_async(&self) -> bool {
+                self.callable_data.is_async
+            }
+            fn is_unsafe(&self) -> bool {
+                self.callable_data.is_unsafe
+            }
+            fn is_extern(&self) -> bool {
+                self.callable_data.is_extern
+            }
+            fn abi(&self) -> Option<$crate::ast::common::Abi> {
+                self.callable_data.abi.get().copied()
+            }
+            fn has_self(&self) -> bool {
+                self.callable_data.has_self
+            }
+            fn params(&self) -> &[&$crate::ast::common::Parameter<'ast>] {
+                self.callable_data.params.get()
+            }
+            fn return_ty(&self) -> Option<&$crate::ast::ty::TyKind<'ast>> {
+                self.callable_data.return_ty.get()
+            }
+        }
+    };
+}
+pub(crate) use impl_callable_trait;

@@ -90,6 +90,10 @@ pub struct FfiSlice<'a, T> {
 }
 
 impl<'a, T> FfiSlice<'a, T> {
+    pub fn get(&self) -> &'a [T] {
+        self.into()
+    }
+
     pub fn as_slice(&self) -> &'a [T] {
         self.into()
     }

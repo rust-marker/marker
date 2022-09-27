@@ -111,6 +111,7 @@ pub enum TyKind<'ast> {
     // Syntactic type
     // ================================
     Inferred, // (&'ast InferredTy<'ast>),
+    Path,     // (&'ast PathTy<'ast>)
 }
 // FIXME: Do we want to keep the abbreviated pointer type names?
 
@@ -184,6 +185,36 @@ impl<'ast> TyKind<'ast> {
     #[must_use]
     pub fn is_sequence_ty(&self) -> bool {
         matches!(self, Self::Tuple(..) | Self::Array(..) | Self::Slice(..))
+    }
+
+    /// Returns `true` if the ty kind is [`Ref`].
+    ///
+    /// [`Ref`]: TyKind::Ref
+    #[must_use]
+    pub fn is_ref(&self) -> bool {
+        matches!(self, Self::Ref(..))
+    }
+
+    /// Returns `true` if the ty kind is [`RawPtr`].
+    ///
+    /// [`RawPtr`]: TyKind::RawPtr
+    #[must_use]
+    pub fn is_raw_ptr(&self) -> bool {
+        matches!(self, Self::RawPtr(..))
+    }
+
+    /// Returns `true` if the ty kind is [`FunctionPtr`].
+    ///
+    /// [`FunctionPtr`]: TyKind::FunctionPtr
+    #[must_use]
+    pub fn is_function_ptr(&self) -> bool {
+        matches!(self, Self::FunctionPtr(..))
+    }
+
+    /// Returns `true` if this is a pointer type.
+    #[must_use]
+    pub fn is_ptr_ty(&self) -> bool {
+        matches!(self, Self::Ref(..) | Self::RawPtr(..) | Self::FunctionPtr(..))
     }
 }
 
