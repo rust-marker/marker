@@ -1,6 +1,6 @@
-use crate::context::AstContext;
+use crate::{context::AstContext, ffi::FfiSlice};
 
-use super::{Span, SpanId};
+use super::{item::Visibility, Span, SpanId, SymbolId};
 
 // Primitive types
 mod boolean_ty;
@@ -18,6 +18,13 @@ mod array_ty;
 pub use array_ty::*;
 mod slice_ty;
 pub use slice_ty::*;
+// User defined types
+mod struct_ty;
+pub use struct_ty::*;
+mod enum_ty;
+pub use enum_ty::*;
+mod union_ty;
+pub use union_ty::*;
 // Pointer types
 mod ref_ty;
 pub use ref_ty::*;
@@ -85,9 +92,9 @@ pub enum TyKind<'ast> {
     // ================================
     // User define types
     // ================================
-    Struct, // (&'ast StructTy<'ast>),
-    Enum,   // (&'ast EnumTy<'ast>),
-    Union,  // (&'ast UnionTy<'ast>),
+    Struct(&'ast StructTy<'ast>),
+    Enum(&'ast EnumTy<'ast>),
+    Union(&'ast UnionTy<'ast>),
     // ================================
     // Function types
     // ================================
@@ -187,6 +194,12 @@ impl<'ast> TyKind<'ast> {
         matches!(self, Self::Tuple(..) | Self::Array(..) | Self::Slice(..))
     }
 
+    /// Returns `true` if this is a user defined type.
+    #[must_use]
+    pub fn is_user_defined_type(&self) -> bool {
+        matches!(self, Self::Struct(..) | Self::Enum(..) | Self::Union(..))
+    }
+
     /// Returns `true` if the ty kind is [`Ref`].
     ///
     /// [`Ref`]: TyKind::Ref
@@ -270,3 +283,70 @@ macro_rules! impl_ty_data {
     };
 }
 use impl_ty_data;
+
+#[repr(C)]
+#[derive(Debug)]
+#[cfg_attr(feature = "driver-api", visibility::make(pub))]
+pub(crate) enum VariantKind<'ast> {
+    /// A unit struct like:
+    /// ```
+    /// struct Name1;
+    /// struct Name2 {};
+    /// ```
+    Unit,
+    /// A tuple struct like:
+    /// ```
+    /// struct Name(u32, u64);
+    /// ```
+    Tuple(FfiSlice<'ast, &'ast FieldDef<'ast>>),
+    /// A field struct like:
+    /// ```rs
+    /// struct Name {
+    ///     field: u32,
+    /// };
+    /// ```
+    Field(FfiSlice<'ast, &'ast FieldDef<'ast>>),
+}
+
+impl<'ast> VariantKind<'ast> {
+    fn fields(&self) -> &[&FieldDef<'ast>] {
+        match self {
+            VariantKind::Unit => &[],
+            VariantKind::Tuple(slice) | VariantKind::Field(slice) => slice.get(),
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct FieldDef<'ast> {
+    cx: &'ast AstContext<'ast>,
+    visibility: Visibility<'ast>,
+    name: SymbolId,
+    ty: TyKind<'ast>,
+}
+
+impl<'ast> FieldDef<'ast> {
+    pub fn new(cx: &'ast AstContext<'ast>, visibility: Visibility<'ast>, name: SymbolId, ty: TyKind<'ast>) -> Self {
+        Self {
+            cx,
+            visibility,
+            name,
+            ty,
+        }
+    }
+}
+
+impl<'ast> FieldDef<'ast> {
+    pub fn visibility(&self) -> &Visibility<'ast> {
+        &self.visibility
+    }
+
+    pub fn name(&self) -> String {
+        self.cx.symbol_str(self.name)
+    }
+
+    pub fn ty(&self) -> TyKind<'ast> {
+        self.ty
+    }
+}

@@ -1,8 +1,12 @@
 use std::fmt::Debug;
 
-mod extern_crate_item;
 use crate::context::AstContext;
 
+// Item related modules
+mod generics;
+pub use generics::*;
+// Item implementations
+mod extern_crate_item;
 pub use self::extern_crate_item::ExternCrateItem;
 mod mod_item;
 pub use self::mod_item::ModItem;

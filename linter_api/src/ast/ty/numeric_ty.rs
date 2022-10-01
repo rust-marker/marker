@@ -17,7 +17,7 @@ super::impl_ty_data!(NumericTy<'ast>, Numeric);
 
 impl<'ast> NumericTy<'ast> {
     // FIXME: Do we want to keep this method and expose the enum or hide
-    // it completly behind methods?
+    // it completely behind methods?
     pub fn numeric_kind(&self) -> NumericKind {
         self.numeric_kind
     }
