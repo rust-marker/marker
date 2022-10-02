@@ -326,6 +326,7 @@ pub struct FieldDef<'ast> {
     ty: TyKind<'ast>,
 }
 
+#[cfg(feature = "driver-api")]
 impl<'ast> FieldDef<'ast> {
     pub fn new(cx: &'ast AstContext<'ast>, visibility: Visibility<'ast>, name: SymbolId, ty: TyKind<'ast>) -> Self {
         Self {

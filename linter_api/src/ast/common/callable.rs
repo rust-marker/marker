@@ -1,9 +1,10 @@
 use crate::{
     ast::ty::TyKind,
+    context::AstContext,
     ffi::{FfiOption, FfiSlice},
 };
 
-use super::{Abi, SpanId, SymbolId};
+use super::{Abi, Span, SpanId, SymbolId};
 
 /// This trait provides informations about callable items and types. Some
 /// properties might not be available for every callable object. In those
@@ -51,24 +52,37 @@ pub trait Callable<'ast> {
 #[repr(C)]
 #[derive(Debug)]
 pub struct Parameter<'ast> {
+    cx: &'ast AstContext<'ast>,
     name: FfiOption<SymbolId>,
     ty: FfiOption<TyKind<'ast>>,
     span: FfiOption<SpanId>,
 }
 
+#[cfg(feature = "driver-api")]
+impl<'ast> Parameter<'ast> {
+    pub fn new(
+        cx: &'ast AstContext<'ast>,
+        name: FfiOption<SymbolId>,
+        ty: FfiOption<TyKind<'ast>>,
+        span: FfiOption<SpanId>,
+    ) -> Self {
+        Self { cx, name, ty, span }
+    }
+}
+
 impl<'ast> Parameter<'ast> {
     // Function items actually use patterns and not names. Patterns are not yet
     // implemented though. A pattern should be good enough for now.
-    pub fn name(&self) -> Option<SymbolId> {
-        self.name.get().copied()
+    pub fn name(&self) -> Option<String> {
+        self.name.get().map(|sym| self.cx.symbol_str(*sym))
     }
 
     pub fn ty(&self) -> Option<TyKind<'ast>> {
         self.ty.get().copied()
     }
 
-    pub fn span(&self) -> Option<SpanId> {
-        self.span.get().copied()
+    pub fn span(&self) -> Option<&Span<'ast>> {
+        self.span.get().copied().map(|span| self.cx.get_span(&span.into()))
     }
 }
 

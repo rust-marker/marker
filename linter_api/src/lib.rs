@@ -5,6 +5,7 @@
 #![allow(clippy::trivially_copy_pass_by_ref)]
 #![allow(clippy::unused_self)] // `self` is needed to change the behavior later
 #![allow(clippy::missing_panics_doc)] // Temporary allow for `todo!`s
+#![cfg_attr(not(feature = "driver-api"), allow(dead_code))]
 
 pub static LINTER_API_VERSION: &str = env!("CARGO_PKG_VERSION");
 
