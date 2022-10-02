@@ -32,6 +32,9 @@ mod raw_ptr_ty;
 pub use raw_ptr_ty::*;
 mod function_ptr_ty;
 pub use function_ptr_ty::*;
+// Syntactic types
+mod inferred_ty;
+pub use inferred_ty::*;
 
 pub trait TyData<'ast> {
     fn as_kind(&'ast self) -> TyKind<'ast>;
@@ -117,8 +120,8 @@ pub enum TyKind<'ast> {
     // ================================
     // Syntactic type
     // ================================
-    Inferred, // (&'ast InferredTy<'ast>),
-    Path,     // (&'ast PathTy<'ast>)
+    Inferred(&'ast InferredTy<'ast>),
+    Generic,  // (&'ast GenericTy<'ast>),
 }
 // FIXME: Do we want to keep the abbreviated pointer type names?
 
