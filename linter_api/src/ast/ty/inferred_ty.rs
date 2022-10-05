@@ -1,6 +1,7 @@
 use super::CommonTyData;
 
 #[repr(C)]
+#[derive(Debug)]
 pub struct InferredTy<'ast> {
     data: CommonTyData<'ast>,
 }
@@ -13,9 +14,3 @@ impl<'ast> InferredTy<'ast> {
 }
 
 super::impl_ty_data!(InferredTy<'ast>, Inferred);
-
-impl<'ast> std::fmt::Debug for InferredTy<'ast> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("!").finish()
-    }
-}

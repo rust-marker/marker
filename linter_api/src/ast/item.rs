@@ -19,7 +19,7 @@ pub use self::const_item::ConstItem;
 
 use super::{
     ty_old::{TyIdOld, TyOld},
-    Abi, Asyncness, Attribute, BodyId, Constness, ItemId, ItemPath, Pattern, Safety, Span, Symbol, SymbolId,
+    Abi, Asyncness, Attribute, BodyId, Constness, ItemId, Pattern, Safety, Span, Symbol, SymbolId,
 };
 
 pub trait ItemData<'ast>: Debug {
@@ -271,8 +271,6 @@ pub trait AdtField<'ast>: Debug {
     /// This will return the span of the field, exclusing the field attributes.
     fn get_span(&'ast self) -> &'ast Span<'ast>;
 
-    fn get_visibility(&'ast self) -> VisibilityOld<'ast>;
-
     fn get_name(&'ast self) -> Symbol;
 
     fn get_ty(&'ast self) -> &'ast dyn TyOld<'ast>;
@@ -400,22 +398,6 @@ pub enum UseKind {
     Single,
     /// A glob import like `use foo::*`
     Glob,
-}
-
-/// The visibility of items.
-///
-/// See: <https://doc.rust-lang.org/reference/visibility-and-privacy.html>
-#[non_exhaustive]
-#[derive(Debug)]
-#[allow(clippy::enum_variant_names)]
-pub enum VisibilityOld<'ast> {
-    Pub,
-    /// Visible in the current module, equivialent to `pub(in self)` or no visibility
-    PubSelf,
-    PubCrate,
-    PubPath(&'ast ItemPath<'ast>),
-    PubSuper,
-    None,
 }
 
 /// The generic definitions belonging to an item

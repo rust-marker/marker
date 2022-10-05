@@ -6,6 +6,8 @@ mod lifetime;
 pub use lifetime::*;
 mod callable;
 pub use callable::*;
+mod ast_path;
+pub use ast_path::*;
 
 use std::fmt::Debug;
 
@@ -114,80 +116,6 @@ pub type Ident<'ast> = Spanned<'ast, Symbol>;
 
 pub trait Attribute<'ast>: Debug {
     // FIXME: Add attribute functions
-}
-
-#[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
-pub struct ItemPath<'ast> {
-    segments: &'ast [PathSegment],
-    target: PathResolution,
-}
-
-impl<'ast> ItemPath<'ast> {
-    pub fn get_segments(&self) -> &[PathSegment] {
-        self.segments
-    }
-
-    pub fn resolve(&self) -> &PathResolution {
-        &self.target
-    }
-}
-
-#[cfg(feature = "driver-api")]
-impl<'ast> ItemPath<'ast> {
-    pub fn new(segments: &'ast [PathSegment], target: PathResolution) -> Self {
-        Self { segments, target }
-    }
-}
-
-#[non_exhaustive]
-#[derive(Debug, PartialEq, Eq, Hash)]
-pub struct PathSegment {
-    /// This symbol can correspond to an empty string in some cases for example
-    /// for [turbo fish paths](https://turbo.fish/::%3Cchecker%3E).
-    name: Symbol,
-    /// The item or object, that this segment resolves to.
-    target: PathResolution,
-    // FIXME: Represent more complext paths like:
-    // ```rs
-    // <S as Type>::item
-    // Vec::<u8>::with_capacity(1024)
-    // Iterator<Item = u32>
-    // ```
-}
-
-#[cfg(feature = "driver-api")]
-impl PathSegment {
-    #[must_use]
-    pub fn new(name: Symbol, target: PathResolution) -> Self {
-        Self { name, target }
-    }
-}
-
-impl PathSegment {
-    pub fn get_name(&self) -> Symbol {
-        self.name
-    }
-
-    pub fn get_target(&self) -> &PathResolution {
-        &self.target
-    }
-}
-
-#[repr(C)]
-#[non_exhaustive]
-#[derive(Debug, PartialEq, Eq, Hash)]
-pub enum PathResolution {
-    Item(ItemId),
-    /// An path belonging to a tool. This will for instance be used for attributes
-    /// like:
-    /// ```ignore
-    /// #[clippy::msrv]
-    /// #[rustfmt::skip]
-    /// ```
-    ToolItem,
-    /// The path could not be resolved.
-    Unresolved,
 }
 
 pub trait Pattern<'ast> {}
