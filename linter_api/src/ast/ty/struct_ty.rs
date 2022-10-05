@@ -1,13 +1,13 @@
-use crate::ast::{item::Generics, DefTyId};
+use crate::ast::{generic::GenericArgs, DefTyId};
 
 use super::{CommonTyData, FieldDef, VariantKind};
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct StructTy<'ast> {
     data: CommonTyData<'ast>,
     def_id: DefTyId,
-    generics: Generics<'ast>,
+    generic_args: GenericArgs<'ast>,
     struct_kind: VariantKind<'ast>,
     is_non_exhaustive: bool,
     // FIXME: Add representation/layout info like alignment, size, type
@@ -18,14 +18,14 @@ impl<'ast> StructTy<'ast> {
     pub fn new(
         data: CommonTyData<'ast>,
         def_id: DefTyId,
-        generics: Generics<'ast>,
+        generic_args: GenericArgs<'ast>,
         struct_kind: VariantKind<'ast>,
         is_non_exhaustive: bool,
     ) -> Self {
         Self {
             data,
             def_id,
-            generics,
+            generic_args,
             struct_kind,
             is_non_exhaustive,
         }
@@ -39,8 +39,8 @@ impl<'ast> StructTy<'ast> {
         self.def_id
     }
 
-    pub fn generics(&self) -> &Generics<'ast> {
-        &self.generics
+    pub fn generic_args(&self) -> &GenericArgs<'ast> {
+        &self.generic_args
     }
 
     /// Returns `true`, if this is a unit struct like:

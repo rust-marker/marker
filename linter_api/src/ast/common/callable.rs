@@ -50,7 +50,7 @@ pub trait Callable<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Parameter<'ast> {
     cx: &'ast AstContext<'ast>,
     name: FfiOption<SymbolId>,
@@ -82,12 +82,12 @@ impl<'ast> Parameter<'ast> {
     }
 
     pub fn span(&self) -> Option<&Span<'ast>> {
-        self.span.get().copied().map(|span| self.cx.get_span(&span.into()))
+        self.span.get().copied().map(|span| self.cx.get_span(span))
     }
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) struct CallableData<'ast> {
     pub(crate) is_const: bool,

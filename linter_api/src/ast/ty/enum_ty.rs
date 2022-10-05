@@ -1,5 +1,5 @@
 use crate::{
-    ast::{item::Generics, DefTyId, SymbolId},
+    ast::{generic::GenericArgs, DefTyId, SymbolId},
     context::AstContext,
     ffi::FfiSlice,
 };
@@ -7,11 +7,11 @@ use crate::{
 use super::{CommonTyData, FieldDef, VariantKind};
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct EnumTy<'ast> {
     data: CommonTyData<'ast>,
     def_id: DefTyId,
-    generics: Generics<'ast>,
+    generic_args: GenericArgs<'ast>,
     variants: FfiSlice<'ast, &'ast EnumItem<'ast>>,
     is_non_exhaustive: bool,
     // FIXME: Add representation/layout info like alignment, size, type
@@ -22,14 +22,14 @@ impl<'ast> EnumTy<'ast> {
     pub fn new(
         data: CommonTyData<'ast>,
         def_id: DefTyId,
-        generics: Generics<'ast>,
+        generic_args: GenericArgs<'ast>,
         variants: FfiSlice<'ast, &'ast EnumItem<'ast>>,
         is_non_exhaustive: bool,
     ) -> Self {
         Self {
             data,
             def_id,
-            generics,
+            generic_args,
             variants,
             is_non_exhaustive,
         }
@@ -43,8 +43,8 @@ impl<'ast> EnumTy<'ast> {
         self.def_id
     }
 
-    pub fn generics(&self) -> &Generics<'ast> {
-        &self.generics
+    pub fn generic_args(&self) -> &GenericArgs<'ast> {
+        &self.generic_args
     }
 
     pub fn variants(&self) -> &[&EnumItem<'ast>] {
@@ -57,7 +57,7 @@ impl<'ast> EnumTy<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct EnumItem<'ast> {
     cx: &'ast AstContext<'ast>,
     def_id: DefTyId,

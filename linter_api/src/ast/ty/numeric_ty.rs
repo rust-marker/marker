@@ -1,6 +1,7 @@
 use super::CommonTyData;
 
 #[repr(C)]
+#[derive(PartialEq, Eq, Hash)]
 pub struct NumericTy<'ast> {
     data: CommonTyData<'ast>,
     numeric_kind: NumericKind,

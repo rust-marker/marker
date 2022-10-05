@@ -1,16 +1,16 @@
 use crate::{
-    ast::{item::Generics, DefTyId},
+    ast::{generic::GenericArgs, DefTyId},
     ffi::FfiSlice,
 };
 
 use super::{CommonTyData, FieldDef};
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct UnionTy<'ast> {
     data: CommonTyData<'ast>,
     def_id: DefTyId,
-    generics: Generics<'ast>,
+    generic_args: GenericArgs<'ast>,
     fields: FfiSlice<'ast, &'ast FieldDef<'ast>>,
     // FIXME: Add representation/layout info like alignment, size, type
 }
@@ -20,13 +20,13 @@ impl<'ast> UnionTy<'ast> {
     pub fn new(
         data: CommonTyData<'ast>,
         def_id: DefTyId,
-        generics: Generics<'ast>,
+        generic_args: GenericArgs<'ast>,
         fields: FfiSlice<'ast, &'ast FieldDef<'ast>>,
     ) -> Self {
         Self {
             data,
             def_id,
-            generics,
+            generic_args,
             fields,
         }
     }
@@ -39,8 +39,8 @@ impl<'ast> UnionTy<'ast> {
         self.def_id
     }
 
-    pub fn generics(&self) -> &Generics<'ast> {
-        &self.generics
+    pub fn generic_args(&self) -> &GenericArgs<'ast> {
+        &self.generic_args
     }
 
     pub fn fields(&self) -> &[&FieldDef<'ast>] {

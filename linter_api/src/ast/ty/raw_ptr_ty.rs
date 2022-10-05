@@ -3,7 +3,7 @@ use crate::ast::Mutability;
 use super::{CommonTyData, TyKind};
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct RawPtrTy<'ast> {
     data: CommonTyData<'ast>,
     mutability: Mutability,

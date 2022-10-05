@@ -72,7 +72,7 @@ pub trait TyData<'ast> {
 
 #[repr(C)]
 #[non_exhaustive]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum TyKind<'ast> {
     // ================================
     // Primitive types
@@ -239,7 +239,7 @@ impl<'ast> TyKind<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) struct CommonTyData<'ast> {
     cx: &'ast AstContext<'ast>,
@@ -274,9 +274,7 @@ macro_rules! impl_ty_data {
             }
 
             fn span(&self) -> Option<&$crate::ast::Span<'ast>> {
-                self.data
-                    .span
-                    .map(|span_id| self.data.cx.get_span(&span_id.into()))
+                self.data.span.map(|span_id| self.data.cx.get_span(span_id))
             }
 
             fn is_syntactic(&self) -> bool {
@@ -292,7 +290,7 @@ macro_rules! impl_ty_data {
 use impl_ty_data;
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) enum VariantKind<'ast> {
     /// A unit struct like:
@@ -325,7 +323,7 @@ impl<'ast> VariantKind<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct FieldDef<'ast> {
     cx: &'ast AstContext<'ast>,
     visibility: Visibility<'ast>,

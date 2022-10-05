@@ -3,7 +3,7 @@ use crate::ast::AstPath;
 use super::CommonTyData;
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct GenericTy<'ast> {
     data: CommonTyData<'ast>,
     path: &'ast AstPath<'ast>,

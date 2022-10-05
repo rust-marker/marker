@@ -1,6 +1,7 @@
 use super::CommonTyData;
 
 #[repr(C)]
+#[derive(PartialEq, Eq, Hash)]
 pub struct TextualTy<'ast> {
     data: CommonTyData<'ast>,
     textual_kind: TextualKind,

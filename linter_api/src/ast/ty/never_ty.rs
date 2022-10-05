@@ -1,6 +1,7 @@
 use super::CommonTyData;
 
 #[repr(C)]
+#[derive(PartialEq, Eq, Hash)]
 pub struct NeverTy<'ast> {
     data: CommonTyData<'ast>,
 }

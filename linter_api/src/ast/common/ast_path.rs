@@ -5,10 +5,9 @@
 // FIXME: It might be useful to not use a single path for everything, but instead
 // split it up into an `ItemPath`, `GenericPath` etc. implementation.
 
-use std::marker::PhantomData;
-
 use super::SymbolId;
 use crate::{
+    ast::generic::GenericArgs,
     context::AstContext,
     ffi::{FfiOption, FfiSlice},
 };
@@ -31,7 +30,7 @@ impl<'ast> AstPath<'ast> {
 pub struct AstPathSegment<'ast> {
     cx: &'ast AstContext<'ast>,
     ident: SymbolId,
-    generic_args: FfiOption<&'ast AstPathGenericArgs<'ast>>,
+    generic_args: FfiOption<&'ast GenericArgs<'ast>>,
 }
 
 impl<'ast> AstPathSegment<'ast> {
@@ -39,22 +38,7 @@ impl<'ast> AstPathSegment<'ast> {
         self.cx.symbol_str(self.ident)
     }
 
-    pub fn generic_args(&self) -> Option<&AstPathGenericArgs<'ast>> {
+    pub fn generic_args(&self) -> Option<&GenericArgs<'ast>> {
         self.generic_args.get().copied()
-    }
-}
-
-#[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
-pub struct AstPathGenericArgs<'ast> {
-    _phantom: PhantomData<&'ast ()>, // FIXME: Fill once lifetimes and types are completed.
-}
-
-#[cfg(feature = "driver-api")]
-impl<'ast> AstPathGenericArgs<'ast> {
-    #[must_use]
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        Self { _phantom: PhantomData }
     }
 }

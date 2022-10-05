@@ -1,7 +1,7 @@
 use super::CommonTyData;
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct InferredTy<'ast> {
     data: CommonTyData<'ast>,
 }

@@ -2,8 +2,6 @@ mod id;
 pub use id::*;
 mod span;
 pub use span::*;
-mod lifetime;
-pub use lifetime::*;
 mod callable;
 pub use callable::*;
 mod ast_path;
@@ -66,7 +64,7 @@ pub enum Asyncness {
 }
 
 #[non_exhaustive]
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Abi {
     /// This is the default of the current driver, the actual ABI can vary between
     /// implementations. In general this means that the user has not selected a

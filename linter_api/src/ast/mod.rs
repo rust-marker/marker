@@ -3,6 +3,7 @@ pub use common::*;
 
 use self::item::ItemType;
 
+pub mod generic;
 pub mod item;
 pub mod ty;
 pub mod ty_old;

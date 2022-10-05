@@ -57,8 +57,8 @@ impl<'ast> AstContext<'ast> {
         self.driver.call_span_snippet(span)
     }
 
-    pub(crate) fn get_span(&self, span_owner: &SpanOwner) -> &'ast Span<'ast> {
-        self.driver.call_get_span(span_owner)
+    pub(crate) fn get_span<T: Into<SpanOwner>>(&self, span_owner: T) -> &'ast Span<'ast> {
+        self.driver.call_get_span(&span_owner.into())
     }
 
     pub(crate) fn symbol_str(&self, sym: SymbolId) -> String {

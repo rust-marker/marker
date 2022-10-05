@@ -3,6 +3,7 @@ use std::iter;
 use super::{CommonTyData, TyKind};
 
 #[repr(C)]
+#[derive(PartialEq, Eq, Hash)]
 pub struct ArrayTy<'ast> {
     data: CommonTyData<'ast>,
     inner_ty: TyKind<'ast>,

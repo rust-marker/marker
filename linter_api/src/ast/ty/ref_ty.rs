@@ -1,12 +1,12 @@
 use crate::{
-    ast::{Lifetime, Mutability},
+    ast::{generic::Lifetime, Mutability},
     ffi::FfiOption,
 };
 
 use super::{CommonTyData, TyKind};
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct RefTy<'ast> {
     data: CommonTyData<'ast>,
     lifetime: FfiOption<Lifetime<'ast>>,

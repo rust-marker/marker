@@ -3,7 +3,7 @@ use crate::ast::{impl_callable_trait, CallableData};
 use super::CommonTyData;
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct FunctionPtrTy<'ast> {
     data: CommonTyData<'ast>,
     callable_data: CallableData<'ast>,

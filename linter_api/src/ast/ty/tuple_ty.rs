@@ -3,6 +3,7 @@ use crate::ffi::FfiSlice;
 use super::{CommonTyData, TyKind};
 
 #[repr(C)]
+#[derive(PartialEq, Eq, Hash)]
 pub struct TupleTy<'ast> {
     data: CommonTyData<'ast>,
     types: FfiSlice<'ast, TyKind<'ast>>,
