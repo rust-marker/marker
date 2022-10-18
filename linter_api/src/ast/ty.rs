@@ -25,6 +25,11 @@ mod enum_ty;
 pub use enum_ty::*;
 mod union_ty;
 pub use union_ty::*;
+// Function types
+mod fn_ty;
+pub use fn_ty::*;
+mod closure_ty;
+pub use closure_ty::*;
 // Pointer types
 mod ref_ty;
 pub use ref_ty::*;
@@ -108,8 +113,8 @@ pub enum TyKind<'ast> {
     // ================================
     // Function types
     // ================================
-    Function, // (&'ast FunctionTy<'ast>),
-    Closure,  // (&'ast ClosureTy<'ast>),
+    Fn(&'ast FnTy<'ast>),
+    Closure(&'ast ClosureTy<'ast>),
     // ================================
     // Pointer types
     // ================================
