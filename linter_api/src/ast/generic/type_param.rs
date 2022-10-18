@@ -35,6 +35,8 @@ impl<'ast> TypeParam<'ast> {
         self.cx.symbol_str(self.ident)
     }
 
+    // FIXME: Should this maybe be a new struct named `TypeParamBounds` as defined
+    // my the grammar?
     pub fn bounds(&self) -> &[&TypeParamBound<'ast>] {
         self.bounds.get()
     }
@@ -57,7 +59,7 @@ impl<'ast> From<&'ast TypeParam<'ast>> for GenericParamKind<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum TypeParamBound<'ast> {
     Lifetime(&'ast Lifetime<'ast>),
@@ -66,7 +68,7 @@ pub enum TypeParamBound<'ast> {
 
 // FIXME: Add support for higher order traits thingies with `for<'a>` and other magic.
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct TraitBound<'ast> {
     cx: &'ast AstContext<'ast>,
     /// This is used for relaxed type bounds like `?Size`. This is probably not
@@ -108,7 +110,7 @@ impl<'ast> TraitBound<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct TraitRef<'ast> {
     path: AstPath<'ast>,
     item_id: ItemId,

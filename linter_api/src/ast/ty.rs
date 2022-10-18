@@ -32,6 +32,11 @@ mod raw_ptr_ty;
 pub use raw_ptr_ty::*;
 mod function_ptr_ty;
 pub use function_ptr_ty::*;
+// Trait types
+mod trait_obj_ty;
+pub use trait_obj_ty::*;
+mod impl_trait_ty;
+pub use impl_trait_ty::*;
 // Syntactic types
 mod inferred_ty;
 pub use inferred_ty::*;
@@ -117,8 +122,25 @@ pub enum TyKind<'ast> {
     // ================================
     // Trait types
     // ================================
-    TraitObject, // (&'ast TraitObjectTy<'ast>),
-    ImplTrait,   // (&'ast ImplTraitTy<'ast>),
+    /// A trait object like `dyn Trait`
+    TraitObj(&'ast TraitObjTy<'ast>),
+    /// An `impl Trait` type like:
+    ///
+    /// ```
+    /// trait Trait {}
+    /// # impl Trait for () {}
+    ///
+    /// // argument position: anonymous type parameter
+    /// fn foo(arg: impl Trait) {
+    /// }
+    ///
+    /// // return position: abstract return type
+    /// fn bar() -> impl Trait {
+    /// }
+    /// ```
+    ///
+    /// See: <https://doc.rust-lang.org/stable/reference/types/impl-trait.html>
+    ImplTrait(&'ast ImplTraitTy<'ast>),
     // ================================
     // Syntactic type
     // ================================
