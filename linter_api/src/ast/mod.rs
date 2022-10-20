@@ -6,7 +6,6 @@ use self::item::ItemType;
 pub mod generic;
 pub mod item;
 pub mod ty;
-pub mod ty_old;
 
 #[derive(Debug)]
 pub struct Crate<'ast> {

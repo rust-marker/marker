@@ -14,6 +14,7 @@ use super::{ty::TyKind, Span};
 /// This represents the generic arguments for an item.
 ///
 /// ```
+/// # use std::fmt::Debug;
 /// //            vvvv This is a generic argument
 /// generic_item::<u8>(32);
 ///
@@ -51,6 +52,7 @@ pub enum GenericArg<'ast> {
 /// This represents the generic parameters of a generic item.
 ///
 /// ```
+/// # use std::fmt::Debug;
 /// pub fn generic_item<T: Copy>(t: T)
 /// //                  ^^^^^^^ This is a generic parameter
 /// where

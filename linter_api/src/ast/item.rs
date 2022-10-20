@@ -15,8 +15,7 @@ mod const_item;
 pub use self::const_item::ConstItem;
 
 use super::{
-    ty_old::{TyIdOld, TyOld},
-    Abi, Asyncness, Attribute, BodyId, Constness, ItemId, Pattern, Safety, Span, Symbol, SymbolId,
+    ty::TyKind, Abi, Asyncness, Attribute, BodyId, Constness, ItemId, Pattern, Safety, Span, Symbol, SymbolId,
 };
 
 pub trait ItemData<'ast>: Debug {
@@ -187,7 +186,7 @@ pub trait FnDeclaration<'ast>: Debug {
 
     /// The return type of a function without an explicit return type is the
     /// unit type `()`.
-    fn get_return_ty(&self) -> &dyn TyOld<'ast>;
+    fn get_return_ty(&self);
 
     /// This will always return a valid [`BodyId`] for functions, closures and
     /// methods. Trait functions can have a default body but they don't have to.
@@ -199,24 +198,21 @@ pub trait FnParam<'ast>: Debug {
 
     fn get_span(&self) -> &Span<'ast>;
 
-    fn get_ty(&self) -> &dyn TyOld<'ast>;
+    fn get_ty(&self);
 }
 
 pub trait TypeAliasItem<'ast>: ItemData<'ast> {
-    /// Returns the [`TyId`] of this type alias, this id is be different from
-    /// the aliased type.
-    fn get_ty_id(&self) -> TyIdOld;
+    fn get_ty_id(&self);
 
     fn get_generics(&self);
 
     /// This can return `None` for [`TypeAliasItem`]s asscociated with a trait. For
     /// normal items this will always return `Some` at the time of writing this.
-    fn get_aliased_ty(&self) -> Option<&dyn TyOld<'ast>>;
+    fn get_aliased_ty(&self);
 }
 
 pub trait StructItem<'ast>: ItemData<'ast> {
-    /// Returns the [`TyId`] for this struct.
-    fn get_ty_id(&self) -> TyIdOld;
+    fn get_ty_id(&self);
 
     fn get_kind(&self) -> AdtVariantData<'ast>;
 
@@ -270,13 +266,12 @@ pub trait AdtField<'ast>: Debug {
 
     fn get_name(&'ast self) -> Symbol;
 
-    fn get_ty(&'ast self) -> &'ast dyn TyOld<'ast>;
+    fn get_ty(&'ast self);
 }
 
 /// See: <https://doc.rust-lang.org/reference/items/enumerations.html>
 pub trait EnumItem<'ast>: ItemData<'ast> {
-    /// Returns the [`TyId`] for this struct.
-    fn get_ty_id(&self) -> TyIdOld;
+    fn get_ty_id(&self);
 
     fn get_variants(&self) -> &[&dyn EnumVariant<'ast>];
 
@@ -298,7 +293,7 @@ pub trait EnumVariant<'ast>: Debug {
 
 /// An anonymous constant.
 pub trait AnonConst<'ast>: Debug {
-    fn get_ty(&self) -> &'ast dyn TyOld<'ast>;
+    fn get_ty(&self);
 
     // FIXME: This should return a expression once they are implemented, it would
     // probably be good to have an additional `get_value_lit` that returns a literal,
@@ -307,8 +302,7 @@ pub trait AnonConst<'ast>: Debug {
 }
 
 pub trait UnionItem<'ast>: ItemData<'ast> {
-    /// Returns the [`TyId`] for this union.
-    fn get_ty_id(&self) -> TyIdOld;
+    fn get_ty_id(&self);
 
     /// This will at the time of writitng this always return the [`AdtVariantData::Field`]
     /// variant. [`AdtVariantData`] is still used as a wrapper to support common util
@@ -319,14 +313,13 @@ pub trait UnionItem<'ast>: ItemData<'ast> {
 }
 
 pub trait TraitItem<'ast>: ItemData<'ast> {
-    /// Returns the [`TyId`] for this trait.
-    fn get_ty_id(&self) -> TyIdOld;
+    fn get_ty_id(&self);
 
     fn get_safety(&self) -> Safety;
 
     fn get_generics(&self);
 
-    fn get_super_traits(&self) -> &[&dyn TyOld<'ast>];
+    fn get_super_traits(&self) -> &[&TyKind<'ast>];
 
     /// This returns all associated items that are defined by this trait
     fn get_assoc_items(&self) -> &[AssocItem<'ast>];
@@ -348,9 +341,9 @@ pub trait ImplItem<'ast>: ItemData<'ast> {
     fn get_polarity(&self) -> ImplPolarity;
 
     /// This will return `Some` if this is a trait implementation, otherwiese `None`.
-    fn get_trait(&self) -> Option<&dyn TyOld<'ast>>;
+    fn get_trait(&self) -> Option<&TyKind<'ast>>;
 
-    fn get_ty(&self) -> &dyn TyOld<'ast>;
+    fn get_ty(&self) -> &TyKind<'ast>;
 
     fn get_generics(&self);
 
