@@ -14,7 +14,7 @@ impl<'ast> NumericTy<'ast> {
     }
 }
 
-super::impl_ty_data!(NumericTy<'ast>, Numeric);
+super::impl_ty_data!(NumericTy<'ast>, Num);
 
 impl<'ast> NumericTy<'ast> {
     // FIXME: Do we want to keep this method and expose the enum or hide

@@ -3,12 +3,12 @@ use crate::{context::AstContext, ffi::FfiSlice};
 use super::{item::Visibility, Span, SpanId, SymbolId};
 
 // Primitive types
-mod boolean_ty;
-pub use boolean_ty::*;
-mod textual_ty;
-pub use textual_ty::*;
-mod numeric_ty;
-pub use numeric_ty::*;
+mod bool_ty;
+pub use bool_ty::*;
+mod text_ty;
+pub use text_ty::*;
+mod num_ty;
+pub use num_ty::*;
 mod never_ty;
 pub use never_ty::*;
 // Sequence types
@@ -35,8 +35,8 @@ mod ref_ty;
 pub use ref_ty::*;
 mod raw_ptr_ty;
 pub use raw_ptr_ty::*;
-mod function_ptr_ty;
-pub use function_ptr_ty::*;
+mod fn_ptr_ty;
+pub use fn_ptr_ty::*;
 // Trait types
 mod trait_obj_ty;
 pub use trait_obj_ty::*;
@@ -88,11 +88,11 @@ pub enum TyKind<'ast> {
     // Primitive types
     // ================================
     /// The `bool` type
-    Boolean(&'ast BooleanTy<'ast>),
+    Bool(&'ast BoolTy<'ast>),
     /// A numeric type like `u32`, `i32`, `f64`
-    Numeric(&'ast NumericTy<'ast>),
+    Num(&'ast NumericTy<'ast>),
     /// A textual type like `char` or `str`
-    Textual(&'ast TextualTy<'ast>),
+    Text(&'ast TextTy<'ast>),
     /// The never type `!`
     Never(&'ast NeverTy<'ast>),
     // ================================
@@ -123,7 +123,7 @@ pub enum TyKind<'ast> {
     /// A raw pointer like `*const T` or `*mut T`
     RawPtr(&'ast RawPtrTy<'ast>),
     /// A function pointer like `fn (T) -> U`
-    FunctionPtr(&'ast FunctionPtrTy<'ast>),
+    FnPtr(&'ast FnPtrTy<'ast>),
     // ================================
     // Trait types
     // ================================
@@ -154,72 +154,12 @@ pub enum TyKind<'ast> {
     /// A generic type, that has been specified in a surrounding item
     Generic(&'ast GenericTy<'ast>),
 }
-// FIXME: Do we want to keep the abbreviated pointer type names?
 
 impl<'ast> TyKind<'ast> {
-    /// Returns `true` if the ty kind is [`Boolean`].
-    ///
-    /// [`Boolean`]: TyKind::Boolean
-    #[must_use]
-    pub fn is_boolean(&self) -> bool {
-        matches!(self, Self::Boolean(..))
-    }
-
-    /// Returns `true` if the ty kind is [`Numeric`].
-    ///
-    /// [`Numeric`]: TyKind::Numeric
-    #[must_use]
-    pub fn is_numeric(&self) -> bool {
-        matches!(self, Self::Numeric(..))
-    }
-
-    /// Returns `true` if the ty kind is [`Textual`].
-    ///
-    /// [`Textual`]: TyKind::Textual
-    #[must_use]
-    pub fn is_textual(&self) -> bool {
-        matches!(self, Self::Textual(..))
-    }
-
-    /// Returns `true` if the ty kind is [`Never`].
-    ///
-    /// [`Never`]: TyKind::Never
-    #[must_use]
-    pub fn is_never(&self) -> bool {
-        matches!(self, Self::Never(..))
-    }
-
     /// Returns `true` if this is a primitive type.
     #[must_use]
     pub fn is_primitive_ty(&self) -> bool {
-        matches!(
-            self,
-            Self::Boolean(..) | Self::Numeric(..) | Self::Textual(..) | Self::Never(..)
-        )
-    }
-
-    /// Returns `true` if the ty kind is [`Tuple`].
-    ///
-    /// [`Tuple`]: TyKind::Tuple
-    #[must_use]
-    pub fn is_tuple(&self) -> bool {
-        matches!(self, Self::Tuple(..))
-    }
-
-    /// Returns `true` if the ty kind is [`Array`].
-    ///
-    /// [`Array`]: TyKind::Array
-    #[must_use]
-    pub fn is_array(&self) -> bool {
-        matches!(self, Self::Array(..))
-    }
-
-    /// Returns `true` if the ty kind is [`Slice`].
-    ///
-    /// [`Slice`]: TyKind::Slice
-    #[must_use]
-    pub fn is_slice(&self) -> bool {
-        matches!(self, Self::Slice(..))
+        matches!(self, Self::Bool(..) | Self::Num(..) | Self::Text(..) | Self::Never(..))
     }
 
     /// Returns `true` if this is a sequence type.
@@ -234,36 +174,60 @@ impl<'ast> TyKind<'ast> {
         matches!(self, Self::Struct(..) | Self::Enum(..) | Self::Union(..))
     }
 
-    /// Returns `true` if the ty kind is [`Ref`].
-    ///
-    /// [`Ref`]: TyKind::Ref
+    /// Returns `true` if the ty kind is function type.
     #[must_use]
-    pub fn is_ref(&self) -> bool {
-        matches!(self, Self::Ref(..))
-    }
-
-    /// Returns `true` if the ty kind is [`RawPtr`].
-    ///
-    /// [`RawPtr`]: TyKind::RawPtr
-    #[must_use]
-    pub fn is_raw_ptr(&self) -> bool {
-        matches!(self, Self::RawPtr(..))
-    }
-
-    /// Returns `true` if the ty kind is [`FunctionPtr`].
-    ///
-    /// [`FunctionPtr`]: TyKind::FunctionPtr
-    #[must_use]
-    pub fn is_function_ptr(&self) -> bool {
-        matches!(self, Self::FunctionPtr(..))
+    pub fn is_fn(&self) -> bool {
+        matches!(self, Self::Fn(..) | Self::Closure(..))
     }
 
     /// Returns `true` if this is a pointer type.
     #[must_use]
     pub fn is_ptr_ty(&self) -> bool {
-        matches!(self, Self::Ref(..) | Self::RawPtr(..) | Self::FunctionPtr(..))
+        matches!(self, Self::Ref(..) | Self::RawPtr(..) | Self::FnPtr(..))
+    }
+
+    /// Returns `true` if the ty kind is trait type.
+    #[must_use]
+    pub fn is_trait_ty(&self) -> bool {
+        matches!(self, Self::TraitObj(..))
+    }
+
+    /// Returns `true` if the ty kind is syntactic type, meaning a type that is
+    /// only used in syntax like [`TyKind::Inferred`] and [`TyKind::Generic`].
+    ///
+    /// See [`TyKind::is_syntactic()`] to check if this type originates from
+    /// a syntactic definition.
+    #[must_use]
+    pub fn is_inferred(&self) -> bool {
+        matches!(self, Self::Inferred(..))
     }
 }
+
+impl<'ast> TyKind<'ast> {
+    impl_ty_data_fn!(span() -> Option<&Span<'ast>>);
+    impl_ty_data_fn!(is_syntactic() -> bool);
+    impl_ty_data_fn!(is_semantic() -> bool);
+}
+
+/// Until [trait upcasting](https://github.com/rust-lang/rust/issues/65991) has been implemented
+/// and stabilized we need this to call [`TyData`] functions for every [`TyKind`].
+macro_rules! impl_ty_data_fn {
+    ($method:ident () -> $return_ty:ty) => {
+        impl_ty_data_fn!($method() -> $return_ty,
+        Bool, Num, Text, Never, Tuple, Array, Slice, Struct, Enum, Union,
+        Fn, Closure, Ref, RawPtr, FnPtr, TraitObj, ImplTrait, Inferred, Generic
+        );
+    };
+    ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
+        pub fn $method(&self) -> $return_ty {
+            match self {
+                $(TyKind::$item(data) => data.$method(),)*
+            }
+        }
+    };
+}
+
+use impl_ty_data_fn;
 
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -295,9 +259,15 @@ impl<'ast> CommonTyData<'ast> {
 
 macro_rules! impl_ty_data {
     ($self_ty:ty, $enum_name:ident) => {
+        impl<'ast> From<&'ast $self_ty> for $crate::ast::ty::TyKind<'ast> {
+            fn from(from: &'ast $self_ty) -> Self {
+                $crate::ast::ty::TyKind::$enum_name(from)
+            }
+        }
+
         impl<'ast> $crate::ast::ty::TyData<'ast> for $self_ty {
             fn as_kind(&'ast self) -> $crate::ast::ty::TyKind<'ast> {
-                $crate::ast::ty::TyKind::$enum_name(self)
+                self.into()
             }
 
             fn span(&self) -> Option<&$crate::ast::Span<'ast>> {

@@ -2,21 +2,21 @@ use super::CommonTyData;
 
 #[repr(C)]
 #[derive(PartialEq, Eq, Hash)]
-pub struct TextualTy<'ast> {
+pub struct TextTy<'ast> {
     data: CommonTyData<'ast>,
     textual_kind: TextualKind,
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> TextualTy<'ast> {
+impl<'ast> TextTy<'ast> {
     pub fn new(data: CommonTyData<'ast>, textual_kind: TextualKind) -> Self {
         Self { data, textual_kind }
     }
 }
 
-super::impl_ty_data!(TextualTy<'ast>, Textual);
+super::impl_ty_data!(TextTy<'ast>, Text);
 
-impl<'ast> TextualTy<'ast> {
+impl<'ast> TextTy<'ast> {
     // FIXME: Do we want to keep this method and expose the enum or hide
     // it completly behind methods?
     pub fn textual_kind(&self) -> TextualKind {
@@ -32,7 +32,7 @@ impl<'ast> TextualTy<'ast> {
     }
 }
 
-impl<'ast> std::fmt::Debug for TextualTy<'ast> {
+impl<'ast> std::fmt::Debug for TextTy<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.textual_kind)
     }

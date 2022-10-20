@@ -4,16 +4,16 @@ use super::CommonTyData;
 
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
-pub struct FunctionPtrTy<'ast> {
+pub struct FnPtrTy<'ast> {
     data: CommonTyData<'ast>,
     callable_data: CallableData<'ast>,
     // FIXME: Add `for<'a>` bound
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> FunctionPtrTy<'ast> {}
+impl<'ast> FnPtrTy<'ast> {}
 
-super::impl_ty_data!(FunctionPtrTy<'ast>, FunctionPtr);
-impl_callable_trait!(FunctionPtrTy<'ast>);
+super::impl_ty_data!(FnPtrTy<'ast>, FnPtr);
+impl_callable_trait!(FnPtrTy<'ast>);
 
-impl<'ast> FunctionPtrTy<'ast> {}
+impl<'ast> FnPtrTy<'ast> {}
