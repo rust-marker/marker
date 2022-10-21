@@ -11,8 +11,11 @@ pub struct TupleTy<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TupleTy<'ast> {
-    pub fn new(data: CommonTyData<'ast>, types: FfiSlice<'ast, TyKind<'ast>>) -> Self {
-        Self { data, types }
+    pub fn new(data: CommonTyData<'ast>, types: &'ast [TyKind<'ast>]) -> Self {
+        Self {
+            data,
+            types: types.into(),
+        }
     }
 }
 

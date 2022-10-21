@@ -100,6 +100,32 @@ pub(crate) struct CallableData<'ast> {
     pub(crate) return_ty: FfiOption<TyKind<'ast>>,
 }
 
+#[cfg(feature = "driver-api")]
+#[allow(clippy::fn_params_excessive_bools, clippy::too_many_arguments)]
+impl<'ast> CallableData<'ast> {
+    pub fn new(
+        is_const: bool,
+        is_async: bool,
+        is_unsafe: bool,
+        is_extern: bool,
+        abi: Option<Abi>,
+        has_self: bool,
+        params: FfiSlice<'ast, &'ast Parameter<'ast>>,
+        return_ty: Option<TyKind<'ast>>,
+    ) -> Self {
+        Self {
+            is_const,
+            is_async,
+            is_unsafe,
+            is_extern,
+            abi: abi.into(),
+            has_self,
+            params,
+            return_ty: return_ty.into(),
+        }
+    }
+}
+
 macro_rules! impl_callable_trait {
     ($self_ty:ty) => {
         impl<'ast> $crate::ast::common::Callable<'ast> for $self_ty {

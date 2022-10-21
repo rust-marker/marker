@@ -1,4 +1,7 @@
-use crate::{context::AstContext, ffi::FfiSlice};
+use crate::{
+    context::AstContext,
+    ffi::{FfiOption, FfiSlice},
+};
 
 use super::{item::Visibility, Span, SpanId, SymbolId};
 
@@ -189,7 +192,7 @@ impl<'ast> TyKind<'ast> {
     /// Returns `true` if the ty kind is trait type.
     #[must_use]
     pub fn is_trait_ty(&self) -> bool {
-        matches!(self, Self::TraitObj(..))
+        matches!(self, Self::TraitObj(..) | Self::ImplTrait(..))
     }
 
     /// Returns `true` if the ty kind is syntactic type, meaning a type that is
@@ -215,8 +218,7 @@ macro_rules! impl_ty_data_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_ty_data_fn!($method() -> $return_ty,
         Bool, Num, Text, Never, Tuple, Array, Slice, Struct, Enum, Union,
-        Fn, Closure, Ref, RawPtr, FnPtr, TraitObj, ImplTrait, Inferred, Generic
-        );
+        Fn, Closure, Ref, RawPtr, FnPtr, TraitObj, ImplTrait, Inferred, Generic);
     };
     ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
         pub fn $method(&self) -> $return_ty {
@@ -234,7 +236,7 @@ use impl_ty_data_fn;
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) struct CommonTyData<'ast> {
     cx: &'ast AstContext<'ast>,
-    span: Option<SpanId>,
+    span: FfiOption<SpanId>,
     is_syntactic: bool,
 }
 
@@ -243,7 +245,7 @@ impl<'ast> CommonTyData<'ast> {
     pub fn new_syntactic(cx: &'ast AstContext<'ast>, span: SpanId) -> Self {
         Self {
             cx,
-            span: Some(span),
+            span: Some(span).into(),
             is_syntactic: true,
         }
     }
@@ -251,7 +253,7 @@ impl<'ast> CommonTyData<'ast> {
     pub fn new_semantic(cx: &'ast AstContext<'ast>) -> Self {
         Self {
             cx,
-            span: None,
+            span: FfiOption::None,
             is_syntactic: false,
         }
     }
@@ -271,7 +273,10 @@ macro_rules! impl_ty_data {
             }
 
             fn span(&self) -> Option<&$crate::ast::Span<'ast>> {
-                self.data.span.map(|span_id| self.data.cx.get_span(span_id))
+                self.data
+                    .span
+                    .get()
+                    .map(|span_id| self.data.cx.get_span(*span_id))
             }
 
             fn is_syntactic(&self) -> bool {

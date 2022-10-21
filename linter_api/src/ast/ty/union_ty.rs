@@ -21,13 +21,13 @@ impl<'ast> UnionTy<'ast> {
         data: CommonTyData<'ast>,
         def_id: DefTyId,
         generic_args: GenericArgs<'ast>,
-        fields: FfiSlice<'ast, &'ast FieldDef<'ast>>,
+        fields: &'ast [&'ast FieldDef<'ast>],
     ) -> Self {
         Self {
             data,
             def_id,
             generic_args,
-            fields,
+            fields: fields.into(),
         }
     }
 }

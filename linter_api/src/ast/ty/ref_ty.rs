@@ -18,13 +18,13 @@ pub struct RefTy<'ast> {
 impl<'ast> RefTy<'ast> {
     pub fn new(
         data: CommonTyData<'ast>,
-        lifetime: FfiOption<Lifetime<'ast>>,
+        lifetime: Option<Lifetime<'ast>>,
         mutability: Mutability,
         inner_ty: TyKind<'ast>,
     ) -> Self {
         Self {
             data,
-            lifetime,
+            lifetime: lifetime.into(),
             mutability,
             inner_ty,
         }

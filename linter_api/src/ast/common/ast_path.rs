@@ -33,6 +33,17 @@ pub struct AstPathSegment<'ast> {
     generic_args: FfiOption<&'ast GenericArgs<'ast>>,
 }
 
+#[cfg(feature = "driver-api")]
+impl<'ast> AstPathSegment<'ast> {
+    pub fn new(cx: &'ast AstContext<'ast>, ident: SymbolId, generic_args: Option<&'ast GenericArgs<'ast>>) -> Self {
+        Self {
+            cx,
+            ident,
+            generic_args: generic_args.into(),
+        }
+    }
+}
+
 impl<'ast> AstPathSegment<'ast> {
     pub fn ident(&self) -> String {
         self.cx.symbol_str(self.ident)
