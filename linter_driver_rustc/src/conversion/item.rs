@@ -10,6 +10,7 @@ use super::to_api_body_id;
 use super::to_api_item_id_from_def_id;
 use super::to_api_mutability;
 use super::to_api_symbol_id;
+use super::ty::to_api_syntactic_type;
 
 pub fn to_api_item<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
@@ -73,10 +74,16 @@ fn to_mod_item<'ast, 'tcx>(
 fn to_static_item<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
     data: CommonItemData<'ast>,
-    _ty: &rustc_hir::Ty<'tcx>,
+    ty: &'tcx rustc_hir::Ty<'tcx>,
     rustc_mt: rustc_ast::Mutability,
     rustc_body_id: rustc_hir::BodyId,
 ) -> &'ast StaticItem<'ast> {
-    cx.storage
-        .alloc(|| StaticItem::new(data, to_api_mutability(cx, rustc_mt), to_api_body_id(cx, rustc_body_id)))
+    cx.storage.alloc(|| {
+        StaticItem::new(
+            data,
+            to_api_mutability(cx, rustc_mt),
+            to_api_body_id(cx, rustc_body_id),
+            to_api_syntactic_type(cx, ty),
+        )
+    })
 }

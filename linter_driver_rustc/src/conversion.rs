@@ -5,6 +5,7 @@ use linter_api::ast::{item::ItemType, Crate};
 use crate::context::RustcContext;
 
 pub mod item;
+pub mod ty;
 
 pub fn to_api_crate<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,

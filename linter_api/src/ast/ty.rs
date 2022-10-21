@@ -93,7 +93,7 @@ pub enum TyKind<'ast> {
     /// The `bool` type
     Bool(&'ast BoolTy<'ast>),
     /// A numeric type like `u32`, `i32`, `f64`
-    Num(&'ast NumericTy<'ast>),
+    Num(&'ast NumTy<'ast>),
     /// A textual type like `char` or `str`
     Text(&'ast TextTy<'ast>),
     /// The never type `!`
