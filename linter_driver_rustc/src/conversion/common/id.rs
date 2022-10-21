@@ -1,6 +1,6 @@
 use std::mem::{size_of, transmute};
 
-use linter_api::ast::{BodyId, CrateId, ItemId, SpanId, SymbolId};
+use linter_api::ast::{BodyId, CrateId, ItemId, SpanId, SymbolId, TyDefId};
 
 use crate::context::RustcContext;
 
@@ -35,7 +35,7 @@ pub fn to_api_item_id_from_def_id(_cx: &RustcContext<'_, '_>, rustc_id: rustc_hi
     unsafe { transmute(layout) }
 }
 
-pub fn to_rustc_def_id(_cx: &RustcContext<'_, '_>, api_id: ItemId) -> rustc_hir::def_id::DefId {
+pub fn to_rustc_def_id_from_item_id(_cx: &RustcContext<'_, '_>, api_id: ItemId) -> rustc_hir::def_id::DefId {
     assert_eq!(size_of::<ItemId>(), size_of::<ItemIdLayout>(), "the layout is invalid");
     // # Safety
     // The layout is validated with the `assert` above
@@ -57,6 +57,42 @@ pub fn to_rustc_item_id(_cx: &RustcContext<'_, '_>, api_id: ItemId) -> rustc_hir
                 local_def_index: rustc_hir::def_id::DefIndex::from_u32(layout.index),
             },
         },
+    }
+}
+
+#[repr(C)]
+struct TyDefIdLayout {
+    krate: u32,
+    index: u32,
+}
+
+pub fn to_api_ty_def_id(_cx: &RustcContext<'_, '_>, rustc_id: rustc_hir::def_id::DefId) -> TyDefId {
+    assert_eq!(
+        size_of::<TyDefId>(),
+        size_of::<TyDefIdLayout>(),
+        "the layout is invalid"
+    );
+    let layout = TyDefIdLayout {
+        krate: rustc_id.krate.as_u32(),
+        index: rustc_id.index.as_u32(),
+    };
+    // # Safety
+    // The layout is validated with the `assert` above
+    unsafe { transmute(layout) }
+}
+
+pub fn to_rustc_def_id_from_ty_def_id(_cx: &RustcContext<'_, '_>, api_id: TyDefId) -> rustc_hir::def_id::DefId {
+    assert_eq!(
+        size_of::<TyDefId>(),
+        size_of::<TyDefIdLayout>(),
+        "the layout is invalid"
+    );
+    // # Safety
+    // The layout is validated with the `assert` above
+    let layout: TyDefIdLayout = unsafe { transmute(api_id) };
+    rustc_hir::def_id::DefId {
+        index: rustc_hir::def_id::DefIndex::from_u32(layout.index),
+        krate: rustc_hir::def_id::CrateNum::from_u32(layout.krate),
     }
 }
 

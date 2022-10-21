@@ -81,13 +81,14 @@ impl<'ast> LifetimeBounds<'ast> {
 #[repr(C)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 #[derive(Debug, PartialEq, Eq, Hash)]
+#[allow(clippy::exhaustive_enums)]
 pub(crate) enum LifetimeKind {
     /// A lifetime with a label like `'ast`
     Label(SymbolId),
     /// The magic `'static` lifetime
     Static,
     /// The mysterious `'_` lifetime
-    Wildcard,
+    Infer,
 }
 
 #[repr(C)]
@@ -100,8 +101,12 @@ pub struct Lifetime<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Lifetime<'ast> {
-    pub fn new(cx: &'ast AstContext<'ast>, span: FfiOption<SpanId>, kind: LifetimeKind) -> Self {
-        Self { cx, span, kind }
+    pub fn new(cx: &'ast AstContext<'ast>, span: Option<SpanId>, kind: LifetimeKind) -> Self {
+        Self {
+            cx,
+            span: span.into(),
+            kind,
+        }
     }
 }
 
@@ -113,7 +118,7 @@ impl<'ast> std::fmt::Debug for Lifetime<'ast> {
                 &match self.kind {
                     LifetimeKind::Label(sym) => self.cx.symbol_str(sym),
                     LifetimeKind::Static => "'static".to_string(),
-                    LifetimeKind::Wildcard => "'_".to_string(),
+                    LifetimeKind::Infer => "'_".to_string(),
                 },
             )
             .finish()
@@ -137,8 +142,8 @@ impl<'ast> Lifetime<'ast> {
         matches!(self.kind, LifetimeKind::Static)
     }
 
-    pub fn is_wildcard(&self) -> bool {
-        matches!(self.kind, LifetimeKind::Wildcard)
+    pub fn is_infer(&self) -> bool {
+        matches!(self.kind, LifetimeKind::Infer)
     }
 
     pub fn span(&self) -> Option<&Span<'ast>> {

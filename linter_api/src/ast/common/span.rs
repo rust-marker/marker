@@ -8,6 +8,7 @@ use super::{Applicability, AstPath, ItemId, SpanId};
 #[doc(hidden)]
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
+#[allow(clippy::exhaustive_enums)]
 enum SpanSource<'ast> {
     File(&'ast PathBuf),
     Macro(&'ast AstPath<'ast>),
@@ -125,6 +126,7 @@ impl<'ast> Span<'ast> {
 #[repr(C)]
 #[doc(hidden)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
+#[allow(clippy::exhaustive_enums)]
 pub(crate) enum SpanOwner {
     /// This requrests the `Span` belonging to the [`ItemId`].
     Item(ItemId),

@@ -294,6 +294,7 @@ use impl_ty_data;
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
+#[allow(clippy::exhaustive_enums)]
 pub(crate) enum VariantKind<'ast> {
     /// A unit struct like:
     /// ```
@@ -316,7 +317,7 @@ pub(crate) enum VariantKind<'ast> {
 }
 
 impl<'ast> VariantKind<'ast> {
-    fn fields(&self) -> &[&FieldDef<'ast>] {
+    fn fields(&self) -> &'ast [&'ast FieldDef<'ast>] {
         match self {
             VariantKind::Unit => &[],
             VariantKind::Tuple(slice) | VariantKind::Field(slice) => slice.get(),

@@ -112,25 +112,21 @@ impl<'ast> TraitBound<'ast> {
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct TraitRef<'ast> {
-    path: AstPath<'ast>,
     item_id: ItemId,
     generics: GenericArgs<'ast>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TraitRef<'ast> {
-    pub fn new(path: AstPath<'ast>, item_id: ItemId, generics: GenericArgs<'ast>) -> Self {
-        Self {
-            path,
-            item_id,
-            generics,
-        }
+    pub fn new(item_id: ItemId, generics: GenericArgs<'ast>) -> Self {
+        Self { item_id, generics }
     }
 }
 
 impl<'ast> TraitRef<'ast> {
     pub fn path(&self) -> &AstPath<'ast> {
-        &self.path
+        // Add function to context to retrieve path of defs
+        todo!()
     }
 
     pub fn trait_id(&self) -> ItemId {

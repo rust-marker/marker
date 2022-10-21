@@ -1,4 +1,4 @@
-use crate::ast::{generic::GenericArgs, DefTyId};
+use crate::ast::{generic::GenericArgs, TyDefId};
 
 use super::{CommonTyData, FieldDef, VariantKind};
 
@@ -6,9 +6,8 @@ use super::{CommonTyData, FieldDef, VariantKind};
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct StructTy<'ast> {
     data: CommonTyData<'ast>,
-    def_id: DefTyId,
+    def_id: TyDefId,
     generic_args: GenericArgs<'ast>,
-    struct_kind: VariantKind<'ast>,
     is_non_exhaustive: bool,
     // FIXME: Add representation/layout info like alignment, size, type
 }
@@ -17,16 +16,14 @@ pub struct StructTy<'ast> {
 impl<'ast> StructTy<'ast> {
     pub fn new(
         data: CommonTyData<'ast>,
-        def_id: DefTyId,
+        def_id: TyDefId,
         generic_args: GenericArgs<'ast>,
-        struct_kind: VariantKind<'ast>,
         is_non_exhaustive: bool,
     ) -> Self {
         Self {
             data,
             def_id,
             generic_args,
-            struct_kind,
             is_non_exhaustive,
         }
     }
@@ -35,12 +32,17 @@ impl<'ast> StructTy<'ast> {
 super::impl_ty_data!(StructTy<'ast>, Struct);
 
 impl<'ast> StructTy<'ast> {
-    pub fn def_id(&self) -> DefTyId {
+    pub fn def_id(&self) -> TyDefId {
         self.def_id
     }
 
     pub fn generic_args(&self) -> &GenericArgs<'ast> {
         &self.generic_args
+    }
+
+    fn struct_kind(&self) -> VariantKind<'ast> {
+        // Lazy evaluated as this is rarely used for types, add context method for this
+        todo!()
     }
 
     /// Returns `true`, if this is a unit struct like:
@@ -49,7 +51,7 @@ impl<'ast> StructTy<'ast> {
     /// struct Name2 {};
     /// ```
     pub fn is_unit_struct(&self) -> bool {
-        matches!(self.struct_kind, VariantKind::Unit)
+        matches!(self.struct_kind(), VariantKind::Unit)
     }
 
     /// Returns `true`, if this is a tuple struct like:
@@ -57,7 +59,7 @@ impl<'ast> StructTy<'ast> {
     /// struct Name(u32, u64);
     /// ```
     pub fn is_tuple_struct(&self) -> bool {
-        matches!(self.struct_kind, VariantKind::Tuple(_))
+        matches!(self.struct_kind(), VariantKind::Tuple(_))
     }
 
     /// Returns `true`, if this is a struct with named fields like:
@@ -67,11 +69,11 @@ impl<'ast> StructTy<'ast> {
     /// };
     /// ```
     pub fn is_field_struct(&self) -> bool {
-        matches!(self.struct_kind, VariantKind::Field(_))
+        matches!(self.struct_kind(), VariantKind::Field(_))
     }
 
     pub fn fields(&self) -> &[&FieldDef<'ast>] {
-        self.struct_kind.fields()
+        self.struct_kind().fields()
     }
 
     pub fn is_non_exhaustive(&self) -> bool {

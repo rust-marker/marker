@@ -56,7 +56,7 @@ impl ItemId {
 /// provide the current trait implementations.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct DefTyId {
+pub struct TyDefId {
     /// The layout of the data is up to the driver implementation. The API will never
     /// create custom IDs and pass them to the driver. The size of this type might
     /// change. Drivers should validate the size with tests.
@@ -64,7 +64,7 @@ pub struct DefTyId {
 }
 
 #[cfg(feature = "driver-api")]
-impl DefTyId {
+impl TyDefId {
     pub fn new(data: u64) -> Self {
         Self { data }
     }

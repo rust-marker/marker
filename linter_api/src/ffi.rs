@@ -8,6 +8,7 @@
 //! sides use these types.
 //!
 //! All of these types are naturally not part of the stable API
+#![allow(clippy::exhaustive_enums)]
 
 use std::{marker::PhantomData, slice};
 

@@ -6,12 +6,12 @@ use super::CommonTyData;
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct TraitObjTy<'ast> {
     data: CommonTyData<'ast>,
-    trait_bound: FfiSlice<'ast, &'ast TypeParamBound<'ast>>,
+    trait_bound: FfiSlice<'ast, TypeParamBound<'ast>>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TraitObjTy<'ast> {
-    pub fn new(data: CommonTyData<'ast>, trait_bound: &'ast [&'ast TypeParamBound<'ast>]) -> Self {
+    pub fn new(data: CommonTyData<'ast>, trait_bound: &'ast [TypeParamBound<'ast>]) -> Self {
         Self {
             data,
             trait_bound: trait_bound.into(),
@@ -22,7 +22,7 @@ impl<'ast> TraitObjTy<'ast> {
 super::impl_ty_data!(TraitObjTy<'ast>, TraitObj);
 
 impl<'ast> TraitObjTy<'ast> {
-    pub fn trait_bounds(&self) -> &[&TypeParamBound<'ast>] {
+    pub fn trait_bounds(&self) -> &[TypeParamBound<'ast>] {
         self.trait_bound.get()
     }
 }

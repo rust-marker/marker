@@ -10,7 +10,7 @@ use super::to_api_body_id;
 use super::to_api_item_id_from_def_id;
 use super::to_api_mutability;
 use super::to_api_symbol_id;
-use super::ty::to_api_syntactic_type;
+use super::ty::to_api_syn_ty;
 
 pub fn to_api_item<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
@@ -83,7 +83,7 @@ fn to_static_item<'ast, 'tcx>(
             data,
             to_api_mutability(cx, rustc_mt),
             to_api_body_id(cx, rustc_body_id),
-            to_api_syntactic_type(cx, ty),
+            to_api_syn_ty(cx, ty),
         )
     })
 }

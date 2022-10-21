@@ -1,7 +1,6 @@
 use crate::{
-    ast::{generic::GenericArgs, DefTyId, SymbolId},
+    ast::{generic::GenericArgs, SymbolId, TyDefId},
     context::AstContext,
-    ffi::FfiSlice,
 };
 
 use super::{CommonTyData, FieldDef, VariantKind};
@@ -10,9 +9,8 @@ use super::{CommonTyData, FieldDef, VariantKind};
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct EnumTy<'ast> {
     data: CommonTyData<'ast>,
-    def_id: DefTyId,
+    def_id: TyDefId,
     generic_args: GenericArgs<'ast>,
-    variants: FfiSlice<'ast, &'ast EnumItem<'ast>>,
     is_non_exhaustive: bool,
     // FIXME: Add representation/layout info like alignment, size, type
 }
@@ -21,16 +19,14 @@ pub struct EnumTy<'ast> {
 impl<'ast> EnumTy<'ast> {
     pub fn new(
         data: CommonTyData<'ast>,
-        def_id: DefTyId,
+        def_id: TyDefId,
         generic_args: GenericArgs<'ast>,
-        variants: FfiSlice<'ast, &'ast EnumItem<'ast>>,
         is_non_exhaustive: bool,
     ) -> Self {
         Self {
             data,
             def_id,
             generic_args,
-            variants,
             is_non_exhaustive,
         }
     }
@@ -39,7 +35,7 @@ impl<'ast> EnumTy<'ast> {
 super::impl_ty_data!(EnumTy<'ast>, Enum);
 
 impl<'ast> EnumTy<'ast> {
-    pub fn def_id(&self) -> DefTyId {
+    pub fn def_id(&self) -> TyDefId {
         self.def_id
     }
 
@@ -48,7 +44,8 @@ impl<'ast> EnumTy<'ast> {
     }
 
     pub fn variants(&self) -> &[&EnumItem<'ast>] {
-        self.variants.get()
+        // Add context method to get these, as they are usually not needed
+        todo!()
     }
 
     pub fn is_non_exhaustive(&self) -> bool {
@@ -60,7 +57,7 @@ impl<'ast> EnumTy<'ast> {
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct EnumItem<'ast> {
     cx: &'ast AstContext<'ast>,
-    def_id: DefTyId,
+    def_id: TyDefId,
     name: SymbolId,
     kind: VariantKind<'ast>,
     // FIXME: Add optional expression for variant number
@@ -68,13 +65,13 @@ pub struct EnumItem<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> EnumItem<'ast> {
-    pub fn new(cx: &'ast AstContext<'ast>, def_id: DefTyId, name: SymbolId, kind: VariantKind<'ast>) -> Self {
+    pub fn new(cx: &'ast AstContext<'ast>, def_id: TyDefId, name: SymbolId, kind: VariantKind<'ast>) -> Self {
         Self { cx, def_id, name, kind }
     }
 }
 
 impl<'ast> EnumItem<'ast> {
-    pub fn def_id(&self) -> DefTyId {
+    pub fn def_id(&self) -> TyDefId {
         self.def_id
     }
 

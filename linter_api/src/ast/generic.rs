@@ -8,6 +8,8 @@ mod lifetime_param;
 pub use lifetime_param::*;
 mod type_param;
 pub use type_param::*;
+mod binding_arg;
+pub use binding_arg::*;
 
 use super::{ty::TyKind, Span};
 
@@ -34,7 +36,16 @@ use super::{ty::TyKind, Span};
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct GenericArgs<'ast> {
     _cx: &'ast AstContext<'ast>,
-    args: FfiSlice<'ast, &'ast GenericArg<'ast>>,
+    args: FfiSlice<'ast, GenericArg<'ast>>,
+}
+
+impl<'ast> GenericArgs<'ast> {
+    pub fn new(cx: &'ast AstContext<'ast>, args: &'ast [GenericArg<'ast>]) -> Self {
+        Self {
+            _cx: cx,
+            args: args.into(),
+        }
+    }
 }
 
 /// A singular generic argument.
@@ -44,8 +55,9 @@ pub struct GenericArgs<'ast> {
 #[non_exhaustive]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub enum GenericArg<'ast> {
-    Lifetime(Lifetime<'ast>),
-    Type(TyKind<'ast>),
+    Lifetime(&'ast Lifetime<'ast>),
+    Type(&'ast TyKind<'ast>),
+    Binding(&'ast TyBinding<'ast>),
     // FIXME: Add GenericArgsConst | GenericArgsBinding
 }
 

@@ -4,6 +4,7 @@ use linter_api::ast::{item::ItemType, Crate};
 
 use crate::context::RustcContext;
 
+pub mod generic;
 pub mod item;
 pub mod ty;
 
