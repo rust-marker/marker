@@ -1,5 +1,5 @@
 use linter_api::{
-    ast::{Span, SpanOwner},
+    ast::{Span, SpanOwner, SymbolId},
     context::DriverCallbacks,
     ffi,
     lint::Lint,
@@ -34,6 +34,7 @@ impl<'ast> DriverContextWrapper<'ast> {
             emit_lint,
             get_span,
             span_snippet,
+            symbol_str,
         }
     }
 }
@@ -53,8 +54,14 @@ extern "C" fn span_snippet<'ast>(data: &(), span: &Span) -> ffi::FfiOption<ffi::
     wrapper.driver_cx.span_snippet(span).map(Into::into).into()
 }
 
+extern "C" fn symbol_str<'ast>(data: &(), sym: SymbolId) -> ffi::Str<'ast> {
+    let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
+    wrapper.driver_cx.symbol_str(sym).into()
+}
+
 pub trait DriverContext<'ast> {
     fn emit_lint(&'ast self, lint: &'static Lint, msg: &str, span: &Span<'ast>);
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast>;
     fn span_snippet(&'ast self, span: &Span) -> Option<&'ast str>;
+    fn symbol_str(&'ast self, sym: SymbolId) -> &'ast str;
 }

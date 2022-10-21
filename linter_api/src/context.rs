@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Span, SpanOwner},
+    ast::{Span, SpanOwner, SymbolId},
     ffi,
     lint::Lint,
 };
@@ -49,6 +49,10 @@ impl<'ast> AstContext<'ast> {
     pub(crate) fn get_span(&self, span_owner: &SpanOwner) -> &'ast Span<'ast> {
         self.driver.call_get_span(span_owner)
     }
+
+    pub(crate) fn symbol_str(&self, sym: SymbolId) -> String {
+        self.driver.call_symbol_str(sym)
+    }
 }
 
 /// This struct holds function pointers to driver implementations of required
@@ -78,6 +82,7 @@ struct DriverCallbacks<'ast> {
     pub emit_lint: for<'a> extern "C" fn(&'ast (), &'static Lint, ffi::Str<'a>, &Span<'ast>),
     pub get_span: extern "C" fn(&'ast (), &SpanOwner) -> &'ast Span<'ast>,
     pub span_snippet: extern "C" fn(&'ast (), &Span) -> ffi::FfiOption<ffi::Str<'ast>>,
+    pub symbol_str: extern "C" fn(&'ast (), SymbolId) -> ffi::Str<'ast>,
 }
 
 impl<'ast> DriverCallbacks<'ast> {
@@ -90,5 +95,8 @@ impl<'ast> DriverCallbacks<'ast> {
     fn call_span_snippet(&self, span: &Span) -> Option<String> {
         let result: Option<ffi::Str> = (self.span_snippet)(self.driver_context, span).into();
         result.map(|x| x.to_string())
+    }
+    fn call_symbol_str(&self, sym: SymbolId) -> String {
+        (self.symbol_str)(self.driver_context, sym).to_string()
     }
 }

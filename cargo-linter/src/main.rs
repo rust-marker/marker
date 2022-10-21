@@ -130,6 +130,7 @@ fn prepare_lint_crate(krate: &str, verbose: bool) -> Result<String, ()> {
             "--out-dir",
             &*LINT_KRATES_OUT_DIR,
         ])
+        .env("RUSTFLAGS", "--cap-lints=allow")
         .spawn()
         .expect("could not run cargo")
         .wait()
@@ -186,6 +187,7 @@ fn validate_driver(verbose: bool) {
 
         let exit_status = cmd
             .args(["build", "-p", "linter_driver_rustc"])
+            .env("RUSTFLAGS", "--cap-lints=allow")
             .spawn()
             .expect("could not run cargo")
             .wait()

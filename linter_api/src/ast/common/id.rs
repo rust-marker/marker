@@ -49,6 +49,31 @@ impl ItemId {
     }
 }
 
+/// This ID uniquely identifies a type during linting, the id is not stable
+/// between different sessions.
+///
+/// The layout and size of this type might change. The id will continue to
+/// provide the current trait implementations.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct TyId {
+    /// The layout of the data is up to the driver implementation. The API will never
+    /// create custom IDs and pass them to the driver. The size of this type might
+    /// change. Drivers should validate the size with tests.
+    data: u64,
+}
+
+#[cfg(feature = "driver-api")]
+impl TyId {
+    pub fn new(data: u64) -> Self {
+        Self { data }
+    }
+
+    pub fn data(&self) -> u64 {
+        self.data
+    }
+}
+
 /// This ID uniquely identifies a body during linting, the id is not stable
 /// between different sessions.
 ///
@@ -84,7 +109,7 @@ impl BodyId {
 #[repr(C)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct SpanId {
+pub(crate) struct SpanId {
     /// The layout of the data is up to the driver implementation. The API will never
     /// create custom IDs and pass them to the driver. The size of this type might
     /// change. Drivers should validate the size with tests.
@@ -110,9 +135,9 @@ impl SpanId {
 ///
 /// FIXME: Don't leak the type once the common data macro was fixed
 #[repr(C)]
-#[doc(hidden)]
+#[cfg_attr(feature = "driver-api", visibility::make(pub))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct SymbolId {
+pub(crate) struct SymbolId {
     /// The layout of the data is up to the driver implementation. The API will never
     /// create custom IDs and pass them to the driver. The size of this type might
     /// change. Drivers should validate the size with tests.
