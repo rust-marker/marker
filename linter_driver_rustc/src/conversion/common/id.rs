@@ -52,8 +52,10 @@ pub fn to_rustc_item_id(_cx: &RustcContext<'_, '_>, api_id: ItemId) -> rustc_hir
     // The layout is validated with the `assert` above
     let layout: ItemIdLayout = unsafe { transmute(api_id) };
     rustc_hir::ItemId {
-        def_id: rustc_hir::def_id::LocalDefId {
-            local_def_index: rustc_hir::def_id::DefIndex::from_u32(layout.index),
+        def_id: rustc_hir::OwnerId {
+            def_id: rustc_hir::def_id::LocalDefId {
+                local_def_index: rustc_hir::def_id::DefIndex::from_u32(layout.index),
+            },
         },
     }
 }
@@ -71,7 +73,7 @@ struct BodyIdLayout {
 pub fn to_api_body_id(_cx: &RustcContext<'_, '_>, rustc_id: rustc_hir::BodyId) -> BodyId {
     assert_eq!(size_of::<BodyId>(), size_of::<BodyIdLayout>(), "the layout is invalid");
     let layout = BodyIdLayout {
-        owner: rustc_id.hir_id.owner.local_def_index.as_u32(),
+        owner: rustc_id.hir_id.owner.def_id.local_def_index.as_u32(),
         index: rustc_id.hir_id.local_id.as_u32(),
     };
     // # Safety
@@ -86,8 +88,10 @@ pub fn to_rustc_body_id(_cx: &RustcContext<'_, '_>, api_id: BodyId) -> rustc_hir
     let layout: BodyIdLayout = unsafe { transmute(api_id) };
     rustc_hir::BodyId {
         hir_id: rustc_hir::HirId {
-            owner: rustc_hir::def_id::LocalDefId {
-                local_def_index: rustc_hir::def_id::DefIndex::from_u32(layout.owner),
+            owner: rustc_hir::OwnerId {
+                def_id: rustc_hir::def_id::LocalDefId {
+                    local_def_index: rustc_hir::def_id::DefIndex::from_u32(layout.owner),
+                },
             },
             local_id: rustc_hir::hir_id::ItemLocalId::from_u32(layout.index),
         },

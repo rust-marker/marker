@@ -68,10 +68,8 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
             rustc_lint,
             rustc_hir::CRATE_HIR_ID,
             to_rustc_span(self, api_span),
-            |diag| {
-                let mut diag = diag.build(msg);
-                diag.emit();
-            },
+            msg,
+            |diag| diag,
         );
     }
 
