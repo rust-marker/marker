@@ -70,6 +70,7 @@ pub enum Abi {
     /// implementations. In general this means that the user has not selected a
     /// specific ABI.
     Default,
+    C,
     /// FIXME: Remove this variant. See
     /// <https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/spec/abi/enum.Abi.html>
     Other,

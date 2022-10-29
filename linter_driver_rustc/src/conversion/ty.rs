@@ -1,9 +1,15 @@
-use linter_api::ast::ty::{
-    ArrayTy, BoolTy, CommonTyData, EnumTy, InferredTy, NeverTy, NumKind, NumTy, RawPtrTy, RefTy, SliceTy, StructTy,
-    TextKind, TextTy, TraitObjTy, TupleTy, TyKind, UnionTy,
+use linter_api::ast::{
+    ty::{
+        ArrayTy, BoolTy, CommonTyData, EnumTy, FnTy, InferredTy, NeverTy, NumKind, NumTy, RawPtrTy, RefTy, SliceTy,
+        StructTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind, UnionTy,
+    },
+    CallableData, Parameter,
 };
 
-use crate::context::RustcContext;
+use crate::{
+    context::RustcContext,
+    conversion::{to_api_abi, to_api_symbol_id},
+};
 
 use super::{
     generic::{to_api_generic_args, to_api_lifetime_from_syn, to_api_trait_bounds_from_hir},
@@ -38,7 +44,7 @@ pub fn to_api_syn_ty<'ast, 'tcx>(
                 to_api_syn_ty(cx, mut_ty.ty),
             )
         })),
-        rustc_hir::TyKind::BareFn(_) => todo!("{:#?}", rustc_ty),
+        rustc_hir::TyKind::BareFn(rust_fn) => to_api_syn_ty_from_bare_fn(cx, data, rust_fn),
         rustc_hir::TyKind::Never => TyKind::Never(cx.storage.alloc(|| NeverTy::new(data))),
         rustc_hir::TyKind::Tup(rustc_tys) => {
             let api_tys = cx
@@ -47,7 +53,11 @@ pub fn to_api_syn_ty<'ast, 'tcx>(
             TyKind::Tuple(cx.storage.alloc(|| TupleTy::new(data, api_tys)))
         },
         rustc_hir::TyKind::Path(qpath) => to_api_syn_ty_from_qpath(cx, data, qpath),
-        rustc_hir::TyKind::OpaqueDef(_, _, _) => todo!("{:#?}", rustc_ty),
+        rustc_hir::TyKind::OpaqueDef(_, _, _) => {
+            // This requires function items to be implemented. Therefore we'll leave this as an open TODO for
+            // now
+            todo!("{:#?}", rustc_ty)
+        },
         rustc_hir::TyKind::TraitObject(rust_bounds, rust_lt, _syntax) => TyKind::TraitObj(
             cx.storage
                 .alloc(|| TraitObjTy::new(data, to_api_trait_bounds_from_hir(cx, rust_bounds, rust_lt))),
@@ -63,6 +73,8 @@ fn to_api_syn_ty_from_qpath<'ast, 'tcx>(
     data: CommonTyData<'ast>,
     qpath: &rustc_hir::QPath<'tcx>,
 ) -> TyKind<'ast> {
+    // FIXME: These `todo!()`s are currently not testable with the limited items
+    // that are in the API. Therefore we'll leave them for another day.
     match qpath {
         rustc_hir::QPath::Resolved(None, path) => match path.res {
             rustc_hir::def::Res::Def(
@@ -145,4 +157,48 @@ fn to_api_syn_ty_from_prim_ty<'ast, 'tcx>(
         },
     };
     TyKind::Num(cx.storage.alloc(|| NumTy::new(data, num_kind)))
+}
+
+fn to_api_syn_ty_from_bare_fn<'ast, 'tcx>(
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    data: CommonTyData<'ast>,
+    rust_fn: &rustc_hir::BareFnTy<'tcx>,
+) -> TyKind<'ast> {
+    assert_eq!(rust_fn.param_names.len(), rust_fn.decl.inputs.len());
+    let params = rust_fn
+        .decl
+        .inputs
+        .iter()
+        .zip(rust_fn.param_names.iter())
+        .map(|(rustc_ty, name)| {
+            cx.storage.alloc(|| {
+                Parameter::new(
+                    cx.ast_cx(),
+                    Some(to_api_symbol_id(cx, name.name)),
+                    Some(to_api_syn_ty(cx, rustc_ty)),
+                    Some(to_api_span_id(cx, name.span)),
+                )
+            })
+        });
+    let params = cx.storage.alloc_slice_iter(params);
+    let return_ty = if let rustc_hir::FnRetTy::Return(rust_ty) = rust_fn.decl.output {
+        Some(to_api_syn_ty(cx, rust_ty))
+    } else {
+        None
+    };
+    TyKind::Fn(cx.storage.alloc(|| {
+        FnTy::new(
+            data,
+            CallableData::new(
+                false,
+                false,
+                matches!(rust_fn.unsafety, rustc_hir::Unsafety::Unsafe),
+                false,
+                to_api_abi(cx, rust_fn.abi),
+                false,
+                params,
+                return_ty,
+            ),
+        )
+    }))
 }

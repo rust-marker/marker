@@ -27,13 +27,16 @@ pub trait Callable<'ast> {
     /// by default.
     fn is_unsafe(&self) -> bool;
 
-    /// Returns `true`, if this callable is marked as extern.
+    /// Returns `true`, if this callable is marked as extern. Bare functions
+    /// only use the `extern` keyword to specify the ABI. These will currently
+    /// still return `false` even if the keyword is present. In those cases,
+    /// please refer to the ABI instead.
     ///
     /// Defaults to `false` if unspecified.
     fn is_extern(&self) -> bool;
 
     /// Returns the [`Abi`] of the callable, if specified.
-    fn abi(&self) -> Option<Abi>;
+    fn abi(&self) -> Abi;
 
     /// Returns `true`, if this callable has a specified `self` argument. The
     /// type of `self` can be retrieved from the first element of
@@ -62,11 +65,16 @@ pub struct Parameter<'ast> {
 impl<'ast> Parameter<'ast> {
     pub fn new(
         cx: &'ast AstContext<'ast>,
-        name: FfiOption<SymbolId>,
-        ty: FfiOption<TyKind<'ast>>,
-        span: FfiOption<SpanId>,
+        name: Option<SymbolId>,
+        ty: Option<TyKind<'ast>>,
+        span: Option<SpanId>,
     ) -> Self {
-        Self { cx, name, ty, span }
+        Self {
+            cx,
+            name: name.into(),
+            ty: ty.into(),
+            span: span.into(),
+        }
     }
 }
 
@@ -94,7 +102,7 @@ pub(crate) struct CallableData<'ast> {
     pub(crate) is_async: bool,
     pub(crate) is_unsafe: bool,
     pub(crate) is_extern: bool,
-    pub(crate) abi: FfiOption<Abi>,
+    pub(crate) abi: Abi,
     pub(crate) has_self: bool,
     pub(crate) params: FfiSlice<'ast, &'ast Parameter<'ast>>,
     pub(crate) return_ty: FfiOption<TyKind<'ast>>,
@@ -108,9 +116,9 @@ impl<'ast> CallableData<'ast> {
         is_async: bool,
         is_unsafe: bool,
         is_extern: bool,
-        abi: Option<Abi>,
+        abi: Abi,
         has_self: bool,
-        params: FfiSlice<'ast, &'ast Parameter<'ast>>,
+        params: &'ast [&'ast Parameter<'ast>],
         return_ty: Option<TyKind<'ast>>,
     ) -> Self {
         Self {
@@ -118,9 +126,9 @@ impl<'ast> CallableData<'ast> {
             is_async,
             is_unsafe,
             is_extern,
-            abi: abi.into(),
+            abi,
             has_self,
-            params,
+            params: params.into(),
             return_ty: return_ty.into(),
         }
     }
@@ -141,8 +149,8 @@ macro_rules! impl_callable_trait {
             fn is_extern(&self) -> bool {
                 self.callable_data.is_extern
             }
-            fn abi(&self) -> Option<$crate::ast::common::Abi> {
-                self.callable_data.abi.get().copied()
+            fn abi(&self) -> $crate::ast::common::Abi {
+                self.callable_data.abi
             }
             fn has_self(&self) -> bool {
                 self.callable_data.has_self
