@@ -306,18 +306,18 @@ pub(crate) enum VariantKind<'ast> {
     /// ```
     /// struct Name(u32, u64);
     /// ```
-    Tuple(FfiSlice<'ast, &'ast FieldDef<'ast>>),
+    Tuple(FfiSlice<'ast, FieldDef<'ast>>),
     /// A field struct like:
     /// ```rs
     /// struct Name {
     ///     field: u32,
     /// };
     /// ```
-    Field(FfiSlice<'ast, &'ast FieldDef<'ast>>),
+    Field(FfiSlice<'ast, FieldDef<'ast>>),
 }
 
 impl<'ast> VariantKind<'ast> {
-    fn fields(&self) -> &'ast [&'ast FieldDef<'ast>] {
+    fn fields(&self) -> &'ast [FieldDef<'ast>] {
         match self {
             VariantKind::Unit => &[],
             VariantKind::Tuple(slice) | VariantKind::Field(slice) => slice.get(),

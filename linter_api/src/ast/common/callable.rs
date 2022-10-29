@@ -46,7 +46,7 @@ pub trait Callable<'ast> {
     /// Returns the parameters, that this callable accepts. The `self` argument
     /// of methods, will be the first element of this slice. Use
     /// [`Callable::has_self`] to determine if the first argument is `self`.
-    fn params(&self) -> &[&Parameter<'ast>];
+    fn params(&self) -> &[Parameter<'ast>];
 
     /// Returns the return type, if specified.
     fn return_ty(&self) -> Option<&TyKind<'ast>>;
@@ -104,7 +104,7 @@ pub(crate) struct CallableData<'ast> {
     pub(crate) is_extern: bool,
     pub(crate) abi: Abi,
     pub(crate) has_self: bool,
-    pub(crate) params: FfiSlice<'ast, &'ast Parameter<'ast>>,
+    pub(crate) params: FfiSlice<'ast, Parameter<'ast>>,
     pub(crate) return_ty: FfiOption<TyKind<'ast>>,
 }
 
@@ -118,7 +118,7 @@ impl<'ast> CallableData<'ast> {
         is_extern: bool,
         abi: Abi,
         has_self: bool,
-        params: &'ast [&'ast Parameter<'ast>],
+        params: &'ast [Parameter<'ast>],
         return_ty: Option<TyKind<'ast>>,
     ) -> Self {
         Self {
@@ -155,7 +155,7 @@ macro_rules! impl_callable_trait {
             fn has_self(&self) -> bool {
                 self.callable_data.has_self
             }
-            fn params(&self) -> &[&$crate::ast::common::Parameter<'ast>] {
+            fn params(&self) -> &[$crate::ast::common::Parameter<'ast>] {
                 self.callable_data.params.get()
             }
             fn return_ty(&self) -> Option<&$crate::ast::ty::TyKind<'ast>> {

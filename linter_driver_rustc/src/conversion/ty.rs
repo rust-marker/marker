@@ -171,14 +171,12 @@ fn to_api_syn_ty_from_bare_fn<'ast, 'tcx>(
         .iter()
         .zip(rust_fn.param_names.iter())
         .map(|(rustc_ty, name)| {
-            cx.storage.alloc(|| {
-                Parameter::new(
-                    cx.ast_cx(),
-                    Some(to_api_symbol_id(cx, name.name)),
-                    Some(to_api_syn_ty(cx, rustc_ty)),
-                    Some(to_api_span_id(cx, name.span)),
-                )
-            })
+            Parameter::new(
+                cx.ast_cx(),
+                Some(to_api_symbol_id(cx, name.name)),
+                Some(to_api_syn_ty(cx, rustc_ty)),
+                Some(to_api_span_id(cx, name.span)),
+            )
         });
     let params = cx.storage.alloc_slice_iter(params);
     let return_ty = if let rustc_hir::FnRetTy::Return(rust_ty) = rust_fn.decl.output {

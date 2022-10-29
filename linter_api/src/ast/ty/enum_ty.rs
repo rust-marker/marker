@@ -43,7 +43,7 @@ impl<'ast> EnumTy<'ast> {
         &self.generic_args
     }
 
-    pub fn variants(&self) -> &[&EnumItem<'ast>] {
+    pub fn variants(&self) -> &[EnumItem<'ast>] {
         // Add context method to get these, as they are usually not needed
         todo!()
     }
@@ -114,7 +114,7 @@ impl<'ast> EnumItem<'ast> {
         matches!(self.kind, VariantKind::Field(_))
     }
 
-    pub fn fields(&self) -> &[&FieldDef<'ast>] {
+    pub fn fields(&self) -> &[FieldDef<'ast>] {
         self.kind.fields()
     }
 }

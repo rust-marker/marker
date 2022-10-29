@@ -72,7 +72,7 @@ impl<'ast> StructTy<'ast> {
         matches!(self.struct_kind(), VariantKind::Field(_))
     }
 
-    pub fn fields(&self) -> &[&FieldDef<'ast>] {
+    pub fn fields(&self) -> &[FieldDef<'ast>] {
         self.struct_kind().fields()
     }
 

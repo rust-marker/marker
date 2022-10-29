@@ -83,14 +83,17 @@ pub enum GenericArg<'ast> {
 #[derive(Debug)]
 pub struct GenericParams<'ast> {
     _cx: &'ast AstContext<'ast>,
-    params: FfiSlice<'ast, &'ast GenericParamKind<'ast>>,
+    params: FfiSlice<'ast, GenericParamKind<'ast>>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> GenericParams<'ast> {
     #[allow(clippy::used_underscore_binding)]
-    pub fn new(_cx: &'ast AstContext<'ast>, params: FfiSlice<'ast, &'ast GenericParamKind<'ast>>) -> Self {
-        Self { _cx, params }
+    pub fn new(_cx: &'ast AstContext<'ast>, params: &'ast [GenericParamKind<'ast>]) -> Self {
+        Self {
+            _cx,
+            params: params.into(),
+        }
     }
 }
 
