@@ -1,6 +1,6 @@
 use crate::{
     ast::ty::TyKind,
-    context::AstContext,
+    context::with_cx,
     ffi::{FfiOption, FfiSlice},
 };
 
@@ -55,7 +55,6 @@ pub trait Callable<'ast> {
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Parameter<'ast> {
-    cx: &'ast AstContext<'ast>,
     name: FfiOption<SymbolId>,
     ty: FfiOption<TyKind<'ast>>,
     span: FfiOption<SpanId>,
@@ -63,14 +62,8 @@ pub struct Parameter<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Parameter<'ast> {
-    pub fn new(
-        cx: &'ast AstContext<'ast>,
-        name: Option<SymbolId>,
-        ty: Option<TyKind<'ast>>,
-        span: Option<SpanId>,
-    ) -> Self {
+    pub fn new(name: Option<SymbolId>, ty: Option<TyKind<'ast>>, span: Option<SpanId>) -> Self {
         Self {
-            cx,
             name: name.into(),
             ty: ty.into(),
             span: span.into(),
@@ -82,7 +75,7 @@ impl<'ast> Parameter<'ast> {
     // Function items actually use patterns and not names. Patterns are not yet
     // implemented though. A pattern should be good enough for now.
     pub fn name(&self) -> Option<String> {
-        self.name.get().map(|sym| self.cx.symbol_str(*sym))
+        self.name.get().map(|sym| with_cx(self, |cx| cx.symbol_str(*sym)))
     }
 
     pub fn ty(&self) -> Option<TyKind<'ast>> {
@@ -90,7 +83,10 @@ impl<'ast> Parameter<'ast> {
     }
 
     pub fn span(&self) -> Option<&Span<'ast>> {
-        self.span.get().copied().map(|span| self.cx.get_span(span))
+        self.span
+            .get()
+            .copied()
+            .map(|span| with_cx(self, |cx| cx.get_span(span)))
     }
 }
 

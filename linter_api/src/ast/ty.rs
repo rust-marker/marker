@@ -1,5 +1,7 @@
+use std::marker::PhantomData;
+
 use crate::{
-    context::AstContext,
+    context::with_cx,
     ffi::{FfiOption, FfiSlice},
 };
 
@@ -235,24 +237,24 @@ use impl_ty_data_fn;
 #[derive(Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) struct CommonTyData<'ast> {
-    cx: &'ast AstContext<'ast>,
+    _lifetime: PhantomData<&'ast ()>,
     span: FfiOption<SpanId>,
     is_syntactic: bool,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> CommonTyData<'ast> {
-    pub fn new_syntactic(cx: &'ast AstContext<'ast>, span: SpanId) -> Self {
+    pub fn new_syntactic(span: SpanId) -> Self {
         Self {
-            cx,
+            _lifetime: PhantomData,
             span: Some(span).into(),
             is_syntactic: true,
         }
     }
 
-    pub fn new_semantic(cx: &'ast AstContext<'ast>) -> Self {
+    pub fn new_semantic() -> Self {
         Self {
-            cx,
+            _lifetime: PhantomData,
             span: FfiOption::None,
             is_syntactic: false,
         }
@@ -276,7 +278,7 @@ macro_rules! impl_ty_data {
                 self.data
                     .span
                     .get()
-                    .map(|span_id| self.data.cx.get_span(*span_id))
+                    .map(|span_id| $crate::context::with_cx(self, |cx| cx.get_span(*span_id)))
             }
 
             fn is_syntactic(&self) -> bool {
@@ -328,7 +330,6 @@ impl<'ast> VariantKind<'ast> {
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct FieldDef<'ast> {
-    cx: &'ast AstContext<'ast>,
     visibility: Visibility<'ast>,
     name: SymbolId,
     ty: TyKind<'ast>,
@@ -336,13 +337,8 @@ pub struct FieldDef<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> FieldDef<'ast> {
-    pub fn new(cx: &'ast AstContext<'ast>, visibility: Visibility<'ast>, name: SymbolId, ty: TyKind<'ast>) -> Self {
-        Self {
-            cx,
-            visibility,
-            name,
-            ty,
-        }
+    pub fn new(visibility: Visibility<'ast>, name: SymbolId, ty: TyKind<'ast>) -> Self {
+        Self { visibility, name, ty }
     }
 }
 
@@ -352,7 +348,7 @@ impl<'ast> FieldDef<'ast> {
     }
 
     pub fn name(&self) -> String {
-        self.cx.symbol_str(self.name)
+        with_cx(self, |cx| cx.symbol_str(self.name))
     }
 
     pub fn ty(&self) -> TyKind<'ast> {

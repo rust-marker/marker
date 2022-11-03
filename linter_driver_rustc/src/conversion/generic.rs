@@ -23,7 +23,7 @@ pub fn to_api_lifetime_from_syn<'ast, 'tcx>(
         },
     };
 
-    Some(Lifetime::new(cx.ast_cx(), Some(to_api_span_id(cx, rust_lt.span)), kind))
+    Some(Lifetime::new(Some(to_api_span_id(cx, rust_lt.span)), kind))
 }
 
 pub fn to_api_generic_args_from_path<'ast, 'tcx>(
@@ -55,7 +55,6 @@ pub fn to_api_generic_args<'ast, 'tcx>(
             rustc_hir::TypeBindingKind::Equality { term } => match term {
                 rustc_hir::Term::Ty(rustc_ty) => GenericArg::Binding(cx.storage.alloc(|| {
                     TyBinding::new(
-                        cx.ast_cx(),
                         Some(to_api_span_id(cx, binding.span)),
                         to_api_symbol_id(cx, binding.ident.name),
                         to_api_syn_ty(cx, rustc_ty),
@@ -65,9 +64,9 @@ pub fn to_api_generic_args<'ast, 'tcx>(
             },
             rustc_hir::TypeBindingKind::Constraint { .. } => todo!(),
         }));
-        GenericArgs::new(cx.ast_cx(), cx.storage.alloc_slice_iter(args.drain(..)))
+        GenericArgs::new(cx.storage.alloc_slice_iter(args.drain(..)))
     } else {
-        GenericArgs::new(cx.ast_cx(), &[])
+        GenericArgs::new(&[])
     }
 }
 
@@ -91,7 +90,7 @@ pub fn to_api_trait_bounds_from_hir<'ast, 'tcx>(
         );
         TypeParamBound::TraitBound(
             cx.storage
-                .alloc(|| TraitBound::new(cx.ast_cx(), false, trait_ref, to_api_span_id(cx, rust_trait_ref.span))),
+                .alloc(|| TraitBound::new(false, trait_ref, to_api_span_id(cx, rust_trait_ref.span))),
         )
     });
 

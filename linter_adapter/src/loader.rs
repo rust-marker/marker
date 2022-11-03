@@ -1,5 +1,6 @@
 use libloading::Library;
 
+use linter_api::context::AstContext;
 use linter_api::lint::Lint;
 use linter_api::LintPass;
 
@@ -10,7 +11,7 @@ pub struct LintCrateRegistry<'ast> {
     passes: Vec<LoadedLintCrate<'ast>>,
 }
 
-impl<'a> LintCrateRegistry<'a> {
+impl<'ast> LintCrateRegistry<'ast> {
     /// # Errors
     /// This can return errors if the library couldn't be found or if the
     /// required symbols weren't provided.
@@ -42,6 +43,12 @@ impl<'a> LintCrateRegistry<'a> {
         }
 
         new_self
+    }
+
+    pub(super) fn set_ast_context(&self, cx: &'ast AstContext<'ast>) {
+        for lint_pass in &self.passes {
+            lint_pass.set_ast_context(cx);
+        }
     }
 }
 
@@ -82,6 +89,7 @@ macro_rules! gen_LoadedLintCrate {
         /// reference due to lifetime restrictions.
         struct LoadedLintCrate<'ast> {
             _lib: &'static Library,
+            set_ast_context: libloading::Symbol<'ast, unsafe extern "C" fn(&'ast AstContext<'ast>) -> ()>,
             $(
                 $fn_name: libloading::Symbol<'ast, unsafe extern "C" fn($($arg_ty,)*) -> $ret_ty>,
             )*
@@ -101,6 +109,11 @@ macro_rules! gen_LoadedLintCrate {
                     return Err(LoadingError::IncompatibleVersion);
                 }
 
+                let set_ast_context = unsafe {
+                    lib.get::<unsafe extern "C" fn(&'ast AstContext<'ast>) -> ()>(b"set_ast_context\0")
+                        .map_err(|_| LoadingError::MissingLintDeclaration)?
+                };
+
                 $(
                     let $fn_name = {
                         let name: Vec<u8> = stringify!($fn_name).bytes().chain(std::iter::once(b'\0')).collect();
@@ -113,10 +126,17 @@ macro_rules! gen_LoadedLintCrate {
                 // create Self
                 Ok(Self {
                     _lib: lib,
+                    set_ast_context,
                     $(
                         $fn_name,
                     )*
                 })
+            }
+
+            fn set_ast_context(&self, cx: &'ast AstContext<'ast>) -> () {
+                unsafe {
+                    (self.set_ast_context)(cx)
+                }
             }
 
             // safe wrapper to external functions

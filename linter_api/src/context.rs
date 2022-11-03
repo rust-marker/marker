@@ -1,8 +1,74 @@
+use std::{cell::RefCell, mem::transmute};
+
 use crate::{
     ast::{Span, SpanOwner, SymbolId},
     ffi,
     lint::Lint,
 };
+
+thread_local! {
+    /// **Warning**
+    ///
+    /// These lifetimes are fake. This [`AstContext`] has the `'ast` lifetime in
+    /// in both places. `'static` is required to store it in a static thread local
+    /// value. The lifetimes are modified and guarded by [`set_ast_cx`] and
+    /// [`with_cx`]
+    ///
+    /// See: `./docs/internal/driver-info.md` for more context
+    #[doc(hidden)]
+    static AST_CX: RefCell<Option<&'static AstContext<'static>>> = RefCell::new(None);
+}
+
+/// **Warning**
+///
+/// This function is unstable and only exported, to enable the adapter to set
+/// the [`AstContext`] for a lint crate. Calling it from outside sources can
+/// lead to undefined behavior.
+///
+/// See: `./docs/internal/driver-info.md` for more context
+#[doc(hidden)]
+pub fn set_ast_cx<'ast>(cx: &'ast AstContext<'ast>) {
+    // Safety:
+    // This `transmute` erases the `'ast` lifetime. This is uncool, but sadly
+    // necessary to store the reference [`AST_CX`]. All accesses are guarded by
+    // the [`with_cx`] function, which resets the lifetime to <= `'ast`.
+    let cx_static: &'static AstContext<'static> = unsafe { transmute(cx) };
+    AST_CX.with(|cx| cx.replace(Some(cx_static)));
+}
+
+/// This function provides the current [`AstContext`]. This function requires an
+/// AST node as a source for its lifetime. In most cases, calling it is as simple
+/// as this function:
+///
+/// ```ignore
+/// pub fn span(&self) -> &Span<'ast> {
+///     with_cx(self, |cx| cx.get_span(self.id))
+/// }
+/// ```
+///
+/// The taken lifetime `'src` is different from `'ast` as it would otherwise require
+/// the API and user to always specify that the node reference also has the `'ast`
+/// lifetime. This might be a bit less descriptive, but makes the interaction way
+/// easier.
+///
+/// See: `./docs/internal/driver-info.md` for more context
+pub(crate) fn with_cx<'src, 'ast: 'src, T, F, R>(_lifetime_src: &'src T, f: F) -> R
+where
+    F: FnOnce(&'src AstContext<'ast>) -> R,
+    'static: 'src,
+{
+    AST_CX.with(|cx| {
+        let cx_static: &'static AstContext<'static> = cx
+            .borrow()
+            .expect("`with_cx` should only be called by nodes once the context has been set");
+        // Safety:
+        // This just recreates the lifetimes that were destroyed in [`set_ast_cx`].
+        // See the referenced docs for a full explanation.
+        let cx_ast: &'src AstContext<'ast> = unsafe { transmute(cx_static) };
+
+        f(cx_ast)
+    })
+}
 
 /// This context will be passed to each [`super::LintPass`] call to enable the user
 /// to emit lints and to retieve nodes by the given ids.

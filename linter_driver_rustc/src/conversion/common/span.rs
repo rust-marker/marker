@@ -8,7 +8,7 @@ pub fn to_api_span<'ast, 'tcx>(cx: &'ast RustcContext<'ast, 'tcx>, rustc_span: r
     let (src, src_info) = to_api_src_info(cx, rustc_span);
     let start = (rustc_span.lo().0 as usize) - src_info.rustc_start_offset;
     let end = (rustc_span.hi().0 as usize) - src_info.rustc_start_offset;
-    cx.storage.alloc(|| Span::new(cx.ast_cx(), src, start, end))
+    cx.storage.alloc(|| Span::new(src, start, end))
 }
 
 fn to_api_src_info<'ast, 'tcx>(

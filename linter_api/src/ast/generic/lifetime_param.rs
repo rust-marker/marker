@@ -1,5 +1,7 @@
+use std::marker::PhantomData;
+
 use crate::ast::{Span, SpanId, SymbolId};
-use crate::context::AstContext;
+use crate::context::{with_cx, AstContext};
 use crate::ffi::{FfiOption, FfiSlice};
 
 use super::{GenericParamData, GenericParamKind};
@@ -94,16 +96,16 @@ pub(crate) enum LifetimeKind {
 #[repr(C)]
 #[derive(PartialEq, Eq, Hash)]
 pub struct Lifetime<'ast> {
-    cx: &'ast AstContext<'ast>,
+    _lifetime: PhantomData<&'ast ()>,
     span: FfiOption<SpanId>,
     kind: LifetimeKind,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Lifetime<'ast> {
-    pub fn new(cx: &'ast AstContext<'ast>, span: Option<SpanId>, kind: LifetimeKind) -> Self {
+    pub fn new(span: Option<SpanId>, kind: LifetimeKind) -> Self {
         Self {
-            cx,
+            _lifetime: PhantomData,
             span: span.into(),
             kind,
         }
@@ -116,7 +118,7 @@ impl<'ast> std::fmt::Debug for Lifetime<'ast> {
             .field(
                 "kind",
                 &match self.kind {
-                    LifetimeKind::Label(sym) => self.cx.symbol_str(sym),
+                    LifetimeKind::Label(sym) => with_cx(self, |cx| cx.symbol_str(sym)),
                     LifetimeKind::Static => "'static".to_string(),
                     LifetimeKind::Infer => "'_".to_string(),
                 },
@@ -129,7 +131,7 @@ impl<'ast> Lifetime<'ast> {
     /// Note that the `'static` lieftime is not a label and will therefore return `None`
     pub fn label(&self) -> Option<String> {
         match self.kind {
-            LifetimeKind::Label(sym) => Some(self.cx.symbol_str(sym)),
+            LifetimeKind::Label(sym) => Some(with_cx(self, |cx| cx.symbol_str(sym))),
             _ => None,
         }
     }
@@ -147,6 +149,6 @@ impl<'ast> Lifetime<'ast> {
     }
 
     pub fn span(&self) -> Option<&Span<'ast>> {
-        self.span.get().map(|span| self.cx.get_span(*span))
+        self.span.get().map(|span| with_cx(self, |cx| cx.get_span(*span)))
     }
 }

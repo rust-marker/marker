@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::context::AstContext;
+use crate::context::with_cx;
 
 use super::{Applicability, AstPath, ItemId, SpanId};
 
@@ -17,7 +17,6 @@ enum SpanSource<'ast> {
 #[repr(C)]
 #[derive(Clone)]
 pub struct Span<'ast> {
-    cx: &'ast AstContext<'ast>,
     source: SpanSource<'ast>,
     /// The start marks the first byte in the [`SpanSource`] that is included in this
     /// span. The span continues until the end position.
@@ -64,7 +63,7 @@ impl<'ast> Span<'ast> {
 
     /// Returns the code that this span references or `None` if the code in unavailable
     pub fn snippet(&self) -> Option<String> {
-        self.cx.span_snipped(self)
+        with_cx(self, |cx| cx.span_snipped(self))
     }
 
     /// Converts a span to a code snippet if available, otherwise returns the default.
@@ -109,8 +108,8 @@ impl<'ast> Span<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Span<'ast> {
-    pub fn new(cx: &'ast AstContext<'ast>, source: SpanSource<'ast>, start: usize, end: usize) -> Self {
-        Self { cx, source, start, end }
+    pub fn new(source: SpanSource<'ast>, start: usize, end: usize) -> Self {
+        Self { source, start, end }
     }
 
     pub fn source(&self) -> SpanSource<'ast> {

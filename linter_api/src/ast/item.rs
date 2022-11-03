@@ -1,6 +1,4 @@
-use std::fmt::Debug;
-
-use crate::context::AstContext;
+use std::{fmt::Debug, marker::PhantomData};
 
 // Item implementations
 mod extern_crate_item;
@@ -25,7 +23,7 @@ pub trait ItemData<'ast>: Debug {
 
     /// The [`Span`] of the entire item. This span should be used for general item related
     /// diagnostics.
-    fn span(&self) -> &'ast Span<'ast>;
+    fn span(&self) -> &Span<'ast>;
 
     /// The visibility of this item.
     fn visibility(&self) -> &Visibility<'ast>;
@@ -91,7 +89,6 @@ use impl_item_type_fn;
 #[derive(Debug)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 struct CommonItemData<'ast> {
-    cx: &'ast AstContext<'ast>,
     id: ItemId,
     vis: Visibility<'ast>,
     name: SymbolId,
@@ -104,8 +101,8 @@ macro_rules! impl_item_data {
                 self.data.id
             }
 
-            fn span(&self) -> &'ast crate::ast::Span<'ast> {
-                self.data.cx.get_span(crate::ast::SpanOwner::Item(self.data.id))
+            fn span(&self) -> &crate::ast::Span<'ast> {
+                $crate::context::with_cx(self, |cx| cx.get_span(self.data.id))
             }
 
             fn visibility(&self) -> &crate::ast::item::Visibility<'ast> {
@@ -113,7 +110,7 @@ macro_rules! impl_item_data {
             }
 
             fn name(&self) -> Option<String> {
-                Some(self.data.cx.symbol_str(self.data.name))
+                Some($crate::context::with_cx(self, |cx| cx.symbol_str(self.data.name)))
             }
 
             fn as_item(&'ast self) -> crate::ast::item::ItemType<'ast> {
@@ -131,8 +128,8 @@ use impl_item_data;
 
 #[cfg(feature = "driver-api")]
 impl<'ast> CommonItemData<'ast> {
-    pub fn new(cx: &'ast AstContext<'ast>, id: ItemId, vis: Visibility<'ast>, name: SymbolId) -> Self {
-        Self { cx, id, vis, name }
+    pub fn new(id: ItemId, vis: Visibility<'ast>, name: SymbolId) -> Self {
+        Self { id, vis, name }
     }
 }
 
@@ -141,15 +138,15 @@ impl<'ast> CommonItemData<'ast> {
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Visibility<'ast> {
-    _cx: &'ast AstContext<'ast>,
+    _lifetime: PhantomData<&'ast ()>,
     _item_id: ItemId,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Visibility<'ast> {
-    pub fn new(cx: &'ast AstContext<'ast>, item_id: ItemId) -> Self {
+    pub fn new(item_id: ItemId) -> Self {
         Self {
-            _cx: cx,
+            _lifetime: PhantomData,
             _item_id: item_id,
         }
     }

@@ -1,5 +1,5 @@
 use crate::ast::{AstPath, ItemId, Span, SpanId, SymbolId};
-use crate::context::AstContext;
+use crate::context::with_cx;
 use crate::ffi::{FfiOption, FfiSlice};
 
 use super::{GenericArgs, GenericParamData, GenericParamKind, Lifetime};
@@ -7,7 +7,6 @@ use super::{GenericArgs, GenericParamData, GenericParamKind, Lifetime};
 #[repr(C)]
 #[derive(Debug)]
 pub struct TypeParam<'ast> {
-    cx: &'ast AstContext<'ast>,
     span: FfiOption<SpanId>,
     ident: SymbolId,
     bounds: FfiSlice<'ast, &'ast TypeParamBound<'ast>>,
@@ -15,24 +14,14 @@ pub struct TypeParam<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TypeParam<'ast> {
-    pub fn new(
-        cx: &'ast AstContext<'ast>,
-        span: FfiOption<SpanId>,
-        ident: SymbolId,
-        bounds: FfiSlice<'ast, &'ast TypeParamBound<'ast>>,
-    ) -> Self {
-        Self {
-            cx,
-            span,
-            ident,
-            bounds,
-        }
+    pub fn new(span: FfiOption<SpanId>, ident: SymbolId, bounds: FfiSlice<'ast, &'ast TypeParamBound<'ast>>) -> Self {
+        Self { span, ident, bounds }
     }
 }
 
 impl<'ast> TypeParam<'ast> {
     pub fn ident(&self) -> String {
-        self.cx.symbol_str(self.ident)
+        with_cx(self, |cx| cx.symbol_str(self.ident))
     }
 
     // FIXME: Should this maybe be a new struct named `TypeParamBounds` as defined
@@ -42,13 +31,13 @@ impl<'ast> TypeParam<'ast> {
     }
 
     pub fn span(&self) -> Option<&Span<'ast>> {
-        self.span.get().map(|sym| self.cx.get_span(*sym))
+        self.span.get().map(|span| with_cx(self, |cx| cx.get_span(*span)))
     }
 }
 
 impl<'ast> GenericParamData<'ast> for TypeParam<'ast> {
     fn span(&self) -> Option<&Span<'ast>> {
-        self.span.get().map(|span| self.cx.get_span(*span))
+        self.span.get().map(|span| with_cx(self, |cx| cx.get_span(*span)))
     }
 }
 
@@ -70,7 +59,6 @@ pub enum TypeParamBound<'ast> {
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct TraitBound<'ast> {
-    cx: &'ast AstContext<'ast>,
     /// This is used for relaxed type bounds like `?Size`. This is probably not
     /// the best representation. Rustc uses a `TraitBoundModifier` enum which
     /// is interesting, but would only have two states right now.
@@ -81,9 +69,8 @@ pub struct TraitBound<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TraitBound<'ast> {
-    pub fn new(cx: &'ast AstContext<'ast>, is_relaxed: bool, trait_ref: TraitRef<'ast>, span: SpanId) -> Self {
+    pub fn new(is_relaxed: bool, trait_ref: TraitRef<'ast>, span: SpanId) -> Self {
         Self {
-            cx,
             is_relaxed,
             trait_ref,
             span,
@@ -105,7 +92,7 @@ impl<'ast> TraitBound<'ast> {
     }
 
     pub fn span(&self) -> &Span<'ast> {
-        self.cx.get_span(self.span)
+        with_cx(self, |cx| cx.get_span(self.span))
     }
 }
 

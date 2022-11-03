@@ -2,7 +2,7 @@
 
 use std::fmt::Debug;
 
-use crate::{context::AstContext, ffi::FfiSlice};
+use crate::ffi::FfiSlice;
 
 mod lifetime_param;
 pub use lifetime_param::*;
@@ -35,16 +35,12 @@ use super::{ty::TyKind, Span};
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct GenericArgs<'ast> {
-    _cx: &'ast AstContext<'ast>,
     args: FfiSlice<'ast, GenericArg<'ast>>,
 }
 
 impl<'ast> GenericArgs<'ast> {
-    pub fn new(cx: &'ast AstContext<'ast>, args: &'ast [GenericArg<'ast>]) -> Self {
-        Self {
-            _cx: cx,
-            args: args.into(),
-        }
+    pub fn new(args: &'ast [GenericArg<'ast>]) -> Self {
+        Self { args: args.into() }
     }
 }
 
@@ -82,18 +78,14 @@ pub enum GenericArg<'ast> {
 #[repr(C)]
 #[derive(Debug)]
 pub struct GenericParams<'ast> {
-    _cx: &'ast AstContext<'ast>,
     params: FfiSlice<'ast, GenericParamKind<'ast>>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> GenericParams<'ast> {
     #[allow(clippy::used_underscore_binding)]
-    pub fn new(_cx: &'ast AstContext<'ast>, params: &'ast [GenericParamKind<'ast>]) -> Self {
-        Self {
-            _cx,
-            params: params.into(),
-        }
+    pub fn new(params: &'ast [GenericParamKind<'ast>]) -> Self {
+        Self { params: params.into() }
     }
 }
 

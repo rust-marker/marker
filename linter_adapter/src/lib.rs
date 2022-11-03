@@ -29,6 +29,8 @@ impl<'ast> Adapter<'ast> {
     }
 
     pub fn process_krate(&mut self, cx: &'ast AstContext<'ast>, krate: &Crate<'ast>) {
+        self.external_lint_crates.set_ast_context(cx);
+
         for item in krate.items() {
             self.external_lint_crates.check_item(cx, *item);
         }

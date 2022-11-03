@@ -20,7 +20,7 @@ pub fn to_api_syn_ty<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
     rustc_ty: &'tcx rustc_hir::Ty<'tcx>,
 ) -> TyKind<'ast> {
-    let data = CommonTyData::new_syntactic(cx.ast_cx(), to_api_span_id(cx, rustc_ty.span));
+    let data = CommonTyData::new_syntactic(to_api_span_id(cx, rustc_ty.span));
 
     // Note about the usage of alloc. Here we can't reuse the types, as they
     // contain unique span. This might be avoidable with #43, but that might
@@ -172,7 +172,6 @@ fn to_api_syn_ty_from_bare_fn<'ast, 'tcx>(
         .zip(rust_fn.param_names.iter())
         .map(|(rustc_ty, name)| {
             Parameter::new(
-                cx.ast_cx(),
                 Some(to_api_symbol_id(cx, name.name)),
                 Some(to_api_syn_ty(cx, rustc_ty)),
                 Some(to_api_span_id(cx, name.span)),

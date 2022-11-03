@@ -21,12 +21,7 @@ pub fn to_api_item<'ast, 'tcx>(
         return Some(item);
     }
 
-    let common_data = CommonItemData::new(
-        cx.ast_cx(),
-        id,
-        Visibility::new(cx.ast_cx(), id),
-        to_api_symbol_id(cx, rustc_item.ident.name),
-    );
+    let common_data = CommonItemData::new(id, Visibility::new(id), to_api_symbol_id(cx, rustc_item.ident.name));
     let item = match rustc_item.kind {
         rustc_hir::ItemKind::Mod(rustc_mod) => ItemType::Mod(to_mod_item(cx, common_data, rustc_mod)),
         rustc_hir::ItemKind::Static(ty, mt, rust_body_id) => {
