@@ -9,6 +9,8 @@ pub use ast_path::*;
 
 use std::fmt::Debug;
 
+use super::generic::GenericArgs;
+
 #[non_exhaustive]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Edition {
@@ -118,3 +120,32 @@ pub trait Attribute<'ast>: Debug {
 }
 
 pub trait Pattern<'ast> {}
+
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct TraitRef<'ast> {
+    item_id: ItemId,
+    generics: GenericArgs<'ast>,
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> TraitRef<'ast> {
+    pub fn new(item_id: ItemId, generics: GenericArgs<'ast>) -> Self {
+        Self { item_id, generics }
+    }
+}
+
+impl<'ast> TraitRef<'ast> {
+    pub fn path(&self) -> &AstPath<'ast> {
+        // Add function to context to retrieve path of defs
+        todo!()
+    }
+
+    pub fn trait_id(&self) -> ItemId {
+        self.item_id
+    }
+
+    pub fn generics(&self) -> &GenericArgs<'ast> {
+        &self.generics
+    }
+}

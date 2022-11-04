@@ -5,7 +5,7 @@
 ///
 /// **Struct initialized with `default()`**
 /// ```ignore
-/// #[derive(Debug)]
+/// #[derive(Default)]
 /// struct LintPassWithDefault;
 /// linter_api::interface::export_lint_pass!(LintPassWithDefault);
 /// ```

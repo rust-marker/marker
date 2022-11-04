@@ -74,6 +74,31 @@ impl TyDefId {
     }
 }
 
+/// This ID uniquely identifies a generic parameter during linting, the id is not stable
+/// between different sessions.
+///
+/// The layout and size of this type might change. The id will continue to
+/// provide the current trait implementations.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct GenericId {
+    /// The layout of the data is up to the driver implementation. The API will never
+    /// create custom IDs and pass them to the driver. The size of this type might
+    /// change. Drivers should validate the size with tests.
+    data: u64,
+}
+
+#[cfg(feature = "driver-api")]
+impl GenericId {
+    pub fn new(data: u64) -> Self {
+        Self { data }
+    }
+
+    pub fn data(&self) -> u64 {
+        self.data
+    }
+}
+
 /// This ID uniquely identifies a body during linting, the id is not stable
 /// between different sessions.
 ///

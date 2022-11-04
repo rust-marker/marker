@@ -1,20 +1,22 @@
-use linter_api::ast::generic::{
-    GenericArg, GenericArgs, Lifetime, LifetimeKind, TraitBound, TraitRef, TyBinding, TypeParamBound,
+use linter_api::ast::{
+    generic::{BindingGenericArg, GenericArgKind, GenericArgs, Lifetime, LifetimeKind, TraitBound, TypeParamBound},
+    TraitRef,
 };
 
 use crate::context::RustcContext;
 
-use super::{to_api_item_id_from_def_id, to_api_span_id, to_api_symbol_id, ty::to_api_syn_ty};
+use super::{to_api_generic_id, to_api_item_id_from_def_id, to_api_span_id, to_api_symbol_id, ty::to_api_syn_ty};
 
 pub fn to_api_lifetime_from_syn<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
     rust_lt: &rustc_hir::Lifetime,
 ) -> Option<Lifetime<'ast>> {
     let kind = match rust_lt.name {
-        rustc_hir::LifetimeName::Param(_, rustc_hir::ParamName::Plain(ident)) => {
-            LifetimeKind::Label(to_api_symbol_id(cx, ident.name))
-        },
-        rustc_hir::LifetimeName::Param(_, rustc_hir::ParamName::Fresh) => todo!("{:#?}", rust_lt),
+        rustc_hir::LifetimeName::Param(local_id, rustc_hir::ParamName::Plain(ident)) => LifetimeKind::Label(
+            to_api_symbol_id(cx, ident.name),
+            to_api_generic_id(cx, local_id.to_def_id()),
+        ),
+        rustc_hir::LifetimeName::Param(_local_id, rustc_hir::ParamName::Fresh) => todo!("{:#?}", rust_lt),
         rustc_hir::LifetimeName::ImplicitObjectLifetimeDefault => return None,
         rustc_hir::LifetimeName::Infer => LifetimeKind::Infer,
         rustc_hir::LifetimeName::Static => LifetimeKind::Static,
@@ -44,17 +46,17 @@ pub fn to_api_generic_args<'ast, 'tcx>(
             .filter(|rustc_arg| !rustc_arg.is_synthetic())
             .map(|rustc_arg| match rustc_arg {
                 rustc_hir::GenericArg::Lifetime(r_lt) => {
-                    GenericArg::Lifetime(cx.storage.alloc(|| to_api_lifetime_from_syn(cx, r_lt).unwrap()))
+                    GenericArgKind::Lifetime(cx.storage.alloc(|| to_api_lifetime_from_syn(cx, r_lt).unwrap()))
                 },
-                rustc_hir::GenericArg::Type(r_ty) => GenericArg::Type(cx.storage.alloc(|| to_api_syn_ty(cx, r_ty))),
+                rustc_hir::GenericArg::Type(r_ty) => GenericArgKind::Ty(cx.storage.alloc(|| to_api_syn_ty(cx, r_ty))),
                 rustc_hir::GenericArg::Const(_) => todo!(),
                 rustc_hir::GenericArg::Infer(_) => todo!(),
             })
             .collect();
         args.extend(rustc_args.bindings.iter().map(|binding| match &binding.kind {
             rustc_hir::TypeBindingKind::Equality { term } => match term {
-                rustc_hir::Term::Ty(rustc_ty) => GenericArg::Binding(cx.storage.alloc(|| {
-                    TyBinding::new(
+                rustc_hir::Term::Ty(rustc_ty) => GenericArgKind::Binding(cx.storage.alloc(|| {
+                    BindingGenericArg::new(
                         Some(to_api_span_id(cx, binding.span)),
                         to_api_symbol_id(cx, binding.ident.name),
                         to_api_syn_ty(cx, rustc_ty),

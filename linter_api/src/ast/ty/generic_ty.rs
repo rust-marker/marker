@@ -1,4 +1,4 @@
-use crate::ast::AstPath;
+use crate::ast::GenericId;
 
 use super::CommonTyData;
 
@@ -6,13 +6,13 @@ use super::CommonTyData;
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct GenericTy<'ast> {
     data: CommonTyData<'ast>,
-    path: AstPath<'ast>,
+    generic_id: GenericId,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> GenericTy<'ast> {
-    pub fn new(data: CommonTyData<'ast>, path: AstPath<'ast>) -> Self {
-        Self { data, path }
+    pub fn new(data: CommonTyData<'ast>, generic_id: GenericId) -> Self {
+        Self { data, generic_id }
     }
 }
 

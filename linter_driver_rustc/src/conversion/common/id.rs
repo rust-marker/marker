@@ -1,6 +1,6 @@
 use std::mem::{size_of, transmute};
 
-use linter_api::ast::{BodyId, CrateId, ItemId, SpanId, SymbolId, TyDefId};
+use linter_api::ast::{BodyId, CrateId, GenericId, ItemId, SpanId, SymbolId, TyDefId};
 
 use crate::context::RustcContext;
 
@@ -90,6 +90,42 @@ pub fn to_rustc_def_id_from_ty_def_id(_cx: &RustcContext<'_, '_>, api_id: TyDefI
     // # Safety
     // The layout is validated with the `assert` above
     let layout: TyDefIdLayout = unsafe { transmute(api_id) };
+    rustc_hir::def_id::DefId {
+        index: rustc_hir::def_id::DefIndex::from_u32(layout.index),
+        krate: rustc_hir::def_id::CrateNum::from_u32(layout.krate),
+    }
+}
+
+#[repr(C)]
+struct GenericIdLayout {
+    krate: u32,
+    index: u32,
+}
+
+pub fn to_api_generic_id(_cx: &RustcContext<'_, '_>, rustc_id: rustc_hir::def_id::DefId) -> GenericId {
+    assert_eq!(
+        size_of::<GenericId>(),
+        size_of::<GenericIdLayout>(),
+        "the layout is invalid"
+    );
+    let layout = GenericIdLayout {
+        krate: rustc_id.krate.as_u32(),
+        index: rustc_id.index.as_u32(),
+    };
+    // # Safety
+    // The layout is validated with the `assert` above
+    unsafe { transmute(layout) }
+}
+
+pub fn to_rustc_def_id_from_generic_id(_cx: &RustcContext<'_, '_>, api_id: GenericId) -> rustc_hir::def_id::DefId {
+    assert_eq!(
+        size_of::<GenericId>(),
+        size_of::<GenericIdLayout>(),
+        "the layout is invalid"
+    );
+    // # Safety
+    // The layout is validated with the `assert` above
+    let layout: GenericIdLayout = unsafe { transmute(api_id) };
     rustc_hir::def_id::DefId {
         index: rustc_hir::def_id::DefIndex::from_u32(layout.index),
         krate: rustc_hir::def_id::CrateNum::from_u32(layout.krate),

@@ -8,19 +8,29 @@
 use super::SymbolId;
 use crate::{
     ast::generic::GenericArgs,
-    context::AstContext,
+    context::with_cx,
     ffi::{FfiOption, FfiSlice},
 };
 
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct AstPath<'ast> {
-    _cx: &'ast AstContext<'ast>,
-    segments: FfiSlice<'ast, &'ast AstPathSegment<'ast>>,
+    // FIXME: Add optional target ID for values lifetimes etc that is faster to compare
+    //
+    // You were last trying to fix the compiler error related to lifetime identification and paths
+    segments: FfiSlice<'ast, AstPathSegment<'ast>>,
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> AstPath<'ast> {
+    pub fn new(segments: FfiSlice<'ast, AstPathSegment<'ast>>) -> Self {
+        Self { segments }
+    }
 }
 
 impl<'ast> AstPath<'ast> {
-    pub fn segments(&self) -> &[&AstPathSegment<'ast>] {
+    // FIXME: Remove reference from slice
+    pub fn segments(&self) -> &[AstPathSegment<'ast>] {
         self.segments.get()
     }
 }
@@ -28,16 +38,14 @@ impl<'ast> AstPath<'ast> {
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct AstPathSegment<'ast> {
-    cx: &'ast AstContext<'ast>,
     ident: SymbolId,
     generic_args: FfiOption<&'ast GenericArgs<'ast>>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> AstPathSegment<'ast> {
-    pub fn new(cx: &'ast AstContext<'ast>, ident: SymbolId, generic_args: Option<&'ast GenericArgs<'ast>>) -> Self {
+    pub fn new(ident: SymbolId, generic_args: Option<&'ast GenericArgs<'ast>>) -> Self {
         Self {
-            cx,
             ident,
             generic_args: generic_args.into(),
         }
@@ -46,7 +54,7 @@ impl<'ast> AstPathSegment<'ast> {
 
 impl<'ast> AstPathSegment<'ast> {
     pub fn ident(&self) -> String {
-        self.cx.symbol_str(self.ident)
+        with_cx(self, |cx| cx.symbol_str(self.ident))
     }
 
     pub fn generic_args(&self) -> Option<&GenericArgs<'ast>> {
