@@ -2,16 +2,15 @@ use std::path::PathBuf;
 
 use crate::context::AstContext;
 
-use super::{Applicability, ItemId, ItemPath, SpanId};
+use super::{Applicability, AstPath, ItemId, SpanId};
 
 #[repr(C)]
 #[doc(hidden)]
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
-#[cfg_attr(not(feature = "driver-api"), allow(dead_code))]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 enum SpanSource<'ast> {
     File(&'ast PathBuf),
-    Macro(&'ast ItemPath<'ast>),
+    Macro(&'ast AstPath<'ast>),
 }
 
 #[repr(C)]

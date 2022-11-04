@@ -1,8 +1,9 @@
 use std::fmt::Debug;
 
-mod extern_crate_item;
 use crate::context::AstContext;
 
+// Item implementations
+mod extern_crate_item;
 pub use self::extern_crate_item::ExternCrateItem;
 mod mod_item;
 pub use self::mod_item::ModItem;
@@ -14,8 +15,7 @@ mod const_item;
 pub use self::const_item::ConstItem;
 
 use super::{
-    ty::{Ty, TyId},
-    Abi, Asyncness, Attribute, BodyId, Constness, ItemId, ItemPath, Pattern, Safety, Span, Symbol, SymbolId,
+    ty::TyKind, Abi, Asyncness, Attribute, BodyId, Constness, ItemId, Pattern, Safety, Span, Symbol, SymbolId,
 };
 
 pub trait ItemData<'ast>: Debug {
@@ -105,7 +105,7 @@ macro_rules! impl_item_data {
             }
 
             fn span(&self) -> &'ast crate::ast::Span<'ast> {
-                self.data.cx.get_span(&crate::ast::SpanOwner::Item(self.data.id))
+                self.data.cx.get_span(crate::ast::SpanOwner::Item(self.data.id))
             }
 
             fn visibility(&self) -> &crate::ast::item::Visibility<'ast> {
@@ -139,7 +139,7 @@ impl<'ast> CommonItemData<'ast> {
 /// FIXME: Add function as  discussed in <https://github.com/rust-linting/design/issues/22>
 /// this will require new driver callback functions
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Visibility<'ast> {
     _cx: &'ast AstContext<'ast>,
     _item_id: ItemId,
@@ -160,7 +160,7 @@ impl<'ast> Visibility<'ast> {
 ///////////////////////////////////////////////////////////////////////////////
 
 pub trait FunctionItem<'ast>: ItemData<'ast> + FnDeclaration<'ast> {
-    fn get_generics(&self) -> &dyn GenericDefs<'ast>;
+    fn get_generics(&self);
 }
 
 /// This is a general trait that is implemented for all types of callable function
@@ -186,7 +186,7 @@ pub trait FnDeclaration<'ast>: Debug {
 
     /// The return type of a function without an explicit return type is the
     /// unit type `()`.
-    fn get_return_ty(&self) -> &dyn Ty<'ast>;
+    fn get_return_ty(&self);
 
     /// This will always return a valid [`BodyId`] for functions, closures and
     /// methods. Trait functions can have a default body but they don't have to.
@@ -198,28 +198,25 @@ pub trait FnParam<'ast>: Debug {
 
     fn get_span(&self) -> &Span<'ast>;
 
-    fn get_ty(&self) -> &dyn Ty<'ast>;
+    fn get_ty(&self);
 }
 
 pub trait TypeAliasItem<'ast>: ItemData<'ast> {
-    /// Returns the [`TyId`] of this type alias, this id is be different from
-    /// the aliased type.
-    fn get_ty_id(&self) -> TyId;
+    fn get_ty_id(&self);
 
-    fn get_generics(&self) -> &dyn GenericDefs<'ast>;
+    fn get_generics(&self);
 
     /// This can return `None` for [`TypeAliasItem`]s asscociated with a trait. For
     /// normal items this will always return `Some` at the time of writing this.
-    fn get_aliased_ty(&self) -> Option<&dyn Ty<'ast>>;
+    fn get_aliased_ty(&self);
 }
 
 pub trait StructItem<'ast>: ItemData<'ast> {
-    /// Returns the [`TyId`] for this struct.
-    fn get_ty_id(&self) -> TyId;
+    fn get_ty_id(&self);
 
     fn get_kind(&self) -> AdtVariantData<'ast>;
 
-    fn get_generics(&self) -> &'ast dyn GenericDefs<'ast>;
+    fn get_generics(&self);
 
     // FIXME: Add layout information
 }
@@ -267,21 +264,18 @@ pub trait AdtField<'ast>: Debug {
     /// This will return the span of the field, exclusing the field attributes.
     fn get_span(&'ast self) -> &'ast Span<'ast>;
 
-    fn get_visibility(&'ast self) -> VisibilityOld<'ast>;
-
     fn get_name(&'ast self) -> Symbol;
 
-    fn get_ty(&'ast self) -> &'ast dyn Ty<'ast>;
+    fn get_ty(&'ast self);
 }
 
 /// See: <https://doc.rust-lang.org/reference/items/enumerations.html>
 pub trait EnumItem<'ast>: ItemData<'ast> {
-    /// Returns the [`TyId`] for this struct.
-    fn get_ty_id(&self) -> TyId;
+    fn get_ty_id(&self);
 
     fn get_variants(&self) -> &[&dyn EnumVariant<'ast>];
 
-    fn get_generics(&self) -> &'ast dyn GenericDefs<'ast>;
+    fn get_generics(&self);
 
     // FIXME: Add layout information
 }
@@ -299,7 +293,7 @@ pub trait EnumVariant<'ast>: Debug {
 
 /// An anonymous constant.
 pub trait AnonConst<'ast>: Debug {
-    fn get_ty(&self) -> &'ast dyn Ty<'ast>;
+    fn get_ty(&self);
 
     // FIXME: This should return a expression once they are implemented, it would
     // probably be good to have an additional `get_value_lit` that returns a literal,
@@ -308,8 +302,7 @@ pub trait AnonConst<'ast>: Debug {
 }
 
 pub trait UnionItem<'ast>: ItemData<'ast> {
-    /// Returns the [`TyId`] for this union.
-    fn get_ty_id(&self) -> TyId;
+    fn get_ty_id(&self);
 
     /// This will at the time of writitng this always return the [`AdtVariantData::Field`]
     /// variant. [`AdtVariantData`] is still used as a wrapper to support common util
@@ -320,14 +313,13 @@ pub trait UnionItem<'ast>: ItemData<'ast> {
 }
 
 pub trait TraitItem<'ast>: ItemData<'ast> {
-    /// Returns the [`TyId`] for this trait.
-    fn get_ty_id(&self) -> TyId;
+    fn get_ty_id(&self);
 
     fn get_safety(&self) -> Safety;
 
-    fn get_generics(&self) -> &dyn GenericDefs<'ast>;
+    fn get_generics(&self);
 
-    fn get_super_traits(&self) -> &[&dyn Ty<'ast>];
+    fn get_super_traits(&self) -> &[&TyKind<'ast>];
 
     /// This returns all associated items that are defined by this trait
     fn get_assoc_items(&self) -> &[AssocItem<'ast>];
@@ -349,11 +341,11 @@ pub trait ImplItem<'ast>: ItemData<'ast> {
     fn get_polarity(&self) -> ImplPolarity;
 
     /// This will return `Some` if this is a trait implementation, otherwiese `None`.
-    fn get_trait(&self) -> Option<&dyn Ty<'ast>>;
+    fn get_trait(&self) -> Option<&TyKind<'ast>>;
 
-    fn get_ty(&self) -> &dyn Ty<'ast>;
+    fn get_ty(&self) -> &TyKind<'ast>;
 
-    fn get_generics(&self) -> &dyn GenericDefs<'ast>;
+    fn get_generics(&self);
 
     fn get_assoc_items(&self) -> &[AssocItem<'ast>];
 }
@@ -396,121 +388,4 @@ pub enum UseKind {
     Single,
     /// A glob import like `use foo::*`
     Glob,
-}
-
-/// The visibility of items.
-///
-/// See: <https://doc.rust-lang.org/reference/visibility-and-privacy.html>
-#[non_exhaustive]
-#[derive(Debug)]
-#[allow(clippy::enum_variant_names)]
-pub enum VisibilityOld<'ast> {
-    Pub,
-    /// Visible in the current module, equivialent to `pub(in self)` or no visibility
-    PubSelf,
-    PubCrate,
-    PubPath(&'ast ItemPath<'ast>),
-    PubSuper,
-    None,
-}
-
-/// The generic definitions belonging to an item
-pub trait GenericDefs<'ast>: Debug {
-    fn get_generics(&self) -> &'ast [&'ast dyn GenericParam<'ast>];
-
-    /// This function returns all bounds set for the given item. The bounds are a
-    /// combination of direct bounds (`<T: Debug>`) and `where` conditions (`where T: Debug`)
-    fn get_bounds(&self); // FIXME: Add return type
-}
-
-#[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct GenericParamId {
-    owner: ItemId,
-    index: usize,
-}
-
-#[cfg(feature = "driver-api")]
-impl GenericParamId {
-    #[must_use]
-    pub fn new(owner: ItemId, index: usize) -> Self {
-        Self { owner, index }
-    }
-
-    pub fn get_data(&self) -> (ItemId, usize) {
-        (self.owner, self.index)
-    }
-}
-
-/// A generic parameter for a function or struct.
-pub trait GenericParam<'ast>: Debug {
-    fn get_id(&self) -> GenericParamId;
-
-    /// This returns the span of generic identifier.
-    fn get_span(&self) -> &'ast Span<'ast>;
-
-    /// This returns the name of the generic, this can return `None` for unnamed
-    /// or implicit generics. For lifetimes this will include the leading apostrophe.
-    ///
-    /// Examples: `T`, `'ast`
-    fn get_name(&self) -> Option<Symbol>;
-
-    fn get_kind(&self) -> GenericKind<'ast>;
-}
-
-#[non_exhaustive]
-#[derive(Debug)]
-pub enum GenericKind<'ast> {
-    Lifetime,
-    Type {
-        default: Option<&'ast dyn Ty<'ast>>,
-    },
-    Const {
-        ty: &'ast dyn Ty<'ast>,
-        default: Option<&'ast dyn AnonConst<'ast>>,
-    },
-}
-
-/// This represents a single bound for a given generic. Several bounds will be split up
-/// into multiple predicates:
-///
-/// | Rust                   | Simplified Representation                                  |
-/// | ---------------------- | ---------------------------------------------------------  |
-/// | `'x: 'a + 'b + 'c`     | ``[Outlives('x: 'a), Outlives('x: 'b), Outlives('x: 'c)]`` |
-/// | `T: Debug + 'a`        | ``[TraitBound(`T: Debug`), LifetimeBound(`T: 'a`)]``       |
-///
-/// FIXME: This is still missing a representation for predicates with for lifetimes like:
-/// `for<'a> T: 'a`
-#[non_exhaustive]
-#[derive(Debug)]
-pub enum GenericPredicate<'ast> {
-    /// A outlive bound like:
-    /// * `'a: 'x`
-    Outlives {
-        lifetime: GenericParamId,
-        outlived_by: GenericParamId,
-    },
-    /// A trait bound like:
-    /// * `T: Debug`
-    /// * `T: ?Sized`
-    /// * `I::Item: Copy`
-    TraitBound {
-        ty: &'ast dyn Ty<'ast>,
-        bound: TyId,
-        modifier: TraitBoundModifier,
-    },
-    /// A type lifetime bound like: `T: 'a`
-    LifetimeBound {
-        ty: &'ast dyn Ty<'ast>,
-        outlived_by: GenericParamId,
-    },
-}
-
-#[non_exhaustive]
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum TraitBoundModifier {
-    /// A trait like: `T: Debug`
-    None,
-    /// An optional trait like: `T: ?Sized`
-    Maybe,
 }

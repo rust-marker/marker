@@ -1,139 +1,360 @@
-use std::fmt::Debug;
+use crate::{
+    context::AstContext,
+    ffi::{FfiOption, FfiSlice},
+};
 
-use super::{CrateId, Lifetime, Mutability};
+use super::{item::Visibility, Span, SpanId, SymbolId};
 
-/// Rustc uses two different types, one for the IR and one for type resolution
-/// and type checking. In this crate, we attempt to combine both into one trait
-/// for simplicity. However, this also means that some functions are only meant
-/// for one use-case. [`Ty::is_infered`] is an example for this as only type
-/// annotations in code can have inferred types.
-pub trait Ty<'ast>: Debug {
-    fn get_kind(&'ast self) -> &'ast TyKind<'ast>;
+// Primitive types
+mod bool_ty;
+pub use bool_ty::*;
+mod text_ty;
+pub use text_ty::*;
+mod num_ty;
+pub use num_ty::*;
+mod never_ty;
+pub use never_ty::*;
+// Sequence types
+mod tuple_ty;
+pub use tuple_ty::*;
+mod array_ty;
+pub use array_ty::*;
+mod slice_ty;
+pub use slice_ty::*;
+// User defined types
+mod struct_ty;
+pub use struct_ty::*;
+mod enum_ty;
+pub use enum_ty::*;
+mod union_ty;
+pub use union_ty::*;
+// Function types
+mod fn_ty;
+pub use fn_ty::*;
+mod closure_ty;
+pub use closure_ty::*;
+// Pointer types
+mod ref_ty;
+pub use ref_ty::*;
+mod raw_ptr_ty;
+pub use raw_ptr_ty::*;
+mod fn_ptr_ty;
+pub use fn_ptr_ty::*;
+// Trait types
+mod trait_obj_ty;
+pub use trait_obj_ty::*;
+mod impl_trait_ty;
+pub use impl_trait_ty::*;
+// Syntactic types
+mod inferred_ty;
+pub use inferred_ty::*;
+mod generic_ty;
+pub use generic_ty::*;
 
-    fn is_unit(&'ast self) -> bool {
-        matches!(self.get_kind(), TyKind::Tuple(&[]))
-    }
+pub trait TyData<'ast> {
+    fn as_kind(&'ast self) -> TyKind<'ast>;
 
-    /// In the expression `let v: Vec<_> = vec![1, 2, 3]`, the type would be
-    /// `Vec<i32>` with `i32` being inferred by the usage.
-    fn is_infered(&self) -> bool;
+    /// The [`Span`] of the type, if it's written in the source code. Only
+    /// syntactic types can have spans attached to them.
+    ///
+    /// Currently, every syntactic type will return a valid [`Span`] this can
+    /// change in the future.
+    fn span(&self) -> Option<&Span<'ast>>;
+
+    // FIXME: I feel like `is_syntactic` and `is_semantic` are not the best
+    // names to distinguish between the two sources, but I can't think of
+    // something better, rn.
+
+    /// Returns `true`, if this type instance originates from a written type.
+    /// These types can have a [`Span`] attached to them.
+    ///
+    /// In the expression `let x: Vec<_> = vec![15];` the type declaration
+    /// `: Vec<_>` syntactic type written by the user with a [`Span`]. The
+    /// semantic type is `Vec<u32>`. Notice that the semantic type includes
+    /// the inferred `u32` type in the vector. This separation also means, that
+    /// a variable can have two different kinds, the written syntactic one and
+    /// the semantic one.
+    fn is_syntactic(&self) -> bool;
+
+    /// Returns `true`, if this type instance is a semantic type, which was
+    /// determined by the driver during translation.
+    ///
+    /// See [`is_syntactic`][`TyData::is_syntactic`] for an example.
+    fn is_semantic(&self) -> bool;
 }
 
+#[repr(C)]
 #[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct TyId {
-    krate: CrateId,
-    index: u32,
-}
-
-#[cfg(feature = "driver-api")]
-impl TyId {
-    #[must_use]
-    pub fn new(krate: CrateId, index: u32) -> Self {
-        Self { krate, index }
-    }
-
-    pub fn get_data(&self) -> (CrateId, u32) {
-        (self.krate, self.index)
-    }
-}
-
-#[non_exhaustive]
-#[derive(Clone, Debug)]
-/// See: <https://doc.rust-lang.org/reference/types.html>
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum TyKind<'ast> {
-    Bool,
-    Numeric(NumericKind),
-    Textual(TextualKind),
-    Never,
-    /// See: <https://doc.rust-lang.org/reference/types/tuple.html>
-    Tuple(&'ast [&'ast dyn Ty<'ast>]),
-    /// See: <https://doc.rust-lang.org/reference/types/array.html>
+    // ================================
+    // Primitive types
+    // ================================
+    /// The `bool` type
+    Bool(&'ast BoolTy<'ast>),
+    /// A numeric type like `u32`, `i32`, `f64`
+    Num(&'ast NumericTy<'ast>),
+    /// A textual type like `char` or `str`
+    Text(&'ast TextTy<'ast>),
+    /// The never type `!`
+    Never(&'ast NeverTy<'ast>),
+    // ================================
+    // Sequence types
+    // ================================
+    /// A tuple type like `()`, `(T, U)`
+    Tuple(&'ast TupleTy<'ast>),
+    /// An array with a known size like: `[T; n]`
+    Array(&'ast ArrayTy<'ast>),
+    /// A variable length slice like `[T]`
+    Slice(&'ast SliceTy<'ast>),
+    // ================================
+    // User define types
+    // ================================
+    Struct(&'ast StructTy<'ast>),
+    Enum(&'ast EnumTy<'ast>),
+    Union(&'ast UnionTy<'ast>),
+    // ================================
+    // Function types
+    // ================================
+    Fn(&'ast FnTy<'ast>),
+    Closure(&'ast ClosureTy<'ast>),
+    // ================================
+    // Pointer types
+    // ================================
+    /// A reference like `&T` or `&mut T`
+    Ref(&'ast RefTy<'ast>),
+    /// A raw pointer like `*const T` or `*mut T`
+    RawPtr(&'ast RawPtrTy<'ast>),
+    /// A function pointer like `fn (T) -> U`
+    FnPtr(&'ast FnPtrTy<'ast>),
+    // ================================
+    // Trait types
+    // ================================
+    /// A trait object like `dyn Trait`
+    TraitObj(&'ast TraitObjTy<'ast>),
+    /// An `impl Trait` type like:
     ///
-    /// FIXME: Add index expression
-    Array(&'ast dyn Ty<'ast>),
-    /// See: <https://doc.rust-lang.org/reference/types/slice.html>
-    Slice(&'ast dyn Ty<'ast>),
-
-    /// Algebraic data types (ADT) for instance structs, enums and unions.
+    /// ```
+    /// trait Trait {}
+    /// # impl Trait for () {}
     ///
-    /// The inner type is linked with the given [`TyId`] this allows the representation
-    /// of recursive data types, containing variations of themselves and simple type comparison
-    /// using the [`TyId`]
-    Adt(TyId),
-
-    Ref(&'ast dyn Ty<'ast>, Mutability, &'ast dyn Lifetime<'ast>),
-
-    RawPtr(&'ast dyn Ty<'ast>, Mutability),
-
-    Fn(&'ast FunctionTy<'ast>),
-    // FIXME Closure
-    ImplTrait(TyId),
-
-    DynTrait(TyId),
-
-    /// A type alias like `type Foo = Bar`. The [`TyId`] belongs to the aliased
-    /// type, in this case it would be the id of `Bar`.
-    TyAlias(TyId),
-
-    /// A type from an `extern` block
-    ForeignTy(TyId),
-
-    /// This value is used a type contains a type that is only available on nightly
-    Unsupported,
+    /// // argument position: anonymous type parameter
+    /// fn foo(arg: impl Trait) {
+    /// }
+    ///
+    /// // return position: abstract return type
+    /// fn bar() -> impl Trait {
+    /// }
+    /// ```
+    ///
+    /// See: <https://doc.rust-lang.org/stable/reference/types/impl-trait.html>
+    ImplTrait(&'ast ImplTraitTy<'ast>),
+    // ================================
+    // Syntactic type
+    // ================================
+    /// An inferred type
+    Inferred(&'ast InferredTy<'ast>),
+    /// A generic type, that has been specified in a surrounding item
+    Generic(&'ast GenericTy<'ast>),
 }
 
-/// See: <https://doc.rust-lang.org/reference/types/numeric.html>
-#[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NumericKind {
-    Isize,
-    I8,
-    I16,
-    I32,
-    I64,
-    I128,
-    Usize,
-    U8,
-    U16,
-    U32,
-    U64,
-    U128,
-    F32,
-    F64,
+impl<'ast> TyKind<'ast> {
+    /// Returns `true` if this is a primitive type.
+    #[must_use]
+    pub fn is_primitive_ty(&self) -> bool {
+        matches!(self, Self::Bool(..) | Self::Num(..) | Self::Text(..) | Self::Never(..))
+    }
+
+    /// Returns `true` if this is a sequence type.
+    #[must_use]
+    pub fn is_sequence_ty(&self) -> bool {
+        matches!(self, Self::Tuple(..) | Self::Array(..) | Self::Slice(..))
+    }
+
+    /// Returns `true` if this is a user defined type.
+    #[must_use]
+    pub fn is_user_defined_type(&self) -> bool {
+        matches!(self, Self::Struct(..) | Self::Enum(..) | Self::Union(..))
+    }
+
+    /// Returns `true` if the ty kind is function type.
+    #[must_use]
+    pub fn is_fn(&self) -> bool {
+        matches!(self, Self::Fn(..) | Self::Closure(..))
+    }
+
+    /// Returns `true` if this is a pointer type.
+    #[must_use]
+    pub fn is_ptr_ty(&self) -> bool {
+        matches!(self, Self::Ref(..) | Self::RawPtr(..) | Self::FnPtr(..))
+    }
+
+    /// Returns `true` if the ty kind is trait type.
+    #[must_use]
+    pub fn is_trait_ty(&self) -> bool {
+        matches!(self, Self::TraitObj(..) | Self::ImplTrait(..))
+    }
+
+    /// Returns `true` if the ty kind is syntactic type, meaning a type that is
+    /// only used in syntax like [`TyKind::Inferred`] and [`TyKind::Generic`].
+    ///
+    /// See [`TyKind::is_syntactic()`] to check if this type originates from
+    /// a syntactic definition.
+    #[must_use]
+    pub fn is_inferred(&self) -> bool {
+        matches!(self, Self::Inferred(..))
+    }
 }
 
-/// See: <https://doc.rust-lang.org/reference/types/textual.html>
-#[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum TextualKind {
-    Char,
-    Str,
+impl<'ast> TyKind<'ast> {
+    impl_ty_data_fn!(span() -> Option<&Span<'ast>>);
+    impl_ty_data_fn!(is_syntactic() -> bool);
+    impl_ty_data_fn!(is_semantic() -> bool);
 }
 
-// This is an extra type as I expect that this can be expanded in the future
-#[non_exhaustive]
-#[derive(Debug)]
-pub struct FunctionTy<'ast> {
-    return_ty: Option<&'ast dyn Ty<'ast>>,
+/// Until [trait upcasting](https://github.com/rust-lang/rust/issues/65991) has been implemented
+/// and stabilized we need this to call [`TyData`] functions for every [`TyKind`].
+macro_rules! impl_ty_data_fn {
+    ($method:ident () -> $return_ty:ty) => {
+        impl_ty_data_fn!($method() -> $return_ty,
+        Bool, Num, Text, Never, Tuple, Array, Slice, Struct, Enum, Union,
+        Fn, Closure, Ref, RawPtr, FnPtr, TraitObj, ImplTrait, Inferred, Generic);
+    };
+    ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
+        pub fn $method(&self) -> $return_ty {
+            match self {
+                $(TyKind::$item(data) => data.$method(),)*
+            }
+        }
+    };
+}
 
-    args: &'ast [&'ast dyn Ty<'ast>],
+use impl_ty_data_fn;
+
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "driver-api", visibility::make(pub))]
+pub(crate) struct CommonTyData<'ast> {
+    cx: &'ast AstContext<'ast>,
+    span: FfiOption<SpanId>,
+    is_syntactic: bool,
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> FunctionTy<'ast> {
-    #[must_use]
-    pub fn new(return_ty: Option<&'ast dyn Ty<'ast>>, args: &'ast [&'ast dyn Ty<'ast>]) -> Self {
-        Self { return_ty, args }
+impl<'ast> CommonTyData<'ast> {
+    pub fn new_syntactic(cx: &'ast AstContext<'ast>, span: SpanId) -> Self {
+        Self {
+            cx,
+            span: Some(span).into(),
+            is_syntactic: true,
+        }
+    }
+
+    pub fn new_semantic(cx: &'ast AstContext<'ast>) -> Self {
+        Self {
+            cx,
+            span: FfiOption::None,
+            is_syntactic: false,
+        }
     }
 }
 
-impl<'ast> FunctionTy<'ast> {
-    pub fn get_return_ty(&'ast self) -> Option<&'ast dyn Ty<'ast>> {
-        self.return_ty
+macro_rules! impl_ty_data {
+    ($self_ty:ty, $enum_name:ident) => {
+        impl<'ast> From<&'ast $self_ty> for $crate::ast::ty::TyKind<'ast> {
+            fn from(from: &'ast $self_ty) -> Self {
+                $crate::ast::ty::TyKind::$enum_name(from)
+            }
+        }
+
+        impl<'ast> $crate::ast::ty::TyData<'ast> for $self_ty {
+            fn as_kind(&'ast self) -> $crate::ast::ty::TyKind<'ast> {
+                self.into()
+            }
+
+            fn span(&self) -> Option<&$crate::ast::Span<'ast>> {
+                self.data
+                    .span
+                    .get()
+                    .map(|span_id| self.data.cx.get_span(*span_id))
+            }
+
+            fn is_syntactic(&self) -> bool {
+                self.data.is_syntactic
+            }
+
+            fn is_semantic(&self) -> bool {
+                !self.data.is_syntactic
+            }
+        }
+    };
+}
+use impl_ty_data;
+
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "driver-api", visibility::make(pub))]
+pub(crate) enum VariantKind<'ast> {
+    /// A unit struct like:
+    /// ```
+    /// struct Name1;
+    /// struct Name2 {};
+    /// ```
+    Unit,
+    /// A tuple struct like:
+    /// ```
+    /// struct Name(u32, u64);
+    /// ```
+    Tuple(FfiSlice<'ast, &'ast FieldDef<'ast>>),
+    /// A field struct like:
+    /// ```rs
+    /// struct Name {
+    ///     field: u32,
+    /// };
+    /// ```
+    Field(FfiSlice<'ast, &'ast FieldDef<'ast>>),
+}
+
+impl<'ast> VariantKind<'ast> {
+    fn fields(&self) -> &[&FieldDef<'ast>] {
+        match self {
+            VariantKind::Unit => &[],
+            VariantKind::Tuple(slice) | VariantKind::Field(slice) => slice.get(),
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct FieldDef<'ast> {
+    cx: &'ast AstContext<'ast>,
+    visibility: Visibility<'ast>,
+    name: SymbolId,
+    ty: TyKind<'ast>,
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> FieldDef<'ast> {
+    pub fn new(cx: &'ast AstContext<'ast>, visibility: Visibility<'ast>, name: SymbolId, ty: TyKind<'ast>) -> Self {
+        Self {
+            cx,
+            visibility,
+            name,
+            ty,
+        }
+    }
+}
+
+impl<'ast> FieldDef<'ast> {
+    pub fn visibility(&self) -> &Visibility<'ast> {
+        &self.visibility
     }
 
-    pub fn get_args(&'ast self) -> &'ast [&'ast dyn Ty<'ast>] {
-        self.args
+    pub fn name(&self) -> String {
+        self.cx.symbol_str(self.name)
+    }
+
+    pub fn ty(&self) -> TyKind<'ast> {
+        self.ty
     }
 }

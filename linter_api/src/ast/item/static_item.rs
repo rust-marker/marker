@@ -1,4 +1,4 @@
-use crate::ast::{ty::Ty, BodyId, Mutability};
+use crate::ast::{ty::TyKind, BodyId, Mutability};
 
 use super::CommonItemData;
 
@@ -30,7 +30,7 @@ impl<'ast> StaticItem<'ast> {
     }
 
     /// The defined type of this static item
-    pub fn ty(&'ast self) -> &'ast dyn Ty<'ast> {
+    pub fn ty(&self) -> &TyKind<'ast> {
         #![allow(clippy::missing_panics_doc, clippy::unused_self)]
         todo!()
     }

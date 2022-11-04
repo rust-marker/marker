@@ -17,6 +17,17 @@ impl<'ast> std::fmt::Debug for AstContext<'ast> {
     }
 }
 
+impl<'ast> std::hash::Hash for AstContext<'ast> {
+    fn hash<H: std::hash::Hasher>(&self, _state: &mut H) {}
+}
+
+impl<'ast> std::cmp::PartialEq for AstContext<'ast> {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+    }
+}
+impl<'ast> std::cmp::Eq for AstContext<'ast> {}
+
 #[cfg(feature = "driver-api")]
 impl<'ast> AstContext<'ast> {
     pub fn new(driver: &'ast DriverCallbacks<'ast>) -> Self {
@@ -46,8 +57,8 @@ impl<'ast> AstContext<'ast> {
         self.driver.call_span_snippet(span)
     }
 
-    pub(crate) fn get_span(&self, span_owner: &SpanOwner) -> &'ast Span<'ast> {
-        self.driver.call_get_span(span_owner)
+    pub(crate) fn get_span<T: Into<SpanOwner>>(&self, span_owner: T) -> &'ast Span<'ast> {
+        self.driver.call_get_span(&span_owner.into())
     }
 
     pub(crate) fn symbol_str(&self, sym: SymbolId) -> String {
