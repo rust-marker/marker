@@ -1,4 +1,4 @@
 [toolchain]
-channel = "nightly-2022-10-20"
+channel = "nightly-2022-11-03"
 components = ["cargo", "llvm-tools-preview", "rust-src", "rust-std", "rustc", "rustc-dev", "rustfmt"]
 # This has to be synced with the toolchain in `github/workflows`

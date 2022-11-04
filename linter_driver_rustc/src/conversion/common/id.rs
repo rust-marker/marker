@@ -21,7 +21,7 @@ struct ItemIdLayout {
 }
 
 pub fn to_api_item_id(cx: &RustcContext<'_, '_>, rustc_id: rustc_hir::ItemId) -> ItemId {
-    to_api_item_id_from_def_id(cx, rustc_id.def_id.to_def_id())
+    to_api_item_id_from_def_id(cx, rustc_id.owner_id.to_def_id())
 }
 
 pub fn to_api_item_id_from_def_id(_cx: &RustcContext<'_, '_>, rustc_id: rustc_hir::def_id::DefId) -> ItemId {
@@ -52,7 +52,7 @@ pub fn to_rustc_item_id(_cx: &RustcContext<'_, '_>, api_id: ItemId) -> rustc_hir
     // The layout is validated with the `assert` above
     let layout: ItemIdLayout = unsafe { transmute(api_id) };
     rustc_hir::ItemId {
-        def_id: rustc_hir::OwnerId {
+        owner_id: rustc_hir::OwnerId {
             def_id: rustc_hir::def_id::LocalDefId {
                 local_def_index: rustc_hir::def_id::DefIndex::from_u32(layout.index),
             },

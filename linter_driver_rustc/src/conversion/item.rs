@@ -16,7 +16,7 @@ pub fn to_api_item<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
     rustc_item: &'tcx rustc_hir::Item<'tcx>,
 ) -> Option<ItemType<'ast>> {
-    let id = to_api_item_id_from_def_id(cx, rustc_item.def_id.to_def_id());
+    let id = to_api_item_id_from_def_id(cx, rustc_item.owner_id.to_def_id());
     if let Some(item) = cx.storage.item(id) {
         return Some(item);
     }
