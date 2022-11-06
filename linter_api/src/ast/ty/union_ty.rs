@@ -1,6 +1,6 @@
 use crate::ast::{generic::GenericArgs, TyDefId};
 
-use super::{CommonTyData, FieldDef};
+use super::CommonTyData;
 
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -31,10 +31,5 @@ impl<'ast> UnionTy<'ast> {
 
     pub fn generic_args(&self) -> &GenericArgs<'ast> {
         &self.generic_args
-    }
-
-    pub fn fields(&self) -> &[&FieldDef<'ast>] {
-        // Add context function to retrieve fields as they are rarely used here
-        todo!()
     }
 }

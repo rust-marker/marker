@@ -1,11 +1,8 @@
 use std::marker::PhantomData;
 
-use crate::{
-    context::with_cx,
-    ffi::{FfiOption, FfiSlice},
-};
+use crate::ffi::FfiOption;
 
-use super::{item::Visibility, Span, SpanId, SymbolId};
+use super::{Span, SpanId};
 
 // Primitive types
 mod bool_ty;
@@ -280,7 +277,6 @@ macro_rules! impl_ty_data {
                     .get()
                     .map(|span_id| $crate::context::with_cx(self, |cx| cx.get_span(*span_id)))
             }
-
             fn is_syntactic(&self) -> bool {
                 self.data.is_syntactic
             }
@@ -292,66 +288,3 @@ macro_rules! impl_ty_data {
     };
 }
 use impl_ty_data;
-
-#[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "driver-api", visibility::make(pub))]
-#[allow(clippy::exhaustive_enums)]
-pub(crate) enum VariantKind<'ast> {
-    /// A unit struct like:
-    /// ```
-    /// struct Name1;
-    /// struct Name2 {};
-    /// ```
-    Unit,
-    /// A tuple struct like:
-    /// ```
-    /// struct Name(u32, u64);
-    /// ```
-    Tuple(FfiSlice<'ast, FieldDef<'ast>>),
-    /// A field struct like:
-    /// ```rs
-    /// struct Name {
-    ///     field: u32,
-    /// };
-    /// ```
-    Field(FfiSlice<'ast, FieldDef<'ast>>),
-}
-
-impl<'ast> VariantKind<'ast> {
-    fn fields(&self) -> &'ast [FieldDef<'ast>] {
-        match self {
-            VariantKind::Unit => &[],
-            VariantKind::Tuple(slice) | VariantKind::Field(slice) => slice.get(),
-        }
-    }
-}
-
-#[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
-pub struct FieldDef<'ast> {
-    visibility: Visibility<'ast>,
-    name: SymbolId,
-    ty: TyKind<'ast>,
-}
-
-#[cfg(feature = "driver-api")]
-impl<'ast> FieldDef<'ast> {
-    pub fn new(visibility: Visibility<'ast>, name: SymbolId, ty: TyKind<'ast>) -> Self {
-        Self { visibility, name, ty }
-    }
-}
-
-impl<'ast> FieldDef<'ast> {
-    pub fn visibility(&self) -> &Visibility<'ast> {
-        &self.visibility
-    }
-
-    pub fn name(&self) -> String {
-        with_cx(self, |cx| cx.symbol_str(self.name))
-    }
-
-    pub fn ty(&self) -> TyKind<'ast> {
-        self.ty
-    }
-}
