@@ -21,8 +21,12 @@ impl<'ast> LintPass<'ast> for TestLintPass {
     }
 
     fn check_static_item(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {
-        cx.emit_lint(TEST_LINT, "hey there is a static item here", item.span());
-
-        eprintln!("{:#?}", item.ty());
+        let name = item.name().unwrap_or_default();
+        if name.starts_with("PRINT_TYPE") {
+            cx.emit_lint(TEST_LINT, "Printing type for", item.ty().span().unwrap());
+            eprintln!("{:#?}\n\n", item.ty());
+        } else if name.starts_with("FIND_ITEM") {
+            cx.emit_lint(TEST_LINT, "hey there is a static item here", item.span());
+        }
     }
 }

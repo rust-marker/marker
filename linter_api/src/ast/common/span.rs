@@ -119,15 +119,14 @@ impl<'ast> Span<'ast> {
 
 /// **Unstable**
 ///
-/// This enum is used to requrest a `Span` instance from the driver context.
+/// This enum is used to request a `Span` instance from the driver context.
 /// it is only an internal type to avoid mapping every `Span`, since they are
 /// most often not needed.
 #[repr(C)]
-#[doc(hidden)]
-#[cfg_attr(feature = "driver-api", visibility::make(pub))]
 #[allow(clippy::exhaustive_enums)]
+#[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) enum SpanOwner {
-    /// This requrests the `Span` belonging to the [`ItemId`].
+    /// This requests the `Span` belonging to the [`ItemId`].
     Item(ItemId),
     /// This requests the `Span` belonging to a driver generated [`SpanId`]
     SpecificSpan(SpanId),

@@ -16,9 +16,6 @@ use super::{Lifetime, TypeParamBound};
 /// }
 /// ```
 ///
-/// Note that this representation doesn't include the bound as part of the
-/// parameter. The bound is stored separately in [`GenericParams`].
-///
 /// See: <https://doc.rust-lang.org/reference/items/generics.html>
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]

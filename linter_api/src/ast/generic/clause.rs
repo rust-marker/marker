@@ -21,7 +21,7 @@ use super::{GenericParams, Lifetime, TypeParamBound};
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
-pub enum WhereClause<'ast> {
+pub enum WhereClauseKind<'ast> {
     Lifetime(&'ast LifetimeClause<'ast>),
     Ty(&'ast TyClause<'ast>),
 }

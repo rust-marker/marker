@@ -156,7 +156,11 @@ struct DriverCallbacks<'ast> {
     /// driver-specific type by the driver. A driver is always guaranteed to
     /// get its own context.
     pub driver_context: &'ast (),
+
+    // Public utility
     pub emit_lint: for<'a> extern "C" fn(&'ast (), &'static Lint, ffi::Str<'a>, &Span<'ast>),
+
+    // Internal utility
     pub get_span: extern "C" fn(&'ast (), &SpanOwner) -> &'ast Span<'ast>,
     pub span_snippet: extern "C" fn(&'ast (), &Span) -> ffi::FfiOption<ffi::Str<'ast>>,
     pub symbol_str: extern "C" fn(&'ast (), SymbolId) -> ffi::Str<'ast>,

@@ -136,11 +136,6 @@ impl<'ast> TraitRef<'ast> {
 }
 
 impl<'ast> TraitRef<'ast> {
-    pub fn path(&self) -> &AstPath<'ast> {
-        // Add function to context to retrieve path of defs
-        todo!()
-    }
-
     pub fn trait_id(&self) -> ItemId {
         self.item_id
     }

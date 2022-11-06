@@ -29,7 +29,6 @@ impl<'ast> AstPath<'ast> {
 }
 
 impl<'ast> AstPath<'ast> {
-    // FIXME: Remove reference from slice
     pub fn segments(&self) -> &[AstPathSegment<'ast>] {
         self.segments.get()
     }
@@ -39,15 +38,15 @@ impl<'ast> AstPath<'ast> {
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct AstPathSegment<'ast> {
     ident: SymbolId,
-    generic_args: FfiOption<&'ast GenericArgs<'ast>>,
+    generics: FfiOption<GenericArgs<'ast>>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> AstPathSegment<'ast> {
-    pub fn new(ident: SymbolId, generic_args: Option<&'ast GenericArgs<'ast>>) -> Self {
+    pub fn new(ident: SymbolId, generics: Option<GenericArgs<'ast>>) -> Self {
         Self {
             ident,
-            generic_args: generic_args.into(),
+            generics: generics.into(),
         }
     }
 }
@@ -57,7 +56,7 @@ impl<'ast> AstPathSegment<'ast> {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
 
-    pub fn generic_args(&self) -> Option<&GenericArgs<'ast>> {
-        self.generic_args.get().copied()
+    pub fn generics(&self) -> Option<&GenericArgs<'ast>> {
+        self.generics.get()
     }
 }

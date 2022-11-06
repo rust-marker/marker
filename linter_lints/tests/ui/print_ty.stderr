@@ -1,0 +1,679 @@
+warning: Printing type for
+ --> $DIR/print_ty.rs:4:32
+  |
+4 | static PRINT_TYPE_PRIMITIVE_1: Option<(u8, u16, u32, u64, u128, usize)> = None;
+  |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(linter::test_lint)]` on by default
+
+Enum(
+    EnumTy {
+        data: CommonTyData {
+            _lifetime: PhantomData<&()>,
+            span: Some(
+                SpanId {
+                    data: 171798691925,
+                },
+            ),
+            is_syntactic: true,
+        },
+        def_id: TyDefId {
+            data: 219790656405506,
+        },
+        generic_args: GenericArgs {
+            args: [
+                Ty(
+                    Tuple(
+                        (
+                            Num(
+                                u8,
+                            ),
+                            Num(
+                                u16,
+                            ),
+                            Num(
+                                u32,
+                            ),
+                            Num(
+                                u64,
+                            ),
+                            Num(
+                                u128,
+                            ),
+                            Num(
+                                usize,
+                            ),
+                        ),
+                    ),
+                ),
+            ],
+        },
+        is_non_exhaustive: false,
+    },
+)
+
+
+warning: Printing type for
+ --> $DIR/print_ty.rs:5:32
+  |
+5 | static PRINT_TYPE_PRIMITIVE_2: Option<(i8, i16, i32, i64, i128, isize)> = None;
+  |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Enum(
+    EnumTy {
+        data: CommonTyData {
+            _lifetime: PhantomData<&()>,
+            span: Some(
+                SpanId {
+                    data: 171798692005,
+                },
+            ),
+            is_syntactic: true,
+        },
+        def_id: TyDefId {
+            data: 219790656405506,
+        },
+        generic_args: GenericArgs {
+            args: [
+                Ty(
+                    Tuple(
+                        (
+                            Num(
+                                i8,
+                            ),
+                            Num(
+                                i16,
+                            ),
+                            Num(
+                                i32,
+                            ),
+                            Num(
+                                i64,
+                            ),
+                            Num(
+                                i128,
+                            ),
+                            Num(
+                                isize,
+                            ),
+                        ),
+                    ),
+                ),
+            ],
+        },
+        is_non_exhaustive: false,
+    },
+)
+
+
+warning: Printing type for
+ --> $DIR/print_ty.rs:6:32
+  |
+6 | static PRINT_TYPE_PRIMITIVE_3: Option<(char, bool, f32, f64)> = None;
+  |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Enum(
+    EnumTy {
+        data: CommonTyData {
+            _lifetime: PhantomData<&()>,
+            span: Some(
+                SpanId {
+                    data: 128849019125,
+                },
+            ),
+            is_syntactic: true,
+        },
+        def_id: TyDefId {
+            data: 219790656405506,
+        },
+        generic_args: GenericArgs {
+            args: [
+                Ty(
+                    Tuple(
+                        (
+                            Text(
+                                char,
+                            ),
+                            Bool(
+                                bool,
+                            ),
+                            Num(
+                                f32,
+                            ),
+                            Num(
+                                f64,
+                            ),
+                        ),
+                    ),
+                ),
+            ],
+        },
+        is_non_exhaustive: false,
+    },
+)
+
+
+warning: Printing type for
+ --> $DIR/print_ty.rs:7:29
+  |
+7 | static PRINT_TYPE_SEQUENCE: Option<AllowSync<(&[i32], [i32; 8])>> = None;
+  |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Enum(
+    EnumTy {
+        data: CommonTyData {
+            _lifetime: PhantomData<&()>,
+            span: Some(
+                SpanId {
+                    data: 158913790264,
+                },
+            ),
+            is_syntactic: true,
+        },
+        def_id: TyDefId {
+            data: 219790656405506,
+        },
+        generic_args: GenericArgs {
+            args: [
+                Ty(
+                    Struct(
+                        StructTy {
+                            data: CommonTyData {
+                                _lifetime: PhantomData<&()>,
+                                span: Some(
+                                    SpanId {
+                                        data: 124554051903,
+                                    },
+                                ),
+                                is_syntactic: true,
+                            },
+                            def_id: TyDefId {
+                                data: 81604378624,
+                            },
+                            generic_args: GenericArgs {
+                                args: [
+                                    Ty(
+                                        Tuple(
+                                            (
+                                                Ref(
+                                                    RefTy {
+                                                        data: CommonTyData {
+                                                            _lifetime: PhantomData<&()>,
+                                                            span: Some(
+                                                                SpanId {
+                                                                    data: 25769804106,
+                                                                },
+                                                            ),
+                                                            is_syntactic: true,
+                                                        },
+                                                        lifetime: Some(
+                                                            Lifetime {
+                                                                _lifetime: PhantomData<&()>,
+                                                                span: Some(
+                                                                    SpanId {
+                                                                        data: 4294967626,
+                                                                    },
+                                                                ),
+                                                                kind: Static,
+                                                            },
+                                                        ),
+                                                        mutability: Not,
+                                                        inner_ty: Slice(
+                                                            [
+                                                                Num(
+                                                                    i32,
+                                                                ),
+                                                            ],
+                                                        ),
+                                                    },
+                                                ),
+                                                Array(
+                                                    [
+                                                        Num(
+                                                            i32,
+                                                        ),
+                                                    ],
+                                                ),
+                                            ),
+                                        ),
+                                    ),
+                                ],
+                            },
+                            is_non_exhaustive: false,
+                        },
+                    ),
+                ),
+            ],
+        },
+        is_non_exhaustive: false,
+    },
+)
+
+
+warning: Printing type for
+ --> $DIR/print_ty.rs:8:28
+  |
+8 | static PRINT_TYPE_POINTER: Option<AllowSync<(&'static str, *const i32, *mut i32)>> = None;
+  |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Enum(
+    EnumTy {
+        data: CommonTyData {
+            _lifetime: PhantomData<&()>,
+            span: Some(
+                SpanId {
+                    data: 236223201665,
+                },
+            ),
+            is_syntactic: true,
+        },
+        def_id: TyDefId {
+            data: 219790656405506,
+        },
+        generic_args: GenericArgs {
+            args: [
+                Ty(
+                    Struct(
+                        StructTy {
+                            data: CommonTyData {
+                                _lifetime: PhantomData<&()>,
+                                span: Some(
+                                    SpanId {
+                                        data: 201863463304,
+                                    },
+                                ),
+                                is_syntactic: true,
+                            },
+                            def_id: TyDefId {
+                                data: 81604378624,
+                            },
+                            generic_args: GenericArgs {
+                                args: [
+                                    Ty(
+                                        Tuple(
+                                            (
+                                                Ref(
+                                                    RefTy {
+                                                        data: CommonTyData {
+                                                            _lifetime: PhantomData<&()>,
+                                                            span: Some(
+                                                                SpanId {
+                                                                    data: 51539607955,
+                                                                },
+                                                            ),
+                                                            is_syntactic: true,
+                                                        },
+                                                        lifetime: Some(
+                                                            Lifetime {
+                                                                _lifetime: PhantomData<&()>,
+                                                                span: Some(
+                                                                    SpanId {
+                                                                        data: 30064771476,
+                                                                    },
+                                                                ),
+                                                                kind: Static,
+                                                            },
+                                                        ),
+                                                        mutability: Not,
+                                                        inner_ty: Text(
+                                                            str,
+                                                        ),
+                                                    },
+                                                ),
+                                                RawPtr(
+                                                    RawPtrTy {
+                                                        data: CommonTyData {
+                                                            _lifetime: PhantomData<&()>,
+                                                            span: Some(
+                                                                SpanId {
+                                                                    data: 42949673377,
+                                                                },
+                                                            ),
+                                                            is_syntactic: true,
+                                                        },
+                                                        mutability: Not,
+                                                        inner_ty: Num(
+                                                            i32,
+                                                        ),
+                                                    },
+                                                ),
+                                                RawPtr(
+                                                    RawPtrTy {
+                                                        data: CommonTyData {
+                                                            _lifetime: PhantomData<&()>,
+                                                            span: Some(
+                                                                SpanId {
+                                                                    data: 34359738797,
+                                                                },
+                                                            ),
+                                                            is_syntactic: true,
+                                                        },
+                                                        mutability: Mut,
+                                                        inner_ty: Num(
+                                                            i32,
+                                                        ),
+                                                    },
+                                                ),
+                                            ),
+                                        ),
+                                    ),
+                                ],
+                            },
+                            is_non_exhaustive: false,
+                        },
+                    ),
+                ),
+            ],
+        },
+        is_non_exhaustive: false,
+    },
+)
+
+
+warning: Printing type for
+  --> $DIR/print_ty.rs:9:28
+   |
+9  |   static PRINT_TYPE_COMPLEX: Option<
+   |  ____________________________^
+10 | |     AllowSync<(
+11 | |         String,
+12 | |         Option<String>,
+...  |
+16 | |     )>,
+17 | | > = None;
+   | |_^
+
+Enum(
+    EnumTy {
+        data: CommonTyData {
+            _lifetime: PhantomData<&()>,
+            span: Some(
+                SpanId {
+                    data: 730144440796,
+                },
+            ),
+            is_syntactic: true,
+        },
+        def_id: TyDefId {
+            data: 219790656405506,
+        },
+        generic_args: GenericArgs {
+            args: [
+                Ty(
+                    Struct(
+                        StructTy {
+                            data: CommonTyData {
+                                _lifetime: PhantomData<&()>,
+                                span: Some(
+                                    SpanId {
+                                        data: 665719931368,
+                                    },
+                                ),
+                                is_syntactic: true,
+                            },
+                            def_id: TyDefId {
+                                data: 81604378624,
+                            },
+                            generic_args: GenericArgs {
+                                args: [
+                                    Ty(
+                                        Tuple(
+                                            (
+                                                Struct(
+                                                    StructTy {
+                                                        data: CommonTyData {
+                                                            _lifetime: PhantomData<&()>,
+                                                            span: Some(
+                                                                SpanId {
+                                                                    data: 25769804284,
+                                                                },
+                                                            ),
+                                                            is_syntactic: true,
+                                                        },
+                                                        def_id: TyDefId {
+                                                            data: 36532991819781,
+                                                        },
+                                                        generic_args: GenericArgs {
+                                                            args: [],
+                                                        },
+                                                        is_non_exhaustive: false,
+                                                    },
+                                                ),
+                                                Enum(
+                                                    EnumTy {
+                                                        data: CommonTyData {
+                                                            _lifetime: PhantomData<&()>,
+                                                            span: Some(
+                                                                SpanId {
+                                                                    data: 60129542668,
+                                                                },
+                                                            ),
+                                                            is_syntactic: true,
+                                                        },
+                                                        def_id: TyDefId {
+                                                            data: 219790656405506,
+                                                        },
+                                                        generic_args: GenericArgs {
+                                                            args: [
+                                                                Ty(
+                                                                    Struct(
+                                                                        StructTy {
+                                                                            data: CommonTyData {
+                                                                                _lifetime: PhantomData<&()>,
+                                                                                span: Some(
+                                                                                    SpanId {
+                                                                                        data: 25769804307,
+                                                                                    },
+                                                                                ),
+                                                                                is_syntactic: true,
+                                                                            },
+                                                                            def_id: TyDefId {
+                                                                                data: 36532991819781,
+                                                                            },
+                                                                            generic_args: GenericArgs {
+                                                                                args: [],
+                                                                            },
+                                                                            is_non_exhaustive: false,
+                                                                        },
+                                                                    ),
+                                                                ),
+                                                            ],
+                                                        },
+                                                        is_non_exhaustive: false,
+                                                    },
+                                                ),
+                                                Struct(
+                                                    StructTy {
+                                                        data: CommonTyData {
+                                                            _lifetime: PhantomData<&()>,
+                                                            span: Some(
+                                                                SpanId {
+                                                                    data: 60129542692,
+                                                                },
+                                                            ),
+                                                            is_syntactic: true,
+                                                        },
+                                                        def_id: TyDefId {
+                                                            data: 34033320853509,
+                                                        },
+                                                        generic_args: GenericArgs {
+                                                            args: [
+                                                                Ty(
+                                                                    Union(
+                                                                        UnionTy {
+                                                                            data: CommonTyData {
+                                                                                _lifetime: PhantomData<&()>,
+                                                                                span: Some(
+                                                                                    SpanId {
+                                                                                        data: 38654706216,
+                                                                                    },
+                                                                                ),
+                                                                                is_syntactic: true,
+                                                                            },
+                                                                            def_id: TyDefId {
+                                                                                data: 68719476736,
+                                                                            },
+                                                                            generic_args: GenericArgs {
+                                                                                args: [],
+                                                                            },
+                                                                        },
+                                                                    ),
+                                                                ),
+                                                            ],
+                                                        },
+                                                        is_non_exhaustive: false,
+                                                    },
+                                                ),
+                                                Struct(
+                                                    StructTy {
+                                                        data: CommonTyData {
+                                                            _lifetime: PhantomData<&()>,
+                                                            span: Some(
+                                                                SpanId {
+                                                                    data: 60129542716,
+                                                                },
+                                                            ),
+                                                            is_syntactic: true,
+                                                        },
+                                                        def_id: TyDefId {
+                                                            data: 1894080577541,
+                                                        },
+                                                        generic_args: GenericArgs {
+                                                            args: [
+                                                                Ty(
+                                                                    TraitObj(
+                                                                        TraitObjTy {
+                                                                            data: CommonTyData {
+                                                                                _lifetime: PhantomData<&()>,
+                                                                                span: Some(
+                                                                                    SpanId {
+                                                                                        data: 38654706240,
+                                                                                    },
+                                                                                ),
+                                                                                is_syntactic: true,
+                                                                            },
+                                                                            trait_bound: [
+                                                                                TraitBound(
+                                                                                    TraitBound {
+                                                                                        is_relaxed: false,
+                                                                                        trait_ref: TraitRef {
+                                                                                            item_id: ItemId {
+                                                                                                data: 45226005626882,
+                                                                                            },
+                                                                                            generics: GenericArgs {
+                                                                                                args: [],
+                                                                                            },
+                                                                                        },
+                                                                                        span: SpanId {
+                                                                                            data: 21474837060,
+                                                                                        },
+                                                                                    },
+                                                                                ),
+                                                                            ],
+                                                                        },
+                                                                    ),
+                                                                ),
+                                                            ],
+                                                        },
+                                                        is_non_exhaustive: false,
+                                                    },
+                                                ),
+                                                Struct(
+                                                    StructTy {
+                                                        data: CommonTyData {
+                                                            _lifetime: PhantomData<&()>,
+                                                            span: Some(
+                                                                SpanId {
+                                                                    data: 167503725140,
+                                                                },
+                                                            ),
+                                                            is_syntactic: true,
+                                                        },
+                                                        def_id: TyDefId {
+                                                            data: 1894080577541,
+                                                        },
+                                                        generic_args: GenericArgs {
+                                                            args: [
+                                                                Ty(
+                                                                    TraitObj(
+                                                                        TraitObjTy {
+                                                                            data: CommonTyData {
+                                                                                _lifetime: PhantomData<&()>,
+                                                                                span: Some(
+                                                                                    SpanId {
+                                                                                        data: 146028888664,
+                                                                                    },
+                                                                                ),
+                                                                                is_syntactic: true,
+                                                                            },
+                                                                            trait_bound: [
+                                                                                TraitBound(
+                                                                                    TraitBound {
+                                                                                        is_relaxed: false,
+                                                                                        trait_ref: TraitRef {
+                                                                                            item_id: ItemId {
+                                                                                                data: 38019050504194,
+                                                                                            },
+                                                                                            generics: GenericArgs {
+                                                                                                args: [
+                                                                                                    Binding(
+                                                                                                        BindingGenericArg {
+                                                                                                            span: Some(
+                                                                                                                SpanId {
+                                                                                                                    data: 42949673573,
+                                                                                                                },
+                                                                                                            ),
+                                                                                                            ident: SymbolId {
+                                                                                                                data: 1618,
+                                                                                                            },
+                                                                                                            ty: Num(
+                                                                                                                i32,
+                                                                                                            ),
+                                                                                                        },
+                                                                                                    ),
+                                                                                                ],
+                                                                                            },
+                                                                                        },
+                                                                                        span: SpanId {
+                                                                                            data: 85899346524,
+                                                                                        },
+                                                                                    },
+                                                                                ),
+                                                                                Lifetime(
+                                                                                    Lifetime {
+                                                                                        _lifetime: PhantomData<&()>,
+                                                                                        span: Some(
+                                                                                            SpanId {
+                                                                                                data: 30064771699,
+                                                                                            },
+                                                                                        ),
+                                                                                        kind: Static,
+                                                                                    },
+                                                                                ),
+                                                                            ],
+                                                                        },
+                                                                    ),
+                                                                ),
+                                                            ],
+                                                        },
+                                                        is_non_exhaustive: false,
+                                                    },
+                                                ),
+                                            ),
+                                        ),
+                                    ),
+                                ],
+                            },
+                            is_non_exhaustive: false,
+                        },
+                    ),
+                ),
+            ],
+        },
+        is_non_exhaustive: false,
+    },
+)
+
+
+warning: 6 warnings emitted
+

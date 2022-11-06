@@ -39,7 +39,7 @@ pub struct GenericArgs<'ast> {
 
 impl<'ast> GenericArgs<'ast> {
     pub fn args(&self) -> &'ast [GenericArgKind<'ast>] {
-        &self.args.get()
+        self.args.get()
     }
 }
 
@@ -109,7 +109,7 @@ pub enum GenericArgKind<'ast> {
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct GenericParams<'ast> {
     params: FfiSlice<'ast, GenericParamKind<'ast>>,
-    clauses: FfiSlice<'ast, WhereClause<'ast>>,
+    clauses: FfiSlice<'ast, WhereClauseKind<'ast>>,
 }
 
 impl<'ast> GenericParams<'ast> {
@@ -117,14 +117,14 @@ impl<'ast> GenericParams<'ast> {
         self.params.get()
     }
 
-    pub fn clauses(&self) -> &'ast [WhereClause<'ast>] {
+    pub fn clauses(&self) -> &'ast [WhereClauseKind<'ast>] {
         self.clauses.get()
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> GenericParams<'ast> {
-    pub fn new(params: &'ast [GenericParamKind<'ast>], clauses: &'ast [WhereClause<'ast>]) -> Self {
+    pub fn new(params: &'ast [GenericParamKind<'ast>], clauses: &'ast [WhereClauseKind<'ast>]) -> Self {
         Self {
             params: params.into(),
             clauses: clauses.into(),
