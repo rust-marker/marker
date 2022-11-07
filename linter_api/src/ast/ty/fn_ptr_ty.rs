@@ -1,4 +1,4 @@
-use crate::ast::{impl_callable_trait, CallableData};
+use crate::ast::{impl_callable_data_trait, CommonCallableData};
 
 use super::CommonTyData;
 
@@ -6,7 +6,7 @@ use super::CommonTyData;
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct FnPtrTy<'ast> {
     data: CommonTyData<'ast>,
-    callable_data: CallableData<'ast>,
+    callable_data: CommonCallableData<'ast>,
     // FIXME: Add `for<'a>` bound
 }
 
@@ -14,6 +14,6 @@ pub struct FnPtrTy<'ast> {
 impl<'ast> FnPtrTy<'ast> {}
 
 super::impl_ty_data!(FnPtrTy<'ast>, FnPtr);
-impl_callable_trait!(FnPtrTy<'ast>);
+impl_callable_data_trait!(FnPtrTy<'ast>);
 
 impl<'ast> FnPtrTy<'ast> {}

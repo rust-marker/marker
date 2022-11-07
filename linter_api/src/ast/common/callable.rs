@@ -6,10 +6,10 @@ use crate::{
 
 use super::{Abi, Span, SpanId, SymbolId};
 
-/// This trait provides informations about callable items and types. Some
+/// This trait provides information about callable items and types. Some
 /// properties might not be available for every callable object. In those
 /// cases the default value will be returned.
-pub trait Callable<'ast> {
+pub trait CallableData<'ast> {
     /// Returns `true`, if this callable is `const`.
     ///
     /// Defaults to `false` if unspecified.
@@ -40,12 +40,12 @@ pub trait Callable<'ast> {
 
     /// Returns `true`, if this callable has a specified `self` argument. The
     /// type of `self` can be retrieved from the first element of
-    /// [`Callable::params()`].
+    /// [`CallableData::params()`].
     fn has_self(&self) -> bool;
 
     /// Returns the parameters, that this callable accepts. The `self` argument
     /// of methods, will be the first element of this slice. Use
-    /// [`Callable::has_self`] to determine if the first argument is `self`.
+    /// [`CallableData::has_self`] to determine if the first argument is `self`.
     fn params(&self) -> &[Parameter<'ast>];
 
     /// Returns the return type, if specified.
@@ -55,6 +55,7 @@ pub trait Callable<'ast> {
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Parameter<'ast> {
+    // FIXME: This shouldn't be a name but a pattern...
     name: FfiOption<SymbolId>,
     ty: FfiOption<TyKind<'ast>>,
     span: FfiOption<SpanId>,
@@ -93,7 +94,7 @@ impl<'ast> Parameter<'ast> {
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
-pub(crate) struct CallableData<'ast> {
+pub(crate) struct CommonCallableData<'ast> {
     pub(crate) is_const: bool,
     pub(crate) is_async: bool,
     pub(crate) is_unsafe: bool,
@@ -106,7 +107,7 @@ pub(crate) struct CallableData<'ast> {
 
 #[cfg(feature = "driver-api")]
 #[allow(clippy::fn_params_excessive_bools, clippy::too_many_arguments)]
-impl<'ast> CallableData<'ast> {
+impl<'ast> CommonCallableData<'ast> {
     pub fn new(
         is_const: bool,
         is_async: bool,
@@ -130,9 +131,11 @@ impl<'ast> CallableData<'ast> {
     }
 }
 
-macro_rules! impl_callable_trait {
+/// This macro automatically implements the [`Callable`] trait for structs that
+/// have a [`CallableData`] field called `callable_data`.
+macro_rules! impl_callable_data_trait {
     ($self_ty:ty) => {
-        impl<'ast> $crate::ast::common::Callable<'ast> for $self_ty {
+        impl<'ast> $crate::ast::common::CallableData<'ast> for $self_ty {
             fn is_const(&self) -> bool {
                 self.callable_data.is_const
             }
@@ -160,4 +163,4 @@ macro_rules! impl_callable_trait {
         }
     };
 }
-pub(crate) use impl_callable_trait;
+pub(crate) use impl_callable_data_trait;

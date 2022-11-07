@@ -119,8 +119,6 @@ pub trait Attribute<'ast>: Debug {
     // FIXME: Add attribute functions
 }
 
-pub trait Pattern<'ast> {}
-
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct TraitRef<'ast> {

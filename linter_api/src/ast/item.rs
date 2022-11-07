@@ -1,20 +1,20 @@
 use std::{fmt::Debug, marker::PhantomData};
 
+use super::{ty::TyKind, Abi, Attribute, ItemId, Safety, Span, Symbol, SymbolId};
+
 // Item implementations
 mod extern_crate_item;
 pub use self::extern_crate_item::ExternCrateItem;
 mod mod_item;
-pub use self::mod_item::ModItem;
+pub use mod_item::ModItem;
 mod static_item;
 pub use self::static_item::StaticItem;
 mod use_decl_item;
 pub use self::use_decl_item::UseDeclItem;
 mod const_item;
 pub use self::const_item::ConstItem;
-
-use super::{
-    ty::TyKind, Abi, Asyncness, Attribute, BodyId, Constness, ItemId, Pattern, Safety, Span, Symbol, SymbolId,
-};
+mod fn_item;
+pub use fn_item::*;
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
@@ -39,6 +39,7 @@ pub trait ItemData<'ast>: Debug {
     fn attrs(&self); // FIXME: Add return type: -> &'ast [&'ast dyn Attribute<'ast>];
 }
 
+#[repr(C)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
 pub enum ItemKind<'ast> {
@@ -47,11 +48,14 @@ pub enum ItemKind<'ast> {
     UseDecl(&'ast UseDeclItem<'ast>),
     Static(&'ast StaticItem<'ast>),
     Const(&'ast ConstItem<'ast>),
-    Function(&'ast dyn FunctionItem<'ast>),
+    Fn(&'ast FnItem<'ast>),
+
     TypeAlias(&'ast dyn TypeAliasItem<'ast>),
+
     Struct(&'ast dyn StructItem<'ast>),
     Enum(&'ast dyn EnumItem<'ast>),
     Union(&'ast dyn UnionItem<'ast>),
+
     Trait(&'ast dyn TraitItem<'ast>),
     Impl(&'ast dyn ImplItem<'ast>),
     ExternBlock(&'ast dyn ExternBlockItem<'ast>),
@@ -70,7 +74,7 @@ impl<'ast> ItemKind<'ast> {
 macro_rules! impl_item_type_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_item_type_fn!($method() -> $return_ty,
-            Mod, ExternCrate, UseDecl, Static, Const, Function,
+            Mod, ExternCrate, UseDecl, Static, Const, Fn,
             TypeAlias, Struct, Enum, Union, Trait, Impl, ExternBlock
         );
     };
@@ -155,48 +159,6 @@ impl<'ast> Visibility<'ast> {
 ///////////////////////////////////////////////////////////////////////////////
 /// Items based on traits
 ///////////////////////////////////////////////////////////////////////////////
-
-pub trait FunctionItem<'ast>: ItemData<'ast> + FnDeclaration<'ast> {
-    fn get_generics(&self);
-}
-
-/// This is a general trait that is implemented for all types of callable function
-/// like items in Rust. This currently means: functions, methods and closures
-///
-/// Some getters will not be used for every function like item. For instance will
-/// closures at the time of writing this always have the default [`Constness`] and
-/// [`Abi`]
-pub trait FnDeclaration<'ast>: Debug {
-    /// Note that trait implementations are currently not allowed to be constant,
-    /// this will therefore always return [`Constness::Default`] for trait functions.
-    fn get_constness(&self) -> Constness;
-
-    fn get_safety(&self) -> Safety;
-
-    /// Note that trait implementations are currently not allowed to be async,
-    /// this will therefore always return [`Asyncness::Default`] for trait functions.
-    fn get_asyncness(&self) -> Asyncness;
-
-    fn get_abi(&self) -> Abi;
-
-    fn get_params(&self) -> &[&dyn FnParam<'ast>];
-
-    /// The return type of a function without an explicit return type is the
-    /// unit type `()`.
-    fn get_return_ty(&self);
-
-    /// This will always return a valid [`BodyId`] for functions, closures and
-    /// methods. Trait functions can have a default body but they don't have to.
-    fn get_body_id(&self) -> Option<BodyId>;
-}
-
-pub trait FnParam<'ast>: Debug {
-    fn get_pattern(&self) -> &dyn Pattern<'ast>;
-
-    fn get_span(&self) -> &Span<'ast>;
-
-    fn get_ty(&self);
-}
 
 pub trait TypeAliasItem<'ast>: ItemData<'ast> {
     fn get_ty_id(&self);
@@ -327,7 +289,7 @@ pub trait TraitItem<'ast>: ItemData<'ast> {
 pub enum AssocItem<'ast> {
     TypeAlias(&'ast dyn TypeAliasItem<'ast>),
     Const(&'ast ConstItem<'ast>),
-    Function(&'ast dyn FunctionItem<'ast>),
+    Function(&'ast FnItem<'ast>),
 }
 
 pub trait ImplItem<'ast>: ItemData<'ast> {
@@ -373,5 +335,5 @@ pub trait ExternBlockItem<'ast>: ItemData<'ast> {
 #[derive(Debug)]
 pub enum ExternalItems<'ast> {
     Static(&'ast StaticItem<'ast>),
-    Function(&'ast dyn FunctionItem<'ast>),
+    Function(&'ast FnItem<'ast>),
 }
