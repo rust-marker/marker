@@ -3,7 +3,7 @@ pub use common::*;
 
 use crate::ffi::FfiSlice;
 
-use self::item::ItemType;
+use self::item::ItemKind;
 
 pub mod generic;
 pub mod item;
@@ -12,12 +12,12 @@ pub mod ty;
 #[derive(Debug)]
 pub struct Crate<'ast> {
     id: CrateId,
-    items: FfiSlice<'ast, ItemType<'ast>>,
+    items: FfiSlice<'ast, ItemKind<'ast>>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Crate<'ast> {
-    pub fn new(id: CrateId, items: &'ast [ItemType<'ast>]) -> Self {
+    pub fn new(id: CrateId, items: &'ast [ItemKind<'ast>]) -> Self {
         Self {
             id,
             items: items.into(),
@@ -33,7 +33,7 @@ impl<'ast> Crate<'ast> {
 
     /// This is a list of all items in the root file of the crate. Nested items
     /// will be represented in the form of items and sub-items
-    pub fn items(&self) -> &[ItemType<'ast>] {
+    pub fn items(&self) -> &[ItemKind<'ast>] {
         self.items.get()
     }
 }

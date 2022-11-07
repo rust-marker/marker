@@ -46,7 +46,7 @@ macro_rules! lint_pass_fns {
             fn check_item(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
-                _item: $crate::ast::item::ItemType<'ast>) -> ();
+                _item: $crate::ast::item::ItemKind<'ast>) -> ();
             fn check_mod(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,

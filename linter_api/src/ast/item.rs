@@ -31,17 +31,17 @@ pub trait ItemData<'ast>: Debug {
     /// This function can return `None` if the item was generated and has no real name
     fn name(&self) -> Option<String>;
 
-    /// This returns this [`ItemData`] instance as a [`ItemType`]. This can be useful for
-    /// functions that take [`ItemType`] as a parameter. For general function calls it's better
-    /// to call them directoly on the item, instead of converting it to a [`ItemType`] first.
-    fn as_item(&'ast self) -> ItemType<'ast>;
+    /// This returns this [`ItemData`] instance as a [`ItemKind`]. This can be useful for
+    /// functions that take [`ItemKind`] as a parameter. For general function calls it's better
+    /// to call them directoly on the item, instead of converting it to a [`ItemKind`] first.
+    fn as_item(&'ast self) -> ItemKind<'ast>;
 
     fn attrs(&self); // FIXME: Add return type: -> &'ast [&'ast dyn Attribute<'ast>];
 }
 
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
-pub enum ItemType<'ast> {
+pub enum ItemKind<'ast> {
     Mod(&'ast ModItem<'ast>),
     ExternCrate(&'ast ExternCrateItem<'ast>),
     UseDecl(&'ast UseDeclItem<'ast>),
@@ -57,7 +57,7 @@ pub enum ItemType<'ast> {
     ExternBlock(&'ast dyn ExternBlockItem<'ast>),
 }
 
-impl<'ast> ItemType<'ast> {
+impl<'ast> ItemKind<'ast> {
     impl_item_type_fn!(id() -> ItemId);
     impl_item_type_fn!(span() -> &'ast Span<'ast>);
     impl_item_type_fn!(visibility() -> &Visibility<'ast>);
@@ -66,7 +66,7 @@ impl<'ast> ItemType<'ast> {
 }
 
 /// Until [trait upcasting](https://github.com/rust-lang/rust/issues/65991) has been implemented
-/// and stabalized we need this to call [`ItemData`] functions for [`ItemType`].
+/// and stabalized we need this to call [`ItemData`] functions for [`ItemKind`].
 macro_rules! impl_item_type_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_item_type_fn!($method() -> $return_ty,
@@ -77,7 +77,7 @@ macro_rules! impl_item_type_fn {
     ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
         pub fn $method(&self) -> $return_ty {
             match self {
-                $(ItemType::$item(data) => data.$method(),)*
+                $(ItemKind::$item(data) => data.$method(),)*
             }
         }
     };
@@ -113,8 +113,8 @@ macro_rules! impl_item_data {
                 Some($crate::context::with_cx(self, |cx| cx.symbol_str(self.data.name)))
             }
 
-            fn as_item(&'ast self) -> crate::ast::item::ItemType<'ast> {
-                $crate::ast::item::ItemType::$enum_name(self)
+            fn as_item(&'ast self) -> crate::ast::item::ItemKind<'ast> {
+                $crate::ast::item::ItemKind::$enum_name(self)
             }
 
             fn attrs(&self) {
@@ -374,15 +374,4 @@ pub trait ExternBlockItem<'ast>: ItemData<'ast> {
 pub enum ExternalItems<'ast> {
     Static(&'ast StaticItem<'ast>),
     Function(&'ast dyn FunctionItem<'ast>),
-}
-
-#[repr(C)]
-#[non_exhaustive]
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum UseKind {
-    /// Single usages like `use foo::bar` a list of multiple usages like
-    /// `use foo::{bar, baz}` will be desugured to `use foo::bar; use foo::baz;`
-    Single,
-    /// A glob import like `use foo::*`
-    Glob,
 }
