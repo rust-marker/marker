@@ -15,6 +15,8 @@ mod const_item;
 pub use self::const_item::ConstItem;
 mod fn_item;
 pub use fn_item::*;
+mod ty_alias_item;
+pub use ty_alias_item::*;
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
@@ -49,8 +51,7 @@ pub enum ItemKind<'ast> {
     Static(&'ast StaticItem<'ast>),
     Const(&'ast ConstItem<'ast>),
     Fn(&'ast FnItem<'ast>),
-
-    TypeAlias(&'ast dyn TypeAliasItem<'ast>),
+    TyAlias(&'ast TyAliasItem<'ast>),
 
     Struct(&'ast dyn StructItem<'ast>),
     Enum(&'ast dyn EnumItem<'ast>),
@@ -75,7 +76,7 @@ macro_rules! impl_item_type_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_item_type_fn!($method() -> $return_ty,
             Mod, ExternCrate, UseDecl, Static, Const, Fn,
-            TypeAlias, Struct, Enum, Union, Trait, Impl, ExternBlock
+            TyAlias, Struct, Enum, Union, Trait, Impl, ExternBlock
         );
     };
     ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
@@ -159,16 +160,6 @@ impl<'ast> Visibility<'ast> {
 ///////////////////////////////////////////////////////////////////////////////
 /// Items based on traits
 ///////////////////////////////////////////////////////////////////////////////
-
-pub trait TypeAliasItem<'ast>: ItemData<'ast> {
-    fn get_ty_id(&self);
-
-    fn get_generics(&self);
-
-    /// This can return `None` for [`TypeAliasItem`]s asscociated with a trait. For
-    /// normal items this will always return `Some` at the time of writing this.
-    fn get_aliased_ty(&self);
-}
 
 pub trait StructItem<'ast>: ItemData<'ast> {
     fn get_ty_id(&self);
@@ -287,7 +278,7 @@ pub trait TraitItem<'ast>: ItemData<'ast> {
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum AssocItem<'ast> {
-    TypeAlias(&'ast dyn TypeAliasItem<'ast>),
+    TyAlias(&'ast TyAliasItem<'ast>),
     Const(&'ast ConstItem<'ast>),
     Function(&'ast FnItem<'ast>),
 }
