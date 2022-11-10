@@ -1,6 +1,6 @@
 use std::{fmt::Debug, marker::PhantomData};
 
-use super::{ty::TyKind, Abi, Attribute, ItemId, Safety, Span, Symbol, SymbolId};
+use super::{ty::TyKind, Abi, ItemId, Safety, Span, SymbolId};
 
 // Item implementations
 mod extern_crate_item;
@@ -17,6 +17,8 @@ mod fn_item;
 pub use fn_item::*;
 mod ty_alias_item;
 pub use ty_alias_item::*;
+mod adt_item;
+pub use adt_item::*;
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
@@ -52,10 +54,9 @@ pub enum ItemKind<'ast> {
     Const(&'ast ConstItem<'ast>),
     Fn(&'ast FnItem<'ast>),
     TyAlias(&'ast TyAliasItem<'ast>),
-
-    Struct(&'ast dyn StructItem<'ast>),
-    Enum(&'ast dyn EnumItem<'ast>),
-    Union(&'ast dyn UnionItem<'ast>),
+    Struct(&'ast StructItem<'ast>),
+    Enum(&'ast EnumItem<'ast>),
+    Union(&'ast UnionItem<'ast>),
 
     Trait(&'ast dyn TraitItem<'ast>),
     Impl(&'ast dyn ImplItem<'ast>),
@@ -160,87 +161,6 @@ impl<'ast> Visibility<'ast> {
 ///////////////////////////////////////////////////////////////////////////////
 /// Items based on traits
 ///////////////////////////////////////////////////////////////////////////////
-
-pub trait StructItem<'ast>: ItemData<'ast> {
-    fn get_ty_id(&self);
-
-    fn get_kind(&self) -> AdtVariantData<'ast>;
-
-    fn get_generics(&self);
-
-    // FIXME: Add layout information
-}
-
-#[non_exhaustive]
-#[derive(Debug)]
-pub enum AdtVariantData<'ast> {
-    /// A unit struct like:
-    /// ```rs
-    /// struct Name1;
-    /// struct Name2 {};
-    /// ```
-    Unit,
-    /// A tuple struct like:
-    /// ```rs
-    /// struct Name(u32, u64);
-    /// ```
-    /// This representation doesn't contain spans of each individual type, for diagnostics
-    /// please span over the entire struct.
-    Tuple(&'ast [&'ast dyn AdtField<'ast>]),
-    /// A field struct like:ö
-    /// ```rs
-    /// struct Name {
-    ///     field: u32,
-    /// };
-    /// ```
-    /// Note: In the Rust Reference, this struct expression is called `StructExprStruct`
-    /// here it has been called `Field`, to indicate that it uses fiels as opposed to the
-    /// other kinds
-    Field(&'ast [&'ast dyn AdtField<'ast>]),
-}
-
-/// A field in a struct of the form:
-/// ```ignore
-/// pub struct StructName {
-///     #[some_attr]
-///     pub name: Ty,
-/// }
-/// ```
-///
-/// For tuple structs the name will correspond with the field number.
-pub trait AdtField<'ast>: Debug {
-    fn get_attributes(&'ast self) -> &'ast dyn Attribute;
-
-    /// This will return the span of the field, exclusing the field attributes.
-    fn get_span(&'ast self) -> &'ast Span<'ast>;
-
-    fn get_name(&'ast self) -> Symbol;
-
-    fn get_ty(&'ast self);
-}
-
-/// See: <https://doc.rust-lang.org/reference/items/enumerations.html>
-pub trait EnumItem<'ast>: ItemData<'ast> {
-    fn get_ty_id(&self);
-
-    fn get_variants(&self) -> &[&dyn EnumVariant<'ast>];
-
-    fn get_generics(&self);
-
-    // FIXME: Add layout information
-}
-
-pub trait EnumVariant<'ast>: Debug {
-    /// This returns the discriminant expression if one has been defined.
-    fn get_discriminant_expr(&self) -> Option<&dyn AnonConst<'ast>>;
-
-    fn get_discriminant(&self) -> u128;
-
-    fn get_name(&self) -> Symbol;
-
-    fn get_variant_data(&self) -> AdtVariantData<'ast>;
-}
-
 /// An anonymous constant.
 pub trait AnonConst<'ast>: Debug {
     fn get_ty(&self);
@@ -249,17 +169,6 @@ pub trait AnonConst<'ast>: Debug {
     // probably be good to have an additional `get_value_lit` that returns a literal,
     // if the value can be represented as one.
     fn get_value(&self);
-}
-
-pub trait UnionItem<'ast>: ItemData<'ast> {
-    fn get_ty_id(&self);
-
-    /// This will at the time of writitng this always return the [`AdtVariantData::Field`]
-    /// variant. [`AdtVariantData`] is still used as a wrapper to support common util
-    /// functionality and to possibly adapt [`AdtVariantData`] if the Rust standard expands.
-    fn get_variant_data(&self) -> AdtVariantData<'ast>;
-
-    // FIXME: Add layout information
 }
 
 pub trait TraitItem<'ast>: ItemData<'ast> {
