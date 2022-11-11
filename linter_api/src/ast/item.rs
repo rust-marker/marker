@@ -1,6 +1,6 @@
 use std::{fmt::Debug, marker::PhantomData};
 
-use super::{ty::TyKind, Abi, ItemId, Safety, Span, SymbolId};
+use super::{Abi, ItemId, Safety, Span, SymbolId};
 
 // Item implementations
 mod extern_crate_item;
@@ -21,6 +21,8 @@ mod adt_item;
 pub use adt_item::*;
 mod trait_item;
 pub use trait_item::*;
+mod impl_item;
+pub use impl_item::*;
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
@@ -59,9 +61,9 @@ pub enum ItemKind<'ast> {
     Struct(&'ast StructItem<'ast>),
     Enum(&'ast EnumItem<'ast>),
     Union(&'ast UnionItem<'ast>),
-
     Trait(&'ast TraitItem<'ast>),
-    Impl(&'ast dyn ImplItem<'ast>),
+    Impl(&'ast ImplItem<'ast>),
+
     ExternBlock(&'ast dyn ExternBlockItem<'ast>),
 }
 
@@ -186,44 +188,6 @@ impl<'ast> Visibility<'ast> {
 ///////////////////////////////////////////////////////////////////////////////
 /// Items based on traits
 ///////////////////////////////////////////////////////////////////////////////
-/// An anonymous constant.
-pub trait AnonConst<'ast>: Debug {
-    fn get_ty(&self);
-
-    // FIXME: This should return a expression once they are implemented, it would
-    // probably be good to have an additional `get_value_lit` that returns a literal,
-    // if the value can be represented as one.
-    fn get_value(&self);
-}
-
-pub trait ImplItem<'ast>: ItemData<'ast> {
-    fn get_inner_attrs(&self); // FIXME: Add return type -> [&dyn Attribute<'ast>];
-
-    fn get_safety(&self) -> Safety;
-
-    fn get_polarity(&self) -> ImplPolarity;
-
-    /// This will return `Some` if this is a trait implementation, otherwiese `None`.
-    fn get_trait(&self) -> Option<&TyKind<'ast>>;
-
-    fn get_ty(&self) -> &TyKind<'ast>;
-
-    fn get_generics(&self);
-
-    fn get_assoc_items(&self) -> &[AssocItemKind<'ast>];
-}
-
-#[non_exhaustive]
-#[derive(Debug)]
-pub enum ImplPolarity {
-    Positive,
-    /// A negative implementation like:
-    /// ```ignore
-    /// unsafe impl !Send for ImplPolarity;
-    /// //          ^
-    /// ```
-    Negative,
-}
 
 pub trait ExternBlockItem<'ast>: ItemData<'ast> {
     fn get_inner_attrs(&self); // FIXME: Add return type -> [&dyn Attribute<'ast>];
