@@ -64,7 +64,7 @@ impl<'ast> UnionItem<'ast> {
 pub struct EnumItem<'ast> {
     data: CommonItemData<'ast>,
     generics: GenericParams<'ast>,
-    elements: FfiSlice<'ast, EnumElement<'ast>>,
+    elements: FfiSlice<'ast, EnumVariant<'ast>>,
 }
 
 super::impl_item_data!(EnumItem, Enum);
@@ -74,14 +74,14 @@ impl<'ast> EnumItem<'ast> {
         &self.generics
     }
 
-    pub fn elements(&self) -> &[EnumElement<'ast>] {
+    pub fn elements(&self) -> &[EnumVariant<'ast>] {
         self.elements.get()
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> EnumItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, generics: GenericParams<'ast>, elements: &'ast [EnumElement<'ast>]) -> Self {
+    pub fn new(data: CommonItemData<'ast>, generics: GenericParams<'ast>, elements: &'ast [EnumVariant<'ast>]) -> Self {
         Self {
             data,
             generics,
@@ -92,14 +92,14 @@ impl<'ast> EnumItem<'ast> {
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct EnumElement<'ast> {
+pub struct EnumVariant<'ast> {
     ident: SymbolId,
     span: SpanId,
     kind: AdtKind<'ast>,
     // FIXME: Add <discriminant: FfiOption<ExprKind<'ast>>>
 }
 
-impl<'ast> EnumElement<'ast> {
+impl<'ast> EnumVariant<'ast> {
     pub fn ident(&self) -> String {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
@@ -157,7 +157,7 @@ impl<'ast> EnumElement<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> EnumElement<'ast> {
+impl<'ast> EnumVariant<'ast> {
     pub fn new(ident: SymbolId, span: SpanId, kind: AdtKind<'ast>) -> Self {
         Self { ident, span, kind }
     }
@@ -235,6 +235,8 @@ enum AdtKind<'ast> {
     Field(FfiSlice<'ast, Field<'ast>>),
 }
 
+/// A single field inside a [`StructItem`] or [`UnionItem`] with an identifier
+/// type and span.
 #[repr(C)]
 #[derive(Debug)]
 pub struct Field<'ast> {
