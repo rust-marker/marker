@@ -11,15 +11,11 @@ Enum(
         data: CommonTyData {
             _lifetime: PhantomData<&()>,
             span: Some(
-                SpanId {
-                    data: 171798691925,
-                },
+                SpanId(..),
             ),
             is_syntactic: true,
         },
-        def_id: TyDefId {
-            data: 219790656405506,
-        },
+        def_id: TyDefId(..),
         generic_args: GenericArgs {
             args: [
                 Ty(
@@ -64,15 +60,11 @@ Enum(
         data: CommonTyData {
             _lifetime: PhantomData<&()>,
             span: Some(
-                SpanId {
-                    data: 171798692005,
-                },
+                SpanId(..),
             ),
             is_syntactic: true,
         },
-        def_id: TyDefId {
-            data: 219790656405506,
-        },
+        def_id: TyDefId(..),
         generic_args: GenericArgs {
             args: [
                 Ty(
@@ -117,15 +109,11 @@ Enum(
         data: CommonTyData {
             _lifetime: PhantomData<&()>,
             span: Some(
-                SpanId {
-                    data: 128849019125,
-                },
+                SpanId(..),
             ),
             is_syntactic: true,
         },
-        def_id: TyDefId {
-            data: 219790656405506,
-        },
+        def_id: TyDefId(..),
         generic_args: GenericArgs {
             args: [
                 Ty(
@@ -164,15 +152,11 @@ Enum(
         data: CommonTyData {
             _lifetime: PhantomData<&()>,
             span: Some(
-                SpanId {
-                    data: 158913790264,
-                },
+                SpanId(..),
             ),
             is_syntactic: true,
         },
-        def_id: TyDefId {
-            data: 219790656405506,
-        },
+        def_id: TyDefId(..),
         generic_args: GenericArgs {
             args: [
                 Ty(
@@ -181,15 +165,11 @@ Enum(
                             data: CommonTyData {
                                 _lifetime: PhantomData<&()>,
                                 span: Some(
-                                    SpanId {
-                                        data: 124554051903,
-                                    },
+                                    SpanId(..),
                                 ),
                                 is_syntactic: true,
                             },
-                            def_id: TyDefId {
-                                data: 81604378624,
-                            },
+                            def_id: TyDefId(..),
                             generic_args: GenericArgs {
                                 args: [
                                     Ty(
@@ -200,9 +180,7 @@ Enum(
                                                         data: CommonTyData {
                                                             _lifetime: PhantomData<&()>,
                                                             span: Some(
-                                                                SpanId {
-                                                                    data: 25769804106,
-                                                                },
+                                                                SpanId(..),
                                                             ),
                                                             is_syntactic: true,
                                                         },
@@ -210,9 +188,7 @@ Enum(
                                                             Lifetime {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: Some(
-                                                                    SpanId {
-                                                                        data: 4294967626,
-                                                                    },
+                                                                    SpanId(..),
                                                                 ),
                                                                 kind: Static,
                                                             },
@@ -261,15 +237,11 @@ Enum(
         data: CommonTyData {
             _lifetime: PhantomData<&()>,
             span: Some(
-                SpanId {
-                    data: 236223201665,
-                },
+                SpanId(..),
             ),
             is_syntactic: true,
         },
-        def_id: TyDefId {
-            data: 219790656405506,
-        },
+        def_id: TyDefId(..),
         generic_args: GenericArgs {
             args: [
                 Ty(
@@ -278,15 +250,11 @@ Enum(
                             data: CommonTyData {
                                 _lifetime: PhantomData<&()>,
                                 span: Some(
-                                    SpanId {
-                                        data: 201863463304,
-                                    },
+                                    SpanId(..),
                                 ),
                                 is_syntactic: true,
                             },
-                            def_id: TyDefId {
-                                data: 81604378624,
-                            },
+                            def_id: TyDefId(..),
                             generic_args: GenericArgs {
                                 args: [
                                     Ty(
@@ -297,9 +265,7 @@ Enum(
                                                         data: CommonTyData {
                                                             _lifetime: PhantomData<&()>,
                                                             span: Some(
-                                                                SpanId {
-                                                                    data: 51539607955,
-                                                                },
+                                                                SpanId(..),
                                                             ),
                                                             is_syntactic: true,
                                                         },
@@ -307,9 +273,7 @@ Enum(
                                                             Lifetime {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: Some(
-                                                                    SpanId {
-                                                                        data: 30064771476,
-                                                                    },
+                                                                    SpanId(..),
                                                                 ),
                                                                 kind: Static,
                                                             },
@@ -325,9 +289,7 @@ Enum(
                                                         data: CommonTyData {
                                                             _lifetime: PhantomData<&()>,
                                                             span: Some(
-                                                                SpanId {
-                                                                    data: 42949673377,
-                                                                },
+                                                                SpanId(..),
                                                             ),
                                                             is_syntactic: true,
                                                         },
@@ -342,9 +304,7 @@ Enum(
                                                         data: CommonTyData {
                                                             _lifetime: PhantomData<&()>,
                                                             span: Some(
-                                                                SpanId {
-                                                                    data: 34359738797,
-                                                                },
+                                                                SpanId(..),
                                                             ),
                                                             is_syntactic: true,
                                                         },
@@ -388,15 +348,11 @@ Enum(
         data: CommonTyData {
             _lifetime: PhantomData<&()>,
             span: Some(
-                SpanId {
-                    data: 730144440796,
-                },
+                SpanId(..),
             ),
             is_syntactic: true,
         },
-        def_id: TyDefId {
-            data: 219790656405506,
-        },
+        def_id: TyDefId(..),
         generic_args: GenericArgs {
             args: [
                 Ty(
@@ -405,15 +361,11 @@ Enum(
                             data: CommonTyData {
                                 _lifetime: PhantomData<&()>,
                                 span: Some(
-                                    SpanId {
-                                        data: 665719931368,
-                                    },
+                                    SpanId(..),
                                 ),
                                 is_syntactic: true,
                             },
-                            def_id: TyDefId {
-                                data: 81604378624,
-                            },
+                            def_id: TyDefId(..),
                             generic_args: GenericArgs {
                                 args: [
                                     Ty(
@@ -424,15 +376,11 @@ Enum(
                                                         data: CommonTyData {
                                                             _lifetime: PhantomData<&()>,
                                                             span: Some(
-                                                                SpanId {
-                                                                    data: 25769804284,
-                                                                },
+                                                                SpanId(..),
                                                             ),
                                                             is_syntactic: true,
                                                         },
-                                                        def_id: TyDefId {
-                                                            data: 36532991819781,
-                                                        },
+                                                        def_id: TyDefId(..),
                                                         generic_args: GenericArgs {
                                                             args: [],
                                                         },
@@ -444,15 +392,11 @@ Enum(
                                                         data: CommonTyData {
                                                             _lifetime: PhantomData<&()>,
                                                             span: Some(
-                                                                SpanId {
-                                                                    data: 60129542668,
-                                                                },
+                                                                SpanId(..),
                                                             ),
                                                             is_syntactic: true,
                                                         },
-                                                        def_id: TyDefId {
-                                                            data: 219790656405506,
-                                                        },
+                                                        def_id: TyDefId(..),
                                                         generic_args: GenericArgs {
                                                             args: [
                                                                 Ty(
@@ -461,15 +405,11 @@ Enum(
                                                                             data: CommonTyData {
                                                                                 _lifetime: PhantomData<&()>,
                                                                                 span: Some(
-                                                                                    SpanId {
-                                                                                        data: 25769804307,
-                                                                                    },
+                                                                                    SpanId(..),
                                                                                 ),
                                                                                 is_syntactic: true,
                                                                             },
-                                                                            def_id: TyDefId {
-                                                                                data: 36532991819781,
-                                                                            },
+                                                                            def_id: TyDefId(..),
                                                                             generic_args: GenericArgs {
                                                                                 args: [],
                                                                             },
@@ -487,15 +427,11 @@ Enum(
                                                         data: CommonTyData {
                                                             _lifetime: PhantomData<&()>,
                                                             span: Some(
-                                                                SpanId {
-                                                                    data: 60129542692,
-                                                                },
+                                                                SpanId(..),
                                                             ),
                                                             is_syntactic: true,
                                                         },
-                                                        def_id: TyDefId {
-                                                            data: 34033320853509,
-                                                        },
+                                                        def_id: TyDefId(..),
                                                         generic_args: GenericArgs {
                                                             args: [
                                                                 Ty(
@@ -504,15 +440,11 @@ Enum(
                                                                             data: CommonTyData {
                                                                                 _lifetime: PhantomData<&()>,
                                                                                 span: Some(
-                                                                                    SpanId {
-                                                                                        data: 38654706216,
-                                                                                    },
+                                                                                    SpanId(..),
                                                                                 ),
                                                                                 is_syntactic: true,
                                                                             },
-                                                                            def_id: TyDefId {
-                                                                                data: 68719476736,
-                                                                            },
+                                                                            def_id: TyDefId(..),
                                                                             generic_args: GenericArgs {
                                                                                 args: [],
                                                                             },
@@ -529,15 +461,11 @@ Enum(
                                                         data: CommonTyData {
                                                             _lifetime: PhantomData<&()>,
                                                             span: Some(
-                                                                SpanId {
-                                                                    data: 60129542716,
-                                                                },
+                                                                SpanId(..),
                                                             ),
                                                             is_syntactic: true,
                                                         },
-                                                        def_id: TyDefId {
-                                                            data: 1894080577541,
-                                                        },
+                                                        def_id: TyDefId(..),
                                                         generic_args: GenericArgs {
                                                             args: [
                                                                 Ty(
@@ -546,9 +474,7 @@ Enum(
                                                                             data: CommonTyData {
                                                                                 _lifetime: PhantomData<&()>,
                                                                                 span: Some(
-                                                                                    SpanId {
-                                                                                        data: 38654706240,
-                                                                                    },
+                                                                                    SpanId(..),
                                                                                 ),
                                                                                 is_syntactic: true,
                                                                             },
@@ -557,16 +483,12 @@ Enum(
                                                                                     TraitBound {
                                                                                         is_relaxed: false,
                                                                                         trait_ref: TraitRef {
-                                                                                            item_id: ItemId {
-                                                                                                data: 45226005626882,
-                                                                                            },
+                                                                                            item_id: ItemId(..),
                                                                                             generics: GenericArgs {
                                                                                                 args: [],
                                                                                             },
                                                                                         },
-                                                                                        span: SpanId {
-                                                                                            data: 21474837060,
-                                                                                        },
+                                                                                        span: SpanId(..),
                                                                                     },
                                                                                 ),
                                                                             ],
@@ -583,15 +505,11 @@ Enum(
                                                         data: CommonTyData {
                                                             _lifetime: PhantomData<&()>,
                                                             span: Some(
-                                                                SpanId {
-                                                                    data: 167503725140,
-                                                                },
+                                                                SpanId(..),
                                                             ),
                                                             is_syntactic: true,
                                                         },
-                                                        def_id: TyDefId {
-                                                            data: 1894080577541,
-                                                        },
+                                                        def_id: TyDefId(..),
                                                         generic_args: GenericArgs {
                                                             args: [
                                                                 Ty(
@@ -600,9 +518,7 @@ Enum(
                                                                             data: CommonTyData {
                                                                                 _lifetime: PhantomData<&()>,
                                                                                 span: Some(
-                                                                                    SpanId {
-                                                                                        data: 146028888664,
-                                                                                    },
+                                                                                    SpanId(..),
                                                                                 ),
                                                                                 is_syntactic: true,
                                                                             },
@@ -611,21 +527,15 @@ Enum(
                                                                                     TraitBound {
                                                                                         is_relaxed: false,
                                                                                         trait_ref: TraitRef {
-                                                                                            item_id: ItemId {
-                                                                                                data: 38019050504194,
-                                                                                            },
+                                                                                            item_id: ItemId(..),
                                                                                             generics: GenericArgs {
                                                                                                 args: [
                                                                                                     Binding(
                                                                                                         BindingGenericArg {
                                                                                                             span: Some(
-                                                                                                                SpanId {
-                                                                                                                    data: 42949673573,
-                                                                                                                },
+                                                                                                                SpanId(..),
                                                                                                             ),
-                                                                                                            ident: SymbolId {
-                                                                                                                data: 1618,
-                                                                                                            },
+                                                                                                            ident: SymbolId(..),
                                                                                                             ty: Num(
                                                                                                                 i32,
                                                                                                             ),
@@ -634,18 +544,14 @@ Enum(
                                                                                                 ],
                                                                                             },
                                                                                         },
-                                                                                        span: SpanId {
-                                                                                            data: 85899346524,
-                                                                                        },
+                                                                                        span: SpanId(..),
                                                                                     },
                                                                                 ),
                                                                                 Lifetime(
                                                                                     Lifetime {
                                                                                         _lifetime: PhantomData<&()>,
                                                                                         span: Some(
-                                                                                            SpanId {
-                                                                                                data: 30064771699,
-                                                                                            },
+                                                                                            SpanId(..),
                                                                                         ),
                                                                                         kind: Static,
                                                                                     },
