@@ -42,3 +42,20 @@ impl<'ast> FnItem<'ast> {
 }
 
 impl_callable_data_trait!(FnItem<'ast>);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> FnItem<'ast> {
+    pub fn new(
+        data: CommonItemData<'ast>,
+        generics: GenericParams<'ast>,
+        callable_data: CommonCallableData<'ast>,
+        body: FfiOption<BodyId>,
+    ) -> Self {
+        Self {
+            data,
+            generics,
+            callable_data,
+            body,
+        }
+    }
+}

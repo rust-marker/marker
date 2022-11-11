@@ -1,4 +1,5 @@
 use crate::ast::{ty::TyKind, BodyId};
+use crate::ffi::FfiOption;
 
 use super::CommonItemData;
 
@@ -14,7 +15,7 @@ use super::CommonItemData;
 pub struct ConstItem<'ast> {
     data: CommonItemData<'ast>,
     ty: TyKind<'ast>,
-    body_id: Option<BodyId>,
+    body_id: FfiOption<BodyId>,
 }
 
 impl<'ast> ConstItem<'ast> {
@@ -23,14 +24,18 @@ impl<'ast> ConstItem<'ast> {
     }
 
     pub fn body_id(&self) -> Option<BodyId> {
-        self.body_id
+        self.body_id.get().copied()
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> ConstItem<'ast> {
     pub fn new(data: CommonItemData<'ast>, ty: TyKind<'ast>, body_id: Option<BodyId>) -> Self {
-        Self { data, ty, body_id }
+        Self {
+            data,
+            ty,
+            body_id: body_id.into(),
+        }
     }
 }
 
