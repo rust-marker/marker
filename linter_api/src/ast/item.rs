@@ -19,6 +19,8 @@ mod ty_alias_item;
 pub use ty_alias_item::*;
 mod adt_item;
 pub use adt_item::*;
+mod trait_item;
+pub use trait_item::*;
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
@@ -58,32 +60,55 @@ pub enum ItemKind<'ast> {
     Enum(&'ast EnumItem<'ast>),
     Union(&'ast UnionItem<'ast>),
 
-    Trait(&'ast dyn TraitItem<'ast>),
+    Trait(&'ast TraitItem<'ast>),
     Impl(&'ast dyn ImplItem<'ast>),
     ExternBlock(&'ast dyn ExternBlockItem<'ast>),
 }
 
 impl<'ast> ItemKind<'ast> {
-    impl_item_type_fn!(id() -> ItemId);
-    impl_item_type_fn!(span() -> &'ast Span<'ast>);
-    impl_item_type_fn!(visibility() -> &Visibility<'ast>);
-    impl_item_type_fn!(name() -> Option<String>);
-    impl_item_type_fn!(attrs() -> ());
+    impl_item_type_fn!(ItemKind: id() -> ItemId);
+    impl_item_type_fn!(ItemKind: span() -> &Span<'ast>);
+    impl_item_type_fn!(ItemKind: visibility() -> &Visibility<'ast>);
+    impl_item_type_fn!(ItemKind: name() -> Option<String>);
+    impl_item_type_fn!(ItemKind: attrs() -> ());
+}
+
+#[non_exhaustive]
+#[derive(Debug)]
+pub enum AssocItemKind<'ast> {
+    TyAlias(&'ast TyAliasItem<'ast>),
+    Const(&'ast ConstItem<'ast>),
+    Fn(&'ast FnItem<'ast>),
+}
+
+impl<'ast> AssocItemKind<'ast> {
+    impl_item_type_fn!(AssocItemKind: id() -> ItemId);
+    impl_item_type_fn!(AssocItemKind: span() -> &Span<'ast>);
+    impl_item_type_fn!(AssocItemKind: visibility() -> &Visibility<'ast>);
+    impl_item_type_fn!(AssocItemKind: name() -> Option<String>);
+    impl_item_type_fn!(AssocItemKind: attrs() -> ());
+    impl_item_type_fn!(AssocItemKind: as_item() -> ItemKind<'ast>);
 }
 
 /// Until [trait upcasting](https://github.com/rust-lang/rust/issues/65991) has been implemented
 /// and stabalized we need this to call [`ItemData`] functions for [`ItemKind`].
 macro_rules! impl_item_type_fn {
-    ($method:ident () -> $return_ty:ty) => {
-        impl_item_type_fn!($method() -> $return_ty,
+    (ItemKind: $method:ident () -> $return_ty:ty) => {
+        impl_item_type_fn!((ItemKind) $method() -> $return_ty,
             Mod, ExternCrate, UseDecl, Static, Const, Fn,
             TyAlias, Struct, Enum, Union, Trait, Impl, ExternBlock
         );
     };
-    ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
+    (AssocItemKind: $method:ident () -> $return_ty:ty) => {
+        impl_item_type_fn!((AssocItemKind) $method() -> $return_ty,
+            TyAlias, Const, Fn
+        );
+    };
+
+    (($self:ident) $method:ident () -> $return_ty:ty $(, $item:ident)+) => {
         pub fn $method(&self) -> $return_ty {
             match self {
-                $(ItemKind::$item(data) => data.$method(),)*
+                $($self::$item(data) => data.$method(),)*
             }
         }
     };
@@ -171,27 +196,6 @@ pub trait AnonConst<'ast>: Debug {
     fn get_value(&self);
 }
 
-pub trait TraitItem<'ast>: ItemData<'ast> {
-    fn get_ty_id(&self);
-
-    fn get_safety(&self) -> Safety;
-
-    fn get_generics(&self);
-
-    fn get_super_traits(&self) -> &[&TyKind<'ast>];
-
-    /// This returns all associated items that are defined by this trait
-    fn get_assoc_items(&self) -> &[AssocItem<'ast>];
-}
-
-#[non_exhaustive]
-#[derive(Debug)]
-pub enum AssocItem<'ast> {
-    TyAlias(&'ast TyAliasItem<'ast>),
-    Const(&'ast ConstItem<'ast>),
-    Function(&'ast FnItem<'ast>),
-}
-
 pub trait ImplItem<'ast>: ItemData<'ast> {
     fn get_inner_attrs(&self); // FIXME: Add return type -> [&dyn Attribute<'ast>];
 
@@ -206,7 +210,7 @@ pub trait ImplItem<'ast>: ItemData<'ast> {
 
     fn get_generics(&self);
 
-    fn get_assoc_items(&self) -> &[AssocItem<'ast>];
+    fn get_assoc_items(&self) -> &[AssocItemKind<'ast>];
 }
 
 #[non_exhaustive]

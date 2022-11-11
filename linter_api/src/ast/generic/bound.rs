@@ -6,7 +6,7 @@ use super::Lifetime;
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
-pub enum TypeParamBound<'ast> {
+pub enum TyParamBound<'ast> {
     Lifetime(&'ast Lifetime<'ast>),
     TraitBound(&'ast TraitBound<'ast>),
 }

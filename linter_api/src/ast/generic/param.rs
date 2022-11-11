@@ -2,7 +2,7 @@ use crate::ast::{GenericId, Span, SpanId, SymbolId};
 use crate::context::with_cx;
 use crate::ffi::{FfiOption, FfiSlice};
 
-use super::{Lifetime, TypeParamBound};
+use super::{Lifetime, TyParamBound};
 
 /// A singular generic parameter, like `'a` and `T` in this example:
 ///
@@ -65,13 +65,13 @@ pub trait GenericParamData<'ast> {
 pub struct TyParam<'ast> {
     id: GenericId,
     name: SymbolId,
-    bounds: FfiSlice<'ast, TypeParamBound<'ast>>,
+    bounds: FfiSlice<'ast, TyParamBound<'ast>>,
     span: FfiOption<SpanId>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TyParam<'ast> {
-    pub fn new(span: Option<SpanId>, name: SymbolId, id: GenericId, bounds: &'ast [TypeParamBound<'ast>]) -> Self {
+    pub fn new(span: Option<SpanId>, name: SymbolId, id: GenericId, bounds: &'ast [TyParamBound<'ast>]) -> Self {
         Self {
             id,
             name,

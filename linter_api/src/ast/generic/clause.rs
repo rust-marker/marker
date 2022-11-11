@@ -3,7 +3,7 @@ use crate::{
     ffi::{FfiOption, FfiSlice},
 };
 
-use super::{GenericParams, Lifetime, TypeParamBound};
+use super::{GenericParams, Lifetime, TyParamBound};
 
 /// This represents a single clause in a where statement
 ///
@@ -58,13 +58,13 @@ impl<'ast> LifetimeClause<'ast> {
 pub struct TyClause<'ast> {
     params: FfiOption<GenericParams<'ast>>,
     ty: TyKind<'ast>,
-    bounds: FfiSlice<'ast, TypeParamBound<'ast>>,
+    bounds: FfiSlice<'ast, TyParamBound<'ast>>,
 }
 
 impl<'ast> TyClause<'ast> {
     /// Additional parameters introduced as part of this where clause with a `for`.
-    pub fn params(&self) -> &FfiOption<GenericParams<'ast>> {
-        &self.params
+    pub fn params(&self) -> Option<&GenericParams<'ast>> {
+        self.params.get()
     }
 
     /// The type that is bound
@@ -73,14 +73,14 @@ impl<'ast> TyClause<'ast> {
     }
 
     /// The bounds applied to the specified type.
-    pub fn bounds(&self) -> &FfiSlice<'ast, TypeParamBound<'ast>> {
-        &self.bounds
+    pub fn bounds(&self) -> &'ast [TyParamBound<'ast>] {
+        self.bounds.get()
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TyClause<'ast> {
-    pub fn new(params: Option<GenericParams<'ast>>, ty: TyKind<'ast>, bounds: &'ast [TypeParamBound<'ast>]) -> Self {
+    pub fn new(params: Option<GenericParams<'ast>>, ty: TyKind<'ast>, bounds: &'ast [TyParamBound<'ast>]) -> Self {
         Self {
             params: params.into(),
             ty,
