@@ -1,6 +1,6 @@
 use std::{fmt::Debug, marker::PhantomData};
 
-use super::{Abi, ItemId, Safety, Span, SymbolId};
+use super::{ItemId, Span, SymbolId};
 
 // Item implementations
 mod extern_crate_item;
@@ -23,6 +23,8 @@ mod trait_item;
 pub use trait_item::*;
 mod impl_item;
 pub use impl_item::*;
+mod extern_block_item;
+pub use extern_block_item::*;
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
@@ -63,8 +65,7 @@ pub enum ItemKind<'ast> {
     Union(&'ast UnionItem<'ast>),
     Trait(&'ast TraitItem<'ast>),
     Impl(&'ast ImplItem<'ast>),
-
-    ExternBlock(&'ast dyn ExternBlockItem<'ast>),
+    ExternBlock(&'ast ExternBlockItem<'ast>),
 }
 
 impl<'ast> ItemKind<'ast> {
@@ -92,6 +93,22 @@ impl<'ast> AssocItemKind<'ast> {
     impl_item_type_fn!(AssocItemKind: as_item() -> ItemKind<'ast>);
 }
 
+#[non_exhaustive]
+#[derive(Debug)]
+pub enum ExternalItemKind<'ast> {
+    Static(&'ast StaticItem<'ast>),
+    Fn(&'ast FnItem<'ast>),
+}
+
+impl<'ast> ExternalItemKind<'ast> {
+    impl_item_type_fn!(ExternalItemKind: id() -> ItemId);
+    impl_item_type_fn!(ExternalItemKind: span() -> &Span<'ast>);
+    impl_item_type_fn!(ExternalItemKind: visibility() -> &Visibility<'ast>);
+    impl_item_type_fn!(ExternalItemKind: name() -> Option<String>);
+    impl_item_type_fn!(ExternalItemKind: attrs() -> ());
+    impl_item_type_fn!(ExternalItemKind: as_item() -> ItemKind<'ast>);
+}
+
 /// Until [trait upcasting](https://github.com/rust-lang/rust/issues/65991) has been implemented
 /// and stabalized we need this to call [`ItemData`] functions for [`ItemKind`].
 macro_rules! impl_item_type_fn {
@@ -106,7 +123,11 @@ macro_rules! impl_item_type_fn {
             TyAlias, Const, Fn
         );
     };
-
+    (ExternalItemKind: $method:ident () -> $return_ty:ty) => {
+        impl_item_type_fn!((ExternalItemKind) $method() -> $return_ty,
+            Static, Fn
+        );
+    };
     (($self:ident) $method:ident () -> $return_ty:ty $(, $item:ident)+) => {
         pub fn $method(&self) -> $return_ty {
             match self {
@@ -183,25 +204,4 @@ impl<'ast> Visibility<'ast> {
             _item_id: item_id,
         }
     }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// Items based on traits
-///////////////////////////////////////////////////////////////////////////////
-
-pub trait ExternBlockItem<'ast>: ItemData<'ast> {
-    fn get_inner_attrs(&self); // FIXME: Add return type -> [&dyn Attribute<'ast>];
-
-    fn get_safety(&self) -> Safety;
-
-    fn get_abi(&self) -> Abi;
-
-    fn get_external_items(&self) -> ExternalItems<'ast>;
-}
-
-#[non_exhaustive]
-#[derive(Debug)]
-pub enum ExternalItems<'ast> {
-    Static(&'ast StaticItem<'ast>),
-    Function(&'ast FnItem<'ast>),
 }

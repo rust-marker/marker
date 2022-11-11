@@ -12,7 +12,7 @@ use super::{AssocItemKind, CommonItemData};
 /// # struct SomeItem(i32);
 /// impl SomeItem {
 ///     const MAX: i32 = 9;
-/// 
+///
 ///     pub fn new(data: i32) -> Self {
 ///         Self(data)
 ///     }
@@ -20,7 +20,7 @@ use super::{AssocItemKind, CommonItemData};
 ///
 /// impl Add for SomeItem {
 ///     type Output = Self;
-/// 
+///
 ///     fn add(self, other: Self) -> Self {
 ///         Self::new(self.0 + other.0)
 ///     }
