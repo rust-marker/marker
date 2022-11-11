@@ -1,28 +1,29 @@
-//! FIXME: Should this module remain under `ast::item::` or be moved to `ast::common`
-
 use std::fmt::Debug;
 
-use crate::{context::AstContext, ffi::FfiSlice};
+use super::ty::TyKind;
+use crate::ffi::FfiSlice;
 
-mod lifetime_param;
-pub use lifetime_param::*;
-mod type_param;
-pub use type_param::*;
-
-use super::{ty::TyKind, Span};
+mod arg;
+pub use arg::*;
+mod bound;
+pub use bound::*;
+mod param;
+pub use param::*;
+mod clause;
+pub use clause::*;
 
 /// This represents the generic arguments for an item.
 ///
 /// ```
 /// # use std::fmt::Debug;
-/// //            vvvv This is a generic argument
+/// //             vv This is a generic argument
 /// generic_item::<u8>(32);
 ///
 /// pub fn generic_item<T: Copy>(t: T)
 /// //                  ^^^^^^^ This is a generic parameter
 /// where
 ///     T: Debug,
-/// //  ^^^^^^^^ This is a second generic parameter
+/// //  ^^^^^^^^ This is a bound for a generic parameter
 /// {
 ///     println!("{:#?}", t);
 /// }
@@ -33,8 +34,20 @@ use super::{ty::TyKind, Span};
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct GenericArgs<'ast> {
-    _cx: &'ast AstContext<'ast>,
-    args: FfiSlice<'ast, &'ast GenericArg<'ast>>,
+    args: FfiSlice<'ast, GenericArgKind<'ast>>,
+}
+
+impl<'ast> GenericArgs<'ast> {
+    pub fn args(&self) -> &'ast [GenericArgKind<'ast>] {
+        self.args.get()
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> GenericArgs<'ast> {
+    pub fn new(args: &'ast [GenericArgKind<'ast>]) -> Self {
+        Self { args: args.into() }
+    }
 }
 
 /// A singular generic argument.
@@ -43,10 +56,35 @@ pub struct GenericArgs<'ast> {
 #[repr(C)]
 #[non_exhaustive]
 #[derive(Debug, PartialEq, Eq, Hash)]
-pub enum GenericArg<'ast> {
-    Lifetime(Lifetime<'ast>),
-    Type(TyKind<'ast>),
-    // FIXME: Add GenericArgsConst | GenericArgsBinding
+pub enum GenericArgKind<'ast> {
+    /// A lifetime as a generic argument, like this:
+    ///
+    /// ```
+    /// # use std::marker::PhantomData;
+    /// # #[derive(Default)]
+    /// # pub struct HasLifetime<'a> {
+    /// #     _data: PhantomData<&'a ()>,
+    /// # }
+    /// let _foo: HasLifetime<'static> = HasLifetime::default();
+    /// //                    ^^^^^^^
+    /// ```
+    Lifetime(&'ast Lifetime<'ast>),
+    /// A type as a generic argument, like this:
+    ///
+    /// ```
+    /// let _bar: Vec<String> = vec!();
+    /// //            ^^^^^^
+    /// ```
+    Ty(&'ast TyKind<'ast>),
+    /// A type binding as a generic argument, like this:
+    ///
+    /// ```ignore
+    /// let _baz: &dyn Iterator<Item=String> = todo!();
+    /// //                      ^^^^^^^^^^^
+    /// ```
+    Binding(&'ast BindingGenericArg<'ast>),
+    // FIXME: Add GenericArgsConst
+    // FIXME: Potentualy add a specific `Arg` wrapper for the `Lifetime` and `Type`
 }
 
 /// This represents the generic parameters of a generic item.
@@ -57,41 +95,39 @@ pub enum GenericArg<'ast> {
 /// //                  ^^^^^^^ This is a generic parameter
 /// where
 ///     T: Debug,
-/// //  ^^^^^^^^ This is a second generic parameter
+/// //  ^^^^^^^^  This is a bound for a generic parameter
 /// {
 ///     println!("{:#?}", t);
 /// }
 ///
-/// //            vvvv This is a generic argument
+/// //             vv This is a generic argument
 /// generic_item::<u8>(32);
 /// ```
-/// /// See
+/// See
 /// * [`GenericArgs`]
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct GenericParams<'ast> {
-    _cx: &'ast AstContext<'ast>,
-    params: FfiSlice<'ast, &'ast GenericParamKind<'ast>>,
+    params: FfiSlice<'ast, GenericParamKind<'ast>>,
+    clauses: FfiSlice<'ast, WhereClauseKind<'ast>>,
+}
+
+impl<'ast> GenericParams<'ast> {
+    pub fn params(&self) -> &'ast [GenericParamKind<'ast>] {
+        self.params.get()
+    }
+
+    pub fn clauses(&self) -> &'ast [WhereClauseKind<'ast>] {
+        self.clauses.get()
+    }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> GenericParams<'ast> {
-    #[allow(clippy::used_underscore_binding)]
-    pub fn new(_cx: &'ast AstContext<'ast>, params: FfiSlice<'ast, &'ast GenericParamKind<'ast>>) -> Self {
-        Self { _cx, params }
+    pub fn new(params: &'ast [GenericParamKind<'ast>], clauses: &'ast [WhereClauseKind<'ast>]) -> Self {
+        Self {
+            params: params.into(),
+            clauses: clauses.into(),
+        }
     }
-}
-
-#[repr(C)]
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum GenericParamKind<'ast> {
-    Lifetime(&'ast LifetimeParam<'ast>),
-    Type(&'ast TypeParam<'ast>), // FIXME: Add const `ConstParam`
-}
-
-/// This combines common
-pub trait GenericParamData<'ast>: Debug {
-    fn span(&self) -> Option<&Span<'ast>>;
-    // FIXME: Add `fn attrs(&self) -> &[&Attrs<'ast>]` once implemented.
 }

@@ -5,7 +5,10 @@ pub use span::*;
 mod unstable;
 pub use unstable::*;
 
-use linter_api::{ast::Mutability, lint::Level};
+use linter_api::{
+    ast::{Abi, Mutability},
+    lint::Level,
+};
 
 use crate::context::RustcContext;
 
@@ -23,5 +26,13 @@ pub fn to_rustc_lint_level(_cx: &RustcContext<'_, '_>, api_level: Level) -> rust
         Level::Deny => rustc_lint::Level::Deny,
         Level::Forbid => rustc_lint::Level::Forbid,
         _ => unreachable!(),
+    }
+}
+
+pub fn to_api_abi(_cx: &RustcContext<'_, '_>, rust_abi: rustc_target::spec::abi::Abi) -> Abi {
+    match rust_abi {
+        rustc_target::spec::abi::Abi::Rust => Abi::Default,
+        rustc_target::spec::abi::Abi::C { .. } => Abi::C,
+        _ => Abi::Other,
     }
 }

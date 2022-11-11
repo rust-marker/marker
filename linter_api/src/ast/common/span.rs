@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::context::AstContext;
+use crate::context::with_cx;
 
 use super::{Applicability, AstPath, ItemId, SpanId};
 
@@ -8,6 +8,7 @@ use super::{Applicability, AstPath, ItemId, SpanId};
 #[doc(hidden)]
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
+#[allow(clippy::exhaustive_enums)]
 enum SpanSource<'ast> {
     File(&'ast PathBuf),
     Macro(&'ast AstPath<'ast>),
@@ -16,7 +17,6 @@ enum SpanSource<'ast> {
 #[repr(C)]
 #[derive(Clone)]
 pub struct Span<'ast> {
-    cx: &'ast AstContext<'ast>,
     source: SpanSource<'ast>,
     /// The start marks the first byte in the [`SpanSource`] that is included in this
     /// span. The span continues until the end position.
@@ -63,7 +63,7 @@ impl<'ast> Span<'ast> {
 
     /// Returns the code that this span references or `None` if the code in unavailable
     pub fn snippet(&self) -> Option<String> {
-        self.cx.span_snipped(self)
+        with_cx(self, |cx| cx.span_snipped(self))
     }
 
     /// Converts a span to a code snippet if available, otherwise returns the default.
@@ -108,8 +108,8 @@ impl<'ast> Span<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Span<'ast> {
-    pub fn new(cx: &'ast AstContext<'ast>, source: SpanSource<'ast>, start: usize, end: usize) -> Self {
-        Self { cx, source, start, end }
+    pub fn new(source: SpanSource<'ast>, start: usize, end: usize) -> Self {
+        Self { source, start, end }
     }
 
     pub fn source(&self) -> SpanSource<'ast> {
@@ -119,14 +119,14 @@ impl<'ast> Span<'ast> {
 
 /// **Unstable**
 ///
-/// This enum is used to requrest a `Span` instance from the driver context.
+/// This enum is used to request a `Span` instance from the driver context.
 /// it is only an internal type to avoid mapping every `Span`, since they are
 /// most often not needed.
 #[repr(C)]
-#[doc(hidden)]
+#[allow(clippy::exhaustive_enums)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) enum SpanOwner {
-    /// This requrests the `Span` belonging to the [`ItemId`].
+    /// This requests the `Span` belonging to the [`ItemId`].
     Item(ItemId),
     /// This requests the `Span` belonging to a driver generated [`SpanId`]
     SpecificSpan(SpanId),

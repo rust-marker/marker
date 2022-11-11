@@ -19,6 +19,7 @@ pub struct StaticItem<'ast> {
     data: CommonItemData<'ast>,
     mutability: Mutability,
     body_id: BodyId,
+    ty: TyKind<'ast>,
 }
 
 super::impl_item_data!(StaticItem, Static);
@@ -30,9 +31,8 @@ impl<'ast> StaticItem<'ast> {
     }
 
     /// The defined type of this static item
-    pub fn ty(&self) -> &TyKind<'ast> {
-        #![allow(clippy::missing_panics_doc, clippy::unused_self)]
-        todo!()
+    pub fn ty(&self) -> TyKind<'ast> {
+        self.ty
     }
 
     /// This returns the [`BodyId`] of the initialization body.
@@ -43,11 +43,12 @@ impl<'ast> StaticItem<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> StaticItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, mutability: Mutability, body_id: BodyId) -> Self {
+    pub fn new(data: CommonItemData<'ast>, mutability: Mutability, body_id: BodyId, ty: TyKind<'ast>) -> Self {
         Self {
             data,
             mutability,
             body_id,
+            ty,
         }
     }
 }

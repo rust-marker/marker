@@ -2,24 +2,24 @@ use super::CommonTyData;
 
 #[repr(C)]
 #[derive(PartialEq, Eq, Hash)]
-pub struct NumericTy<'ast> {
+pub struct NumTy<'ast> {
     data: CommonTyData<'ast>,
-    numeric_kind: NumericKind,
+    numeric_kind: NumKind,
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> NumericTy<'ast> {
-    pub fn new(data: CommonTyData<'ast>, numeric_kind: NumericKind) -> Self {
+impl<'ast> NumTy<'ast> {
+    pub fn new(data: CommonTyData<'ast>, numeric_kind: NumKind) -> Self {
         Self { data, numeric_kind }
     }
 }
 
-super::impl_ty_data!(NumericTy<'ast>, Num);
+super::impl_ty_data!(NumTy<'ast>, Num);
 
-impl<'ast> NumericTy<'ast> {
+impl<'ast> NumTy<'ast> {
     // FIXME: Do we want to keep this method and expose the enum or hide
     // it completely behind methods?
-    pub fn numeric_kind(&self) -> NumericKind {
+    pub fn numeric_kind(&self) -> NumKind {
         self.numeric_kind
     }
 
@@ -40,7 +40,7 @@ impl<'ast> NumericTy<'ast> {
     }
 }
 
-impl<'ast> std::fmt::Debug for NumericTy<'ast> {
+impl<'ast> std::fmt::Debug for NumTy<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.numeric_kind)
     }
@@ -48,7 +48,7 @@ impl<'ast> std::fmt::Debug for NumericTy<'ast> {
 
 #[non_exhaustive]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NumericKind {
+pub enum NumKind {
     Isize,
     I8,
     I16,
@@ -65,18 +65,18 @@ pub enum NumericKind {
     F64,
 }
 
-impl NumericKind {
+impl NumKind {
     pub fn is_signed(&self) -> bool {
         matches!(
             self,
-            NumericKind::Isize
-                | NumericKind::I8
-                | NumericKind::I16
-                | NumericKind::I32
-                | NumericKind::I64
-                | NumericKind::I128
-                | NumericKind::F32
-                | NumericKind::F64
+            NumKind::Isize
+                | NumKind::I8
+                | NumKind::I16
+                | NumKind::I32
+                | NumKind::I64
+                | NumKind::I128
+                | NumKind::F32
+                | NumKind::F64
         )
     }
 
@@ -85,7 +85,7 @@ impl NumericKind {
     }
 
     pub fn is_float(&self) -> bool {
-        matches!(self, NumericKind::F32 | NumericKind::F64)
+        matches!(self, NumKind::F32 | NumKind::F64)
     }
 
     pub fn is_integer(&self) -> bool {
@@ -93,7 +93,7 @@ impl NumericKind {
     }
 }
 
-impl std::fmt::Debug for NumericKind {
+impl std::fmt::Debug for NumKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Isize => write!(f, "isize"),

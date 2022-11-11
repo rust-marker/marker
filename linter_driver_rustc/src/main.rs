@@ -19,6 +19,7 @@ extern crate rustc_lint_defs;
 extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_span;
+extern crate rustc_target;
 
 pub mod context;
 pub mod conversion;
@@ -154,7 +155,7 @@ fn main() {
 
         if orig_args.iter().any(|a| a == "--version" || a == "-V") {
             let version_info = env!("CARGO_PKG_VERSION");
-            println!("{}", version_info);
+            println!("{version_info}");
             exit(0);
         }
 

@@ -1,157 +1,83 @@
-/// This ID uniquely identifies a crate during linting, the id is not stable
-/// between different sessions.
-///
-/// The layout and size of this type might change. The id will continue to
-/// provide the current trait implementations.
-#[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct CrateId {
-    /// The layout of the data is up to the driver implementation. The API will never
-    /// create custom IDs and pass them to the driver. The size of this type might
-    /// change. Drivers should validate the size with tests.
-    data: u32,
+macro_rules! new_id {
+    ($(#[$attr:meta])* $vis:vis $name:ident: $data_ty:ty) => {
+        $(#[$attr])*
+        ///
+        /// **Stability notice**:
+        /// * The ID is not stable between different sessions.
+        /// * IDs should never be stored by lint crates, as drivers might change
+        ///   IDs between different `check_*` function calls.
+        /// * The layout and size of this type might change. The ID will continue
+        ///   to provide the current trait implementations.
+        #[repr(C)]
+        #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        $vis struct $name {
+            /// The layout of the data is up to the driver implementation. The API will never
+            /// create custom IDs and pass them to the driver. The size of this type might
+            /// change. Drivers should validate the size with tests.
+            data: $data_ty,
+        }
+
+        #[cfg(feature = "driver-api")]
+        impl $name {
+            #[must_use]
+            pub fn new(data: $data_ty) -> Self {
+                Self { data }
+            }
+
+            pub fn data(self) -> $data_ty {
+                self.data
+            }
+        }
+
+        impl std::fmt::Debug for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.debug_struct(concat!(stringify!($name), "(..)")).finish()
+            }
+        }
+    };
 }
 
-#[cfg(feature = "driver-api")]
-impl CrateId {
-    #[must_use]
-    pub fn new(data: u32) -> Self {
-        Self { data }
-    }
+use new_id;
 
-    pub fn data(self) -> u32 {
-        self.data
-    }
+new_id!(
+    /// This ID uniquely identifies a crate during linting.
+    pub CrateId: u32
+);
+
+new_id! {
+    ///  This ID uniquely identifies an item during linting.
+    pub ItemId: u64
 }
 
-/// This ID uniquely identifies an item during linting, the id is not stable
-/// between different sessions.
-///
-/// The layout and size of this type might change. The id will continue to
-/// provide the current trait implementations.
-#[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ItemId {
-    /// The layout of the data is up to the driver implementation. The API will never
-    /// create custom IDs and pass them to the driver. The size of this type might
-    /// change. Drivers should validate the size with tests.
-    data: u64,
+new_id! {
+    /// This ID uniquely identifies a user defined type during linting.
+    pub TyDefId: u64
 }
 
-#[cfg(feature = "driver-api")]
-impl ItemId {
-    pub fn new(data: u64) -> Self {
-        Self { data }
-    }
-
-    pub fn data(&self) -> u64 {
-        self.data
-    }
+new_id! {
+    /// This ID uniquely identifies a generic parameter during linting.
+    pub GenericId: u64
 }
 
-/// This ID uniquely identifies a user defined type during linting, the id is
-/// not stable between different sessions.
-///
-/// The layout and size of this type might change. The id will continue to
-/// provide the current trait implementations.
-#[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct DefTyId {
-    /// The layout of the data is up to the driver implementation. The API will never
-    /// create custom IDs and pass them to the driver. The size of this type might
-    /// change. Drivers should validate the size with tests.
-    data: u64,
+new_id! {
+    /// This ID uniquely identifies a body during linting.
+    pub BodyId: u64
 }
 
-#[cfg(feature = "driver-api")]
-impl DefTyId {
-    pub fn new(data: u64) -> Self {
-        Self { data }
-    }
-
-    pub fn data(&self) -> u64 {
-        self.data
-    }
+new_id! {
+    /// **Unstable**
+    ///
+    /// This id is used to identify `Span`s. This type is only intended for internal
+    /// use. Lint crates should always get a `Span` object.
+    #[cfg_attr(feature = "driver-api", visibility::make(pub))]
+    pub(crate) SpanId: u64
 }
 
-/// This ID uniquely identifies a body during linting, the id is not stable
-/// between different sessions.
-///
-/// The layout and size of this type might change. The id will continue to
-/// provide the current trait implementations.
-#[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct BodyId {
-    /// The layout of the data is up to the driver implementation. The API will never
-    /// create custom IDs and pass them to the driver. The size of this type might
-    /// change. Drivers should validate the size with tests.
-    data: u64,
-}
-
-#[cfg(feature = "driver-api")]
-impl BodyId {
-    #[must_use]
-    pub fn new(data: u64) -> Self {
-        Self { data }
-    }
-
-    pub fn data(self) -> u64 {
-        self.data
-    }
-}
-
-/// **Unstable**
-///
-/// This id is used to identify `Span`s. This type is only intended for internal
-/// use. Lint crates should always get a `Span` object.
-///
-/// FIXME: Don't leak the type once the common data macro was fixed
-#[repr(C)]
-#[cfg_attr(feature = "driver-api", visibility::make(pub))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct SpanId {
-    /// The layout of the data is up to the driver implementation. The API will never
-    /// create custom IDs and pass them to the driver. The size of this type might
-    /// change. Drivers should validate the size with tests.
-    data: u64,
-}
-
-#[cfg(feature = "driver-api")]
-impl SpanId {
-    #[must_use]
-    pub fn new(data: u64) -> Self {
-        Self { data }
-    }
-
-    pub fn data(self) -> u64 {
-        self.data
-    }
-}
-
-/// **Unstable**
-///
-/// This id is used to identify symbols. This type is only intended for internal
-/// use. Lint crates should always get [`String`] or `&str`.
-///
-/// FIXME: Don't leak the type once the common data macro was fixed
-#[repr(C)]
-#[cfg_attr(feature = "driver-api", visibility::make(pub))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct SymbolId {
-    /// The layout of the data is up to the driver implementation. The API will never
-    /// create custom IDs and pass them to the driver. The size of this type might
-    /// change. Drivers should validate the size with tests.
-    data: u32,
-}
-
-#[cfg(feature = "driver-api")]
-impl SymbolId {
-    #[must_use]
-    pub fn new(data: u32) -> Self {
-        Self { data }
-    }
-
-    pub fn data(self) -> u32 {
-        self.data
-    }
+new_id! {
+    /// **Unstable**
+    ///
+    /// This id is used to identify symbols. This type is only intended for internal
+    /// use. Lint crates should always get [`String`] or `&str`.
+    #[cfg_attr(feature = "driver-api", visibility::make(pub))]
+    pub(crate) SymbolId: u32
 }

@@ -1,6 +1,6 @@
 use crate::{
     ast::ty::TyKind,
-    context::AstContext,
+    context::with_cx,
     ffi::{FfiOption, FfiSlice},
 };
 
@@ -27,13 +27,16 @@ pub trait Callable<'ast> {
     /// by default.
     fn is_unsafe(&self) -> bool;
 
-    /// Returns `true`, if this callable is marked as extern.
+    /// Returns `true`, if this callable is marked as extern. Bare functions
+    /// only use the `extern` keyword to specify the ABI. These will currently
+    /// still return `false` even if the keyword is present. In those cases,
+    /// please refer to the ABI instead.
     ///
     /// Defaults to `false` if unspecified.
     fn is_extern(&self) -> bool;
 
     /// Returns the [`Abi`] of the callable, if specified.
-    fn abi(&self) -> Option<Abi>;
+    fn abi(&self) -> Abi;
 
     /// Returns `true`, if this callable has a specified `self` argument. The
     /// type of `self` can be retrieved from the first element of
@@ -43,7 +46,7 @@ pub trait Callable<'ast> {
     /// Returns the parameters, that this callable accepts. The `self` argument
     /// of methods, will be the first element of this slice. Use
     /// [`Callable::has_self`] to determine if the first argument is `self`.
-    fn params(&self) -> &[&Parameter<'ast>];
+    fn params(&self) -> &[Parameter<'ast>];
 
     /// Returns the return type, if specified.
     fn return_ty(&self) -> Option<&TyKind<'ast>>;
@@ -52,7 +55,6 @@ pub trait Callable<'ast> {
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Parameter<'ast> {
-    cx: &'ast AstContext<'ast>,
     name: FfiOption<SymbolId>,
     ty: FfiOption<TyKind<'ast>>,
     span: FfiOption<SpanId>,
@@ -60,13 +62,12 @@ pub struct Parameter<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Parameter<'ast> {
-    pub fn new(
-        cx: &'ast AstContext<'ast>,
-        name: FfiOption<SymbolId>,
-        ty: FfiOption<TyKind<'ast>>,
-        span: FfiOption<SpanId>,
-    ) -> Self {
-        Self { cx, name, ty, span }
+    pub fn new(name: Option<SymbolId>, ty: Option<TyKind<'ast>>, span: Option<SpanId>) -> Self {
+        Self {
+            name: name.into(),
+            ty: ty.into(),
+            span: span.into(),
+        }
     }
 }
 
@@ -74,7 +75,7 @@ impl<'ast> Parameter<'ast> {
     // Function items actually use patterns and not names. Patterns are not yet
     // implemented though. A pattern should be good enough for now.
     pub fn name(&self) -> Option<String> {
-        self.name.get().map(|sym| self.cx.symbol_str(*sym))
+        self.name.get().map(|sym| with_cx(self, |cx| cx.symbol_str(*sym)))
     }
 
     pub fn ty(&self) -> Option<TyKind<'ast>> {
@@ -82,7 +83,10 @@ impl<'ast> Parameter<'ast> {
     }
 
     pub fn span(&self) -> Option<&Span<'ast>> {
-        self.span.get().copied().map(|span| self.cx.get_span(span))
+        self.span
+            .get()
+            .copied()
+            .map(|span| with_cx(self, |cx| cx.get_span(span)))
     }
 }
 
@@ -94,9 +98,9 @@ pub(crate) struct CallableData<'ast> {
     pub(crate) is_async: bool,
     pub(crate) is_unsafe: bool,
     pub(crate) is_extern: bool,
-    pub(crate) abi: FfiOption<Abi>,
+    pub(crate) abi: Abi,
     pub(crate) has_self: bool,
-    pub(crate) params: FfiSlice<'ast, &'ast Parameter<'ast>>,
+    pub(crate) params: FfiSlice<'ast, Parameter<'ast>>,
     pub(crate) return_ty: FfiOption<TyKind<'ast>>,
 }
 
@@ -108,9 +112,9 @@ impl<'ast> CallableData<'ast> {
         is_async: bool,
         is_unsafe: bool,
         is_extern: bool,
-        abi: Option<Abi>,
+        abi: Abi,
         has_self: bool,
-        params: FfiSlice<'ast, &'ast Parameter<'ast>>,
+        params: &'ast [Parameter<'ast>],
         return_ty: Option<TyKind<'ast>>,
     ) -> Self {
         Self {
@@ -118,9 +122,9 @@ impl<'ast> CallableData<'ast> {
             is_async,
             is_unsafe,
             is_extern,
-            abi: abi.into(),
+            abi,
             has_self,
-            params,
+            params: params.into(),
             return_ty: return_ty.into(),
         }
     }
@@ -141,13 +145,13 @@ macro_rules! impl_callable_trait {
             fn is_extern(&self) -> bool {
                 self.callable_data.is_extern
             }
-            fn abi(&self) -> Option<$crate::ast::common::Abi> {
-                self.callable_data.abi.get().copied()
+            fn abi(&self) -> $crate::ast::common::Abi {
+                self.callable_data.abi
             }
             fn has_self(&self) -> bool {
                 self.callable_data.has_self
             }
-            fn params(&self) -> &[&$crate::ast::common::Parameter<'ast>] {
+            fn params(&self) -> &[$crate::ast::common::Parameter<'ast>] {
                 self.callable_data.params.get()
             }
             fn return_ty(&self) -> Option<&$crate::ast::ty::TyKind<'ast>> {

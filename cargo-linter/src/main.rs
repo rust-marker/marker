@@ -43,7 +43,7 @@ fn main() {
     let matches = get_clap_config().get_matches_from(std::env::args().take_while(|s| s != CARGO_ARGS_SEPARATOR));
     if matches.is_present("version") {
         let version_info = env!("CARGO_PKG_VERSION");
-        println!("{}", version_info);
+        println!("{version_info}");
         exit(0);
     }
 

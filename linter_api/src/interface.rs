@@ -5,7 +5,7 @@
 ///
 /// **Struct initialized with `default()`**
 /// ```ignore
-/// #[derive(Debug)]
+/// #[derive(Default)]
 /// struct LintPassWithDefault;
 /// linter_api::interface::export_lint_pass!(LintPassWithDefault);
 /// ```
@@ -45,6 +45,11 @@ macro_rules! export_lint_pass {
             #[no_mangle]
             pub extern "C" fn get_linter_api_version() -> &'static str {
                 $crate::LINTER_API_VERSION
+            }
+
+            #[no_mangle]
+            pub extern "C" fn set_ast_context<'ast>(cx: &'ast linter_api::context::AstContext<'ast>) {
+                $crate::context::set_ast_cx(cx);
             }
 
             $crate::for_each_lint_pass_fn!($crate::interface::export_lint_pass_fn);

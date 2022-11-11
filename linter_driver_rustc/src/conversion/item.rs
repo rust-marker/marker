@@ -10,22 +10,18 @@ use super::to_api_body_id;
 use super::to_api_item_id_from_def_id;
 use super::to_api_mutability;
 use super::to_api_symbol_id;
+use super::ty::to_api_syn_ty;
 
 pub fn to_api_item<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
     rustc_item: &'tcx rustc_hir::Item<'tcx>,
 ) -> Option<ItemType<'ast>> {
-    let id = to_api_item_id_from_def_id(cx, rustc_item.def_id.to_def_id());
+    let id = to_api_item_id_from_def_id(cx, rustc_item.owner_id.to_def_id());
     if let Some(item) = cx.storage.item(id) {
         return Some(item);
     }
 
-    let common_data = CommonItemData::new(
-        cx.ast_cx(),
-        id,
-        Visibility::new(cx.ast_cx(), id),
-        to_api_symbol_id(cx, rustc_item.ident.name),
-    );
+    let common_data = CommonItemData::new(id, Visibility::new(id), to_api_symbol_id(cx, rustc_item.ident.name));
     let item = match rustc_item.kind {
         rustc_hir::ItemKind::Mod(rustc_mod) => ItemType::Mod(to_mod_item(cx, common_data, rustc_mod)),
         rustc_hir::ItemKind::Static(ty, mt, rust_body_id) => {
@@ -73,10 +69,16 @@ fn to_mod_item<'ast, 'tcx>(
 fn to_static_item<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
     data: CommonItemData<'ast>,
-    _ty: &rustc_hir::Ty<'tcx>,
+    ty: &'tcx rustc_hir::Ty<'tcx>,
     rustc_mt: rustc_ast::Mutability,
     rustc_body_id: rustc_hir::BodyId,
 ) -> &'ast StaticItem<'ast> {
-    cx.storage
-        .alloc(|| StaticItem::new(data, to_api_mutability(cx, rustc_mt), to_api_body_id(cx, rustc_body_id)))
+    cx.storage.alloc(|| {
+        StaticItem::new(
+            data,
+            to_api_mutability(cx, rustc_mt),
+            to_api_body_id(cx, rustc_body_id),
+            to_api_syn_ty(cx, ty),
+        )
+    })
 }

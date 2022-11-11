@@ -13,4 +13,4 @@ crate-type = ["cdylib"]
 linter_api = { path = "../linter_api" }
 
 [dev-dependencies]
-compiletest_rs = { version = "0.8", features = ["tmp", "rustc"] }
+compiletest_rs = { version = "0.9", features = ["tmp"] }
