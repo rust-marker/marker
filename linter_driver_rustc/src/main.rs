@@ -6,6 +6,7 @@
 #![warn(clippy::pedantic)]
 #![allow(clippy::missing_panics_doc)]
 #![allow(clippy::module_name_repetitions)]
+#![allow(clippy::needless_collect, reason = "it has false positives for `alloc_slice_iter`")]
 
 extern crate rustc_ast;
 extern crate rustc_data_structures;

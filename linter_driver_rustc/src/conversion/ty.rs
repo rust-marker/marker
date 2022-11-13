@@ -12,7 +12,7 @@ use crate::{
 };
 
 use super::{
-    generic::{to_api_generic_args, to_api_lifetime_from_syn, to_api_trait_bounds_from_hir},
+    generic::{to_api_generic_args, to_api_lifetime, to_api_trait_bounds_from_hir},
     to_api_mutability, to_api_span_id, to_api_ty_def_id,
 };
 
@@ -39,7 +39,7 @@ pub fn to_api_syn_ty<'ast, 'tcx>(
         rustc_hir::TyKind::Rptr(rust_lt, mut_ty) => TyKind::Ref(cx.storage.alloc(|| {
             RefTy::new(
                 data,
-                to_api_lifetime_from_syn(cx, rust_lt),
+                to_api_lifetime(cx, rust_lt),
                 to_api_mutability(cx, mut_ty.mutbl),
                 to_api_syn_ty(cx, mut_ty.ty),
             )

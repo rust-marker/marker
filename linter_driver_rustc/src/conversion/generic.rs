@@ -7,7 +7,7 @@ use crate::context::RustcContext;
 
 use super::{to_api_generic_id, to_api_item_id_from_def_id, to_api_span_id, to_api_symbol_id, ty::to_api_syn_ty};
 
-pub fn to_api_lifetime_from_syn<'ast, 'tcx>(
+pub fn to_api_lifetime<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
     rust_lt: &rustc_hir::Lifetime,
 ) -> Option<Lifetime<'ast>> {
@@ -46,7 +46,7 @@ pub fn to_api_generic_args<'ast, 'tcx>(
             .filter(|rustc_arg| !rustc_arg.is_synthetic())
             .map(|rustc_arg| match rustc_arg {
                 rustc_hir::GenericArg::Lifetime(r_lt) => {
-                    GenericArgKind::Lifetime(cx.storage.alloc(|| to_api_lifetime_from_syn(cx, r_lt).unwrap()))
+                    GenericArgKind::Lifetime(cx.storage.alloc(|| to_api_lifetime(cx, r_lt).unwrap()))
                 },
                 rustc_hir::GenericArg::Type(r_ty) => GenericArgKind::Ty(cx.storage.alloc(|| to_api_syn_ty(cx, r_ty))),
                 rustc_hir::GenericArg::Const(_) => todo!(),
@@ -72,31 +72,36 @@ pub fn to_api_generic_args<'ast, 'tcx>(
     }
 }
 
+pub fn to_api_trait_ref<'ast, 'tcx>(
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    trait_ref: &rustc_hir::PolyTraitRef<'tcx>,
+) -> TraitRef<'ast> {
+    let trait_id = match trait_ref.trait_ref.path.res {
+        rustc_hir::def::Res::Def(rustc_hir::def::DefKind::Trait | rustc_hir::def::DefKind::TraitAlias, rustc_id) => {
+            to_api_item_id_from_def_id(cx, rustc_id)
+        },
+        _ => unreachable!("reached `PolyTraitRef` which can't be translated {trait_ref:#?}"),
+    };
+    // TODO get generic args from last path segment
+    TraitRef::new(trait_id, to_api_generic_args_from_path(cx, trait_ref.trait_ref.path))
+}
+
 pub fn to_api_trait_bounds_from_hir<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
     rust_bounds: &[rustc_hir::PolyTraitRef<'tcx>],
     rust_lt: &rustc_hir::Lifetime,
 ) -> &'ast [TyParamBound<'ast>] {
     let traits = rust_bounds.iter().map(|rust_trait_ref| {
-        let trait_id = match rust_trait_ref.trait_ref.path.res {
-            rustc_hir::def::Res::Def(
-                rustc_hir::def::DefKind::Trait | rustc_hir::def::DefKind::TraitAlias,
-                rustc_id,
-            ) => to_api_item_id_from_def_id(cx, rustc_id),
-            _ => unreachable!("reached `PolyTraitRef` which can't be translated {rust_trait_ref:#?}"),
-        };
-        // TODO get generic args from last path segment
-        let trait_ref = TraitRef::new(
-            trait_id,
-            to_api_generic_args_from_path(cx, rust_trait_ref.trait_ref.path),
-        );
-        TyParamBound::TraitBound(
-            cx.storage
-                .alloc(|| TraitBound::new(false, trait_ref, to_api_span_id(cx, rust_trait_ref.span))),
-        )
+        TyParamBound::TraitBound(cx.storage.alloc(|| {
+            TraitBound::new(
+                false,
+                to_api_trait_ref(cx, rust_trait_ref),
+                to_api_span_id(cx, rust_trait_ref.span),
+            )
+        }))
     });
 
-    if let Some(lt) = to_api_lifetime_from_syn(cx, rust_lt) {
+    if let Some(lt) = to_api_lifetime(cx, rust_lt) {
         // alloc_slice_iter requires a const size, which is not possible otherwise
         let mut bounds: Vec<_> = traits.collect();
         bounds.push(TyParamBound::Lifetime(cx.storage.alloc(move || lt)));

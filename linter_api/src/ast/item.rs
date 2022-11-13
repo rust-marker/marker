@@ -182,8 +182,12 @@ use impl_item_data;
 
 #[cfg(feature = "driver-api")]
 impl<'ast> CommonItemData<'ast> {
-    pub fn new(id: ItemId, vis: Visibility<'ast>, name: SymbolId) -> Self {
-        Self { id, vis, name }
+    pub fn new(id: ItemId, name: SymbolId) -> Self {
+        Self {
+            id,
+            vis: Visibility::new(id),
+            name,
+        }
     }
 }
 
