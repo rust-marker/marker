@@ -16,7 +16,7 @@ pub fn to_api_lifetime<'ast, 'tcx>(
             to_api_symbol_id(ident.name),
             to_api_generic_id(cx, local_id.to_def_id()),
         ),
-        rustc_hir::LifetimeName::Param(_local_id, rustc_hir::ParamName::Fresh) => todo!("{:#?}", rust_lt),
+        rustc_hir::LifetimeName::Param(_local_id, rustc_hir::ParamName::Fresh) => return None,
         rustc_hir::LifetimeName::ImplicitObjectLifetimeDefault => return None,
         rustc_hir::LifetimeName::Infer => LifetimeKind::Infer,
         rustc_hir::LifetimeName::Static => LifetimeKind::Static,

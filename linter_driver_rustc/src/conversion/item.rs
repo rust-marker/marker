@@ -5,9 +5,12 @@ use linter_api::ast::{
         GenericParamKind, GenericParams, LifetimeClause, LifetimeParam, TraitBound, TyClause, TyParam, TyParamBound,
         WhereClauseKind,
     },
-    item::{CommonItemData, ConstItem, ExternCrateItem, ItemKind, ModItem, StaticItem, TyAliasItem, UseItem, UseKind},
+    item::{
+        CommonItemData, ConstItem, ExternCrateItem, FnItem, ItemKind, ModItem, StaticItem, TyAliasItem, UseItem,
+        UseKind,
+    },
     ty::TyKind,
-    ItemId,
+    CommonCallableData, ItemId, Parameter,
 };
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
@@ -16,8 +19,8 @@ use crate::context::RustcContext;
 
 use super::{
     generic::{to_api_lifetime, to_api_trait_ref},
-    to_api_body_id, to_api_generic_id, to_api_item_id_from_def_id, to_api_mutability, to_api_path, to_api_span_id,
-    to_api_symbol_id,
+    to_api_abi, to_api_body_id, to_api_generic_id, to_api_item_id_from_def_id, to_api_mutability, to_api_path,
+    to_api_span_id, to_api_symbol_id,
     ty::to_api_syn_ty,
 };
 
@@ -69,7 +72,14 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                     Some(to_api_body_id(self.cx, *rustc_body_id)),
                 )
             })),
-            hir::ItemKind::Fn(_fn_sig, _generics, _body_id) => todo!(),
+            hir::ItemKind::Fn(fn_sig, generics, body_id) => ItemKind::Fn(self.alloc(|| {
+                FnItem::new(
+                    data,
+                    self.conv_generic(generics),
+                    self.conv_fn_sig(fn_sig, false),
+                    Some(to_api_body_id(self.cx, *body_id)),
+                )
+            })),
             hir::ItemKind::Mod(rustc_mod) => {
                 ItemKind::Mod(self.alloc(|| ModItem::new(data, self.conv_items(rustc_mod.item_ids))))
             },
@@ -209,6 +219,38 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
         let clauses = self.cx.storage.alloc_slice_iter(clauses.into_iter());
 
         GenericParams::new(self.conv_generic_params(rustc_generics.params), clauses)
+    }
+
+    fn conv_fn_sig(&self, fn_sig: &hir::FnSig<'tcx>, is_extern: bool) -> CommonCallableData<'ast> {
+        let params = self
+            .cx
+            .storage
+            .alloc_slice_iter(fn_sig.decl.inputs.iter().map(|input_ty| {
+                Parameter::new(
+                    // FIXME: This should actually be a pattern, that can be
+                    // retrieved from the body. For now this is kind of blocked
+                    // by #50
+                    None,
+                    Some(to_api_syn_ty(self.cx, input_ty)),
+                    Some(to_api_span_id(self.cx, input_ty.span)),
+                )
+            }));
+        let header = fn_sig.header;
+        let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_sig.decl.output {
+            Some(to_api_syn_ty(self.cx, rust_ty))
+        } else {
+            None
+        };
+        CommonCallableData::new(
+            header.is_const(),
+            header.is_async(),
+            header.is_unsafe(),
+            is_extern,
+            to_api_abi(self.cx, header.abi),
+            fn_sig.decl.implicit_self.has_implicit_self(),
+            params,
+            return_ty,
+        )
     }
 
     #[must_use]
