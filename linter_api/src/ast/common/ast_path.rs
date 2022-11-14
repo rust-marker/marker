@@ -23,8 +23,10 @@ pub struct AstPath<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> AstPath<'ast> {
-    pub fn new(segments: FfiSlice<'ast, AstPathSegment<'ast>>) -> Self {
-        Self { segments }
+    pub fn new(segments: &'ast [AstPathSegment<'ast>]) -> Self {
+        Self {
+            segments: segments.into(),
+        }
     }
 }
 

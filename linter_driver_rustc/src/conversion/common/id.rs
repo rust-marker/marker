@@ -192,7 +192,8 @@ pub fn to_rustc_span_from_id(_cx: &RustcContext<'_, '_>, api_id: SpanId) -> rust
     unsafe { transmute(api_id) }
 }
 
-pub fn to_api_symbol_id(_cx: &RustcContext<'_, '_>, sym: rustc_span::Symbol) -> SymbolId {
+#[must_use]
+pub fn to_api_symbol_id(sym: rustc_span::Symbol) -> SymbolId {
     assert_eq!(size_of::<SymbolId>(), 4);
     SymbolId::new(sym.as_u32())
 }

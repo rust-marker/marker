@@ -4,6 +4,8 @@ mod span;
 pub use span::*;
 mod unstable;
 pub use unstable::*;
+mod ast_path;
+pub use ast_path::*;
 
 use linter_api::{
     ast::{Abi, Mutability},

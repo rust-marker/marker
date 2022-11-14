@@ -10,7 +10,7 @@ pub use mod_item::ModItem;
 mod static_item;
 pub use self::static_item::StaticItem;
 mod use_decl_item;
-pub use self::use_decl_item::UseDeclItem;
+pub use self::use_decl_item::*;
 mod const_item;
 pub use self::const_item::ConstItem;
 mod fn_item;
@@ -55,7 +55,7 @@ pub trait ItemData<'ast>: Debug {
 pub enum ItemKind<'ast> {
     Mod(&'ast ModItem<'ast>),
     ExternCrate(&'ast ExternCrateItem<'ast>),
-    UseDecl(&'ast UseDeclItem<'ast>),
+    Use(&'ast UseItem<'ast>),
     Static(&'ast StaticItem<'ast>),
     Const(&'ast ConstItem<'ast>),
     Fn(&'ast FnItem<'ast>),
@@ -114,7 +114,7 @@ impl<'ast> ExternalItemKind<'ast> {
 macro_rules! impl_item_type_fn {
     (ItemKind: $method:ident () -> $return_ty:ty) => {
         impl_item_type_fn!((ItemKind) $method() -> $return_ty,
-            Mod, ExternCrate, UseDecl, Static, Const, Fn,
+            Mod, ExternCrate, Use, Static, Const, Fn,
             TyAlias, Struct, Enum, Union, Trait, Impl, ExternBlock
         );
     };

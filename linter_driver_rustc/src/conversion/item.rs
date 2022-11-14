@@ -5,7 +5,7 @@ use linter_api::ast::{
         GenericParamKind, GenericParams, LifetimeClause, LifetimeParam, TraitBound, TyClause, TyParam, TyParamBound,
         WhereClauseKind,
     },
-    item::{CommonItemData, ConstItem, ExternCrateItem, ItemKind, ModItem, StaticItem, TyAliasItem},
+    item::{CommonItemData, ConstItem, ExternCrateItem, ItemKind, ModItem, StaticItem, TyAliasItem, UseItem, UseKind},
     ty::TyKind,
     ItemId,
 };
@@ -16,7 +16,8 @@ use crate::context::RustcContext;
 
 use super::{
     generic::{to_api_lifetime, to_api_trait_ref},
-    to_api_body_id, to_api_generic_id, to_api_item_id_from_def_id, to_api_mutability, to_api_span_id, to_api_symbol_id,
+    to_api_body_id, to_api_generic_id, to_api_item_id_from_def_id, to_api_mutability, to_api_path, to_api_span_id,
+    to_api_symbol_id,
     ty::to_api_syn_ty,
 };
 
@@ -39,18 +40,25 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             return Some(*item);
         }
 
-        let name = to_api_symbol_id(self.cx, rustc_item.ident.name);
+        let name = to_api_symbol_id(rustc_item.ident.name);
         let data = CommonItemData::new(id, name);
-        let item = match rustc_item.kind {
-            hir::ItemKind::ExternCrate(original_name) => ItemKind::ExternCrate(self.alloc(|| {
-                ExternCrateItem::new(data, original_name.map_or(name, |sym| to_api_symbol_id(self.cx, sym)))
-            })),
-            hir::ItemKind::Use(_, _) => todo!(),
+        let item = match &rustc_item.kind {
+            hir::ItemKind::ExternCrate(original_name) => ItemKind::ExternCrate(
+                self.alloc(|| ExternCrateItem::new(data, original_name.map_or(name, to_api_symbol_id))),
+            ),
+            hir::ItemKind::Use(path, use_kind) => {
+                let use_kind = match use_kind {
+                    hir::UseKind::Single => UseKind::Single,
+                    hir::UseKind::Glob => UseKind::Glob,
+                    hir::UseKind::ListStem => return None,
+                };
+                ItemKind::Use(self.alloc(|| UseItem::new(data, to_api_path(self.cx, path), use_kind)))
+            },
             hir::ItemKind::Static(rustc_ty, rustc_mut, rustc_body_id) => ItemKind::Static(self.alloc(|| {
                 StaticItem::new(
                     data,
-                    to_api_mutability(self.cx, rustc_mut),
-                    to_api_body_id(self.cx, rustc_body_id),
+                    to_api_mutability(self.cx, *rustc_mut),
+                    to_api_body_id(self.cx, *rustc_body_id),
                     self.conv_ty(rustc_ty),
                 )
             })),
@@ -58,16 +66,15 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                 ConstItem::new(
                     data,
                     self.conv_ty(rustc_ty),
-                    Some(to_api_body_id(self.cx, rustc_body_id)),
+                    Some(to_api_body_id(self.cx, *rustc_body_id)),
                 )
             })),
-            hir::ItemKind::Fn(_, _, _) => todo!(),
-            hir::ItemKind::Macro(_, _) => return None,
+            hir::ItemKind::Fn(_fn_sig, _generics, _body_id) => todo!(),
             hir::ItemKind::Mod(rustc_mod) => {
-                ItemKind::Mod(self.alloc(|| ModItem::new(data, self.conv_item_slice(rustc_mod.item_ids))))
+                ItemKind::Mod(self.alloc(|| ModItem::new(data, self.conv_items(rustc_mod.item_ids))))
             },
             hir::ItemKind::ForeignMod { .. } => todo!(),
-            hir::ItemKind::GlobalAsm(_) => return None,
+            hir::ItemKind::Macro(_, _) | hir::ItemKind::GlobalAsm(_) => return None,
             hir::ItemKind::TyAlias(rustc_ty, rustc_generics) => ItemKind::TyAlias(
                 self.alloc(|| TyAliasItem::new(data, self.conv_generic(rustc_generics), Some(self.conv_ty(rustc_ty)))),
             ),
@@ -84,7 +91,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
         Some(item)
     }
 
-    fn conv_item_slice(&self, item: &[hir::ItemId]) -> &'ast [ItemKind<'ast>] {
+    pub fn conv_items(&self, item: &[hir::ItemId]) -> &'ast [ItemKind<'ast>] {
         #[expect(
             clippy::needless_collect,
             reason = "collect is required to know the size of the allocation"
@@ -110,7 +117,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             .iter()
             .filter_map(|rustc_param| {
                 let name = match rustc_param.name {
-                    hir::ParamName::Plain(ident) => to_api_symbol_id(self.cx, ident.name),
+                    hir::ParamName::Plain(ident) => to_api_symbol_id(ident.name),
                     _ => return None,
                 };
                 let id = to_api_generic_id(self.cx, rustc_param.hir_id.expect_owner().to_def_id());
@@ -222,7 +229,7 @@ pub fn to_api_item<'ast, 'tcx>(
         return Some(item);
     }
 
-    let common_data = CommonItemData::new(id, to_api_symbol_id(cx, rustc_item.ident.name));
+    let common_data = CommonItemData::new(id, to_api_symbol_id(rustc_item.ident.name));
     let item = match rustc_item.kind {
         hir::ItemKind::Mod(rustc_mod) => ItemKind::Mod(to_mod_item(cx, common_data, rustc_mod)),
         hir::ItemKind::Static(ty, mt, rust_body_id) => {

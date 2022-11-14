@@ -172,7 +172,7 @@ fn to_api_syn_ty_from_bare_fn<'ast, 'tcx>(
         .zip(rust_fn.param_names.iter())
         .map(|(rustc_ty, name)| {
             Parameter::new(
-                Some(to_api_symbol_id(cx, name.name)),
+                Some(to_api_symbol_id(name.name)),
                 Some(to_api_syn_ty(cx, rustc_ty)),
                 Some(to_api_span_id(cx, name.span)),
             )

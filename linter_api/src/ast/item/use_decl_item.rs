@@ -22,18 +22,19 @@ use super::CommonItemData;
 /// See <https://doc.rust-lang.org/stable/reference/items/use-declarations.html>
 #[repr(C)]
 #[derive(Debug)]
-pub struct UseDeclItem<'ast> {
+pub struct UseItem<'ast> {
     data: CommonItemData<'ast>,
     use_path: AstPath<'ast>,
     use_kind: UseKind,
 }
 
-super::impl_item_data!(UseDeclItem, UseDecl);
+super::impl_item_data!(UseItem, Use);
 
 #[repr(C)]
 #[non_exhaustive]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum UseKind {
+#[cfg_attr(feature = "driver-api", visibility::make(pub))]
+pub(crate) enum UseKind {
     /// Single usages like `use foo::bar` a list of multiple usages like
     /// `use foo::{bar, baz}` will be desugured to `use foo::bar; use foo::baz;`
     Single,
@@ -41,20 +42,20 @@ pub enum UseKind {
     Glob,
 }
 
-impl<'ast> UseDeclItem<'ast> {
+impl<'ast> UseItem<'ast> {
     /// Returns the path of this `use` item. For blob imports the `*` will
     /// be included in the simple path.
     pub fn use_path(&self) -> &AstPath<'ast> {
         &self.use_path
     }
 
-    pub fn use_kind(&self) -> UseKind {
-        self.use_kind
+    pub fn is_glob(&self) -> bool {
+        matches!(self.use_kind, UseKind::Glob)
     }
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> UseDeclItem<'ast> {
+impl<'ast> UseItem<'ast> {
     pub fn new(data: CommonItemData<'ast>, use_path: AstPath<'ast>, use_kind: UseKind) -> Self {
         Self {
             data,
