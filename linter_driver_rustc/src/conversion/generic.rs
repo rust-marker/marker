@@ -81,16 +81,16 @@ pub fn to_api_generic_args_opt<'ast, 'tcx>(
 
 pub fn to_api_trait_ref<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
-    trait_ref: &rustc_hir::PolyTraitRef<'tcx>,
+    trait_ref: &rustc_hir::TraitRef<'tcx>,
 ) -> TraitRef<'ast> {
-    let trait_id = match trait_ref.trait_ref.path.res {
+    let trait_id = match trait_ref.path.res {
         rustc_hir::def::Res::Def(rustc_hir::def::DefKind::Trait | rustc_hir::def::DefKind::TraitAlias, rustc_id) => {
             to_api_item_id_from_def_id(cx, rustc_id)
         },
         _ => unreachable!("reached `PolyTraitRef` which can't be translated {trait_ref:#?}"),
     };
     // TODO get generic args from last path segment
-    TraitRef::new(trait_id, to_api_generic_args_from_path(cx, trait_ref.trait_ref.path))
+    TraitRef::new(trait_id, to_api_generic_args_from_path(cx, trait_ref.path))
 }
 
 pub fn to_api_trait_bounds_from_hir<'ast, 'tcx>(
@@ -102,7 +102,7 @@ pub fn to_api_trait_bounds_from_hir<'ast, 'tcx>(
         TyParamBound::TraitBound(cx.storage.alloc(|| {
             TraitBound::new(
                 false,
-                to_api_trait_ref(cx, rust_trait_ref),
+                to_api_trait_ref(cx, &rust_trait_ref.trait_ref),
                 to_api_span_id(cx, rust_trait_ref.span),
             )
         }))

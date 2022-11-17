@@ -91,6 +91,30 @@ impl<'ast> AssocItemKind<'ast> {
     impl_item_type_fn!(AssocItemKind: name() -> Option<String>);
     impl_item_type_fn!(AssocItemKind: attrs() -> ());
     impl_item_type_fn!(AssocItemKind: as_item() -> ItemKind<'ast>);
+    // FIXME: Potentualy add a field to the items to optionally store the owner id
+}
+
+impl<'ast> From<AssocItemKind<'ast>> for ItemKind<'ast> {
+    fn from(value: AssocItemKind<'ast>) -> Self {
+        match value {
+            AssocItemKind::TyAlias(item) => ItemKind::TyAlias(item),
+            AssocItemKind::Const(item) => ItemKind::Const(item),
+            AssocItemKind::Fn(item) => ItemKind::Fn(item),
+        }
+    }
+}
+
+impl<'ast> TryFrom<&ItemKind<'ast>> for AssocItemKind<'ast> {
+    type Error = ();
+
+    fn try_from(value: &ItemKind<'ast>) -> Result<Self, Self::Error> {
+        match value {
+            ItemKind::TyAlias(item) => Ok(AssocItemKind::TyAlias(item)),
+            ItemKind::Const(item) => Ok(AssocItemKind::Const(item)),
+            ItemKind::Fn(item) => Ok(AssocItemKind::Fn(item)),
+            _ => Err(()),
+        }
+    }
 }
 
 #[non_exhaustive]
@@ -107,6 +131,27 @@ impl<'ast> ExternalItemKind<'ast> {
     impl_item_type_fn!(ExternalItemKind: name() -> Option<String>);
     impl_item_type_fn!(ExternalItemKind: attrs() -> ());
     impl_item_type_fn!(ExternalItemKind: as_item() -> ItemKind<'ast>);
+}
+
+impl<'ast> From<ExternalItemKind<'ast>> for ItemKind<'ast> {
+    fn from(value: ExternalItemKind<'ast>) -> Self {
+        match value {
+            ExternalItemKind::Static(item) => ItemKind::Static(item),
+            ExternalItemKind::Fn(item) => ItemKind::Fn(item),
+        }
+    }
+}
+
+impl<'ast> TryFrom<ItemKind<'ast>> for ExternalItemKind<'ast> {
+    type Error = ();
+
+    fn try_from(value: ItemKind<'ast>) -> Result<Self, Self::Error> {
+        match value {
+            ItemKind::Static(item) => Ok(ExternalItemKind::Static(item)),
+            ItemKind::Fn(item) => Ok(ExternalItemKind::Fn(item)),
+            _ => Err(()),
+        }
+    }
 }
 
 /// Until [trait upcasting](https://github.com/rust-lang/rust/issues/65991) has been implemented

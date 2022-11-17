@@ -6,8 +6,8 @@ use linter_api::ast::{
         WhereClauseKind,
     },
     item::{
-        CommonItemData, ConstItem, ExternCrateItem, FnItem, ItemKind, ModItem, StaticItem, TyAliasItem, UseItem,
-        UseKind,
+        AssocItemKind, CommonItemData, ConstItem, ExternCrateItem, FnItem, ImplItem, ItemKind, ModItem, StaticItem,
+        TyAliasItem, UseItem, UseKind,
     },
     ty::TyKind,
     CommonCallableData, ItemId, Parameter,
@@ -94,7 +94,19 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             hir::ItemKind::Union(_, _) => todo!(),
             hir::ItemKind::Trait(_, _, _, _, _) => todo!(),
             hir::ItemKind::TraitAlias(_, _) => todo!(),
-            hir::ItemKind::Impl(_) => todo!(),
+            hir::ItemKind::Impl(imp) => ItemKind::Impl(self.alloc(|| {
+                ImplItem::new(
+                    data,
+                    matches!(imp.unsafety, hir::Unsafety::Unsafe),
+                    matches!(imp.polarity, rustc_ast::ImplPolarity::Positive),
+                    imp.of_trait
+                        .as_ref()
+                        .map(|trait_ref| to_api_trait_ref(self.cx, trait_ref)),
+                    self.conv_generic(imp.generics),
+                    to_api_syn_ty(self.cx, imp.self_ty),
+                    self.conv_assoc_items(imp.items),
+                )
+            })),
         };
 
         self.items.borrow_mut().insert(id, item);
@@ -112,6 +124,43 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             .filter_map(|rustc_item| self.conv_item(rustc_item))
             .collect();
         self.cx.storage.alloc_slice_iter(items.into_iter())
+    }
+
+    fn conv_assoc_item(&self, rustc_item: &hir::ImplItemRef) -> AssocItemKind<'ast> {
+        let id = to_api_item_id_from_def_id(self.cx, rustc_item.id.owner_id.to_def_id());
+        if let Some(item) = self.items.borrow().get(&id) {
+            return item.try_into().unwrap();
+        }
+
+        let impl_item = self.cx.rustc_cx.hir().impl_item(rustc_item.id);
+        let name = to_api_symbol_id(rustc_item.ident.name);
+        let data = CommonItemData::new(id, name);
+
+        let item = match &impl_item.kind {
+            hir::ImplItemKind::Const(ty, body_id) => AssocItemKind::Const(
+                self.alloc(|| ConstItem::new(data, self.conv_ty(ty), Some(to_api_body_id(self.cx, *body_id)))),
+            ),
+            hir::ImplItemKind::Fn(fn_sig, body_id) => AssocItemKind::Fn(self.alloc(|| {
+                FnItem::new(
+                    data,
+                    self.conv_generic(impl_item.generics),
+                    self.conv_fn_sig(fn_sig, false),
+                    Some(to_api_body_id(self.cx, *body_id)),
+                )
+            })),
+            hir::ImplItemKind::Type(ty) => AssocItemKind::TyAlias(
+                self.alloc(|| TyAliasItem::new(data, self.conv_generic(impl_item.generics), Some(self.conv_ty(ty)))),
+            ),
+        };
+
+        self.items.borrow_mut().insert(id, item.as_item());
+        item
+    }
+
+    pub fn conv_assoc_items(&self, items: &[hir::ImplItemRef]) -> &'ast [AssocItemKind<'ast>] {
+        self.cx
+            .storage
+            .alloc_slice_iter(items.iter().map(|item| self.conv_assoc_item(item)))
     }
 
     fn conv_ty(&self, rustc_ty: &'tcx hir::Ty<'tcx>) -> TyKind<'ast> {
@@ -160,7 +209,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                 hir::GenericBound::Trait(trait_ref, modifier) => Some(TyParamBound::TraitBound(self.alloc(|| {
                     TraitBound::new(
                         !matches!(modifier, hir::TraitBoundModifier::None),
-                        to_api_trait_ref(self.cx, trait_ref),
+                        to_api_trait_ref(self.cx, &trait_ref.trait_ref),
                         to_api_span_id(self.cx, bound.span()),
                     )
                 }))),
