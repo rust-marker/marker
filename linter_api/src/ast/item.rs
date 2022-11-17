@@ -119,36 +119,36 @@ impl<'ast> TryFrom<&ItemKind<'ast>> for AssocItemKind<'ast> {
 
 #[non_exhaustive]
 #[derive(Debug)]
-pub enum ExternalItemKind<'ast> {
+pub enum ExternItemKind<'ast> {
     Static(&'ast StaticItem<'ast>),
     Fn(&'ast FnItem<'ast>),
 }
 
-impl<'ast> ExternalItemKind<'ast> {
-    impl_item_type_fn!(ExternalItemKind: id() -> ItemId);
-    impl_item_type_fn!(ExternalItemKind: span() -> &Span<'ast>);
-    impl_item_type_fn!(ExternalItemKind: visibility() -> &Visibility<'ast>);
-    impl_item_type_fn!(ExternalItemKind: name() -> Option<String>);
-    impl_item_type_fn!(ExternalItemKind: attrs() -> ());
-    impl_item_type_fn!(ExternalItemKind: as_item() -> ItemKind<'ast>);
+impl<'ast> ExternItemKind<'ast> {
+    impl_item_type_fn!(ExternItemKind: id() -> ItemId);
+    impl_item_type_fn!(ExternItemKind: span() -> &Span<'ast>);
+    impl_item_type_fn!(ExternItemKind: visibility() -> &Visibility<'ast>);
+    impl_item_type_fn!(ExternItemKind: name() -> Option<String>);
+    impl_item_type_fn!(ExternItemKind: attrs() -> ());
+    impl_item_type_fn!(ExternItemKind: as_item() -> ItemKind<'ast>);
 }
 
-impl<'ast> From<ExternalItemKind<'ast>> for ItemKind<'ast> {
-    fn from(value: ExternalItemKind<'ast>) -> Self {
+impl<'ast> From<ExternItemKind<'ast>> for ItemKind<'ast> {
+    fn from(value: ExternItemKind<'ast>) -> Self {
         match value {
-            ExternalItemKind::Static(item) => ItemKind::Static(item),
-            ExternalItemKind::Fn(item) => ItemKind::Fn(item),
+            ExternItemKind::Static(item) => ItemKind::Static(item),
+            ExternItemKind::Fn(item) => ItemKind::Fn(item),
         }
     }
 }
 
-impl<'ast> TryFrom<ItemKind<'ast>> for ExternalItemKind<'ast> {
+impl<'ast> TryFrom<ItemKind<'ast>> for ExternItemKind<'ast> {
     type Error = ();
 
     fn try_from(value: ItemKind<'ast>) -> Result<Self, Self::Error> {
         match value {
-            ItemKind::Static(item) => Ok(ExternalItemKind::Static(item)),
-            ItemKind::Fn(item) => Ok(ExternalItemKind::Fn(item)),
+            ItemKind::Static(item) => Ok(ExternItemKind::Static(item)),
+            ItemKind::Fn(item) => Ok(ExternItemKind::Fn(item)),
             _ => Err(()),
         }
     }
@@ -168,8 +168,8 @@ macro_rules! impl_item_type_fn {
             TyAlias, Const, Fn
         );
     };
-    (ExternalItemKind: $method:ident () -> $return_ty:ty) => {
-        impl_item_type_fn!((ExternalItemKind) $method() -> $return_ty,
+    (ExternItemKind: $method:ident () -> $return_ty:ty) => {
+        impl_item_type_fn!((ExternItemKind) $method() -> $return_ty,
             Static, Fn
         );
     };
