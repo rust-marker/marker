@@ -7,8 +7,8 @@ use linter_api::ast::{
     },
     item::{
         AdtKind, AssocItemKind, CommonItemData, ConstItem, EnumItem, EnumVariant, ExternCrateItem, Field, FnItem,
-        ImplItem, ItemKind, ModItem, StaticItem, StructItem, TraitItem, TyAliasItem, UnionItem, UseItem, UseKind,
-        Visibility,
+        ImplItem, ItemKind, ModItem, StaticItem, StructItem, TraitItem, TyAliasItem, UnionItem, UnstableItem, UseItem,
+        UseKind, Visibility,
     },
     ty::TyKind,
     CommonCallableData, ItemId, Parameter,
@@ -94,7 +94,9 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                     Some(self.conv_ty(rustc_ty)),
                 )
             })),
-            hir::ItemKind::OpaqueTy(_) => todo!(),
+            hir::ItemKind::OpaqueTy(_) => ItemKind::Unstable(
+                self.alloc(|| UnstableItem::new(data, Some(to_api_symbol_id(rustc_span::sym::type_alias_impl_trait)))),
+            ),
             hir::ItemKind::Enum(enum_def, generics) => ItemKind::Enum(
                 self.alloc(|| EnumItem::new(data, self.conv_generic(generics), self.conv_enum_def(enum_def))),
             ),
@@ -117,9 +119,9 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                     self.conv_trait_items(items),
                 )
             })),
-            // FIXME: Add unstable item for thinks like this, see:
-            // https://doc.rust-lang.org/beta/unstable-book/language-features/trait-alias.html
-            hir::ItemKind::TraitAlias(_, _) => None,
+            hir::ItemKind::TraitAlias(_, _) => ItemKind::Unstable(
+                self.alloc(|| UnstableItem::new(data, Some(to_api_symbol_id(rustc_span::sym::trait_alias)))),
+            ),
             hir::ItemKind::Impl(imp) => ItemKind::Impl(self.alloc(|| {
                 ImplItem::new(
                     data,

@@ -25,6 +25,8 @@ mod impl_item;
 pub use impl_item::*;
 mod extern_block_item;
 pub use extern_block_item::*;
+mod unstable_item;
+pub use unstable_item::*;
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
@@ -66,6 +68,7 @@ pub enum ItemKind<'ast> {
     Trait(&'ast TraitItem<'ast>),
     Impl(&'ast ImplItem<'ast>),
     ExternBlock(&'ast ExternBlockItem<'ast>),
+    Unstable(&'ast UnstableItem<'ast>),
 }
 
 impl<'ast> ItemKind<'ast> {
@@ -159,8 +162,8 @@ impl<'ast> TryFrom<ItemKind<'ast>> for ExternItemKind<'ast> {
 macro_rules! impl_item_type_fn {
     (ItemKind: $method:ident () -> $return_ty:ty) => {
         impl_item_type_fn!((ItemKind) $method() -> $return_ty,
-            Mod, ExternCrate, Use, Static, Const, Fn,
-            TyAlias, Struct, Enum, Union, Trait, Impl, ExternBlock
+            Mod, ExternCrate, Use, Static, Const, Fn, TyAlias, Struct, Enum,
+            Union, Trait, Impl, ExternBlock, Unstable
         );
     };
     (AssocItemKind: $method:ident () -> $return_ty:ty) => {
