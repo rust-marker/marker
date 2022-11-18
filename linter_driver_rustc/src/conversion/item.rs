@@ -7,7 +7,8 @@ use linter_api::ast::{
     },
     item::{
         AdtKind, AssocItemKind, CommonItemData, ConstItem, EnumItem, EnumVariant, ExternCrateItem, Field, FnItem,
-        ImplItem, ItemKind, ModItem, StaticItem, StructItem, TyAliasItem, UnionItem, UseItem, UseKind, Visibility,
+        ImplItem, ItemKind, ModItem, StaticItem, StructItem, TraitItem, TyAliasItem, UnionItem, UseItem, UseKind,
+        Visibility,
     },
     ty::TyKind,
     CommonCallableData, ItemId, Parameter,
@@ -85,9 +86,14 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             },
             hir::ItemKind::ForeignMod { .. } => todo!(),
             hir::ItemKind::Macro(_, _) | hir::ItemKind::GlobalAsm(_) => return None,
-            hir::ItemKind::TyAlias(rustc_ty, rustc_generics) => ItemKind::TyAlias(
-                self.alloc(|| TyAliasItem::new(data, self.conv_generic(rustc_generics), Some(self.conv_ty(rustc_ty)))),
-            ),
+            hir::ItemKind::TyAlias(rustc_ty, rustc_generics) => ItemKind::TyAlias(self.alloc(|| {
+                TyAliasItem::new(
+                    data,
+                    self.conv_generic(rustc_generics),
+                    &[],
+                    Some(self.conv_ty(rustc_ty)),
+                )
+            })),
             hir::ItemKind::OpaqueTy(_) => todo!(),
             hir::ItemKind::Enum(enum_def, generics) => ItemKind::Enum(
                 self.alloc(|| EnumItem::new(data, self.conv_generic(generics), self.conv_enum_def(enum_def))),
@@ -102,8 +108,18 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                     self.conv_variant_data(var_data).fields(),
                 )
             })),
-            hir::ItemKind::Trait(_, _, _, _, _) => todo!(),
-            hir::ItemKind::TraitAlias(_, _) => todo!(),
+            hir::ItemKind::Trait(_is_auto, unsafety, generics, bounds, items) => ItemKind::Trait(self.alloc(|| {
+                TraitItem::new(
+                    data,
+                    matches!(unsafety, hir::Unsafety::Unsafe),
+                    self.conv_generic(generics),
+                    self.conv_generic_bounds(bounds),
+                    self.conv_trait_items(items),
+                )
+            })),
+            // FIXME: Add unstable item for thinks like this, see:
+            // https://doc.rust-lang.org/beta/unstable-book/language-features/trait-alias.html
+            hir::ItemKind::TraitAlias(_, _) => None,
             hir::ItemKind::Impl(imp) => ItemKind::Impl(self.alloc(|| {
                 ImplItem::new(
                     data,
@@ -146,22 +162,23 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
         let name = to_api_symbol_id(rustc_item.ident.name);
         let data = CommonItemData::new(id, name);
 
-        let item = match &impl_item.kind {
-            hir::ImplItemKind::Const(ty, body_id) => AssocItemKind::Const(
-                self.alloc(|| ConstItem::new(data, self.conv_ty(ty), Some(to_api_body_id(self.cx, *body_id)))),
-            ),
-            hir::ImplItemKind::Fn(fn_sig, body_id) => AssocItemKind::Fn(self.alloc(|| {
-                FnItem::new(
-                    data,
-                    self.conv_generic(impl_item.generics),
-                    self.conv_fn_sig(fn_sig, false),
-                    Some(to_api_body_id(self.cx, *body_id)),
-                )
-            })),
-            hir::ImplItemKind::Type(ty) => AssocItemKind::TyAlias(
-                self.alloc(|| TyAliasItem::new(data, self.conv_generic(impl_item.generics), Some(self.conv_ty(ty)))),
-            ),
-        };
+        let item =
+            match &impl_item.kind {
+                hir::ImplItemKind::Const(ty, body_id) => AssocItemKind::Const(
+                    self.alloc(|| ConstItem::new(data, self.conv_ty(ty), Some(to_api_body_id(self.cx, *body_id)))),
+                ),
+                hir::ImplItemKind::Fn(fn_sig, body_id) => AssocItemKind::Fn(self.alloc(|| {
+                    FnItem::new(
+                        data,
+                        self.conv_generic(impl_item.generics),
+                        self.conv_fn_sig(fn_sig, false),
+                        Some(to_api_body_id(self.cx, *body_id)),
+                    )
+                })),
+                hir::ImplItemKind::Type(ty) => AssocItemKind::TyAlias(self.alloc(|| {
+                    TyAliasItem::new(data, self.conv_generic(impl_item.generics), &[], Some(self.conv_ty(ty)))
+                })),
+            };
 
         self.items.borrow_mut().insert(id, item.as_item());
         item
@@ -171,6 +188,56 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
         self.cx
             .storage
             .alloc_slice_iter(items.iter().map(|item| self.conv_assoc_item(item)))
+    }
+
+    fn conv_trait_item(&self, rustc_item: &hir::TraitItemRef) -> AssocItemKind<'ast> {
+        let id = to_api_item_id_from_def_id(self.cx, rustc_item.id.owner_id.to_def_id());
+        if let Some(item) = self.items.borrow().get(&id) {
+            return item.try_into().unwrap();
+        }
+
+        let trait_item = self.cx.rustc_cx.hir().trait_item(rustc_item.id);
+        let name = to_api_symbol_id(rustc_item.ident.name);
+        let data = CommonItemData::new(id, name);
+
+        let item = match &trait_item.kind {
+            hir::TraitItemKind::Const(ty, body_id) => AssocItemKind::Const(self.alloc(|| {
+                ConstItem::new(
+                    data,
+                    self.conv_ty(ty),
+                    body_id.map(|body_id| to_api_body_id(self.cx, body_id)),
+                )
+            })),
+            hir::TraitItemKind::Fn(fn_sig, trait_fn) => AssocItemKind::Fn(self.alloc(|| {
+                let body = match trait_fn {
+                    hir::TraitFn::Provided(body_id) => Some(to_api_body_id(self.cx, *body_id)),
+                    hir::TraitFn::Required(_) => None,
+                };
+                FnItem::new(
+                    data,
+                    self.conv_generic(trait_item.generics),
+                    self.conv_fn_sig(fn_sig, false),
+                    body,
+                )
+            })),
+            hir::TraitItemKind::Type(bounds, ty) => AssocItemKind::TyAlias(self.alloc(|| {
+                TyAliasItem::new(
+                    data,
+                    self.conv_generic(trait_item.generics),
+                    self.conv_generic_bounds(bounds),
+                    ty.map(|ty| self.conv_ty(ty)),
+                )
+            })),
+        };
+
+        self.items.borrow_mut().insert(id, item.as_item());
+        item
+    }
+
+    fn conv_trait_items(&self, items: &[hir::TraitItemRef]) -> &'ast [AssocItemKind<'ast>] {
+        self.cx
+            .storage
+            .alloc_slice_iter(items.iter().map(|item| self.conv_trait_item(item)))
     }
 
     fn conv_ty(&self, rustc_ty: &'tcx hir::Ty<'tcx>) -> TyKind<'ast> {
