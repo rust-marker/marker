@@ -6,8 +6,8 @@ use linter_api::ast::{
         WhereClauseKind,
     },
     item::{
-        AssocItemKind, CommonItemData, ConstItem, ExternCrateItem, FnItem, ImplItem, ItemKind, ModItem, StaticItem,
-        TyAliasItem, UseItem, UseKind,
+        AdtKind, AssocItemKind, CommonItemData, ConstItem, EnumItem, EnumVariant, ExternCrateItem, Field, FnItem,
+        ImplItem, ItemKind, ModItem, StaticItem, StructItem, TyAliasItem, UnionItem, UseItem, UseKind, Visibility,
     },
     ty::TyKind,
     CommonCallableData, ItemId, Parameter,
@@ -37,7 +37,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
         }
     }
 
-    pub fn conv_item(&self, rustc_item: &hir::Item<'tcx>) -> Option<ItemKind<'ast>> {
+    pub fn conv_item(&self, rustc_item: &'tcx hir::Item<'tcx>) -> Option<ItemKind<'ast>> {
         let id = to_api_item_id_from_def_id(self.cx, rustc_item.owner_id.to_def_id());
         if let Some(item) = self.items.borrow().get(&id) {
             return Some(*item);
@@ -89,9 +89,19 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                 self.alloc(|| TyAliasItem::new(data, self.conv_generic(rustc_generics), Some(self.conv_ty(rustc_ty)))),
             ),
             hir::ItemKind::OpaqueTy(_) => todo!(),
-            hir::ItemKind::Enum(_, _) => todo!(),
-            hir::ItemKind::Struct(_, _) => todo!(),
-            hir::ItemKind::Union(_, _) => todo!(),
+            hir::ItemKind::Enum(enum_def, generics) => ItemKind::Enum(
+                self.alloc(|| EnumItem::new(data, self.conv_generic(generics), self.conv_enum_def(enum_def))),
+            ),
+            hir::ItemKind::Struct(var_data, generics) => ItemKind::Struct(
+                self.alloc(|| StructItem::new(data, self.conv_generic(generics), self.conv_variant_data(var_data))),
+            ),
+            hir::ItemKind::Union(var_data, generics) => ItemKind::Union(self.alloc(|| {
+                UnionItem::new(
+                    data,
+                    self.conv_generic(generics),
+                    self.conv_variant_data(var_data).fields(),
+                )
+            })),
             hir::ItemKind::Trait(_, _, _, _, _) => todo!(),
             hir::ItemKind::TraitAlias(_, _) => todo!(),
             hir::ItemKind::Impl(imp) => ItemKind::Impl(self.alloc(|| {
@@ -179,7 +189,9 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                     hir::ParamName::Plain(ident) => to_api_symbol_id(ident.name),
                     _ => return None,
                 };
-                let id = to_api_generic_id(self.cx, rustc_param.hir_id.expect_owner().to_def_id());
+                // FIXME THis here
+                let def_id = self.cx.rustc_cx.hir().local_def_id(rustc_param.hir_id);
+                let id = to_api_generic_id(self.cx, def_id.to_def_id());
                 let span = to_api_span_id(self.cx, rustc_param.span);
                 match rustc_param.kind {
                     hir::GenericParamKind::Lifetime {
@@ -308,5 +320,39 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
         F: FnOnce() -> T,
     {
         self.cx.storage.alloc(f)
+    }
+
+    fn conv_variant_data(&self, var_data: &'tcx hir::VariantData) -> AdtKind<'ast> {
+        match var_data {
+            hir::VariantData::Struct(fields, _recovered) => AdtKind::Field(self.conv_field_defs(fields).into()),
+            hir::VariantData::Tuple(fields, _) => AdtKind::Tuple(self.conv_field_defs(fields).into()),
+            hir::VariantData::Unit(_) => AdtKind::Unit,
+        }
+    }
+
+    fn conv_field_defs(&self, fields: &'tcx [hir::FieldDef]) -> &'ast [Field<'ast>] {
+        self.cx.storage.alloc_slice_iter(fields.iter().map(|field| {
+            // FIXME update Visibility creation to use the stored local def id inside the
+            // field after the next sync. See #55
+            let def_id = self.cx.rustc_cx.hir().local_def_id(field.hir_id);
+            Field::new(
+                Visibility::new(to_api_item_id_from_def_id(self.cx, def_id.to_def_id())),
+                to_api_symbol_id(field.ident.name),
+                self.conv_ty(field.ty),
+                to_api_span_id(self.cx, field.span),
+            )
+        }))
+    }
+
+    fn conv_enum_def(&self, enum_def: &'tcx hir::EnumDef) -> &'ast [EnumVariant<'ast>] {
+        self.cx
+            .storage
+            .alloc_slice_iter(enum_def.variants.iter().map(|variant| {
+                EnumVariant::new(
+                    to_api_symbol_id(variant.ident.name),
+                    to_api_span_id(self.cx, variant.span),
+                    self.conv_variant_data(&variant.data),
+                )
+            }))
     }
 }
