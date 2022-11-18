@@ -49,6 +49,8 @@ mod inferred_ty;
 pub use inferred_ty::*;
 mod generic_ty;
 pub use generic_ty::*;
+mod alias_ty;
+pub use alias_ty::*;
 
 pub trait TyData<'ast> {
     fn as_kind(&'ast self) -> TyKind<'ast>;
@@ -155,6 +157,7 @@ pub enum TyKind<'ast> {
     Inferred(&'ast InferredTy<'ast>),
     /// A generic type, that has been specified in a surrounding item
     Generic(&'ast GenericTy<'ast>),
+    Alias(&'ast AliasTy<'ast>),
 }
 
 impl<'ast> TyKind<'ast> {
@@ -216,8 +219,9 @@ impl<'ast> TyKind<'ast> {
 macro_rules! impl_ty_data_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_ty_data_fn!($method() -> $return_ty,
-        Bool, Num, Text, Never, Tuple, Array, Slice, Struct, Enum, Union,
-        Fn, Closure, Ref, RawPtr, FnPtr, TraitObj, ImplTrait, Inferred, Generic);
+        Bool, Num, Text, Never, Tuple, Array, Slice, Struct, Enum, Union, Fn,
+        Closure, Ref, RawPtr, FnPtr, TraitObj, ImplTrait, Inferred, Generic,
+        Alias);
     };
     ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
         pub fn $method(&self) -> $return_ty {

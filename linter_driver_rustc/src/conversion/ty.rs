@@ -1,7 +1,7 @@
 use linter_api::ast::{
     ty::{
-        ArrayTy, BoolTy, CommonTyData, EnumTy, FnTy, GenericTy, InferredTy, NeverTy, NumKind, NumTy, RawPtrTy, RefTy,
-        SliceTy, StructTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind, UnionTy,
+        AliasTy, ArrayTy, BoolTy, CommonTyData, EnumTy, FnTy, GenericTy, InferredTy, NeverTy, NumKind, NumTy, RawPtrTy,
+        RefTy, SliceTy, StructTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind, UnionTy,
     },
     CommonCallableData, Parameter,
 };
@@ -13,7 +13,7 @@ use crate::{
 
 use super::{
     generic::{to_api_generic_args, to_api_lifetime, to_api_trait_bounds_from_hir},
-    to_api_generic_id, to_api_mutability, to_api_span_id, to_api_ty_def_id,
+    to_api_generic_id, to_api_item_id_from_def_id, to_api_mutability, to_api_span_id, to_api_ty_def_id,
 };
 
 use rustc_hir as hir;
@@ -83,7 +83,11 @@ fn to_api_syn_ty_from_qpath<'ast, 'tcx>(
                 hir::def::DefKind::LifetimeParam | hir::def::DefKind::TyParam | hir::def::DefKind::ConstParam,
                 id,
             ) => TyKind::Generic(cx.storage.alloc(|| GenericTy::new(data, to_api_generic_id(cx, id)))),
-            hir::def::Res::Def(_, _) => todo!(),
+            hir::def::Res::Def(hir::def::DefKind::TyAlias, id) => TyKind::Alias(
+                cx.storage
+                    .alloc(|| AliasTy::new(data, to_api_item_id_from_def_id(cx, id))),
+            ),
+            hir::def::Res::Def(res, _) => todo!("{res:#?}"),
             hir::def::Res::PrimTy(prim_ty) => to_api_syn_ty_from_prim_ty(cx, data, prim_ty),
             hir::def::Res::SelfTyParam { .. } => todo!(),
             hir::def::Res::SelfTyAlias { .. } => todo!(),
