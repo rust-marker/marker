@@ -6,12 +6,12 @@ use linter_api::ast::{
         WhereClauseKind,
     },
     item::{
-        AdtKind, AssocItemKind, CommonItemData, ConstItem, EnumItem, EnumVariant, ExternCrateItem, Field, FnItem,
-        ImplItem, ItemKind, ModItem, StaticItem, StructItem, TraitItem, TyAliasItem, UnionItem, UnstableItem, UseItem,
-        UseKind, Visibility,
+        AdtKind, AssocItemKind, CommonItemData, ConstItem, EnumItem, EnumVariant, ExternBlockItem, ExternCrateItem,
+        ExternItemKind, Field, FnItem, ImplItem, ItemKind, ModItem, StaticItem, StructItem, TraitItem, TyAliasItem,
+        UnionItem, UnstableItem, UseItem, UseKind, Visibility,
     },
     ty::TyKind,
-    CommonCallableData, ItemId, Parameter,
+    Abi, CommonCallableData, ItemId, Parameter,
 };
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
@@ -62,7 +62,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                 StaticItem::new(
                     data,
                     to_api_mutability(self.cx, *rustc_mut),
-                    to_api_body_id(self.cx, *rustc_body_id),
+                    Some(to_api_body_id(self.cx, *rustc_body_id)),
                     self.conv_ty(rustc_ty),
                 )
             })),
@@ -84,7 +84,10 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             hir::ItemKind::Mod(rustc_mod) => {
                 ItemKind::Mod(self.alloc(|| ModItem::new(data, self.conv_items(rustc_mod.item_ids))))
             },
-            hir::ItemKind::ForeignMod { .. } => todo!(),
+            hir::ItemKind::ForeignMod { abi, items } => ItemKind::ExternBlock(self.alloc(|| {
+                let abi = to_api_abi(self.cx, *abi);
+                ExternBlockItem::new(data, abi, self.conv_foreign_items(items, abi))
+            })),
             hir::ItemKind::Macro(_, _) | hir::ItemKind::GlobalAsm(_) => return None,
             hir::ItemKind::TyAlias(rustc_ty, rustc_generics) => ItemKind::TyAlias(self.alloc(|| {
                 TyAliasItem::new(
@@ -242,6 +245,40 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             .alloc_slice_iter(items.iter().map(|item| self.conv_trait_item(item)))
     }
 
+    fn conv_foreign_item(&self, rustc_item: &'tcx hir::ForeignItemRef, abi: Abi) -> ExternItemKind<'ast> {
+        let id = to_api_item_id_from_def_id(self.cx, rustc_item.id.owner_id.to_def_id());
+        if let Some(item) = self.items.borrow().get(&id) {
+            return (*item).try_into().unwrap();
+        }
+
+        let foreign_item = self.cx.rustc_cx.hir().foreign_item(rustc_item.id);
+        let name = to_api_symbol_id(rustc_item.ident.name);
+        let data = CommonItemData::new(id, name);
+        let item = match &foreign_item.kind {
+            hir::ForeignItemKind::Fn(fn_sig, idents, generics) => ExternItemKind::Fn(self.alloc(|| {
+                FnItem::new(
+                    data,
+                    self.conv_generic(generics),
+                    self.conv_fn_decl(fn_sig, idents, true, abi),
+                    None,
+                )
+            })),
+            hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(
+                self.alloc(|| StaticItem::new(data, to_api_mutability(self.cx, *rustc_mut), None, self.conv_ty(ty))),
+            ),
+            hir::ForeignItemKind::Type => todo!(),
+        };
+
+        self.items.borrow_mut().insert(id, item.as_item());
+        item
+    }
+
+    fn conv_foreign_items(&self, items: &'tcx [hir::ForeignItemRef], abi: Abi) -> &'ast [ExternItemKind<'ast>] {
+        self.cx
+            .storage
+            .alloc_slice_iter(items.iter().map(|item| self.conv_foreign_item(item, abi)))
+    }
+
     fn conv_ty(&self, rustc_ty: &'tcx hir::Ty<'tcx>) -> TyKind<'ast> {
         to_api_syn_ty(self.cx, rustc_ty)
     }
@@ -258,7 +295,6 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                     hir::ParamName::Plain(ident) => to_api_symbol_id(ident.name),
                     _ => return None,
                 };
-                // FIXME THis here
                 let def_id = self.cx.rustc_cx.hir().local_def_id(rustc_param.hir_id);
                 let id = to_api_generic_id(self.cx, def_id.to_def_id());
                 let span = to_api_span_id(self.cx, rustc_param.span);
@@ -423,5 +459,40 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                     self.conv_variant_data(&variant.data),
                 )
             }))
+    }
+
+    fn conv_fn_decl(
+        &self,
+        fn_decl: &'tcx hir::FnDecl,
+        idents: &[rustc_span::symbol::Ident],
+        is_extern: bool,
+        abi: Abi,
+    ) -> CommonCallableData<'ast> {
+        assert_eq!(fn_decl.inputs.len(), idents.len());
+        let params = self
+            .cx
+            .storage
+            .alloc_slice_iter(idents.iter().zip(fn_decl.inputs.iter()).map(|(ident, ty)| {
+                Parameter::new(
+                    Some(to_api_symbol_id(ident.name)),
+                    Some(self.conv_ty(ty)),
+                    Some(to_api_span_id(self.cx, ident.span.to(ty.span))),
+                )
+            }));
+        let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_decl.output {
+            Some(to_api_syn_ty(self.cx, rust_ty))
+        } else {
+            None
+        };
+        CommonCallableData::new(
+            false,
+            false,
+            false,
+            is_extern,
+            abi,
+            fn_decl.implicit_self.has_implicit_self(),
+            params,
+            return_ty,
+        )
     }
 }

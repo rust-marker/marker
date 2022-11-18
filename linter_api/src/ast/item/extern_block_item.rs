@@ -36,7 +36,11 @@ impl<'ast> ExternBlockItem<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> ExternBlockItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, abi: Abi, items: FfiSlice<'ast, ExternItemKind<'ast>>) -> Self {
-        Self { data, abi, items }
+    pub fn new(data: CommonItemData<'ast>, abi: Abi, items: &'ast [ExternItemKind<'ast>]) -> Self {
+        Self {
+            data,
+            abi,
+            items: items.into(),
+        }
     }
 }

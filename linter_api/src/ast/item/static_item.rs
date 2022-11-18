@@ -1,4 +1,7 @@
-use crate::ast::{ty::TyKind, BodyId, Mutability};
+use crate::{
+    ast::{ty::TyKind, BodyId, Mutability},
+    ffi::FfiOption,
+};
 
 use super::CommonItemData;
 
@@ -18,7 +21,7 @@ use super::CommonItemData;
 pub struct StaticItem<'ast> {
     data: CommonItemData<'ast>,
     mutability: Mutability,
-    body_id: BodyId,
+    body_id: FfiOption<BodyId>,
     ty: TyKind<'ast>,
 }
 
@@ -36,18 +39,18 @@ impl<'ast> StaticItem<'ast> {
     }
 
     /// This returns the [`BodyId`] of the initialization body.
-    pub fn body_id(&self) -> BodyId {
-        self.body_id
+    pub fn body_id(&self) -> Option<BodyId> {
+        self.body_id.get().copied()
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> StaticItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, mutability: Mutability, body_id: BodyId, ty: TyKind<'ast>) -> Self {
+    pub fn new(data: CommonItemData<'ast>, mutability: Mutability, body_id: Option<BodyId>, ty: TyKind<'ast>) -> Self {
         Self {
             data,
             mutability,
-            body_id,
+            body_id: body_id.into(),
             ty,
         }
     }

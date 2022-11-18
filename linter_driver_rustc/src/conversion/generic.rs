@@ -89,7 +89,6 @@ pub fn to_api_trait_ref<'ast, 'tcx>(
         },
         _ => unreachable!("reached `PolyTraitRef` which can't be translated {trait_ref:#?}"),
     };
-    // TODO get generic args from last path segment
     TraitRef::new(trait_id, to_api_generic_args_from_path(cx, trait_ref.path))
 }
 
