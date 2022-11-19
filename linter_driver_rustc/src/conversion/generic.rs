@@ -5,7 +5,7 @@ use linter_api::ast::{
 
 use crate::context::RustcContext;
 
-use super::{to_generic_id, to_span_id, to_symbol_id, to_item_id, ty::to_api_syn_ty};
+use super::{to_generic_id, to_item_id, to_span_id, to_symbol_id, ty::to_api_syn_ty};
 
 pub fn to_api_lifetime<'ast, 'tcx>(
     _cx: &'ast RustcContext<'ast, 'tcx>,
@@ -53,11 +53,11 @@ pub fn to_api_generic_args_opt<'ast, 'tcx>(
         .args
         .iter()
         .filter(|rustc_arg| !rustc_arg.is_synthetic())
-        .map(|rustc_arg| match rustc_arg {
+        .filter_map(|rustc_arg| match rustc_arg {
             rustc_hir::GenericArg::Lifetime(r_lt) => {
-                GenericArgKind::Lifetime(cx.storage.alloc(|| to_api_lifetime(cx, r_lt).unwrap()))
+                to_api_lifetime(cx, r_lt).map(|lifetime| GenericArgKind::Lifetime(cx.storage.alloc(|| lifetime)))
             },
-            rustc_hir::GenericArg::Type(r_ty) => GenericArgKind::Ty(cx.storage.alloc(|| to_api_syn_ty(cx, r_ty))),
+            rustc_hir::GenericArg::Type(r_ty) => Some(GenericArgKind::Ty(cx.storage.alloc(|| to_api_syn_ty(cx, r_ty)))),
             rustc_hir::GenericArg::Const(_) => todo!(),
             rustc_hir::GenericArg::Infer(_) => todo!(),
         })

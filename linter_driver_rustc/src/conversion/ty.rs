@@ -1,7 +1,7 @@
 use linter_api::ast::{
     ty::{
         AliasTy, ArrayTy, BoolTy, CommonTyData, EnumTy, FnTy, GenericTy, InferredTy, NeverTy, NumKind, NumTy, RawPtrTy,
-        RefTy, SliceTy, StructTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind, UnionTy,
+        RefTy, SelfTy, SliceTy, StructTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind, UnionTy,
     },
     CommonCallableData, Parameter,
 };
@@ -13,7 +13,7 @@ use crate::{
 
 use super::{
     generic::{to_api_generic_args, to_api_lifetime, to_api_trait_bounds_from_hir},
-    to_generic_id, to_api_mutability, to_span_id, to_item_id, to_ty_def_id,
+    to_api_mutability, to_generic_id, to_item_id, to_span_id, to_ty_def_id,
 };
 
 use rustc_hir as hir;
@@ -88,8 +88,9 @@ fn to_api_syn_ty_from_qpath<'ast, 'tcx>(
             },
             hir::def::Res::Def(res, _) => todo!("{res:#?}"),
             hir::def::Res::PrimTy(prim_ty) => to_api_syn_ty_from_prim_ty(cx, data, prim_ty),
-            hir::def::Res::SelfTyParam { .. } => todo!(),
-            hir::def::Res::SelfTyAlias { .. } => todo!(),
+            hir::def::Res::SelfTyParam { trait_: def_id, .. } | hir::def::Res::SelfTyAlias { alias_to: def_id, .. } => {
+                TyKind::SelfTy(cx.storage.alloc(|| SelfTy::new(data, to_item_id(def_id))))
+            },
             hir::def::Res::SelfCtor(_) => todo!(),
             hir::def::Res::Local(_) => todo!(),
             hir::def::Res::ToolMod => todo!(),
@@ -97,7 +98,7 @@ fn to_api_syn_ty_from_qpath<'ast, 'tcx>(
             hir::def::Res::Err => unreachable!("would have triggered a rustc error"),
         },
         hir::QPath::Resolved(_, _) => todo!(),
-        hir::QPath::TypeRelative(_, _) => todo!(),
+        hir::QPath::TypeRelative(_ty, _segment) => todo!(),
         hir::QPath::LangItem(_, _, _) => todo!(),
     }
 }

@@ -20,8 +20,7 @@ use crate::context::RustcContext;
 
 use super::{
     generic::{to_api_lifetime, to_api_trait_ref},
-    to_api_abi, to_api_body_id, to_generic_id, to_api_mutability, to_api_path, to_span_id, to_symbol_id,
-    to_item_id,
+    to_api_abi, to_api_body_id, to_api_mutability, to_api_path, to_generic_id, to_item_id, to_span_id, to_symbol_id,
     ty::to_api_syn_ty,
 };
 
