@@ -2,7 +2,7 @@ use std::cell::RefCell;
 
 use bumpalo::Bump;
 use linter_api::{
-    ast::{item::ItemType, ItemId, SpanSource},
+    ast::{item::ItemKind, ItemId, SpanSource},
     lint::Lint,
 };
 use rustc_hash::FxHashMap;
@@ -12,7 +12,7 @@ use crate::conversion::SpanSourceInfo;
 pub struct Storage<'ast> {
     buffer: Bump,
     lint_map: RefCell<FxHashMap<&'static Lint, &'static rustc_lint::Lint>>,
-    items: RefCell<FxHashMap<ItemId, ItemType<'ast>>>,
+    items: RefCell<FxHashMap<ItemId, ItemKind<'ast>>>,
     span_src_map: RefCell<FxHashMap<rustc_span::FileName, SpanSource<'ast>>>,
     span_infos: RefCell<FxHashMap<SpanSource<'ast>, SpanSourceInfo>>,
 }
@@ -57,11 +57,11 @@ impl<'ast> Storage<'ast> {
         self.lint_map.borrow_mut().entry(api_lint).or_insert_with(init)
     }
 
-    pub fn item(&self, id: ItemId) -> Option<ItemType<'ast>> {
+    pub fn item(&self, id: ItemId) -> Option<ItemKind<'ast>> {
         self.items.borrow().get(&id).copied()
     }
 
-    pub fn add_item(&self, id: ItemId, item: ItemType<'ast>) {
+    pub fn add_item(&self, id: ItemId, item: ItemKind<'ast>) {
         let prev_item = self.items.borrow_mut().insert(id, item);
         debug_assert!(prev_item.is_none(), "items should never be mapped and inserted twice");
     }

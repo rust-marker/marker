@@ -1,6 +1,6 @@
 use crate::ast::AstPath;
 
-use super::{CommonItemData, UseKind};
+use super::CommonItemData;
 
 /// A use declaration like:
 ///
@@ -29,6 +29,17 @@ pub struct UseDeclItem<'ast> {
 }
 
 super::impl_item_data!(UseDeclItem, UseDecl);
+
+#[repr(C)]
+#[non_exhaustive]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum UseKind {
+    /// Single usages like `use foo::bar` a list of multiple usages like
+    /// `use foo::{bar, baz}` will be desugured to `use foo::bar; use foo::baz;`
+    Single,
+    /// A glob import like `use foo::*`
+    Glob,
+}
 
 impl<'ast> UseDeclItem<'ast> {
     /// Returns the path of this `use` item. For blob imports the `*` will

@@ -1,4 +1,6 @@
-use super::{CommonItemData, ItemType};
+use crate::ffi::FfiSlice;
+
+use super::{CommonItemData, ItemKind};
 
 /// A module item like:
 ///
@@ -16,20 +18,23 @@ use super::{CommonItemData, ItemType};
 #[derive(Debug)]
 pub struct ModItem<'ast> {
     data: CommonItemData<'ast>,
-    items: &'ast [ItemType<'ast>],
+    items: FfiSlice<'ast, ItemKind<'ast>>,
 }
 
 super::impl_item_data!(ModItem, Mod);
 
 impl<'ast> ModItem<'ast> {
-    pub fn items(&self) -> &[ItemType<'ast>] {
-        self.items
+    pub fn items(&self) -> &[ItemKind<'ast>] {
+        self.items.get()
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> ModItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, items: &'ast [ItemType<'ast>]) -> Self {
-        Self { data, items }
+    pub fn new(data: CommonItemData<'ast>, items: &'ast [ItemKind<'ast>]) -> Self {
+        Self {
+            data,
+            items: items.into(),
+        }
     }
 }

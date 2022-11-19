@@ -84,7 +84,7 @@ impl<T> From<Option<T>> for FfiOption<T> {
 }
 
 #[repr(C)]
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct FfiSlice<'a, T> {
     _lifetime: PhantomData<&'a ()>,
     data: *const T,

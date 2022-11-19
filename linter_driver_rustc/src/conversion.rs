@@ -1,6 +1,6 @@
 mod common;
 pub use common::*;
-use linter_api::ast::{item::ItemType, Crate};
+use linter_api::ast::{item::ItemKind, Crate};
 
 use crate::context::RustcContext;
 
@@ -17,7 +17,7 @@ pub fn to_api_crate<'ast, 'tcx>(
         clippy::needless_collect,
         reason = "collect is required to know the size of the allocation"
     )]
-    let items: Vec<ItemType<'_>> = rustc_root_mod
+    let items: Vec<ItemKind<'_>> = rustc_root_mod
         .item_ids
         .iter()
         .filter_map(|rustc_item| item::to_api_item(cx, cx.rustc_cx.hir().item(*rustc_item)))

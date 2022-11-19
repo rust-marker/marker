@@ -1,20 +1,30 @@
 use std::{fmt::Debug, marker::PhantomData};
 
+use super::{ItemId, Span, SymbolId};
+
 // Item implementations
 mod extern_crate_item;
 pub use self::extern_crate_item::ExternCrateItem;
 mod mod_item;
-pub use self::mod_item::ModItem;
+pub use mod_item::ModItem;
 mod static_item;
 pub use self::static_item::StaticItem;
 mod use_decl_item;
 pub use self::use_decl_item::UseDeclItem;
 mod const_item;
 pub use self::const_item::ConstItem;
-
-use super::{
-    ty::TyKind, Abi, Asyncness, Attribute, BodyId, Constness, ItemId, Pattern, Safety, Span, Symbol, SymbolId,
-};
+mod fn_item;
+pub use fn_item::*;
+mod ty_alias_item;
+pub use ty_alias_item::*;
+mod adt_item;
+pub use adt_item::*;
+mod trait_item;
+pub use trait_item::*;
+mod impl_item;
+pub use impl_item::*;
+mod extern_block_item;
+pub use extern_block_item::*;
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
@@ -31,53 +41,97 @@ pub trait ItemData<'ast>: Debug {
     /// This function can return `None` if the item was generated and has no real name
     fn name(&self) -> Option<String>;
 
-    /// This returns this [`ItemData`] instance as a [`ItemType`]. This can be useful for
-    /// functions that take [`ItemType`] as a parameter. For general function calls it's better
-    /// to call them directoly on the item, instead of converting it to a [`ItemType`] first.
-    fn as_item(&'ast self) -> ItemType<'ast>;
+    /// This returns this [`ItemData`] instance as a [`ItemKind`]. This can be useful for
+    /// functions that take [`ItemKind`] as a parameter. For general function calls it's better
+    /// to call them directoly on the item, instead of converting it to a [`ItemKind`] first.
+    fn as_item(&'ast self) -> ItemKind<'ast>;
 
     fn attrs(&self); // FIXME: Add return type: -> &'ast [&'ast dyn Attribute<'ast>];
 }
 
+#[repr(C)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
-pub enum ItemType<'ast> {
+pub enum ItemKind<'ast> {
     Mod(&'ast ModItem<'ast>),
     ExternCrate(&'ast ExternCrateItem<'ast>),
     UseDecl(&'ast UseDeclItem<'ast>),
     Static(&'ast StaticItem<'ast>),
     Const(&'ast ConstItem<'ast>),
-    Function(&'ast dyn FunctionItem<'ast>),
-    TypeAlias(&'ast dyn TypeAliasItem<'ast>),
-    Struct(&'ast dyn StructItem<'ast>),
-    Enum(&'ast dyn EnumItem<'ast>),
-    Union(&'ast dyn UnionItem<'ast>),
-    Trait(&'ast dyn TraitItem<'ast>),
-    Impl(&'ast dyn ImplItem<'ast>),
-    ExternBlock(&'ast dyn ExternBlockItem<'ast>),
+    Fn(&'ast FnItem<'ast>),
+    TyAlias(&'ast TyAliasItem<'ast>),
+    Struct(&'ast StructItem<'ast>),
+    Enum(&'ast EnumItem<'ast>),
+    Union(&'ast UnionItem<'ast>),
+    Trait(&'ast TraitItem<'ast>),
+    Impl(&'ast ImplItem<'ast>),
+    ExternBlock(&'ast ExternBlockItem<'ast>),
 }
 
-impl<'ast> ItemType<'ast> {
-    impl_item_type_fn!(id() -> ItemId);
-    impl_item_type_fn!(span() -> &'ast Span<'ast>);
-    impl_item_type_fn!(visibility() -> &Visibility<'ast>);
-    impl_item_type_fn!(name() -> Option<String>);
-    impl_item_type_fn!(attrs() -> ());
+impl<'ast> ItemKind<'ast> {
+    impl_item_type_fn!(ItemKind: id() -> ItemId);
+    impl_item_type_fn!(ItemKind: span() -> &Span<'ast>);
+    impl_item_type_fn!(ItemKind: visibility() -> &Visibility<'ast>);
+    impl_item_type_fn!(ItemKind: name() -> Option<String>);
+    impl_item_type_fn!(ItemKind: attrs() -> ());
+}
+
+#[non_exhaustive]
+#[derive(Debug)]
+pub enum AssocItemKind<'ast> {
+    TyAlias(&'ast TyAliasItem<'ast>),
+    Const(&'ast ConstItem<'ast>),
+    Fn(&'ast FnItem<'ast>),
+}
+
+impl<'ast> AssocItemKind<'ast> {
+    impl_item_type_fn!(AssocItemKind: id() -> ItemId);
+    impl_item_type_fn!(AssocItemKind: span() -> &Span<'ast>);
+    impl_item_type_fn!(AssocItemKind: visibility() -> &Visibility<'ast>);
+    impl_item_type_fn!(AssocItemKind: name() -> Option<String>);
+    impl_item_type_fn!(AssocItemKind: attrs() -> ());
+    impl_item_type_fn!(AssocItemKind: as_item() -> ItemKind<'ast>);
+}
+
+#[non_exhaustive]
+#[derive(Debug)]
+pub enum ExternalItemKind<'ast> {
+    Static(&'ast StaticItem<'ast>),
+    Fn(&'ast FnItem<'ast>),
+}
+
+impl<'ast> ExternalItemKind<'ast> {
+    impl_item_type_fn!(ExternalItemKind: id() -> ItemId);
+    impl_item_type_fn!(ExternalItemKind: span() -> &Span<'ast>);
+    impl_item_type_fn!(ExternalItemKind: visibility() -> &Visibility<'ast>);
+    impl_item_type_fn!(ExternalItemKind: name() -> Option<String>);
+    impl_item_type_fn!(ExternalItemKind: attrs() -> ());
+    impl_item_type_fn!(ExternalItemKind: as_item() -> ItemKind<'ast>);
 }
 
 /// Until [trait upcasting](https://github.com/rust-lang/rust/issues/65991) has been implemented
-/// and stabalized we need this to call [`ItemData`] functions for [`ItemType`].
+/// and stabalized we need this to call [`ItemData`] functions for [`ItemKind`].
 macro_rules! impl_item_type_fn {
-    ($method:ident () -> $return_ty:ty) => {
-        impl_item_type_fn!($method() -> $return_ty,
-            Mod, ExternCrate, UseDecl, Static, Const, Function,
-            TypeAlias, Struct, Enum, Union, Trait, Impl, ExternBlock
+    (ItemKind: $method:ident () -> $return_ty:ty) => {
+        impl_item_type_fn!((ItemKind) $method() -> $return_ty,
+            Mod, ExternCrate, UseDecl, Static, Const, Fn,
+            TyAlias, Struct, Enum, Union, Trait, Impl, ExternBlock
         );
     };
-    ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
+    (AssocItemKind: $method:ident () -> $return_ty:ty) => {
+        impl_item_type_fn!((AssocItemKind) $method() -> $return_ty,
+            TyAlias, Const, Fn
+        );
+    };
+    (ExternalItemKind: $method:ident () -> $return_ty:ty) => {
+        impl_item_type_fn!((ExternalItemKind) $method() -> $return_ty,
+            Static, Fn
+        );
+    };
+    (($self:ident) $method:ident () -> $return_ty:ty $(, $item:ident)+) => {
         pub fn $method(&self) -> $return_ty {
             match self {
-                $(ItemType::$item(data) => data.$method(),)*
+                $($self::$item(data) => data.$method(),)*
             }
         }
     };
@@ -113,8 +167,8 @@ macro_rules! impl_item_data {
                 Some($crate::context::with_cx(self, |cx| cx.symbol_str(self.data.name)))
             }
 
-            fn as_item(&'ast self) -> crate::ast::item::ItemType<'ast> {
-                $crate::ast::item::ItemType::$enum_name(self)
+            fn as_item(&'ast self) -> crate::ast::item::ItemKind<'ast> {
+                $crate::ast::item::ItemKind::$enum_name(self)
             }
 
             fn attrs(&self) {
@@ -150,239 +204,4 @@ impl<'ast> Visibility<'ast> {
             _item_id: item_id,
         }
     }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// Items based on traits
-///////////////////////////////////////////////////////////////////////////////
-
-pub trait FunctionItem<'ast>: ItemData<'ast> + FnDeclaration<'ast> {
-    fn get_generics(&self);
-}
-
-/// This is a general trait that is implemented for all types of callable function
-/// like items in Rust. This currently means: functions, methods and closures
-///
-/// Some getters will not be used for every function like item. For instance will
-/// closures at the time of writing this always have the default [`Constness`] and
-/// [`Abi`]
-pub trait FnDeclaration<'ast>: Debug {
-    /// Note that trait implementations are currently not allowed to be constant,
-    /// this will therefore always return [`Constness::Default`] for trait functions.
-    fn get_constness(&self) -> Constness;
-
-    fn get_safety(&self) -> Safety;
-
-    /// Note that trait implementations are currently not allowed to be async,
-    /// this will therefore always return [`Asyncness::Default`] for trait functions.
-    fn get_asyncness(&self) -> Asyncness;
-
-    fn get_abi(&self) -> Abi;
-
-    fn get_params(&self) -> &[&dyn FnParam<'ast>];
-
-    /// The return type of a function without an explicit return type is the
-    /// unit type `()`.
-    fn get_return_ty(&self);
-
-    /// This will always return a valid [`BodyId`] for functions, closures and
-    /// methods. Trait functions can have a default body but they don't have to.
-    fn get_body_id(&self) -> Option<BodyId>;
-}
-
-pub trait FnParam<'ast>: Debug {
-    fn get_pattern(&self) -> &dyn Pattern<'ast>;
-
-    fn get_span(&self) -> &Span<'ast>;
-
-    fn get_ty(&self);
-}
-
-pub trait TypeAliasItem<'ast>: ItemData<'ast> {
-    fn get_ty_id(&self);
-
-    fn get_generics(&self);
-
-    /// This can return `None` for [`TypeAliasItem`]s asscociated with a trait. For
-    /// normal items this will always return `Some` at the time of writing this.
-    fn get_aliased_ty(&self);
-}
-
-pub trait StructItem<'ast>: ItemData<'ast> {
-    fn get_ty_id(&self);
-
-    fn get_kind(&self) -> AdtVariantData<'ast>;
-
-    fn get_generics(&self);
-
-    // FIXME: Add layout information
-}
-
-#[non_exhaustive]
-#[derive(Debug)]
-pub enum AdtVariantData<'ast> {
-    /// A unit struct like:
-    /// ```rs
-    /// struct Name1;
-    /// struct Name2 {};
-    /// ```
-    Unit,
-    /// A tuple struct like:
-    /// ```rs
-    /// struct Name(u32, u64);
-    /// ```
-    /// This representation doesn't contain spans of each individual type, for diagnostics
-    /// please span over the entire struct.
-    Tuple(&'ast [&'ast dyn AdtField<'ast>]),
-    /// A field struct like:ö
-    /// ```rs
-    /// struct Name {
-    ///     field: u32,
-    /// };
-    /// ```
-    /// Note: In the Rust Reference, this struct expression is called `StructExprStruct`
-    /// here it has been called `Field`, to indicate that it uses fiels as opposed to the
-    /// other kinds
-    Field(&'ast [&'ast dyn AdtField<'ast>]),
-}
-
-/// A field in a struct of the form:
-/// ```ignore
-/// pub struct StructName {
-///     #[some_attr]
-///     pub name: Ty,
-/// }
-/// ```
-///
-/// For tuple structs the name will correspond with the field number.
-pub trait AdtField<'ast>: Debug {
-    fn get_attributes(&'ast self) -> &'ast dyn Attribute;
-
-    /// This will return the span of the field, exclusing the field attributes.
-    fn get_span(&'ast self) -> &'ast Span<'ast>;
-
-    fn get_name(&'ast self) -> Symbol;
-
-    fn get_ty(&'ast self);
-}
-
-/// See: <https://doc.rust-lang.org/reference/items/enumerations.html>
-pub trait EnumItem<'ast>: ItemData<'ast> {
-    fn get_ty_id(&self);
-
-    fn get_variants(&self) -> &[&dyn EnumVariant<'ast>];
-
-    fn get_generics(&self);
-
-    // FIXME: Add layout information
-}
-
-pub trait EnumVariant<'ast>: Debug {
-    /// This returns the discriminant expression if one has been defined.
-    fn get_discriminant_expr(&self) -> Option<&dyn AnonConst<'ast>>;
-
-    fn get_discriminant(&self) -> u128;
-
-    fn get_name(&self) -> Symbol;
-
-    fn get_variant_data(&self) -> AdtVariantData<'ast>;
-}
-
-/// An anonymous constant.
-pub trait AnonConst<'ast>: Debug {
-    fn get_ty(&self);
-
-    // FIXME: This should return a expression once they are implemented, it would
-    // probably be good to have an additional `get_value_lit` that returns a literal,
-    // if the value can be represented as one.
-    fn get_value(&self);
-}
-
-pub trait UnionItem<'ast>: ItemData<'ast> {
-    fn get_ty_id(&self);
-
-    /// This will at the time of writitng this always return the [`AdtVariantData::Field`]
-    /// variant. [`AdtVariantData`] is still used as a wrapper to support common util
-    /// functionality and to possibly adapt [`AdtVariantData`] if the Rust standard expands.
-    fn get_variant_data(&self) -> AdtVariantData<'ast>;
-
-    // FIXME: Add layout information
-}
-
-pub trait TraitItem<'ast>: ItemData<'ast> {
-    fn get_ty_id(&self);
-
-    fn get_safety(&self) -> Safety;
-
-    fn get_generics(&self);
-
-    fn get_super_traits(&self) -> &[&TyKind<'ast>];
-
-    /// This returns all associated items that are defined by this trait
-    fn get_assoc_items(&self) -> &[AssocItem<'ast>];
-}
-
-#[non_exhaustive]
-#[derive(Debug)]
-pub enum AssocItem<'ast> {
-    TypeAlias(&'ast dyn TypeAliasItem<'ast>),
-    Const(&'ast ConstItem<'ast>),
-    Function(&'ast dyn FunctionItem<'ast>),
-}
-
-pub trait ImplItem<'ast>: ItemData<'ast> {
-    fn get_inner_attrs(&self); // FIXME: Add return type -> [&dyn Attribute<'ast>];
-
-    fn get_safety(&self) -> Safety;
-
-    fn get_polarity(&self) -> ImplPolarity;
-
-    /// This will return `Some` if this is a trait implementation, otherwiese `None`.
-    fn get_trait(&self) -> Option<&TyKind<'ast>>;
-
-    fn get_ty(&self) -> &TyKind<'ast>;
-
-    fn get_generics(&self);
-
-    fn get_assoc_items(&self) -> &[AssocItem<'ast>];
-}
-
-#[non_exhaustive]
-#[derive(Debug)]
-pub enum ImplPolarity {
-    Positive,
-    /// A negative implementation like:
-    /// ```ignore
-    /// unsafe impl !Send for ImplPolarity;
-    /// //          ^
-    /// ```
-    Negative,
-}
-
-pub trait ExternBlockItem<'ast>: ItemData<'ast> {
-    fn get_inner_attrs(&self); // FIXME: Add return type -> [&dyn Attribute<'ast>];
-
-    fn get_safety(&self) -> Safety;
-
-    fn get_abi(&self) -> Abi;
-
-    fn get_external_items(&self) -> ExternalItems<'ast>;
-}
-
-#[non_exhaustive]
-#[derive(Debug)]
-pub enum ExternalItems<'ast> {
-    Static(&'ast StaticItem<'ast>),
-    Function(&'ast dyn FunctionItem<'ast>),
-}
-
-#[repr(C)]
-#[non_exhaustive]
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum UseKind {
-    /// Single usages like `use foo::bar` a list of multiple usages like
-    /// `use foo::{bar, baz}` will be desugured to `use foo::bar; use foo::baz;`
-    Single,
-    /// A glob import like `use foo::*`
-    Glob,
 }

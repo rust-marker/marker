@@ -3,7 +3,7 @@ use linter_api::ast::{
         ArrayTy, BoolTy, CommonTyData, EnumTy, FnTy, InferredTy, NeverTy, NumKind, NumTy, RawPtrTy, RefTy, SliceTy,
         StructTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind, UnionTy,
     },
-    CallableData, Parameter,
+    CommonCallableData, Parameter,
 };
 
 use crate::{
@@ -186,7 +186,7 @@ fn to_api_syn_ty_from_bare_fn<'ast, 'tcx>(
     TyKind::Fn(cx.storage.alloc(|| {
         FnTy::new(
             data,
-            CallableData::new(
+            CommonCallableData::new(
                 false,
                 false,
                 matches!(rust_fn.unsafety, rustc_hir::Unsafety::Unsafe),

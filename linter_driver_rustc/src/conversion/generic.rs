@@ -1,5 +1,5 @@
 use linter_api::ast::{
-    generic::{BindingGenericArg, GenericArgKind, GenericArgs, Lifetime, LifetimeKind, TraitBound, TypeParamBound},
+    generic::{BindingGenericArg, GenericArgKind, GenericArgs, Lifetime, LifetimeKind, TraitBound, TyParamBound},
     TraitRef,
 };
 
@@ -76,7 +76,7 @@ pub fn to_api_trait_bounds_from_hir<'ast, 'tcx>(
     cx: &'ast RustcContext<'ast, 'tcx>,
     rust_bounds: &[rustc_hir::PolyTraitRef<'tcx>],
     rust_lt: &rustc_hir::Lifetime,
-) -> &'ast [TypeParamBound<'ast>] {
+) -> &'ast [TyParamBound<'ast>] {
     let traits = rust_bounds.iter().map(|rust_trait_ref| {
         let trait_id = match rust_trait_ref.trait_ref.path.res {
             rustc_hir::def::Res::Def(
@@ -90,7 +90,7 @@ pub fn to_api_trait_bounds_from_hir<'ast, 'tcx>(
             trait_id,
             to_api_generic_args_from_path(cx, rust_trait_ref.trait_ref.path),
         );
-        TypeParamBound::TraitBound(
+        TyParamBound::TraitBound(
             cx.storage
                 .alloc(|| TraitBound::new(false, trait_ref, to_api_span_id(cx, rust_trait_ref.span))),
         )
@@ -99,7 +99,7 @@ pub fn to_api_trait_bounds_from_hir<'ast, 'tcx>(
     if let Some(lt) = to_api_lifetime_from_syn(cx, rust_lt) {
         // alloc_slice_iter requires a const size, which is not possible otherwise
         let mut bounds: Vec<_> = traits.collect();
-        bounds.push(TypeParamBound::Lifetime(cx.storage.alloc(move || lt)));
+        bounds.push(TyParamBound::Lifetime(cx.storage.alloc(move || lt)));
         cx.storage.alloc_slice_iter(bounds.drain(..))
     } else {
         cx.storage.alloc_slice_iter(traits)
