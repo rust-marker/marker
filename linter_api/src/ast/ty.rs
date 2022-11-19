@@ -53,6 +53,8 @@ mod alias_ty;
 pub use alias_ty::*;
 mod self_ty;
 pub use self_ty::*;
+mod relative_ty;
+pub use relative_ty::*;
 
 pub trait TyData<'ast> {
     fn as_kind(&'ast self) -> TyKind<'ast>;
@@ -162,6 +164,8 @@ pub enum TyKind<'ast> {
     Alias(&'ast AliasTy<'ast>),
     /// The `Self` in impl blocks or trait declarations
     SelfTy(&'ast SelfTy<'ast>),
+    /// A type declared relative to another type, like `Iterator::Item`
+    Relative(&'ast RelativeTy<'ast>),
 }
 
 impl<'ast> TyKind<'ast> {
@@ -225,7 +229,7 @@ macro_rules! impl_ty_data_fn {
         impl_ty_data_fn!($method() -> $return_ty,
         Bool, Num, Text, Never, Tuple, Array, Slice, Struct, Enum, Union, Fn,
         Closure, Ref, RawPtr, FnPtr, TraitObj, ImplTrait, Inferred, Generic,
-        Alias, SelfTy);
+        Alias, SelfTy, Relative);
     };
     ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
         pub fn $method(&self) -> $return_ty {

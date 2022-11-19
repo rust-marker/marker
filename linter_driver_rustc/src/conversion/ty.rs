@@ -1,7 +1,7 @@
 use linter_api::ast::{
     ty::{
         AliasTy, ArrayTy, BoolTy, CommonTyData, EnumTy, FnTy, GenericTy, InferredTy, NeverTy, NumKind, NumTy, RawPtrTy,
-        RefTy, SelfTy, SliceTy, StructTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind, UnionTy,
+        RefTy, RelativeTy, SelfTy, SliceTy, StructTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind, UnionTy,
     },
     CommonCallableData, Parameter,
 };
@@ -98,7 +98,10 @@ fn to_api_syn_ty_from_qpath<'ast, 'tcx>(
             hir::def::Res::Err => unreachable!("would have triggered a rustc error"),
         },
         hir::QPath::Resolved(_, _) => todo!(),
-        hir::QPath::TypeRelative(_ty, _segment) => todo!(),
+        hir::QPath::TypeRelative(ty, segment) => TyKind::Relative(
+            cx.storage
+                .alloc(|| RelativeTy::new(data, to_api_syn_ty(cx, ty), to_symbol_id(segment.ident.name))),
+        ),
         hir::QPath::LangItem(_, _, _) => todo!(),
     }
 }
