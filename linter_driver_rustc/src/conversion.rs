@@ -18,7 +18,7 @@ pub fn to_api_crate<'ast, 'tcx>(
     let items = ItemConverter::new(cx);
     cx.storage.alloc(|| {
         Crate::new(
-            to_api_crate_id(cx, rustc_crate_id),
+            to_crate_id(rustc_crate_id),
             items.conv_items(rustc_root_mod.item_ids),
         )
     })

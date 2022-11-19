@@ -8,18 +8,18 @@ use linter_api::ast::{
 
 use crate::{
     context::RustcContext,
-    conversion::{to_api_abi, to_api_symbol_id},
+    conversion::{to_api_abi, to_symbol_id},
 };
 
 use super::{
     generic::{to_api_generic_args, to_api_lifetime, to_api_trait_bounds_from_hir},
-    to_api_generic_id, to_api_item_id_from_def_id, to_api_mutability, to_api_span_id, to_api_ty_def_id,
+    to_generic_id, to_api_mutability, to_span_id, to_item_id, to_ty_def_id,
 };
 
 use rustc_hir as hir;
 
 pub fn to_api_syn_ty<'ast, 'tcx>(cx: &'ast RustcContext<'ast, 'tcx>, rustc_ty: &'tcx hir::Ty<'tcx>) -> TyKind<'ast> {
-    let data = CommonTyData::new_syntactic(to_api_span_id(cx, rustc_ty.span));
+    let data = CommonTyData::new_syntactic(to_span_id(rustc_ty.span));
 
     // Note about the usage of alloc. Here we can't reuse the types, as they
     // contain unique span. This might be avoidable with #43, but that might
@@ -82,11 +82,10 @@ fn to_api_syn_ty_from_qpath<'ast, 'tcx>(
             hir::def::Res::Def(
                 hir::def::DefKind::LifetimeParam | hir::def::DefKind::TyParam | hir::def::DefKind::ConstParam,
                 id,
-            ) => TyKind::Generic(cx.storage.alloc(|| GenericTy::new(data, to_api_generic_id(cx, id)))),
-            hir::def::Res::Def(hir::def::DefKind::TyAlias, id) => TyKind::Alias(
-                cx.storage
-                    .alloc(|| AliasTy::new(data, to_api_item_id_from_def_id(cx, id))),
-            ),
+            ) => TyKind::Generic(cx.storage.alloc(|| GenericTy::new(data, to_generic_id(id)))),
+            hir::def::Res::Def(hir::def::DefKind::TyAlias, id) => {
+                TyKind::Alias(cx.storage.alloc(|| AliasTy::new(data, to_item_id(id))))
+            },
             hir::def::Res::Def(res, _) => todo!("{res:#?}"),
             hir::def::Res::PrimTy(prim_ty) => to_api_syn_ty_from_prim_ty(cx, data, prim_ty),
             hir::def::Res::SelfTyParam { .. } => todo!(),
@@ -113,7 +112,7 @@ fn to_api_syn_ty_from_adt_def_id<'ast, 'tcx>(
     // You were working on ADT parsing to then do all types in Option<...>. Next you need to
     // fill in the variants and generic args. The second one will be more work but also will be more
     // important
-    let def_id = to_api_ty_def_id(cx, adt_id);
+    let def_id = to_ty_def_id(adt_id);
     let generic_args = to_api_generic_args(cx, rustc_args);
     match adt.adt_kind() {
         rustc_middle::ty::AdtKind::Struct => TyKind::Struct(
@@ -178,9 +177,9 @@ fn to_api_syn_ty_from_bare_fn<'ast, 'tcx>(
         .zip(rust_fn.param_names.iter())
         .map(|(rustc_ty, name)| {
             Parameter::new(
-                Some(to_api_symbol_id(name.name)),
+                Some(to_symbol_id(name.name)),
                 Some(to_api_syn_ty(cx, rustc_ty)),
-                Some(to_api_span_id(cx, name.span)),
+                Some(to_span_id(name.span)),
             )
         });
     let params = cx.storage.alloc_slice_iter(params);

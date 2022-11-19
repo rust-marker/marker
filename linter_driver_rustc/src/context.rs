@@ -75,8 +75,8 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
 
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast> {
         let rustc_span = match owner {
-            SpanOwner::Item(item) => self.rustc_cx.hir().item(to_rustc_item_id(self, *item)).span,
-            SpanOwner::SpecificSpan(span_id) => to_rustc_span_from_id(self, *span_id),
+            SpanOwner::Item(item) => self.rustc_cx.hir().item(to_rustc_item_id(*item)).span,
+            SpanOwner::SpecificSpan(span_id) => to_rustc_span_from_id(*span_id),
         };
         to_api_span(self, rustc_span)
     }
@@ -86,7 +86,7 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
     }
 
     fn symbol_str(&'ast self, sym: SymbolId) -> &'ast str {
-        let sym = to_rustc_symbol(self, sym);
+        let sym = to_rustc_symbol(sym);
         // Based on the comment of `rustc_span::Symbol::as_str` this should be fine.
         unsafe { std::mem::transmute(sym.as_str()) }
     }

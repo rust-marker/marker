@@ -5,17 +5,16 @@ use linter_api::ast::{
 
 use crate::context::RustcContext;
 
-use super::{to_api_generic_id, to_api_item_id_from_def_id, to_api_span_id, to_api_symbol_id, ty::to_api_syn_ty};
+use super::{to_generic_id, to_span_id, to_symbol_id, to_item_id, ty::to_api_syn_ty};
 
 pub fn to_api_lifetime<'ast, 'tcx>(
-    cx: &'ast RustcContext<'ast, 'tcx>,
+    _cx: &'ast RustcContext<'ast, 'tcx>,
     rust_lt: &rustc_hir::Lifetime,
 ) -> Option<Lifetime<'ast>> {
     let kind = match rust_lt.name {
-        rustc_hir::LifetimeName::Param(local_id, rustc_hir::ParamName::Plain(ident)) => LifetimeKind::Label(
-            to_api_symbol_id(ident.name),
-            to_api_generic_id(cx, local_id.to_def_id()),
-        ),
+        rustc_hir::LifetimeName::Param(local_id, rustc_hir::ParamName::Plain(ident)) => {
+            LifetimeKind::Label(to_symbol_id(ident.name), to_generic_id(local_id.to_def_id()))
+        },
         rustc_hir::LifetimeName::Param(_local_id, rustc_hir::ParamName::Fresh) => return None,
         rustc_hir::LifetimeName::ImplicitObjectLifetimeDefault => return None,
         rustc_hir::LifetimeName::Infer => LifetimeKind::Infer,
@@ -25,7 +24,7 @@ pub fn to_api_lifetime<'ast, 'tcx>(
         },
     };
 
-    Some(Lifetime::new(Some(to_api_span_id(cx, rust_lt.span)), kind))
+    Some(Lifetime::new(Some(to_span_id(rust_lt.span)), kind))
 }
 
 pub fn to_api_generic_args_from_path<'ast, 'tcx>(
@@ -67,8 +66,8 @@ pub fn to_api_generic_args_opt<'ast, 'tcx>(
         rustc_hir::TypeBindingKind::Equality { term } => match term {
             rustc_hir::Term::Ty(rustc_ty) => GenericArgKind::Binding(cx.storage.alloc(|| {
                 BindingGenericArg::new(
-                    Some(to_api_span_id(cx, binding.span)),
-                    to_api_symbol_id(binding.ident.name),
+                    Some(to_span_id(binding.span)),
+                    to_symbol_id(binding.ident.name),
                     to_api_syn_ty(cx, rustc_ty),
                 )
             })),
@@ -85,7 +84,7 @@ pub fn to_api_trait_ref<'ast, 'tcx>(
 ) -> TraitRef<'ast> {
     let trait_id = match trait_ref.path.res {
         rustc_hir::def::Res::Def(rustc_hir::def::DefKind::Trait | rustc_hir::def::DefKind::TraitAlias, rustc_id) => {
-            to_api_item_id_from_def_id(cx, rustc_id)
+            to_item_id(rustc_id)
         },
         _ => unreachable!("reached `PolyTraitRef` which can't be translated {trait_ref:#?}"),
     };
@@ -102,7 +101,7 @@ pub fn to_api_trait_bounds_from_hir<'ast, 'tcx>(
             TraitBound::new(
                 false,
                 to_api_trait_ref(cx, &rust_trait_ref.trait_ref),
-                to_api_span_id(cx, rust_trait_ref.span),
+                to_span_id(rust_trait_ref.span),
             )
         }))
     });
