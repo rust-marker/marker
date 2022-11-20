@@ -55,7 +55,7 @@ struct TestSetup {
 ///
 /// In the future this function should probably be hidden in a nice wrapper library.
 fn run_test_setup() -> TestSetup {
-    const CARGO_LINTER_INVOCATION: &[&str] = &["run", "--bin", "cargo-linter", "--"];
+    const CARGO_LINTER_INVOCATION: &[&str] = &["run", "--bin", "cargo-linter", "--features", "dev-build", "--"];
 
     // ../rust-linting/linter_lints
     let current_dir = env::current_dir().unwrap();

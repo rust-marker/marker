@@ -139,12 +139,12 @@ fn main() {
         let mut orig_args: Vec<String> = env::args().collect();
 
         let sys_root_arg = arg_value(&orig_args, "--sysroot", |_| true);
-        let have_sys_root_arg = sys_root_arg.is_some();
-        let sys_root = find_sys_root(sys_root_arg);
+        let has_sys_root_arg = sys_root_arg.is_some();
 
         // Further invocation of rustc require the `--sysroot` flag. We add it here
         // in preparation.
-        if !have_sys_root_arg {
+        if !has_sys_root_arg {
+            let sys_root = find_sys_root(sys_root_arg);
             orig_args.extend(vec!["--sysroot".into(), sys_root]);
         };
 

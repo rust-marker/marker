@@ -1,4 +1,5 @@
 #![feature(once_cell)]
+#![feature(lint_reasons)]
 #![warn(clippy::pedantic)]
 #![warn(clippy::index_refutable_slice)]
 
@@ -40,10 +41,15 @@ fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
 }
 
 fn main() {
-    let matches = get_clap_config().get_matches_from(std::env::args().take_while(|s| s != CARGO_ARGS_SEPARATOR));
+    let matches = get_clap_config().get_matches_from(
+        std::env::args()
+            .enumerate()
+            .filter_map(|(index, value)| (!(index == 1 && value == "linter")).then_some(value))
+            .take_while(|s| s != CARGO_ARGS_SEPARATOR),
+    );
     if matches.is_present("version") {
         let version_info = env!("CARGO_PKG_VERSION");
-        println!("{version_info}");
+        println!("cargo-linter version: {version_info}");
         exit(0);
     }
 
@@ -63,7 +69,7 @@ fn main() {
     }
 
     if lint_crates.is_empty() {
-        eprintln!("Please provide at least one valid lint crate, with the `--lint` argument");
+        eprintln!("Please provide at least one valid lint crate, with the `--lints` argument");
         exit(-1);
     }
 
@@ -175,6 +181,7 @@ fn get_driver_path() -> PathBuf {
 }
 
 /// On release builds this will exit with a message and `-1` if the driver is missing.
+#[allow(unused_variables, reason = "only used if `feature = dev-build`")]
 fn validate_driver(verbose: bool) {
     #[cfg(feature = "dev-build")]
     {
