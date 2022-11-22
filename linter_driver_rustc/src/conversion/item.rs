@@ -9,7 +9,7 @@ use linter_api::ast::{
         UnionItem, UnstableItem, UseItem, UseKind, Visibility,
     },
     ty::TyKind,
-    Abi, CommonCallableData, Parameter, ItemId,
+    Abi, CommonCallableData, ItemId, Parameter,
 };
 use rustc_hir as hir;
 
@@ -17,8 +17,9 @@ use crate::context::RustcContext;
 
 use super::{
     generic::{to_api_lifetime, to_api_trait_ref},
-    to_api_abi, to_api_body_id, to_api_mutability, to_api_path, to_generic_id, to_item_id, to_span_id, to_symbol_id,
-    ty::to_api_syn_ty, to_rustc_item_id,
+    to_api_abi, to_api_body_id, to_api_mutability, to_api_path, to_generic_id, to_item_id, to_rustc_item_id,
+    to_span_id, to_symbol_id,
+    ty::TyConverter,
 };
 
 /// This converter combines a bunch of functions used to convert rustc items into
@@ -33,10 +34,12 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
         Self { cx }
     }
 
+    #[must_use]
     pub fn conv_item_from_id(&self, id: ItemId) -> Option<ItemKind<'ast>> {
         self.conv_items(&[to_rustc_item_id(id)]).first().copied()
     }
 
+    #[must_use]
     pub fn conv_item(&self, rustc_item: &'tcx hir::Item<'tcx>) -> Option<ItemKind<'ast>> {
         let id = to_item_id(rustc_item.owner_id);
         if let Some(item) = self.cx.storage.items.borrow().get(&id) {
@@ -129,7 +132,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                         .as_ref()
                         .map(|trait_ref| to_api_trait_ref(self.cx, trait_ref)),
                     self.conv_generic(imp.generics),
-                    to_api_syn_ty(self.cx, imp.self_ty),
+                    self.conv_ty(imp.self_ty),
                     self.conv_assoc_items(imp.items),
                 )
             })),
@@ -139,6 +142,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
         Some(item)
     }
 
+    #[must_use]
     pub fn conv_items(&self, item: &[hir::ItemId]) -> &'ast [ItemKind<'ast>] {
         let items: Vec<ItemKind<'_>> = item
             .iter()
@@ -267,7 +271,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
     }
 
     fn conv_ty(&self, rustc_ty: &'tcx hir::Ty<'tcx>) -> TyKind<'ast> {
-        to_api_syn_ty(self.cx, rustc_ty)
+        TyConverter::new(self.cx).conv_ty(rustc_ty)
     }
 
     fn conv_generic_params(&self, params: &[hir::GenericParam<'ast>]) -> &'ast [GenericParamKind<'ast>] {
@@ -384,13 +388,13 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                     // retrieved from the body. For now this is kind of blocked
                     // by #50
                     None,
-                    Some(to_api_syn_ty(self.cx, input_ty)),
+                    Some(self.conv_ty(input_ty)),
                     Some(to_span_id(input_ty.span)),
                 )
             }));
         let header = fn_sig.header;
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_sig.decl.output {
-            Some(to_api_syn_ty(self.cx, rust_ty))
+            Some(self.conv_ty(rust_ty))
         } else {
             None
         };
@@ -467,7 +471,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                 )
             }));
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_decl.output {
-            Some(to_api_syn_ty(self.cx, rust_ty))
+            Some(self.conv_ty(rust_ty))
         } else {
             None
         };

@@ -5,7 +5,7 @@ use linter_api::ast::{
 
 use crate::context::RustcContext;
 
-use super::{to_generic_id, to_item_id, to_span_id, to_symbol_id, ty::to_api_syn_ty};
+use super::{to_generic_id, to_item_id, to_span_id, to_symbol_id, ty::TyConverter};
 
 pub fn to_api_lifetime<'ast, 'tcx>(
     _cx: &'ast RustcContext<'ast, 'tcx>,
@@ -57,7 +57,9 @@ pub fn to_api_generic_args_opt<'ast, 'tcx>(
             rustc_hir::GenericArg::Lifetime(r_lt) => {
                 to_api_lifetime(cx, r_lt).map(|lifetime| GenericArgKind::Lifetime(cx.storage.alloc(|| lifetime)))
             },
-            rustc_hir::GenericArg::Type(r_ty) => Some(GenericArgKind::Ty(cx.storage.alloc(|| to_api_syn_ty(cx, r_ty)))),
+            rustc_hir::GenericArg::Type(r_ty) => Some(GenericArgKind::Ty(
+                cx.storage.alloc(|| TyConverter::new(cx).conv_ty(*r_ty)),
+            )),
             rustc_hir::GenericArg::Const(_) => todo!(),
             rustc_hir::GenericArg::Infer(_) => todo!(),
         })
@@ -68,7 +70,7 @@ pub fn to_api_generic_args_opt<'ast, 'tcx>(
                 BindingGenericArg::new(
                     Some(to_span_id(binding.span)),
                     to_symbol_id(binding.ident.name),
-                    to_api_syn_ty(cx, rustc_ty),
+                    TyConverter::new(cx).conv_ty(*rustc_ty),
                 )
             })),
             rustc_hir::Term::Const(_) => todo!(),
