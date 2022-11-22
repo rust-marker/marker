@@ -57,18 +57,16 @@ impl<'ast, 'tcx> TyConverter<'ast, 'tcx> {
             hir::TyKind::Array(rustc_ty, _) => {
                 TyKind::Array(self.cx.storage.alloc(|| ArrayTy::new(data, self.conv_syn_ty(rustc_ty))))
             },
-            hir::TyKind::Ptr(mut_ty) => TyKind::RawPtr(self.cx.storage.alloc(|| {
-                RawPtrTy::new(
-                    data,
-                    to_api_mutability(self.cx, mut_ty.mutbl),
-                    self.conv_syn_ty(mut_ty.ty),
-                )
-            })),
+            hir::TyKind::Ptr(mut_ty) => TyKind::RawPtr(
+                self.cx
+                    .storage
+                    .alloc(|| RawPtrTy::new(data, to_api_mutability(mut_ty.mutbl), self.conv_syn_ty(mut_ty.ty))),
+            ),
             hir::TyKind::Rptr(rust_lt, mut_ty) => TyKind::Ref(self.cx.storage.alloc(|| {
                 RefTy::new(
                     data,
                     to_api_lifetime(self.cx, rust_lt),
-                    to_api_mutability(self.cx, mut_ty.mutbl),
+                    to_api_mutability(mut_ty.mutbl),
                     self.conv_syn_ty(mut_ty.ty),
                 )
             })),
@@ -193,7 +191,7 @@ impl<'ast, 'tcx> TyConverter<'ast, 'tcx> {
                     false,
                     matches!(rust_fn.unsafety, hir::Unsafety::Unsafe),
                     false,
-                    to_api_abi(self.cx, rust_fn.abi),
+                    to_api_abi(rust_fn.abi),
                     false,
                     params,
                     return_ty,

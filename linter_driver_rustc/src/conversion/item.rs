@@ -63,7 +63,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             hir::ItemKind::Static(rustc_ty, rustc_mut, rustc_body_id) => ItemKind::Static(self.alloc(|| {
                 StaticItem::new(
                     data,
-                    to_api_mutability(self.cx, *rustc_mut),
+                    to_api_mutability(*rustc_mut),
                     Some(to_api_body_id(*rustc_body_id)),
                     self.conv_ty(rustc_ty),
                 )
@@ -83,7 +83,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                 ItemKind::Mod(self.alloc(|| ModItem::new(data, self.conv_items(rustc_mod.item_ids))))
             },
             hir::ItemKind::ForeignMod { abi, items } => ItemKind::ExternBlock(self.alloc(|| {
-                let abi = to_api_abi(self.cx, *abi);
+                let abi = to_api_abi(*abi);
                 ExternBlockItem::new(data, abi, self.conv_foreign_items(items, abi))
             })),
             hir::ItemKind::Macro(_, _) | hir::ItemKind::GlobalAsm(_) => return None,
@@ -255,7 +255,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                 )
             })),
             hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(
-                self.alloc(|| StaticItem::new(data, to_api_mutability(self.cx, *rustc_mut), None, self.conv_ty(ty))),
+                self.alloc(|| StaticItem::new(data, to_api_mutability(*rustc_mut), None, self.conv_ty(ty))),
             ),
             hir::ForeignItemKind::Type => todo!(),
         };
@@ -403,7 +403,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             header.is_async(),
             header.is_unsafe(),
             is_extern,
-            to_api_abi(self.cx, header.abi),
+            to_api_abi(header.abi),
             fn_sig.decl.implicit_self.has_implicit_self(),
             params,
             return_ty,
