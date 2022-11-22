@@ -40,7 +40,7 @@ impl<'ast> TyAliasItem<'ast> {
     }
 
     pub fn aliased_ty(&self) -> Option<TyKind> {
-        self.aliased_ty.get().copied()
+        self.aliased_ty.copy()
     }
 }
 

@@ -2,7 +2,7 @@ use std::cell::OnceCell;
 
 use linter_adapter::context::{DriverContext, DriverContextWrapper};
 use linter_api::{
-    ast::{Span, SpanOwner, SymbolId},
+    ast::{item::ItemKind, ItemId, Span, SpanOwner, SymbolId},
     context::AstContext,
     lint::Lint,
 };
@@ -10,7 +10,8 @@ use rustc_lint::LintStore;
 use rustc_middle::ty::TyCtxt;
 
 use crate::conversion::{
-    to_api_span, to_rustc_item_id, to_rustc_lint, to_rustc_span, to_rustc_span_from_id, to_rustc_symbol,
+    item::ItemConverter, to_api_span, to_rustc_item_id, to_rustc_lint, to_rustc_span, to_rustc_span_from_id,
+    to_rustc_symbol,
 };
 
 use self::storage::Storage;
@@ -31,8 +32,8 @@ pub struct RustcContext<'ast, 'tcx> {
     pub lint_store: &'tcx LintStore,
     pub storage: &'ast Storage<'ast>,
     /// This is the [`AstContext`] wrapping callbacks to this instance of the
-    /// [`RustcContext`]. The once cell will be set imediatly after the creation
-    /// which makes it safe to access afterwards. See
+    /// [`RustcContext`]. The once cell will be set immediately after the creation
+    /// which makes it safe to access afterwards.
     ast_cx: OnceCell<&'ast AstContext<'ast>>,
 }
 
@@ -71,6 +72,10 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
             msg,
             |diag| diag,
         );
+    }
+
+    fn item(&'ast self, id: ItemId) -> Option<ItemKind<'ast>> {
+        ItemConverter::new(self).conv_item_from_id(id)
     }
 
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast> {

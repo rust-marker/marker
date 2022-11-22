@@ -40,7 +40,7 @@ impl<'ast> StaticItem<'ast> {
 
     /// This returns the [`BodyId`] of the initialization body.
     pub fn body_id(&self) -> Option<BodyId> {
-        self.body_id.get().copied()
+        self.body_id.copy()
     }
 }
 

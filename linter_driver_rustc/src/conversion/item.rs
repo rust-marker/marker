@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use linter_api::ast::{
     generic::{
         GenericParamKind, GenericParams, LifetimeClause, LifetimeParam, TraitBound, TyClause, TyParam, TyParamBound,
@@ -11,9 +9,8 @@ use linter_api::ast::{
         UnionItem, UnstableItem, UseItem, UseKind, Visibility,
     },
     ty::TyKind,
-    Abi, CommonCallableData, ItemId, Parameter,
+    Abi, CommonCallableData, Parameter, ItemId,
 };
-use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 
 use crate::context::RustcContext;
@@ -21,25 +18,28 @@ use crate::context::RustcContext;
 use super::{
     generic::{to_api_lifetime, to_api_trait_ref},
     to_api_abi, to_api_body_id, to_api_mutability, to_api_path, to_generic_id, to_item_id, to_span_id, to_symbol_id,
-    ty::to_api_syn_ty,
+    ty::to_api_syn_ty, to_rustc_item_id,
 };
 
+/// This converter combines a bunch of functions used to convert rustc items into
+/// api items. This is mainly used to group functions together and to not always
+/// pass the context around as and argument.
 pub struct ItemConverter<'ast, 'tcx> {
     cx: &'ast RustcContext<'ast, 'tcx>,
-    items: RefCell<FxHashMap<ItemId, ItemKind<'ast>>>,
 }
 
 impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
     pub fn new(cx: &'ast RustcContext<'ast, 'tcx>) -> Self {
-        Self {
-            cx,
-            items: RefCell::default(),
-        }
+        Self { cx }
+    }
+
+    pub fn conv_item_from_id(&self, id: ItemId) -> Option<ItemKind<'ast>> {
+        self.conv_items(&[to_rustc_item_id(id)]).first().copied()
     }
 
     pub fn conv_item(&self, rustc_item: &'tcx hir::Item<'tcx>) -> Option<ItemKind<'ast>> {
         let id = to_item_id(rustc_item.owner_id);
-        if let Some(item) = self.items.borrow().get(&id) {
+        if let Some(item) = self.cx.storage.items.borrow().get(&id) {
             return Some(*item);
         }
 
@@ -135,15 +135,11 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             })),
         };
 
-        self.items.borrow_mut().insert(id, item);
+        self.cx.storage.items.borrow_mut().insert(id, item);
         Some(item)
     }
 
     pub fn conv_items(&self, item: &[hir::ItemId]) -> &'ast [ItemKind<'ast>] {
-        #[expect(
-            clippy::needless_collect,
-            reason = "collect is required to know the size of the allocation"
-        )]
         let items: Vec<ItemKind<'_>> = item
             .iter()
             .map(|rid| self.cx.rustc_cx.hir().item(*rid))
@@ -154,7 +150,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
 
     fn conv_assoc_item(&self, rustc_item: &hir::ImplItemRef) -> AssocItemKind<'ast> {
         let id = to_item_id(rustc_item.id.owner_id);
-        if let Some(item) = self.items.borrow().get(&id) {
+        if let Some(item) = self.cx.storage.items.borrow().get(&id) {
             return item.try_into().unwrap();
         }
 
@@ -180,11 +176,11 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                 })),
             };
 
-        self.items.borrow_mut().insert(id, item.as_item());
+        self.cx.storage.items.borrow_mut().insert(id, item.as_item());
         item
     }
 
-    pub fn conv_assoc_items(&self, items: &[hir::ImplItemRef]) -> &'ast [AssocItemKind<'ast>] {
+    fn conv_assoc_items(&self, items: &[hir::ImplItemRef]) -> &'ast [AssocItemKind<'ast>] {
         self.cx
             .storage
             .alloc_slice_iter(items.iter().map(|item| self.conv_assoc_item(item)))
@@ -192,7 +188,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
 
     fn conv_trait_item(&self, rustc_item: &hir::TraitItemRef) -> AssocItemKind<'ast> {
         let id = to_item_id(rustc_item.id.owner_id);
-        if let Some(item) = self.items.borrow().get(&id) {
+        if let Some(item) = self.cx.storage.items.borrow().get(&id) {
             return item.try_into().unwrap();
         }
 
@@ -226,7 +222,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             })),
         };
 
-        self.items.borrow_mut().insert(id, item.as_item());
+        self.cx.storage.items.borrow_mut().insert(id, item.as_item());
         item
     }
 
@@ -238,7 +234,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
 
     fn conv_foreign_item(&self, rustc_item: &'tcx hir::ForeignItemRef, abi: Abi) -> ExternItemKind<'ast> {
         let id = to_item_id(rustc_item.id.owner_id);
-        if let Some(item) = self.items.borrow().get(&id) {
+        if let Some(item) = self.cx.storage.items.borrow().get(&id) {
             return (*item).try_into().unwrap();
         }
 
@@ -260,7 +256,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             hir::ForeignItemKind::Type => todo!(),
         };
 
-        self.items.borrow_mut().insert(id, item.as_item());
+        self.cx.storage.items.borrow_mut().insert(id, item.as_item());
         item
     }
 

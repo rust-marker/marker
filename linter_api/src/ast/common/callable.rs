@@ -80,7 +80,7 @@ impl<'ast> Parameter<'ast> {
     }
 
     pub fn ty(&self) -> Option<TyKind<'ast>> {
-        self.ty.get().copied()
+        self.ty.copy()
     }
 
     pub fn span(&self) -> Option<&Span<'ast>> {

@@ -12,7 +12,7 @@ use crate::conversion::SpanSourceInfo;
 pub struct Storage<'ast> {
     buffer: Bump,
     lint_map: RefCell<FxHashMap<&'static Lint, &'static rustc_lint::Lint>>,
-    items: RefCell<FxHashMap<ItemId, ItemKind<'ast>>>,
+    pub items: RefCell<FxHashMap<ItemId, ItemKind<'ast>>>,
     span_src_map: RefCell<FxHashMap<rustc_span::FileName, SpanSource<'ast>>>,
     span_infos: RefCell<FxHashMap<SpanSource<'ast>, SpanSourceInfo>>,
 }
