@@ -293,11 +293,11 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                     hir::GenericParamKind::Lifetime {
                         kind: hir::LifetimeParamKind::Explicit,
                     } => Some(GenericParamKind::Lifetime(
-                        self.alloc(|| LifetimeParam::new(id, name, &[], Some(span))),
+                        self.alloc(|| LifetimeParam::new(id, name, Some(span))),
                     )),
-                    hir::GenericParamKind::Type { synthetic: false, .. } => Some(GenericParamKind::Ty(
-                        self.alloc(|| TyParam::new(Some(span), name, id, &[])),
-                    )),
+                    hir::GenericParamKind::Type { synthetic: false, .. } => {
+                        Some(GenericParamKind::Ty(self.alloc(|| TyParam::new(Some(span), name, id))))
+                    },
                     _ => None,
                 }
             })

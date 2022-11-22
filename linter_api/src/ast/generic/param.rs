@@ -1,8 +1,8 @@
+use std::marker::PhantomData;
+
 use crate::ast::{GenericId, Span, SpanId, SymbolId};
 use crate::context::with_cx;
-use crate::ffi::{FfiOption, FfiSlice};
-
-use super::{Lifetime, TyParamBound};
+use crate::ffi::FfiOption;
 
 /// A singular generic parameter, like `'a` and `T` in this example:
 ///
@@ -15,6 +15,10 @@ use super::{Lifetime, TyParamBound};
 /// #    _data: PhantomData<&'a T>,
 /// }
 /// ```
+///
+/// Bounds declared with the parameter, like the `: Copy` in the example above,
+/// are stored in the [`GenericParams`][`super::GenericParams`] of the item, that
+/// introduced this parameter.
 ///
 /// See: <https://doc.rust-lang.org/reference/items/generics.html>
 #[repr(C)]
@@ -63,19 +67,19 @@ pub trait GenericParamData<'ast> {
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct TyParam<'ast> {
+    _data: PhantomData<&'ast ()>,
     id: GenericId,
     name: SymbolId,
-    bounds: FfiSlice<'ast, TyParamBound<'ast>>,
     span: FfiOption<SpanId>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TyParam<'ast> {
-    pub fn new(span: Option<SpanId>, name: SymbolId, id: GenericId, bounds: &'ast [TyParamBound<'ast>]) -> Self {
+    pub fn new(span: Option<SpanId>, name: SymbolId, id: GenericId) -> Self {
         Self {
+            _data: PhantomData,
             id,
             name,
-            bounds: bounds.into(),
             span: span.into(),
         }
     }
@@ -88,10 +92,6 @@ impl<'ast> TyParam<'ast> {
 
     pub fn name(&self) -> String {
         with_cx(self, |cx| cx.symbol_str(self.name))
-    }
-
-    pub fn span(&self) -> Option<&Span<'ast>> {
-        self.span.get().map(|span| with_cx(self, |cx| cx.get_span(*span)))
     }
 }
 
@@ -117,19 +117,19 @@ impl<'ast> From<&'ast TyParam<'ast>> for GenericParamKind<'ast> {
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct LifetimeParam<'ast> {
+    _data: PhantomData<&'ast ()>,
     id: GenericId,
     name: SymbolId,
-    bounds: FfiSlice<'ast, Lifetime<'ast>>,
     span: FfiOption<SpanId>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> LifetimeParam<'ast> {
-    pub fn new(id: GenericId, name: SymbolId, bounds: &'ast [Lifetime<'ast>], span: Option<SpanId>) -> Self {
+    pub fn new(id: GenericId, name: SymbolId, span: Option<SpanId>) -> Self {
         Self {
+            _data: PhantomData,
             id,
             name,
-            bounds: bounds.into(),
             span: span.into(),
         }
     }
@@ -142,17 +142,6 @@ impl<'ast> LifetimeParam<'ast> {
 
     pub fn name(&self) -> String {
         with_cx(self, |cx| cx.symbol_str(self.name))
-    }
-
-    /// Returns the bounds defined as part of the parameter. For example `'long`
-    /// would be returned as the bound for `'short`.
-    ///
-    /// ```
-    /// fn foo<'long, 'short: 'long>() {}
-    /// //             ^^^^^^^^^^^^
-    /// ```
-    pub fn bounds(&self) -> &'ast [Lifetime<'ast>] {
-        self.bounds.get()
     }
 }
 
