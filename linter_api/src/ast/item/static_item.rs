@@ -1,5 +1,5 @@
 use crate::{
-    ast::{ty::TyKind, BodyId, Mutability},
+    ast::{ty::TyKind, BodyId},
     ffi::FfiOption,
 };
 
@@ -20,7 +20,7 @@ use super::CommonItemData;
 #[derive(Debug)]
 pub struct StaticItem<'ast> {
     data: CommonItemData<'ast>,
-    mutability: Mutability,
+    is_mut: bool,
     body_id: FfiOption<BodyId>,
     ty: TyKind<'ast>,
 }
@@ -30,7 +30,7 @@ super::impl_item_data!(StaticItem, Static);
 impl<'ast> StaticItem<'ast> {
     /// The mutability of this item
     pub fn is_mutable(&self) -> bool {
-        self.mutability == Mutability::Mut
+        self.is_mut
     }
 
     /// The defined type of this static item
@@ -46,10 +46,10 @@ impl<'ast> StaticItem<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> StaticItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, mutability: Mutability, body_id: Option<BodyId>, ty: TyKind<'ast>) -> Self {
+    pub fn new(data: CommonItemData<'ast>, is_mut: bool, body_id: Option<BodyId>, ty: TyKind<'ast>) -> Self {
         Self {
             data,
-            mutability,
+            is_mut,
             body_id: body_id.into(),
             ty,
         }

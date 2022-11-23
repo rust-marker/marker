@@ -193,7 +193,7 @@ Enum(
                                                                 kind: Static,
                                                             },
                                                         ),
-                                                        mutability: Not,
+                                                        is_mut: false,
                                                         inner_ty: Slice(
                                                             [
                                                                 Num(
@@ -278,7 +278,7 @@ Enum(
                                                                 kind: Static,
                                                             },
                                                         ),
-                                                        mutability: Not,
+                                                        is_mut: false,
                                                         inner_ty: Text(
                                                             str,
                                                         ),
@@ -293,7 +293,7 @@ Enum(
                                                             ),
                                                             is_syntactic: true,
                                                         },
-                                                        mutability: Not,
+                                                        is_mut: false,
                                                         inner_ty: Num(
                                                             i32,
                                                         ),
@@ -308,7 +308,7 @@ Enum(
                                                             ),
                                                             is_syntactic: true,
                                                         },
-                                                        mutability: Mut,
+                                                        is_mut: true,
                                                         inner_ty: Num(
                                                             i32,
                                                         ),

@@ -7,18 +7,7 @@ pub use unstable::*;
 mod ast_path;
 pub use ast_path::*;
 
-use linter_api::{
-    ast::{Abi, Mutability},
-    lint::Level,
-};
-
-#[must_use]
-pub fn to_api_mutability(rustc_mt: rustc_ast::Mutability) -> Mutability {
-    match rustc_mt {
-        rustc_ast::Mutability::Mut => Mutability::Mut,
-        rustc_ast::Mutability::Not => Mutability::Not,
-    }
-}
+use linter_api::{ast::Abi, lint::Level};
 
 #[must_use]
 pub fn to_rustc_lint_level(api_level: Level) -> rustc_lint::Level {

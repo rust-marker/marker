@@ -13,7 +13,7 @@ use crate::{
 
 use super::{
     generic::{to_api_generic_args, to_api_lifetime, to_api_trait_bounds_from_hir},
-    to_api_mutability, to_generic_id, to_item_id, to_span_id, to_ty_def_id,
+    to_generic_id, to_item_id, to_span_id, to_ty_def_id,
 };
 
 use rustc_hir as hir;
@@ -57,16 +57,18 @@ impl<'ast, 'tcx> TyConverter<'ast, 'tcx> {
             hir::TyKind::Array(rustc_ty, _) => {
                 TyKind::Array(self.cx.storage.alloc(|| ArrayTy::new(data, self.conv_syn_ty(rustc_ty))))
             },
-            hir::TyKind::Ptr(mut_ty) => TyKind::RawPtr(
-                self.cx
-                    .storage
-                    .alloc(|| RawPtrTy::new(data, to_api_mutability(mut_ty.mutbl), self.conv_syn_ty(mut_ty.ty))),
-            ),
+            hir::TyKind::Ptr(mut_ty) => TyKind::RawPtr(self.cx.storage.alloc(|| {
+                RawPtrTy::new(
+                    data,
+                    matches!(mut_ty.mutbl, rustc_ast::Mutability::Mut),
+                    self.conv_syn_ty(mut_ty.ty),
+                )
+            })),
             hir::TyKind::Rptr(rust_lt, mut_ty) => TyKind::Ref(self.cx.storage.alloc(|| {
                 RefTy::new(
                     data,
                     to_api_lifetime(self.cx, rust_lt),
-                    to_api_mutability(mut_ty.mutbl),
+                    matches!(mut_ty.mutbl, rustc_ast::Mutability::Mut),
                     self.conv_syn_ty(mut_ty.ty),
                 )
             })),

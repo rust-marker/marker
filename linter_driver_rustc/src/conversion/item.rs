@@ -17,8 +17,7 @@ use crate::context::RustcContext;
 
 use super::{
     generic::{to_api_lifetime, to_api_trait_ref},
-    to_api_abi, to_api_body_id, to_api_mutability, to_api_path, to_generic_id, to_item_id, to_rustc_item_id,
-    to_span_id, to_symbol_id,
+    to_api_abi, to_api_body_id, to_api_path, to_generic_id, to_item_id, to_rustc_item_id, to_span_id, to_symbol_id,
     ty::TyConverter,
 };
 
@@ -63,7 +62,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             hir::ItemKind::Static(rustc_ty, rustc_mut, rustc_body_id) => ItemKind::Static(self.alloc(|| {
                 StaticItem::new(
                     data,
-                    to_api_mutability(*rustc_mut),
+                    matches!(*rustc_mut, rustc_ast::Mutability::Mut),
                     Some(to_api_body_id(*rustc_body_id)),
                     self.conv_ty(rustc_ty),
                 )
@@ -254,9 +253,14 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                     None,
                 )
             })),
-            hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(
-                self.alloc(|| StaticItem::new(data, to_api_mutability(*rustc_mut), None, self.conv_ty(ty))),
-            ),
+            hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(self.alloc(|| {
+                StaticItem::new(
+                    data,
+                    matches!(*rustc_mut, rustc_ast::Mutability::Mut),
+                    None,
+                    self.conv_ty(ty),
+                )
+            })),
             hir::ForeignItemKind::Type => todo!(),
         };
 
