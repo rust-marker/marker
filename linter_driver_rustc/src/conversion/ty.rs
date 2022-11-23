@@ -97,8 +97,6 @@ impl<'ast, 'tcx> TyConverter<'ast, 'tcx> {
     }
 
     fn conv_syn_qpath(&self, data: CommonTyData<'ast>, qpath: &hir::QPath<'tcx>) -> TyKind<'ast> {
-        // FIXME: These `todo!()`s are currently not testable with the limited items
-        // that are in the API. Therefore we'll leave them for another day.
         match qpath {
             hir::QPath::Resolved(None, path) => match path.res {
                 hir::def::Res::Def(
@@ -141,9 +139,6 @@ impl<'ast, 'tcx> TyConverter<'ast, 'tcx> {
         rustc_args: Option<&'tcx hir::GenericArgs<'tcx>>,
     ) -> TyKind<'ast> {
         let adt = self.cx.rustc_cx.adt_def(adt_id);
-        // You were working on ADT parsing to then do all types in Option<...>. Next you need to
-        // fill in the variants and generic args. The second one will be more work but also will be more
-        // important
         let def_id = to_ty_def_id(adt_id);
         let generic_args = to_api_generic_args(self.cx, rustc_args);
         match adt.adt_kind() {
