@@ -226,6 +226,13 @@ impl<'ast> StructItem<'ast> {
     }
 }
 
+#[cfg(feature = "driver-api")]
+impl<'ast> StructItem<'ast> {
+    pub fn new(data: CommonItemData<'ast>, generics: GenericParams<'ast>, kind: AdtKind<'ast>) -> Self {
+        Self { data, generics, kind }
+    }
+}
+
 #[derive(Debug)]
 #[allow(clippy::exhaustive_enums)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
@@ -233,6 +240,17 @@ enum AdtKind<'ast> {
     Unit,
     Tuple(FfiSlice<'ast, Field<'ast>>),
     Field(FfiSlice<'ast, Field<'ast>>),
+}
+
+impl<'ast> AdtKind<'ast> {
+    // The slice lifetime is here explicitly denoted, as this is used by the
+    // driver for convenience and is not part of the public API
+    pub fn fields(self) -> &'ast [Field<'ast>] {
+        match self {
+            AdtKind::Tuple(fields) | AdtKind::Field(fields) => fields.get(),
+            AdtKind::Unit => &[],
+        }
+    }
 }
 
 /// A single field inside a [`StructItem`] or [`UnionItem`] with an identifier

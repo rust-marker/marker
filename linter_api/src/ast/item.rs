@@ -10,7 +10,7 @@ pub use mod_item::ModItem;
 mod static_item;
 pub use self::static_item::StaticItem;
 mod use_decl_item;
-pub use self::use_decl_item::UseDeclItem;
+pub use self::use_decl_item::*;
 mod const_item;
 pub use self::const_item::ConstItem;
 mod fn_item;
@@ -25,6 +25,8 @@ mod impl_item;
 pub use impl_item::*;
 mod extern_block_item;
 pub use extern_block_item::*;
+mod unstable_item;
+pub use unstable_item::*;
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
@@ -55,7 +57,7 @@ pub trait ItemData<'ast>: Debug {
 pub enum ItemKind<'ast> {
     Mod(&'ast ModItem<'ast>),
     ExternCrate(&'ast ExternCrateItem<'ast>),
-    UseDecl(&'ast UseDeclItem<'ast>),
+    Use(&'ast UseItem<'ast>),
     Static(&'ast StaticItem<'ast>),
     Const(&'ast ConstItem<'ast>),
     Fn(&'ast FnItem<'ast>),
@@ -66,6 +68,7 @@ pub enum ItemKind<'ast> {
     Trait(&'ast TraitItem<'ast>),
     Impl(&'ast ImplItem<'ast>),
     ExternBlock(&'ast ExternBlockItem<'ast>),
+    Unstable(&'ast UnstableItem<'ast>),
 }
 
 impl<'ast> ItemKind<'ast> {
@@ -91,22 +94,67 @@ impl<'ast> AssocItemKind<'ast> {
     impl_item_type_fn!(AssocItemKind: name() -> Option<String>);
     impl_item_type_fn!(AssocItemKind: attrs() -> ());
     impl_item_type_fn!(AssocItemKind: as_item() -> ItemKind<'ast>);
+    // FIXME: Potentualy add a field to the items to optionally store the owner id
+}
+
+impl<'ast> From<AssocItemKind<'ast>> for ItemKind<'ast> {
+    fn from(value: AssocItemKind<'ast>) -> Self {
+        match value {
+            AssocItemKind::TyAlias(item) => ItemKind::TyAlias(item),
+            AssocItemKind::Const(item) => ItemKind::Const(item),
+            AssocItemKind::Fn(item) => ItemKind::Fn(item),
+        }
+    }
+}
+
+impl<'ast> TryFrom<&ItemKind<'ast>> for AssocItemKind<'ast> {
+    type Error = ();
+
+    fn try_from(value: &ItemKind<'ast>) -> Result<Self, Self::Error> {
+        match value {
+            ItemKind::TyAlias(item) => Ok(AssocItemKind::TyAlias(item)),
+            ItemKind::Const(item) => Ok(AssocItemKind::Const(item)),
+            ItemKind::Fn(item) => Ok(AssocItemKind::Fn(item)),
+            _ => Err(()),
+        }
+    }
 }
 
 #[non_exhaustive]
 #[derive(Debug)]
-pub enum ExternalItemKind<'ast> {
+pub enum ExternItemKind<'ast> {
     Static(&'ast StaticItem<'ast>),
     Fn(&'ast FnItem<'ast>),
 }
 
-impl<'ast> ExternalItemKind<'ast> {
-    impl_item_type_fn!(ExternalItemKind: id() -> ItemId);
-    impl_item_type_fn!(ExternalItemKind: span() -> &Span<'ast>);
-    impl_item_type_fn!(ExternalItemKind: visibility() -> &Visibility<'ast>);
-    impl_item_type_fn!(ExternalItemKind: name() -> Option<String>);
-    impl_item_type_fn!(ExternalItemKind: attrs() -> ());
-    impl_item_type_fn!(ExternalItemKind: as_item() -> ItemKind<'ast>);
+impl<'ast> ExternItemKind<'ast> {
+    impl_item_type_fn!(ExternItemKind: id() -> ItemId);
+    impl_item_type_fn!(ExternItemKind: span() -> &Span<'ast>);
+    impl_item_type_fn!(ExternItemKind: visibility() -> &Visibility<'ast>);
+    impl_item_type_fn!(ExternItemKind: name() -> Option<String>);
+    impl_item_type_fn!(ExternItemKind: attrs() -> ());
+    impl_item_type_fn!(ExternItemKind: as_item() -> ItemKind<'ast>);
+}
+
+impl<'ast> From<ExternItemKind<'ast>> for ItemKind<'ast> {
+    fn from(value: ExternItemKind<'ast>) -> Self {
+        match value {
+            ExternItemKind::Static(item) => ItemKind::Static(item),
+            ExternItemKind::Fn(item) => ItemKind::Fn(item),
+        }
+    }
+}
+
+impl<'ast> TryFrom<ItemKind<'ast>> for ExternItemKind<'ast> {
+    type Error = ();
+
+    fn try_from(value: ItemKind<'ast>) -> Result<Self, Self::Error> {
+        match value {
+            ItemKind::Static(item) => Ok(ExternItemKind::Static(item)),
+            ItemKind::Fn(item) => Ok(ExternItemKind::Fn(item)),
+            _ => Err(()),
+        }
+    }
 }
 
 /// Until [trait upcasting](https://github.com/rust-lang/rust/issues/65991) has been implemented
@@ -114,8 +162,8 @@ impl<'ast> ExternalItemKind<'ast> {
 macro_rules! impl_item_type_fn {
     (ItemKind: $method:ident () -> $return_ty:ty) => {
         impl_item_type_fn!((ItemKind) $method() -> $return_ty,
-            Mod, ExternCrate, UseDecl, Static, Const, Fn,
-            TyAlias, Struct, Enum, Union, Trait, Impl, ExternBlock
+            Mod, ExternCrate, Use, Static, Const, Fn, TyAlias, Struct, Enum,
+            Union, Trait, Impl, ExternBlock, Unstable
         );
     };
     (AssocItemKind: $method:ident () -> $return_ty:ty) => {
@@ -123,8 +171,8 @@ macro_rules! impl_item_type_fn {
             TyAlias, Const, Fn
         );
     };
-    (ExternalItemKind: $method:ident () -> $return_ty:ty) => {
-        impl_item_type_fn!((ExternalItemKind) $method() -> $return_ty,
+    (ExternItemKind: $method:ident () -> $return_ty:ty) => {
+        impl_item_type_fn!((ExternItemKind) $method() -> $return_ty,
             Static, Fn
         );
     };
@@ -182,8 +230,12 @@ use impl_item_data;
 
 #[cfg(feature = "driver-api")]
 impl<'ast> CommonItemData<'ast> {
-    pub fn new(id: ItemId, vis: Visibility<'ast>, name: SymbolId) -> Self {
-        Self { id, vis, name }
+    pub fn new(id: ItemId, name: SymbolId) -> Self {
+        Self {
+            id,
+            vis: Visibility::new(id),
+            name,
+        }
     }
 }
 

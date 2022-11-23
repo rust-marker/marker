@@ -58,7 +58,7 @@ macro_rules! lint_pass_fns {
             fn check_use_decl(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
-                _item: &'ast $crate::ast::item::UseDeclItem<'ast>) -> ();
+                _item: &'ast $crate::ast::item::UseItem<'ast>) -> ();
             fn check_static_item(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,

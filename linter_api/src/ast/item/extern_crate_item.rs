@@ -1,4 +1,5 @@
-use crate::ast::Symbol;
+use crate::ast::SymbolId;
+use crate::context::with_cx;
 
 use super::CommonItemData;
 
@@ -18,7 +19,7 @@ use super::CommonItemData;
 #[derive(Debug)]
 pub struct ExternCrateItem<'ast> {
     data: CommonItemData<'ast>,
-    crate_name: Symbol,
+    crate_name: SymbolId,
 }
 
 super::impl_item_data!(ExternCrateItem, ExternCrate);
@@ -29,14 +30,14 @@ impl<'ast> ExternCrateItem<'ast> {
     /// declared an alias with as.
     ///
     /// In most cases, you want to use this over the `get_name()` function.
-    pub fn crate_name(&self) -> Symbol {
-        self.crate_name
+    pub fn crate_name(&self) -> String {
+        with_cx(self, |cx| cx.symbol_str(self.crate_name))
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> ExternCrateItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, crate_name: Symbol) -> Self {
+    pub fn new(data: CommonItemData<'ast>, crate_name: SymbolId) -> Self {
         Self { data, crate_name }
     }
 }

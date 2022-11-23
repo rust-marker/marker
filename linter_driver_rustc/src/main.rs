@@ -6,6 +6,11 @@
 #![warn(clippy::pedantic)]
 #![allow(clippy::missing_panics_doc)]
 #![allow(clippy::module_name_repetitions)]
+#![allow(clippy::needless_collect, reason = "it has false positives for `alloc_slice_iter`")]
+#![allow(
+    clippy::too_many_lines,
+    reason = "long functions are sometimes unavoidable for matches"
+)]
 
 extern crate rustc_ast;
 extern crate rustc_data_structures;

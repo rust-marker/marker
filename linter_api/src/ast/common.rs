@@ -99,22 +99,6 @@ impl<'ast, T> Spanned<'ast, T> {
     }
 }
 
-#[non_exhaustive]
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
-pub struct Symbol {
-    index: u32,
-}
-
-#[cfg(feature = "driver-api")]
-impl Symbol {
-    #[must_use]
-    pub fn new(index: u32) -> Self {
-        Self { index }
-    }
-}
-
-pub type Ident<'ast> = Spanned<'ast, Symbol>;
-
 pub trait Attribute<'ast>: Debug {
     // FIXME: Add attribute functions
 }

@@ -49,13 +49,13 @@ impl<'ast> FnItem<'ast> {
         data: CommonItemData<'ast>,
         generics: GenericParams<'ast>,
         callable_data: CommonCallableData<'ast>,
-        body: FfiOption<BodyId>,
+        body: Option<BodyId>,
     ) -> Self {
         Self {
             data,
             generics,
             callable_data,
-            body,
+            body: body.into(),
         }
     }
 }
