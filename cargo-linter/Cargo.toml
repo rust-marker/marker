@@ -6,6 +6,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 clap = "4.0.26"
+once_cell = "1.16.0"
 
 [features]
 default = []

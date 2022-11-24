@@ -2,6 +2,7 @@ status = [
     "rust (ubuntu-latest)",
     "rust (windows-latest)",
     "rust (macos-latest)",
+    "rust-crates-build-stable",
 ]
 delete_merged_branches = true
 timeout_sec = 1200 # 20 min

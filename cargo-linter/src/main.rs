@@ -1,5 +1,3 @@
-#![feature(once_cell)]
-#![feature(lint_reasons)]
 #![warn(clippy::pedantic)]
 #![warn(clippy::index_refutable_slice)]
 
@@ -8,16 +6,16 @@ use std::{
     fs::create_dir_all,
     path::{Path, PathBuf},
     process::{exit, Command},
-    sync::LazyLock,
 };
 
-use clap::{self, Arg};
+use clap::{self, Arg, ArgAction};
+use once_cell::sync::Lazy;
 
 const CARGO_ARGS_SEPARATOR: &str = "--";
 const VERSION: &str = concat!("cargo-linter ", env!("CARGO_PKG_VERSION"));
 const LINT_KRATES_BASE_DIR: &str = "./target/linter";
-static LINT_KRATES_TARGET_DIR: LazyLock<String> = LazyLock::new(|| prepare_lint_build_dir("build", "target"));
-static LINT_KRATES_OUT_DIR: LazyLock<String> = LazyLock::new(|| prepare_lint_build_dir("lints", "out"));
+static LINT_KRATES_TARGET_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("build", "target"));
+static LINT_KRATES_OUT_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("lints", "out"));
 
 /// This creates the absolute path for a given build directory.
 fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
@@ -47,13 +45,14 @@ fn main() {
             .filter_map(|(index, value)| (!(index == 1 && value == "linter")).then_some(value))
             .take_while(|s| s != CARGO_ARGS_SEPARATOR),
     );
-    if matches.contains_id("version") {
+
+    if matches.get_flag("version") {
         let version_info = env!("CARGO_PKG_VERSION");
         println!("cargo-linter version: {version_info}");
         exit(0);
     }
 
-    let verbose = matches.contains_id("verbose");
+    let verbose = matches.get_flag("verbose");
     validate_driver(verbose);
 
     let mut lint_crates = vec![];
@@ -80,7 +79,7 @@ fn main() {
 
     let driver_path = get_driver_path();
     let linter_crates_env = lint_crates.join(";");
-    if matches.contains_id("test-setup") {
+    if matches.get_flag("test-setup") {
         println!("env:RUSTC_WORKSPACE_WRAPPER={}", driver_path.display());
         println!("env:LINTER_LINT_CRATES={linter_crates_env}");
     } else {
@@ -166,7 +165,7 @@ fn prepare_lint_crate(krate: &str, verbose: bool) -> Result<String, ()> {
 }
 
 /// On release builds this will exit with a message and `-1` if the driver is missing.
-#[allow(unused_variables, reason = "only used if `feature = dev-build`")]
+#[allow(unused_variables)] // `verbose` is only used if `feature = dev-build`
 fn validate_driver(verbose: bool) {
     #[cfg(feature = "dev-build")]
     {
@@ -228,12 +227,14 @@ fn get_clap_config() -> clap::Command {
             Arg::new("version")
                 .short('V')
                 .long("version")
+                .action(ArgAction::SetTrue)
                 .help("Print version info and exit"),
         )
         .arg(
             Arg::new("verbose")
                 .short('v')
                 .long("verbose")
+                .action(ArgAction::SetTrue)
                 .help("Print additional debug information to the console"),
         )
         .arg(
@@ -246,7 +247,7 @@ fn get_clap_config() -> clap::Command {
         .arg(
             Arg::new("test-setup")
                 .long("test-setup")
-                .num_args(0)
+                .action(ArgAction::SetTrue)
                 .help("This flag will compile the lint crate and print all relevant environment values"),
         )
         .after_help(AFTER_HELP_MSG)
