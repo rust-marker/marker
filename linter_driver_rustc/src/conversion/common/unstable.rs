@@ -18,7 +18,7 @@ pub fn to_rustc_lint<'ast, 'tcx>(cx: &RustcContext<'ast, 'tcx>, api_lint: &'stat
 
         Box::leak(Box::new(rustc_lint::Lint {
             name: api_lint.name,
-            default_level: to_rustc_lint_level(cx, api_lint.default_level),
+            default_level: to_rustc_lint_level(api_lint.default_level),
             desc: api_lint.explaination,
             edition_lint_opts: None,
             report_in_external_macro,

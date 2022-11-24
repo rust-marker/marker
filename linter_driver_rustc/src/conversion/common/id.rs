@@ -2,59 +2,30 @@ use std::mem::{size_of, transmute};
 
 use linter_api::ast::{BodyId, CrateId, GenericId, ItemId, SpanId, SymbolId, TyDefId};
 
-use crate::context::RustcContext;
+use rustc_hir as hir;
 
-pub fn to_api_crate_id(_cx: &RustcContext<'_, '_>, rustc_id: rustc_hir::def_id::CrateNum) -> CrateId {
+#[must_use]
+pub fn to_crate_id(rustc_id: hir::def_id::CrateNum) -> CrateId {
     assert_eq!(size_of::<CrateId>(), 4);
     CrateId::new(rustc_id.as_u32())
 }
 
-pub fn to_rustc_krate_id(_cx: &RustcContext<'_, '_>, api_id: CrateId) -> rustc_hir::def_id::CrateNum {
+#[must_use]
+pub fn to_rustc_crate_num(api_id: CrateId) -> hir::def_id::CrateNum {
     assert_eq!(size_of::<CrateId>(), 4);
-    rustc_hir::def_id::CrateNum::from_u32(api_id.data())
+    hir::def_id::CrateNum::from_u32(api_id.data())
 }
 
-#[repr(C)]
-struct ItemIdLayout {
-    krate: u32,
-    index: u32,
-}
-
-pub fn to_api_item_id(cx: &RustcContext<'_, '_>, rustc_id: rustc_hir::ItemId) -> ItemId {
-    to_api_item_id_from_def_id(cx, rustc_id.owner_id.to_def_id())
-}
-
-pub fn to_api_item_id_from_def_id(_cx: &RustcContext<'_, '_>, rustc_id: rustc_hir::def_id::DefId) -> ItemId {
-    assert_eq!(size_of::<ItemId>(), size_of::<ItemIdLayout>(), "the layout is invalid");
-    let layout = ItemIdLayout {
-        krate: rustc_id.krate.as_u32(),
-        index: rustc_id.index.as_u32(),
-    };
-    // # Safety
-    // The layout is validated with the `assert` above
-    unsafe { transmute(layout) }
-}
-
-pub fn to_rustc_def_id_from_item_id(_cx: &RustcContext<'_, '_>, api_id: ItemId) -> rustc_hir::def_id::DefId {
+#[must_use]
+pub fn to_rustc_item_id(api_id: ItemId) -> hir::ItemId {
     assert_eq!(size_of::<ItemId>(), size_of::<ItemIdLayout>(), "the layout is invalid");
     // # Safety
     // The layout is validated with the `assert` above
     let layout: ItemIdLayout = unsafe { transmute(api_id) };
-    rustc_hir::def_id::DefId {
-        index: rustc_hir::def_id::DefIndex::from_u32(layout.index),
-        krate: rustc_hir::def_id::CrateNum::from_u32(layout.krate),
-    }
-}
-
-pub fn to_rustc_item_id(_cx: &RustcContext<'_, '_>, api_id: ItemId) -> rustc_hir::ItemId {
-    assert_eq!(size_of::<ItemId>(), size_of::<ItemIdLayout>(), "the layout is invalid");
-    // # Safety
-    // The layout is validated with the `assert` above
-    let layout: ItemIdLayout = unsafe { transmute(api_id) };
-    rustc_hir::ItemId {
-        owner_id: rustc_hir::OwnerId {
-            def_id: rustc_hir::def_id::LocalDefId {
-                local_def_index: rustc_hir::def_id::DefIndex::from_u32(layout.index),
+    hir::ItemId {
+        owner_id: hir::OwnerId {
+            def_id: hir::def_id::LocalDefId {
+                local_def_index: hir::def_id::DefIndex::from_u32(layout.index),
             },
         },
     }
@@ -66,7 +37,8 @@ struct TyDefIdLayout {
     index: u32,
 }
 
-pub fn to_api_ty_def_id(_cx: &RustcContext<'_, '_>, rustc_id: rustc_hir::def_id::DefId) -> TyDefId {
+#[must_use]
+pub fn to_ty_def_id(rustc_id: hir::def_id::DefId) -> TyDefId {
     assert_eq!(
         size_of::<TyDefId>(),
         size_of::<TyDefIdLayout>(),
@@ -81,28 +53,14 @@ pub fn to_api_ty_def_id(_cx: &RustcContext<'_, '_>, rustc_id: rustc_hir::def_id:
     unsafe { transmute(layout) }
 }
 
-pub fn to_rustc_def_id_from_ty_def_id(_cx: &RustcContext<'_, '_>, api_id: TyDefId) -> rustc_hir::def_id::DefId {
-    assert_eq!(
-        size_of::<TyDefId>(),
-        size_of::<TyDefIdLayout>(),
-        "the layout is invalid"
-    );
-    // # Safety
-    // The layout is validated with the `assert` above
-    let layout: TyDefIdLayout = unsafe { transmute(api_id) };
-    rustc_hir::def_id::DefId {
-        index: rustc_hir::def_id::DefIndex::from_u32(layout.index),
-        krate: rustc_hir::def_id::CrateNum::from_u32(layout.krate),
-    }
-}
-
 #[repr(C)]
 struct GenericIdLayout {
     krate: u32,
     index: u32,
 }
 
-pub fn to_api_generic_id(_cx: &RustcContext<'_, '_>, rustc_id: rustc_hir::def_id::DefId) -> GenericId {
+#[must_use]
+pub fn to_generic_id(rustc_id: hir::def_id::DefId) -> GenericId {
     assert_eq!(
         size_of::<GenericId>(),
         size_of::<GenericIdLayout>(),
@@ -117,21 +75,6 @@ pub fn to_api_generic_id(_cx: &RustcContext<'_, '_>, rustc_id: rustc_hir::def_id
     unsafe { transmute(layout) }
 }
 
-pub fn to_rustc_def_id_from_generic_id(_cx: &RustcContext<'_, '_>, api_id: GenericId) -> rustc_hir::def_id::DefId {
-    assert_eq!(
-        size_of::<GenericId>(),
-        size_of::<GenericIdLayout>(),
-        "the layout is invalid"
-    );
-    // # Safety
-    // The layout is validated with the `assert` above
-    let layout: GenericIdLayout = unsafe { transmute(api_id) };
-    rustc_hir::def_id::DefId {
-        index: rustc_hir::def_id::DefIndex::from_u32(layout.index),
-        krate: rustc_hir::def_id::CrateNum::from_u32(layout.krate),
-    }
-}
-
 #[repr(C)]
 struct BodyIdLayout {
     // Note: AFAIK rustc only loads bodies from the current crate, this allows
@@ -142,7 +85,8 @@ struct BodyIdLayout {
     index: u32,
 }
 
-pub fn to_api_body_id(_cx: &RustcContext<'_, '_>, rustc_id: rustc_hir::BodyId) -> BodyId {
+#[must_use]
+pub fn to_api_body_id(rustc_id: hir::BodyId) -> BodyId {
     assert_eq!(size_of::<BodyId>(), size_of::<BodyIdLayout>(), "the layout is invalid");
     let layout = BodyIdLayout {
         owner: rustc_id.hir_id.owner.def_id.local_def_index.as_u32(),
@@ -153,24 +97,26 @@ pub fn to_api_body_id(_cx: &RustcContext<'_, '_>, rustc_id: rustc_hir::BodyId) -
     unsafe { transmute(layout) }
 }
 
-pub fn to_rustc_body_id(_cx: &RustcContext<'_, '_>, api_id: BodyId) -> rustc_hir::BodyId {
+#[must_use]
+pub fn to_rustc_body_id(api_id: BodyId) -> hir::BodyId {
     assert_eq!(size_of::<BodyId>(), size_of::<BodyIdLayout>(), "the layout is invalid");
     // # Safety
     // The layout is validated with the `assert` above
     let layout: BodyIdLayout = unsafe { transmute(api_id) };
-    rustc_hir::BodyId {
-        hir_id: rustc_hir::HirId {
-            owner: rustc_hir::OwnerId {
-                def_id: rustc_hir::def_id::LocalDefId {
-                    local_def_index: rustc_hir::def_id::DefIndex::from_u32(layout.owner),
+    hir::BodyId {
+        hir_id: hir::HirId {
+            owner: hir::OwnerId {
+                def_id: hir::def_id::LocalDefId {
+                    local_def_index: hir::def_id::DefIndex::from_u32(layout.owner),
                 },
             },
-            local_id: rustc_hir::hir_id::ItemLocalId::from_u32(layout.index),
+            local_id: hir::hir_id::ItemLocalId::from_u32(layout.index),
         },
     }
 }
 
-pub fn to_api_span_id(_cx: &RustcContext<'_, '_>, rustc_span: rustc_span::Span) -> SpanId {
+#[must_use]
+pub fn to_span_id(rustc_span: rustc_span::Span) -> SpanId {
     assert_eq!(
         size_of::<SpanId>(),
         size_of::<rustc_span::Span>(),
@@ -181,7 +127,8 @@ pub fn to_api_span_id(_cx: &RustcContext<'_, '_>, rustc_span: rustc_span::Span) 
     unsafe { transmute(rustc_span) }
 }
 
-pub fn to_rustc_span_from_id(_cx: &RustcContext<'_, '_>, api_id: SpanId) -> rustc_span::Span {
+#[must_use]
+pub fn to_rustc_span_from_id(api_id: SpanId) -> rustc_span::Span {
     assert_eq!(
         size_of::<SpanId>(),
         size_of::<rustc_span::Span>(),
@@ -193,16 +140,116 @@ pub fn to_rustc_span_from_id(_cx: &RustcContext<'_, '_>, api_id: SpanId) -> rust
 }
 
 #[must_use]
-pub fn to_api_symbol_id(sym: rustc_span::Symbol) -> SymbolId {
+pub fn to_symbol_id(sym: rustc_span::Symbol) -> SymbolId {
     assert_eq!(size_of::<SymbolId>(), 4);
     SymbolId::new(sym.as_u32())
 }
 
-pub fn to_rustc_symbol(_cx: &RustcContext<'_, '_>, api_id: SymbolId) -> rustc_span::Symbol {
+#[must_use]
+pub fn to_rustc_symbol(api_id: SymbolId) -> rustc_span::Symbol {
     assert_eq!(size_of::<SymbolId>(), 4);
     assert_eq!(size_of::<rustc_span::Symbol>(), 4);
     // FIXME: `rustc_span::Symbol` currently has no public constructor for the
     // index value and no `#[repr(C)]` attribute. Therefore, this conversion is
     // unsound. This requires changes in rustc.
     unsafe { transmute(api_id) }
+}
+
+// /////////////////////////////////////////////////////////
+// API Item ID
+// /////////////////////////////////////////////////////////
+
+#[repr(C)]
+pub struct ItemIdLayout {
+    krate: u32,
+    index: u32,
+}
+
+pub fn to_item_id(id: impl Into<ItemIdLayout>) -> ItemId {
+    let layout: ItemIdLayout = id.into();
+    assert_eq!(size_of::<ItemId>(), size_of::<ItemIdLayout>(), "the layout is invalid");
+    // # Safety
+    // The layout is validated with the `assert` above
+    unsafe { transmute(layout) }
+}
+
+impl From<hir::ItemId> for ItemIdLayout {
+    fn from(value: hir::ItemId) -> Self {
+        // My understanding is, that the `owner_id` is the `DefId` of this item.
+        // We'll see if this holds true, when marker crashes and burns ^^
+        value.owner_id.def_id.into()
+    }
+}
+impl From<hir::def_id::LocalDefId> for ItemIdLayout {
+    fn from(value: hir::def_id::LocalDefId) -> Self {
+        value.to_def_id().into()
+    }
+}
+impl From<hir::OwnerId> for ItemIdLayout {
+    fn from(value: hir::OwnerId) -> Self {
+        value.to_def_id().into()
+    }
+}
+impl From<hir::def_id::DefId> for ItemIdLayout {
+    fn from(rustc_id: hir::def_id::DefId) -> Self {
+        ItemIdLayout {
+            krate: rustc_id.krate.as_u32(),
+            index: rustc_id.index.as_u32(),
+        }
+    }
+}
+
+// /////////////////////////////////////////////////////////
+// Rustc DefId
+// /////////////////////////////////////////////////////////
+
+pub trait ToDefIdInfo {
+    fn into_crate_and_index(self) -> (u32, u32);
+}
+
+#[must_use]
+pub fn to_rustc_def_id(api_id: impl ToDefIdInfo) -> hir::def_id::DefId {
+    let (index, krate) = api_id.into_crate_and_index();
+    hir::def_id::DefId {
+        index: hir::def_id::DefIndex::from_u32(index),
+        krate: hir::def_id::CrateNum::from_u32(krate),
+    }
+}
+
+impl ToDefIdInfo for ItemId {
+    fn into_crate_and_index(self) -> (u32, u32) {
+        assert_eq!(size_of::<ItemId>(), size_of::<ItemIdLayout>(), "the layout is invalid");
+        // # Safety
+        // The layout is validated with the `assert` above
+        let layout: ItemIdLayout = unsafe { transmute(self) };
+        (layout.index, layout.krate)
+    }
+}
+
+impl ToDefIdInfo for TyDefId {
+    fn into_crate_and_index(self) -> (u32, u32) {
+        assert_eq!(
+            size_of::<TyDefId>(),
+            size_of::<TyDefIdLayout>(),
+            "the layout is invalid"
+        );
+        // # Safety
+        // The layout is validated with the `assert` above
+        let layout: TyDefIdLayout = unsafe { transmute(self) };
+        (layout.index, layout.krate)
+    }
+}
+
+impl ToDefIdInfo for GenericId {
+    fn into_crate_and_index(self) -> (u32, u32) {
+        assert_eq!(
+            size_of::<GenericId>(),
+            size_of::<GenericIdLayout>(),
+            "the layout is invalid"
+        );
+        // # Safety
+        // The layout is validated with the `assert` above
+        let layout: GenericIdLayout = unsafe { transmute(self) };
+        (layout.index, layout.krate)
+    }
 }

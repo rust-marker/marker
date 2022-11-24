@@ -43,28 +43,6 @@ pub enum Applicability {
     Unspecified,
 }
 
-/// Used to indicate the safety. [`Safety::Default`] is the default safe rust mode.
-#[non_exhaustive]
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum Safety {
-    Default,
-    Unsafe,
-}
-
-#[non_exhaustive]
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum Constness {
-    Default,
-    Const,
-}
-
-#[non_exhaustive]
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum Asyncness {
-    Default,
-    Async,
-}
-
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Abi {
@@ -76,14 +54,6 @@ pub enum Abi {
     /// FIXME: Remove this variant. See
     /// <https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/spec/abi/enum.Abi.html>
     Other,
-}
-
-#[repr(C)]
-#[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Mutability {
-    Mut,
-    Not,
 }
 
 pub struct Spanned<'ast, T> {

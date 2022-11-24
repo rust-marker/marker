@@ -1,7 +1,7 @@
 use linter_api::{
-    ast::{Span, SpanOwner, SymbolId},
+    ast::{item::ItemKind, ItemId, Span, SpanOwner, SymbolId},
     context::DriverCallbacks,
-    ffi,
+    ffi::{self, FfiOption},
     lint::Lint,
 };
 
@@ -32,11 +32,18 @@ impl<'ast> DriverContextWrapper<'ast> {
         DriverCallbacks {
             driver_context: unsafe { &*(self as *const DriverContextWrapper).cast::<()>() },
             emit_lint,
+            item,
             get_span,
             span_snippet,
             symbol_str,
         }
     }
+}
+
+#[allow(improper_ctypes_definitions, reason = "fp because `ItemKind` is non-exhaustive")]
+extern "C" fn item<'ast>(data: &(), id: ItemId) -> FfiOption<ItemKind<'ast>> {
+    let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
+    wrapper.driver_cx.item(id).into()
 }
 
 extern "C" fn emit_lint<'ast>(data: &(), lint: &'static Lint, msg: ffi::Str, span: &Span<'ast>) {
@@ -60,6 +67,7 @@ extern "C" fn symbol_str<'ast>(data: &(), sym: SymbolId) -> ffi::Str<'ast> {
 }
 
 pub trait DriverContext<'ast> {
+    fn item(&'ast self, id: ItemId) -> Option<ItemKind<'ast>>;
     fn emit_lint(&'ast self, lint: &'static Lint, msg: &str, span: &Span<'ast>);
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast>;
     fn span_snippet(&'ast self, span: &Span) -> Option<&'ast str>;

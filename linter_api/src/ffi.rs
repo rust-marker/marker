@@ -63,6 +63,13 @@ impl<T> FfiOption<T> {
             FfiOption::None => None,
         }
     }
+
+    pub fn copy(self) -> Option<T> {
+        match self {
+            FfiOption::Some(x) => Some(x),
+            FfiOption::None => None,
+        }
+    }
 }
 
 impl<T> From<FfiOption<T>> for Option<T> {

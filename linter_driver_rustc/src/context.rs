@@ -2,7 +2,7 @@ use std::cell::OnceCell;
 
 use linter_adapter::context::{DriverContext, DriverContextWrapper};
 use linter_api::{
-    ast::{Span, SpanOwner, SymbolId},
+    ast::{item::ItemKind, ItemId, Span, SpanOwner, SymbolId},
     context::AstContext,
     lint::Lint,
 };
@@ -10,7 +10,8 @@ use rustc_lint::LintStore;
 use rustc_middle::ty::TyCtxt;
 
 use crate::conversion::{
-    to_api_span, to_rustc_item_id, to_rustc_lint, to_rustc_span, to_rustc_span_from_id, to_rustc_symbol,
+    item::ItemConverter, to_api_span, to_rustc_item_id, to_rustc_lint, to_rustc_span, to_rustc_span_from_id,
+    to_rustc_symbol,
 };
 
 use self::storage::Storage;
@@ -31,8 +32,8 @@ pub struct RustcContext<'ast, 'tcx> {
     pub lint_store: &'tcx LintStore,
     pub storage: &'ast Storage<'ast>,
     /// This is the [`AstContext`] wrapping callbacks to this instance of the
-    /// [`RustcContext`]. The once cell will be set imediatly after the creation
-    /// which makes it safe to access afterwards. See
+    /// [`RustcContext`]. The once cell will be set immediately after the creation
+    /// which makes it safe to access afterwards.
     ast_cx: OnceCell<&'ast AstContext<'ast>>,
 }
 
@@ -73,10 +74,14 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         );
     }
 
+    fn item(&'ast self, id: ItemId) -> Option<ItemKind<'ast>> {
+        ItemConverter::new(self).conv_item_from_id(id)
+    }
+
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast> {
         let rustc_span = match owner {
-            SpanOwner::Item(item) => self.rustc_cx.hir().item(to_rustc_item_id(self, *item)).span,
-            SpanOwner::SpecificSpan(span_id) => to_rustc_span_from_id(self, *span_id),
+            SpanOwner::Item(item) => self.rustc_cx.hir().item(to_rustc_item_id(*item)).span,
+            SpanOwner::SpecificSpan(span_id) => to_rustc_span_from_id(*span_id),
         };
         to_api_span(self, rustc_span)
     }
@@ -86,7 +91,7 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
     }
 
     fn symbol_str(&'ast self, sym: SymbolId) -> &'ast str {
-        let sym = to_rustc_symbol(self, sym);
+        let sym = to_rustc_symbol(sym);
         // Based on the comment of `rustc_span::Symbol::as_str` this should be fine.
         unsafe { std::mem::transmute(sym.as_str()) }
     }

@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use linter_api::ast::{
     generic::{
         GenericParamKind, GenericParams, LifetimeClause, LifetimeParam, TraitBound, TyClause, TyParam, TyParamBound,
@@ -13,42 +11,45 @@ use linter_api::ast::{
     ty::TyKind,
     Abi, CommonCallableData, ItemId, Parameter,
 };
-use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 
 use crate::context::RustcContext;
 
 use super::{
     generic::{to_api_lifetime, to_api_trait_ref},
-    to_api_abi, to_api_body_id, to_api_generic_id, to_api_item_id_from_def_id, to_api_mutability, to_api_path,
-    to_api_span_id, to_api_symbol_id,
-    ty::to_api_syn_ty,
+    to_api_abi, to_api_body_id, to_api_path, to_generic_id, to_item_id, to_rustc_item_id, to_span_id, to_symbol_id,
+    ty::TyConverter,
 };
 
+/// This converter combines a bunch of functions used to convert rustc items into
+/// api items. This is mainly used to group functions together and to not always
+/// pass the context around as an argument.
 pub struct ItemConverter<'ast, 'tcx> {
     cx: &'ast RustcContext<'ast, 'tcx>,
-    items: RefCell<FxHashMap<ItemId, ItemKind<'ast>>>,
 }
 
 impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
     pub fn new(cx: &'ast RustcContext<'ast, 'tcx>) -> Self {
-        Self {
-            cx,
-            items: RefCell::default(),
-        }
+        Self { cx }
     }
 
+    #[must_use]
+    pub fn conv_item_from_id(&self, id: ItemId) -> Option<ItemKind<'ast>> {
+        self.conv_items(&[to_rustc_item_id(id)]).first().copied()
+    }
+
+    #[must_use]
     pub fn conv_item(&self, rustc_item: &'tcx hir::Item<'tcx>) -> Option<ItemKind<'ast>> {
-        let id = to_api_item_id_from_def_id(self.cx, rustc_item.owner_id.to_def_id());
-        if let Some(item) = self.items.borrow().get(&id) {
+        let id = to_item_id(rustc_item.owner_id);
+        if let Some(item) = self.cx.storage.items.borrow().get(&id) {
             return Some(*item);
         }
 
-        let name = to_api_symbol_id(rustc_item.ident.name);
+        let name = to_symbol_id(rustc_item.ident.name);
         let data = CommonItemData::new(id, name);
         let item = match &rustc_item.kind {
             hir::ItemKind::ExternCrate(original_name) => ItemKind::ExternCrate(
-                self.alloc(|| ExternCrateItem::new(data, original_name.map_or(name, to_api_symbol_id))),
+                self.alloc(|| ExternCrateItem::new(data, original_name.map_or(name, to_symbol_id))),
             ),
             hir::ItemKind::Use(path, use_kind) => {
                 let use_kind = match use_kind {
@@ -61,31 +62,27 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             hir::ItemKind::Static(rustc_ty, rustc_mut, rustc_body_id) => ItemKind::Static(self.alloc(|| {
                 StaticItem::new(
                     data,
-                    to_api_mutability(self.cx, *rustc_mut),
-                    Some(to_api_body_id(self.cx, *rustc_body_id)),
+                    matches!(*rustc_mut, rustc_ast::Mutability::Mut),
+                    Some(to_api_body_id(*rustc_body_id)),
                     self.conv_ty(rustc_ty),
                 )
             })),
-            hir::ItemKind::Const(rustc_ty, rustc_body_id) => ItemKind::Const(self.alloc(|| {
-                ConstItem::new(
-                    data,
-                    self.conv_ty(rustc_ty),
-                    Some(to_api_body_id(self.cx, *rustc_body_id)),
-                )
-            })),
+            hir::ItemKind::Const(rustc_ty, rustc_body_id) => ItemKind::Const(
+                self.alloc(|| ConstItem::new(data, self.conv_ty(rustc_ty), Some(to_api_body_id(*rustc_body_id)))),
+            ),
             hir::ItemKind::Fn(fn_sig, generics, body_id) => ItemKind::Fn(self.alloc(|| {
                 FnItem::new(
                     data,
                     self.conv_generic(generics),
                     self.conv_fn_sig(fn_sig, false),
-                    Some(to_api_body_id(self.cx, *body_id)),
+                    Some(to_api_body_id(*body_id)),
                 )
             })),
             hir::ItemKind::Mod(rustc_mod) => {
                 ItemKind::Mod(self.alloc(|| ModItem::new(data, self.conv_items(rustc_mod.item_ids))))
             },
             hir::ItemKind::ForeignMod { abi, items } => ItemKind::ExternBlock(self.alloc(|| {
-                let abi = to_api_abi(self.cx, *abi);
+                let abi = to_api_abi(*abi);
                 ExternBlockItem::new(data, abi, self.conv_foreign_items(items, abi))
             })),
             hir::ItemKind::Macro(_, _) | hir::ItemKind::GlobalAsm(_) => return None,
@@ -98,7 +95,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                 )
             })),
             hir::ItemKind::OpaqueTy(_) => ItemKind::Unstable(
-                self.alloc(|| UnstableItem::new(data, Some(to_api_symbol_id(rustc_span::sym::type_alias_impl_trait)))),
+                self.alloc(|| UnstableItem::new(data, Some(to_symbol_id(rustc_span::sym::type_alias_impl_trait)))),
             ),
             hir::ItemKind::Enum(enum_def, generics) => ItemKind::Enum(
                 self.alloc(|| EnumItem::new(data, self.conv_generic(generics), self.conv_enum_def(enum_def))),
@@ -123,7 +120,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                 )
             })),
             hir::ItemKind::TraitAlias(_, _) => ItemKind::Unstable(
-                self.alloc(|| UnstableItem::new(data, Some(to_api_symbol_id(rustc_span::sym::trait_alias)))),
+                self.alloc(|| UnstableItem::new(data, Some(to_symbol_id(rustc_span::sym::trait_alias)))),
             ),
             hir::ItemKind::Impl(imp) => ItemKind::Impl(self.alloc(|| {
                 ImplItem::new(
@@ -134,21 +131,18 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                         .as_ref()
                         .map(|trait_ref| to_api_trait_ref(self.cx, trait_ref)),
                     self.conv_generic(imp.generics),
-                    to_api_syn_ty(self.cx, imp.self_ty),
+                    self.conv_ty(imp.self_ty),
                     self.conv_assoc_items(imp.items),
                 )
             })),
         };
 
-        self.items.borrow_mut().insert(id, item);
+        self.cx.storage.items.borrow_mut().insert(id, item);
         Some(item)
     }
 
+    #[must_use]
     pub fn conv_items(&self, item: &[hir::ItemId]) -> &'ast [ItemKind<'ast>] {
-        #[expect(
-            clippy::needless_collect,
-            reason = "collect is required to know the size of the allocation"
-        )]
         let items: Vec<ItemKind<'_>> = item
             .iter()
             .map(|rid| self.cx.rustc_cx.hir().item(*rid))
@@ -158,26 +152,26 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
     }
 
     fn conv_assoc_item(&self, rustc_item: &hir::ImplItemRef) -> AssocItemKind<'ast> {
-        let id = to_api_item_id_from_def_id(self.cx, rustc_item.id.owner_id.to_def_id());
-        if let Some(item) = self.items.borrow().get(&id) {
+        let id = to_item_id(rustc_item.id.owner_id);
+        if let Some(item) = self.cx.storage.items.borrow().get(&id) {
             return item.try_into().unwrap();
         }
 
         let impl_item = self.cx.rustc_cx.hir().impl_item(rustc_item.id);
-        let name = to_api_symbol_id(rustc_item.ident.name);
+        let name = to_symbol_id(rustc_item.ident.name);
         let data = CommonItemData::new(id, name);
 
         let item =
             match &impl_item.kind {
                 hir::ImplItemKind::Const(ty, body_id) => AssocItemKind::Const(
-                    self.alloc(|| ConstItem::new(data, self.conv_ty(ty), Some(to_api_body_id(self.cx, *body_id)))),
+                    self.alloc(|| ConstItem::new(data, self.conv_ty(ty), Some(to_api_body_id(*body_id)))),
                 ),
                 hir::ImplItemKind::Fn(fn_sig, body_id) => AssocItemKind::Fn(self.alloc(|| {
                     FnItem::new(
                         data,
                         self.conv_generic(impl_item.generics),
                         self.conv_fn_sig(fn_sig, false),
-                        Some(to_api_body_id(self.cx, *body_id)),
+                        Some(to_api_body_id(*body_id)),
                     )
                 })),
                 hir::ImplItemKind::Type(ty) => AssocItemKind::TyAlias(self.alloc(|| {
@@ -185,37 +179,33 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                 })),
             };
 
-        self.items.borrow_mut().insert(id, item.as_item());
+        self.cx.storage.items.borrow_mut().insert(id, item.as_item());
         item
     }
 
-    pub fn conv_assoc_items(&self, items: &[hir::ImplItemRef]) -> &'ast [AssocItemKind<'ast>] {
+    fn conv_assoc_items(&self, items: &[hir::ImplItemRef]) -> &'ast [AssocItemKind<'ast>] {
         self.cx
             .storage
             .alloc_slice_iter(items.iter().map(|item| self.conv_assoc_item(item)))
     }
 
     fn conv_trait_item(&self, rustc_item: &hir::TraitItemRef) -> AssocItemKind<'ast> {
-        let id = to_api_item_id_from_def_id(self.cx, rustc_item.id.owner_id.to_def_id());
-        if let Some(item) = self.items.borrow().get(&id) {
+        let id = to_item_id(rustc_item.id.owner_id);
+        if let Some(item) = self.cx.storage.items.borrow().get(&id) {
             return item.try_into().unwrap();
         }
 
         let trait_item = self.cx.rustc_cx.hir().trait_item(rustc_item.id);
-        let name = to_api_symbol_id(rustc_item.ident.name);
+        let name = to_symbol_id(rustc_item.ident.name);
         let data = CommonItemData::new(id, name);
 
         let item = match &trait_item.kind {
-            hir::TraitItemKind::Const(ty, body_id) => AssocItemKind::Const(self.alloc(|| {
-                ConstItem::new(
-                    data,
-                    self.conv_ty(ty),
-                    body_id.map(|body_id| to_api_body_id(self.cx, body_id)),
-                )
-            })),
+            hir::TraitItemKind::Const(ty, body_id) => {
+                AssocItemKind::Const(self.alloc(|| ConstItem::new(data, self.conv_ty(ty), body_id.map(to_api_body_id))))
+            },
             hir::TraitItemKind::Fn(fn_sig, trait_fn) => AssocItemKind::Fn(self.alloc(|| {
                 let body = match trait_fn {
-                    hir::TraitFn::Provided(body_id) => Some(to_api_body_id(self.cx, *body_id)),
+                    hir::TraitFn::Provided(body_id) => Some(to_api_body_id(*body_id)),
                     hir::TraitFn::Required(_) => None,
                 };
                 FnItem::new(
@@ -235,7 +225,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             })),
         };
 
-        self.items.borrow_mut().insert(id, item.as_item());
+        self.cx.storage.items.borrow_mut().insert(id, item.as_item());
         item
     }
 
@@ -246,13 +236,13 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
     }
 
     fn conv_foreign_item(&self, rustc_item: &'tcx hir::ForeignItemRef, abi: Abi) -> ExternItemKind<'ast> {
-        let id = to_api_item_id_from_def_id(self.cx, rustc_item.id.owner_id.to_def_id());
-        if let Some(item) = self.items.borrow().get(&id) {
+        let id = to_item_id(rustc_item.id.owner_id);
+        if let Some(item) = self.cx.storage.items.borrow().get(&id) {
             return (*item).try_into().unwrap();
         }
 
         let foreign_item = self.cx.rustc_cx.hir().foreign_item(rustc_item.id);
-        let name = to_api_symbol_id(rustc_item.ident.name);
+        let name = to_symbol_id(rustc_item.ident.name);
         let data = CommonItemData::new(id, name);
         let item = match &foreign_item.kind {
             hir::ForeignItemKind::Fn(fn_sig, idents, generics) => ExternItemKind::Fn(self.alloc(|| {
@@ -263,13 +253,18 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                     None,
                 )
             })),
-            hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(
-                self.alloc(|| StaticItem::new(data, to_api_mutability(self.cx, *rustc_mut), None, self.conv_ty(ty))),
-            ),
+            hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(self.alloc(|| {
+                StaticItem::new(
+                    data,
+                    matches!(*rustc_mut, rustc_ast::Mutability::Mut),
+                    None,
+                    self.conv_ty(ty),
+                )
+            })),
             hir::ForeignItemKind::Type => todo!(),
         };
 
-        self.items.borrow_mut().insert(id, item.as_item());
+        self.cx.storage.items.borrow_mut().insert(id, item.as_item());
         item
     }
 
@@ -280,7 +275,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
     }
 
     fn conv_ty(&self, rustc_ty: &'tcx hir::Ty<'tcx>) -> TyKind<'ast> {
-        to_api_syn_ty(self.cx, rustc_ty)
+        TyConverter::new(self.cx).conv_ty(rustc_ty)
     }
 
     fn conv_generic_params(&self, params: &[hir::GenericParam<'ast>]) -> &'ast [GenericParamKind<'ast>] {
@@ -292,21 +287,21 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             .iter()
             .filter_map(|rustc_param| {
                 let name = match rustc_param.name {
-                    hir::ParamName::Plain(ident) => to_api_symbol_id(ident.name),
+                    hir::ParamName::Plain(ident) => to_symbol_id(ident.name),
                     _ => return None,
                 };
                 let def_id = self.cx.rustc_cx.hir().local_def_id(rustc_param.hir_id);
-                let id = to_api_generic_id(self.cx, def_id.to_def_id());
-                let span = to_api_span_id(self.cx, rustc_param.span);
+                let id = to_generic_id(def_id.to_def_id());
+                let span = to_span_id(rustc_param.span);
                 match rustc_param.kind {
                     hir::GenericParamKind::Lifetime {
                         kind: hir::LifetimeParamKind::Explicit,
                     } => Some(GenericParamKind::Lifetime(
-                        self.alloc(|| LifetimeParam::new(id, name, &[], Some(span))),
+                        self.alloc(|| LifetimeParam::new(id, name, Some(span))),
                     )),
-                    hir::GenericParamKind::Type { synthetic: false, .. } => Some(GenericParamKind::Ty(
-                        self.alloc(|| TyParam::new(Some(span), name, id, &[])),
-                    )),
+                    hir::GenericParamKind::Type { synthetic: false, .. } => {
+                        Some(GenericParamKind::Ty(self.alloc(|| TyParam::new(Some(span), name, id))))
+                    },
                     _ => None,
                 }
             })
@@ -327,7 +322,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                     TraitBound::new(
                         !matches!(modifier, hir::TraitBoundModifier::None),
                         to_api_trait_ref(self.cx, &trait_ref.trait_ref),
-                        to_api_span_id(self.cx, bound.span()),
+                        to_span_id(bound.span()),
                     )
                 }))),
                 hir::GenericBound::LangItemTrait(_, _, _, _) => todo!(),
@@ -349,7 +344,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                 match predicate {
                     hir::WherePredicate::BoundPredicate(ty_bound) => {
                         // FIXME Add span to API clause:
-                        // let span = to_api_span_id(self.cx, ty_bound.span);
+                        // let span = to_api_span_id(ty_bound.span);
                         let params = GenericParams::new(self.conv_generic_params(ty_bound.bound_generic_params), &[]);
                         let ty = self.conv_ty(ty_bound.bounded_ty);
                         Some(WhereClauseKind::Ty(self.alloc(|| {
@@ -397,13 +392,13 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                     // retrieved from the body. For now this is kind of blocked
                     // by #50
                     None,
-                    Some(to_api_syn_ty(self.cx, input_ty)),
-                    Some(to_api_span_id(self.cx, input_ty.span)),
+                    Some(self.conv_ty(input_ty)),
+                    Some(to_span_id(input_ty.span)),
                 )
             }));
         let header = fn_sig.header;
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_sig.decl.output {
-            Some(to_api_syn_ty(self.cx, rust_ty))
+            Some(self.conv_ty(rust_ty))
         } else {
             None
         };
@@ -412,7 +407,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             header.is_async(),
             header.is_unsafe(),
             is_extern,
-            to_api_abi(self.cx, header.abi),
+            to_api_abi(header.abi),
             fn_sig.decl.implicit_self.has_implicit_self(),
             params,
             return_ty,
@@ -441,10 +436,10 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             // field after the next sync. See #55
             let def_id = self.cx.rustc_cx.hir().local_def_id(field.hir_id);
             Field::new(
-                Visibility::new(to_api_item_id_from_def_id(self.cx, def_id.to_def_id())),
-                to_api_symbol_id(field.ident.name),
+                Visibility::new(to_item_id(def_id)),
+                to_symbol_id(field.ident.name),
                 self.conv_ty(field.ty),
-                to_api_span_id(self.cx, field.span),
+                to_span_id(field.span),
             )
         }))
     }
@@ -454,8 +449,8 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             .storage
             .alloc_slice_iter(enum_def.variants.iter().map(|variant| {
                 EnumVariant::new(
-                    to_api_symbol_id(variant.ident.name),
-                    to_api_span_id(self.cx, variant.span),
+                    to_symbol_id(variant.ident.name),
+                    to_span_id(variant.span),
                     self.conv_variant_data(&variant.data),
                 )
             }))
@@ -474,13 +469,13 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             .storage
             .alloc_slice_iter(idents.iter().zip(fn_decl.inputs.iter()).map(|(ident, ty)| {
                 Parameter::new(
-                    Some(to_api_symbol_id(ident.name)),
+                    Some(to_symbol_id(ident.name)),
                     Some(self.conv_ty(ty)),
-                    Some(to_api_span_id(self.cx, ident.span.to(ty.span))),
+                    Some(to_span_id(ident.span.to(ty.span))),
                 )
             }));
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_decl.output {
-            Some(to_api_syn_ty(self.cx, rust_ty))
+            Some(self.conv_ty(rust_ty))
         } else {
             None
         };

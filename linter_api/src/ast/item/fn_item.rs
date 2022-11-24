@@ -37,7 +37,7 @@ impl<'ast> FnItem<'ast> {
     }
 
     pub fn body(&self) -> Option<BodyId> {
-        self.body.get().copied()
+        self.body.copy()
     }
 }
 

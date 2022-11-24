@@ -1,7 +1,4 @@
-use crate::{
-    ast::{generic::Lifetime, Mutability},
-    ffi::FfiOption,
-};
+use crate::{ast::generic::Lifetime, ffi::FfiOption};
 
 use super::{CommonTyData, TyKind};
 
@@ -10,7 +7,7 @@ use super::{CommonTyData, TyKind};
 pub struct RefTy<'ast> {
     data: CommonTyData<'ast>,
     lifetime: FfiOption<Lifetime<'ast>>,
-    mutability: Mutability,
+    is_mut: bool,
     inner_ty: TyKind<'ast>,
 }
 
@@ -19,13 +16,13 @@ impl<'ast> RefTy<'ast> {
     pub fn new(
         data: CommonTyData<'ast>,
         lifetime: Option<Lifetime<'ast>>,
-        mutability: Mutability,
+        is_mut: bool,
         inner_ty: TyKind<'ast>,
     ) -> Self {
         Self {
             data,
             lifetime: lifetime.into(),
-            mutability,
+            is_mut,
             inner_ty,
         }
     }
@@ -39,7 +36,7 @@ impl<'ast> RefTy<'ast> {
     }
 
     pub fn is_mut(&self) -> bool {
-        matches!(self.mutability, Mutability::Mut)
+        self.is_mut
     }
 
     pub fn inner_ty(&self) -> TyKind<'ast> {

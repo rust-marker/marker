@@ -1,7 +1,7 @@
 use std::{cell::RefCell, mem::transmute};
 
 use crate::{
-    ast::{Span, SpanOwner, SymbolId},
+    ast::{item::ItemKind, ItemId, Span, SpanOwner, SymbolId},
     ffi,
     lint::Lint,
 };
@@ -116,6 +116,15 @@ impl<'ast> AstContext<'ast> {
     pub fn emit_lint(&self, lint: &'static Lint, msg: &str, span: &Span<'ast>) {
         self.driver.call_emit_lint(lint, msg, span);
     }
+
+    /// This returns the [`ItemKind`] belonging to the given [`ItemId`]. It can
+    /// return `None` in special cases depending on the used driver.
+    ///
+    /// #### Driver information
+    /// * Rustc's driver will always return a valid item.
+    pub fn item(&self, id: ItemId) -> Option<ItemKind<'ast>> {
+        self.driver.call_item(id)
+    }
 }
 
 impl<'ast> AstContext<'ast> {
@@ -159,6 +168,7 @@ struct DriverCallbacks<'ast> {
 
     // Public utility
     pub emit_lint: for<'a> extern "C" fn(&'ast (), &'static Lint, ffi::Str<'a>, &Span<'ast>),
+    pub item: extern "C" fn(&'ast (), id: ItemId) -> ffi::FfiOption<ItemKind<'ast>>,
 
     // Internal utility
     pub get_span: extern "C" fn(&'ast (), &SpanOwner) -> &'ast Span<'ast>,
@@ -169,6 +179,9 @@ struct DriverCallbacks<'ast> {
 impl<'ast> DriverCallbacks<'ast> {
     fn call_emit_lint(&self, lint: &'static Lint, msg: &str, span: &Span<'ast>) {
         (self.emit_lint)(self.driver_context, lint, msg.into(), span);
+    }
+    fn call_item(&self, id: ItemId) -> Option<ItemKind<'ast>> {
+        (self.item)(self.driver_context, id).copy()
     }
     fn call_get_span(&self, span_owner: &SpanOwner) -> &'ast Span<'ast> {
         (self.get_span)(self.driver_context, span_owner)

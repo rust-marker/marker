@@ -87,7 +87,8 @@ pub enum GenericArgKind<'ast> {
     // FIXME: Potentualy add a specific `Arg` wrapper for the `Lifetime` and `Type`
 }
 
-/// This represents the generic parameters of a generic item.
+/// This represents the generic parameters of a generic item. The bounds applied
+/// to parameters as the declaration are stored as clauses in this struct.
 ///
 /// ```
 /// # use std::fmt::Debug;

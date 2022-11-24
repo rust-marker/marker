@@ -7,21 +7,10 @@ pub use unstable::*;
 mod ast_path;
 pub use ast_path::*;
 
-use linter_api::{
-    ast::{Abi, Mutability},
-    lint::Level,
-};
+use linter_api::{ast::Abi, lint::Level};
 
-use crate::context::RustcContext;
-
-pub fn to_api_mutability(_cx: &RustcContext<'_, '_>, rustc_mt: rustc_ast::Mutability) -> Mutability {
-    match rustc_mt {
-        rustc_ast::Mutability::Mut => Mutability::Mut,
-        rustc_ast::Mutability::Not => Mutability::Not,
-    }
-}
-
-pub fn to_rustc_lint_level(_cx: &RustcContext<'_, '_>, api_level: Level) -> rustc_lint::Level {
+#[must_use]
+pub fn to_rustc_lint_level(api_level: Level) -> rustc_lint::Level {
     match api_level {
         Level::Allow => rustc_lint::Level::Allow,
         Level::Warn => rustc_lint::Level::Warn,
@@ -31,7 +20,8 @@ pub fn to_rustc_lint_level(_cx: &RustcContext<'_, '_>, api_level: Level) -> rust
     }
 }
 
-pub fn to_api_abi(_cx: &RustcContext<'_, '_>, rust_abi: rustc_target::spec::abi::Abi) -> Abi {
+#[must_use]
+pub fn to_api_abi(rust_abi: rustc_target::spec::abi::Abi) -> Abi {
     match rust_abi {
         rustc_target::spec::abi::Abi::Rust => Abi::Default,
         rustc_target::spec::abi::Abi::C { .. } => Abi::C,
