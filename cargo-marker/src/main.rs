@@ -9,13 +9,32 @@ use std::{
 };
 
 use clap::{self, Arg, ArgAction};
-use once_cell::sync::Lazy;
+use once_cell::sync::{Lazy, OnceCell};
+
+mod driver;
 
 const CARGO_ARGS_SEPARATOR: &str = "--";
 const VERSION: &str = concat!("cargo-marker ", env!("CARGO_PKG_VERSION"));
 const LINT_KRATES_BASE_DIR: &str = "./target/marker";
 static LINT_KRATES_TARGET_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("build", "target"));
 static LINT_KRATES_OUT_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("lints", "out"));
+static VERBOSE: OnceCell<bool> = OnceCell::new();
+
+#[derive(Debug)]
+pub enum ExitStatus {
+    /// The toolchain validation failed. This could happen, if rustup is not
+    /// installed or the required toolchain is not installed.
+    InvalidToolchain = 100,
+    DriverInstallationFailed = 200,
+}
+
+fn set_verbose(verbose: bool) {
+    VERBOSE.set(verbose).unwrap();
+}
+
+fn is_verbose() -> bool {
+    VERBOSE.get().copied().unwrap_or_default()
+}
 
 /// This creates the absolute path for a given build directory.
 fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
@@ -38,7 +57,7 @@ fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
         .to_string()
 }
 
-fn main() {
+fn main() -> Result<(), ExitStatus> {
     let matches = get_clap_config().get_matches_from(
         std::env::args()
             .enumerate()
@@ -46,10 +65,15 @@ fn main() {
             .take_while(|s| s != CARGO_ARGS_SEPARATOR),
     );
 
+    set_verbose(matches.get_flag("verbose"));
+
     if matches.get_flag("version") {
-        let version_info = env!("CARGO_PKG_VERSION");
-        println!("cargo-marker version: {version_info}");
-        exit(0);
+        print_version();
+        return Ok(());
+    }
+
+    if !validate_toolchain() {
+        return Err(ExitStatus::InvalidToolchain);
     }
 
     let verbose = matches.get_flag("verbose");
@@ -86,6 +110,15 @@ fn main() {
         run_driver(&driver_path, &marker_crates_env);
     }
 }
+
+fn print_version() {
+    println!("cargo-marker version: {}", env!("CARGO_PKG_VERSION"));
+
+    if is_verbose() {
+        println!("driver toolchain: {DRIVER_TOOLCHAIN}")
+    }
+}
+
 
 fn run_driver(driver_path: &PathBuf, lint_crates: &str) {
     println!();
