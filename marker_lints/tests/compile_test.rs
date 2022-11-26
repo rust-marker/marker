@@ -49,13 +49,13 @@ struct TestSetup {
     env_vars: HashMap<String, String>,
 }
 
-/// This function calls `cargo-marker` for the basic test setup. For normal linting
-/// crates this will need to be adjusted to run the installed `cargo-marker` version
+/// This function calls `cargo_marker` for the basic test setup. For normal linting
+/// crates this will need to be adjusted to run the installed `cargo_marker` version
 /// and to build the local crate and not assume that we're in a cargo workspace.
 ///
 /// In the future this function should probably be hidden in a nice wrapper library.
 fn run_test_setup() -> TestSetup {
-    const CARGO_MARKER_INVOCATION: &[&str] = &["run", "--bin", "cargo-marker", "--features", "dev-build", "--"];
+    const CARGO_MARKER_INVOCATION: &[&str] = &["run", "--bin", "cargo_marker", "--features", "dev-build", "--"];
 
     // ../rust-linting/marker_lints
     let current_dir = env::current_dir().unwrap();
@@ -66,7 +66,7 @@ fn run_test_setup() -> TestSetup {
         .args(CARGO_MARKER_INVOCATION)
         .args(["-l", &lint_crate_src.display().to_string(), "--test-setup"])
         .output()
-        .expect("Unable to run the test setup using `cargo-marker`");
+        .expect("Unable to run the test setup using `cargo_marker`");
     let stdout = String::from_utf8(output.stdout).unwrap();
 
     if !output.status.success() {

@@ -61,6 +61,6 @@ jobs:
     - run: rustc -vV
 
     # Test
-    - run: cargo build --package cargo-marker
+    - run: cargo build --package cargo_marker
     - run: cargo build --package marker_api
     - run: cargo build --package marker_lints

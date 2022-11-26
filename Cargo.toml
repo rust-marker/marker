@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "cargo-marker",
+    "cargo_marker",
     "marker_adapter",
     "marker_api",
     "marker_driver_rustc",
