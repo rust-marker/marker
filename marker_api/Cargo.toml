@@ -1,0 +1,16 @@
+[package]
+name = "marker_api"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+visibility = "0.0.1"
+
+[features]
+# Some items should only be used by the driver implementing the functionality,
+# this feature enables the export of these items. Note that this interface is
+# unstable. All usage of the driver api can change between releases.
+driver-api = []

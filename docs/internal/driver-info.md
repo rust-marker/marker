@@ -1,6 +1,6 @@
 # Driver information
 
-This document contains information required to implement linter drivers.
+This document contains information required to implement drivers.
 
 ## Lifetimes
 
@@ -8,7 +8,7 @@ This document contains information required to implement linter drivers.
 
 Lint-crates officially only know the `'ast` lifetime. All non-copy items given to lint-crates have this lifetime. For a lint crate, it feels like the `'ast` lifetime start with the call of a `check_` function and also ends with it. Drivers layer their implementation on top of this view.
 
-Rustc's linter driver uses roughly the following lifetime model:
+Rustc's driver uses roughly the following lifetime model:
 
 ```
 'tcx by Rustc:       |------------------------------------------|
