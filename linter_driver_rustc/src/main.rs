@@ -35,6 +35,8 @@ use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command};
 
+const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2022-11-03";
+
 struct DefaultCallbacks;
 impl rustc_driver::Callbacks for DefaultCallbacks {}
 
@@ -112,7 +114,8 @@ Common options:
     -h, --help               Print this message
         --rustc              Pass all args to rustc
     -V, --version            Print version info and exit
-e
+        --toolchain          Print the required nightly toolchain
+
 Other options are the same as `cargo check`.
 
 To allow or deny a lint from the command line you can use `cargo linter --`
@@ -131,20 +134,21 @@ interfacing with the driver directly and use `cargo linter` instead.
 
 fn main() {
     rustc_driver::init_rustc_env_logger();
-    // FIXME: Add ICE hook. Idealy this would distingush where the error happens.
+
+    // FIXME: Add ICE hook. Ideally this would distinguish where the error happens.
     // ICEs have to be reported like in Clippy. For lint impl ICEs we should have
-    // an extra ICE hook that identifies the lint impl and idealy continues with
+    // an extra ICE hook that identifies the lint impl and ideally continues with
     // other registered lints
     exit(rustc_driver::catch_with_exit_code(|| {
         let mut orig_args: Vec<String> = env::args().collect();
 
         let sys_root_arg = arg_value(&orig_args, "--sysroot", |_| true);
-        let have_sys_root_arg = sys_root_arg.is_some();
-        let sys_root = find_sys_root(sys_root_arg);
+        let has_sys_root_arg = sys_root_arg.is_some();
 
         // Further invocation of rustc require the `--sysroot` flag. We add it here
         // in preparation.
-        if !have_sys_root_arg {
+        if !has_sys_root_arg {
+            let sys_root = find_sys_root(sys_root_arg);
             orig_args.extend(vec!["--sysroot".into(), sys_root]);
         };
 
@@ -159,23 +163,31 @@ fn main() {
         }
 
         if orig_args.iter().any(|a| a == "--version" || a == "-V") {
-            let version_info = env!("CARGO_PKG_VERSION");
+            use rustc_tools_util::{get_version_info, VersionInfo};
+            let version_info = get_version_info!();
             println!("{version_info}");
             exit(0);
         }
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
-        // We're invoking the compiler programmatically, so we ignore this/
+        // We're invoking the compiler programmatically, so we'll ignore this.
         let wrapper_mode = orig_args.get(1).map(Path::new).and_then(Path::file_stem) == Some("rustc".as_ref());
 
         if wrapper_mode {
-            // we still want to be able to invoke it normally though
+            // we still want to be able to invoke rustc normally
             orig_args.remove(1);
         }
 
-        if !wrapper_mode && (orig_args.iter().any(|a| a == "--help" || a == "-h")) {
-            display_help();
-            exit(0);
+        if !wrapper_mode {
+            if orig_args.iter().any(|a| a == "--help" || a == "-h") {
+                display_help();
+                exit(0);
+            }
+
+            if orig_args.iter().any(|a| a == "--toolchain") {
+                println!("{RUSTC_TOOLCHAIN_VERSION}");
+                exit(0);
+            }
         }
 
         // We enable Linter if one of the following conditions is met

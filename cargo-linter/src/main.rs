@@ -1,4 +1,3 @@
-#![feature(once_cell)]
 #![warn(clippy::pedantic)]
 #![warn(clippy::index_refutable_slice)]
 
@@ -7,23 +6,23 @@ use std::{
     fs::create_dir_all,
     path::{Path, PathBuf},
     process::{exit, Command},
-    sync::LazyLock,
 };
 
-use clap::{self, Arg};
+use clap::{self, Arg, ArgAction};
+use once_cell::sync::Lazy;
 
 const CARGO_ARGS_SEPARATOR: &str = "--";
 const VERSION: &str = concat!("cargo-linter ", env!("CARGO_PKG_VERSION"));
 const LINT_KRATES_BASE_DIR: &str = "./target/linter";
-static LINT_KRATES_TARGET_DIR: LazyLock<String> = LazyLock::new(|| prepare_lint_build_dir("build", "target"));
-static LINT_KRATES_OUT_DIR: LazyLock<String> = LazyLock::new(|| prepare_lint_build_dir("lints", "out"));
+static LINT_KRATES_TARGET_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("build", "target"));
+static LINT_KRATES_OUT_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("lints", "out"));
 
-/// This creates the absolut path for a given build directory.
+/// This creates the absolute path for a given build directory.
 fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
     if !Path::new("./target").exists() {
         // FIXME: This is a temporary check to ensure that we don't randomly create files.
         // This should not be part of the release and maybe be replaced by something more
-        // elegant or removed completly.
+        // elegant or removed completely.
         eprintln!("No `target` directory exists, most likely running in the wrong directory");
         exit(-1);
     }
@@ -40,18 +39,24 @@ fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
 }
 
 fn main() {
-    let matches = get_clap_config().get_matches_from(std::env::args().take_while(|s| s != CARGO_ARGS_SEPARATOR));
-    if matches.is_present("version") {
+    let matches = get_clap_config().get_matches_from(
+        std::env::args()
+            .enumerate()
+            .filter_map(|(index, value)| (!(index == 1 && value == "linter")).then_some(value))
+            .take_while(|s| s != CARGO_ARGS_SEPARATOR),
+    );
+
+    if matches.get_flag("version") {
         let version_info = env!("CARGO_PKG_VERSION");
-        println!("{version_info}");
+        println!("cargo-linter version: {version_info}");
         exit(0);
     }
 
-    let verbose = matches.is_present("verbose");
+    let verbose = matches.get_flag("verbose");
     validate_driver(verbose);
 
     let mut lint_crates = vec![];
-    if let Some(cmd_lint_crates) = matches.values_of("lints") {
+    if let Some(cmd_lint_crates) = matches.get_many::<String>("lints") {
         println!();
         println!("Compiling Lints:");
         lint_crates.reserve(cmd_lint_crates.len());
@@ -63,7 +68,7 @@ fn main() {
     }
 
     if lint_crates.is_empty() {
-        eprintln!("Please provide at least one valid lint crate, with the `--lint` argument");
+        eprintln!("Please provide at least one valid lint crate, with the `--lints` argument");
         exit(-1);
     }
 
@@ -74,7 +79,7 @@ fn main() {
 
     let driver_path = get_driver_path();
     let linter_crates_env = lint_crates.join(";");
-    if matches.is_present("test-setup") {
+    if matches.get_flag("test-setup") {
         println!("env:RUSTC_WORKSPACE_WRAPPER={}", driver_path.display());
         println!("env:LINTER_LINT_CRATES={linter_crates_env}");
     } else {
@@ -114,10 +119,7 @@ fn prepare_lint_crate(krate: &str, verbose: bool) -> Result<String, ()> {
         return Err(());
     }
 
-    let mut cmd = Command::new("cargo");
-    if verbose {
-        cmd.arg("--verbose");
-    }
+    let mut cmd = cargo_command(verbose);
     let exit_status = cmd
         .current_dir(std::fs::canonicalize(path).unwrap())
         .args([
@@ -162,28 +164,15 @@ fn prepare_lint_crate(krate: &str, verbose: bool) -> Result<String, ()> {
     Ok(krate_path.display().to_string())
 }
 
-fn get_driver_path() -> PathBuf {
-    #[allow(unused_mut)]
-    let mut path = std::env::current_exe()
-        .expect("current executable path invalid")
-        .with_file_name("linter_driver_rustc");
-
-    #[cfg(target_os = "windows")]
-    path.set_extension("exe");
-
-    path
-}
-
 /// On release builds this will exit with a message and `-1` if the driver is missing.
+#[allow(unused_variables)] // `verbose` is only used if `feature = dev-build`
 fn validate_driver(verbose: bool) {
     #[cfg(feature = "dev-build")]
     {
         println!();
         println!("Compiling Driver:");
-        let mut cmd = Command::new("cargo");
-        if verbose {
-            cmd.arg("--verbose");
-        }
+
+        let mut cmd = cargo_command(verbose);
 
         let exit_status = cmd
             .args(["build", "-p", "linter_driver_rustc"])
@@ -206,31 +195,59 @@ fn validate_driver(verbose: bool) {
     }
 }
 
-fn get_clap_config() -> clap::Command<'static> {
+fn get_driver_path() -> PathBuf {
+    #[allow(unused_mut)]
+    let mut path = std::env::current_exe()
+        .expect("current executable path invalid")
+        .with_file_name("linter_driver_rustc");
+
+    #[cfg(target_os = "windows")]
+    path.set_extension("exe");
+
+    path
+}
+
+fn cargo_command(verbose: bool) -> Command {
+    // Here we want to use the normal cargo command, to go through the rustup
+    // cargo executable and with that, set the required toolchain version.
+    // This will add a slight overhead to each cargo call. This feels a bit
+    // unavoidable, until marker is delivered as part of the toolchain. Let's
+    // hope that day will happen!
+    let mut cmd = Command::new("cargo");
+
+    if verbose {
+        cmd.arg("--verbose");
+    }
+    cmd
+}
+
+fn get_clap_config() -> clap::Command {
     clap::Command::new(VERSION)
         .arg(
             Arg::new("version")
                 .short('V')
                 .long("version")
+                .action(ArgAction::SetTrue)
                 .help("Print version info and exit"),
         )
         .arg(
             Arg::new("verbose")
                 .short('v')
                 .long("verbose")
+                .action(ArgAction::SetTrue)
                 .help("Print additional debug information to the console"),
         )
         .arg(
             Arg::new("lints")
                 .short('l')
                 .long("lints")
-                .multiple_values(true)
-                .takes_value(true)
+                .num_args(1..)
                 .help("Defines a set of lints crates that should be used"),
         )
         .arg(
             Arg::new("test-setup")
                 .long("test-setup")
+                .action(ArgAction::SetTrue)
                 .help("This flag will compile the lint crate and print all relevant environment values"),
         )
         .after_help(AFTER_HELP_MSG)

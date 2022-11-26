@@ -43,3 +43,24 @@ jobs:
     - run: cargo clippy
     - run: cargo fmt --check
     - run: cargo doc
+
+  # This task ensures, required packages can be build with a stable toolchain
+  # the only package requiring nightly should be `linter_driver_rustc` and
+  # optionally `linter_adapter`
+  rust-crates-build-stable:
+    runs-on: ubuntu-latest
+
+    # Setup
+    steps:
+    - uses: actions/checkout@v3
+    - run: rm rust-toolchain
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        components: cargo
+    - run: rustc -vV
+
+    # Test
+    - run: cargo build --package cargo-linter
+    - run: cargo build --package linter_api
+    - run: cargo build --package linter_lints
