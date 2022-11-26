@@ -1,0 +1,15 @@
+[package]
+name = "cargo-marker"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+clap = "4.0.26"
+once_cell = "1.16.0"
+
+[features]
+default = []
+# Indicates that development features like auto driver building etc should be enabled.
+# This option assumes that it's being executed at the project root.
+dev-build = []

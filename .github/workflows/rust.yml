@@ -50,8 +50,8 @@ jobs:
     - run: cargo doc
 
   # This task ensures, required packages can be build with a stable toolchain
-  # the only package requiring nightly should be `linter_driver_rustc` and
-  # optionally `linter_adapter`
+  # the only package requiring nightly should be `marker_driver_rustc` and
+  # optionally `marker_adapter`
   rust-crates-build-stable:
     runs-on: ubuntu-latest
 
@@ -66,6 +66,6 @@ jobs:
     - run: rustc -vV
 
     # Test
-    - run: cargo build --package cargo-linter
-    - run: cargo build --package linter_api
-    - run: cargo build --package linter_lints
+    - run: cargo build --package cargo-marker
+    - run: cargo build --package marker_api
+    - run: cargo build --package marker_lints
