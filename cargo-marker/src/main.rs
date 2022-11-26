@@ -1,5 +1,10 @@
 #![warn(clippy::pedantic)]
 #![warn(clippy::index_refutable_slice)]
+#![allow(clippy::module_name_repetitions)]
+
+mod cli;
+mod driver;
+mod lints;
 
 use std::{
     ffi::OsStr,
@@ -8,32 +13,30 @@ use std::{
     process::{exit, Command},
 };
 
-use clap::{self, Arg, ArgAction};
-use once_cell::sync::{Lazy, OnceCell};
-
-mod driver;
+use cli::get_clap_config;
+use driver::get_driver_path;
+use once_cell::sync::Lazy;
 
 const CARGO_ARGS_SEPARATOR: &str = "--";
 const VERSION: &str = concat!("cargo-marker ", env!("CARGO_PKG_VERSION"));
 const LINT_KRATES_BASE_DIR: &str = "./target/marker";
 static LINT_KRATES_TARGET_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("build", "target"));
 static LINT_KRATES_OUT_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("lints", "out"));
-static VERBOSE: OnceCell<bool> = OnceCell::new();
 
 #[derive(Debug)]
 pub enum ExitStatus {
     /// The toolchain validation failed. This could happen, if rustup is not
     /// installed or the required toolchain is not installed.
     InvalidToolchain = 100,
-    DriverInstallationFailed = 200,
-}
-
-fn set_verbose(verbose: bool) {
-    VERBOSE.set(verbose).unwrap();
-}
-
-fn is_verbose() -> bool {
-    VERBOSE.get().copied().unwrap_or_default()
+    /// Unable to find the driver binary
+    MissingDriver = 200,
+    /// Nothing we can really do, but good to know. The user will have to analyze
+    /// the forwarded cargo output.
+    DriverInstallationFailed = 300,
+    /// A general collection status, for failures originating from the driver
+    DriverFailed = 400,
+    /// Check failed
+    MarkerCheckFailed = 1000,
 }
 
 /// This creates the absolute path for a given build directory.
@@ -65,20 +68,22 @@ fn main() -> Result<(), ExitStatus> {
             .take_while(|s| s != CARGO_ARGS_SEPARATOR),
     );
 
-    set_verbose(matches.get_flag("verbose"));
+    let verbose = matches.get_flag("verbose");
 
     if matches.get_flag("version") {
         print_version();
         return Ok(());
     }
 
-    if !validate_toolchain() {
-        return Err(ExitStatus::InvalidToolchain);
+    match matches.subcommand() {
+        Some(("setup", _args)) => driver::install_driver(verbose),
+        Some(("check", args)) => run_check(args, verbose),
+        None => run_check(&matches, verbose),
+        _ => unreachable!(),
     }
+}
 
-    let verbose = matches.get_flag("verbose");
-    validate_driver(verbose);
-
+fn run_check(matches: &clap::ArgMatches, verbose: bool) -> Result<(), ExitStatus> {
     let mut lint_crates = vec![];
     if let Some(cmd_lint_crates) = matches.get_many::<String>("lints") {
         println!();
@@ -106,21 +111,17 @@ fn main() -> Result<(), ExitStatus> {
     if matches.get_flag("test-setup") {
         println!("env:RUSTC_WORKSPACE_WRAPPER={}", driver_path.display());
         println!("env:MARKER_LINT_CRATES={marker_crates_env}");
+        Ok(())
     } else {
-        run_driver(&driver_path, &marker_crates_env);
+        run_driver(&driver_path, &marker_crates_env)
     }
 }
 
 fn print_version() {
     println!("cargo-marker version: {}", env!("CARGO_PKG_VERSION"));
-
-    if is_verbose() {
-        println!("driver toolchain: {DRIVER_TOOLCHAIN}")
-    }
 }
 
-
-fn run_driver(driver_path: &PathBuf, lint_crates: &str) {
+fn run_driver(driver_path: &PathBuf, lint_crates: &str) -> Result<(), ExitStatus> {
     println!();
     println!("Start linting:");
 
@@ -137,8 +138,10 @@ fn run_driver(driver_path: &PathBuf, lint_crates: &str) {
         .wait()
         .expect("failed to wait for cargo?");
 
-    if !exit_status.success() {
-        exit(exit_status.code().unwrap_or(-1));
+    if exit_status.success() {
+        Ok(())
+    } else {
+        Err(ExitStatus::MarkerCheckFailed)
     }
 }
 
@@ -197,49 +200,6 @@ fn prepare_lint_crate(krate: &str, verbose: bool) -> Result<String, ()> {
     Ok(krate_path.display().to_string())
 }
 
-/// On release builds this will exit with a message and `-1` if the driver is missing.
-#[allow(unused_variables)] // `verbose` is only used if `feature = dev-build`
-fn validate_driver(verbose: bool) {
-    #[cfg(feature = "dev-build")]
-    {
-        println!();
-        println!("Compiling Driver:");
-
-        let mut cmd = cargo_command(verbose);
-
-        let exit_status = cmd
-            .args(["build", "-p", "marker_driver_rustc"])
-            .env("RUSTFLAGS", "--cap-lints=allow")
-            .spawn()
-            .expect("could not run cargo")
-            .wait()
-            .expect("failed to wait for cargo?");
-
-        if !exit_status.success() {
-            exit(exit_status.code().unwrap_or(-1))
-        }
-    }
-
-    let path = get_driver_path();
-    if !path.exists() || !path.is_file() {
-        eprintln!("Unable to find driver, searched at: {}", path.display());
-
-        exit(-1)
-    }
-}
-
-fn get_driver_path() -> PathBuf {
-    #[allow(unused_mut)]
-    let mut path = std::env::current_exe()
-        .expect("current executable path invalid")
-        .with_file_name("marker_driver_rustc");
-
-    #[cfg(target_os = "windows")]
-    path.set_extension("exe");
-
-    path
-}
-
 fn cargo_command(verbose: bool) -> Command {
     // Here we want to use the normal cargo command, to go through the rustup
     // cargo executable and with that, set the required toolchain version.
@@ -253,44 +213,3 @@ fn cargo_command(verbose: bool) -> Command {
     }
     cmd
 }
-
-fn get_clap_config() -> clap::Command {
-    clap::Command::new(VERSION)
-        .arg(
-            Arg::new("version")
-                .short('V')
-                .long("version")
-                .action(ArgAction::SetTrue)
-                .help("Print version info and exit"),
-        )
-        .arg(
-            Arg::new("verbose")
-                .short('v')
-                .long("verbose")
-                .action(ArgAction::SetTrue)
-                .help("Print additional debug information to the console"),
-        )
-        .arg(
-            Arg::new("lints")
-                .short('l')
-                .long("lints")
-                .num_args(1..)
-                .help("Defines a set of lints crates that should be used"),
-        )
-        .arg(
-            Arg::new("test-setup")
-                .long("test-setup")
-                .action(ArgAction::SetTrue)
-                .help("This flag will compile the lint crate and print all relevant environment values"),
-        )
-        .after_help(AFTER_HELP_MSG)
-        .override_usage("cargo-marker [OPTIONS] -- <CARGO ARGS>")
-}
-
-const AFTER_HELP_MSG: &str = r#"CARGO ARGS
-    All arguments after double dashes(`--`) will be passed to cargo.
-    These options are the same as for `cargo check`.
-
-EXAMPLES:
-    * `cargo marker -l ./marker_lints`
-"#;

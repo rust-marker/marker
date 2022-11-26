@@ -11,13 +11,8 @@
 //! That command will first ensure that the required toolchain is installed and then
 //! run `cargo install` for the driver with a specific toolchain. The version and
 //! toolchain are hardcoded in this crate.
-//!
-//! If a driver is already installed. We'll first run the driver to request the
-//! required toolchain and then run the driver using that toolchain. Requesting
-//! the toolchain works, since the argument will be processed before rustc is run.
-//! At least, that's the idea.
 
-use std::process::Command;
+use std::{path::PathBuf, process::Command};
 
 use once_cell::sync::Lazy;
 
@@ -28,11 +23,35 @@ use crate::ExitStatus;
 static DEFAULT_DRIVER_INFO: Lazy<RustcDriverInfo> = Lazy::new(|| RustcDriverInfo {
     toolchain: "nightly-2022-11-03".to_string(),
     version: "0.1.0".to_string(),
+    api_version: "0.1.0".to_string(),
 });
 
 struct RustcDriverInfo {
     toolchain: String,
     version: String,
+    #[allow(unused)]
+    api_version: String,
+}
+
+/// This tries to install the rustc driver specified in [`DEFAULT_DRIVER_INFO`].
+pub fn install_driver(verbose: bool) -> Result<(), ExitStatus> {
+    // The toolchain, driver version and api version should ideally be configurable.
+    // However, that will require more prototyping and has a low priority rn.
+    // See #60
+
+    // Prerequisites
+    let toolchain = &DEFAULT_DRIVER_INFO.toolchain;
+    check_toolchain(toolchain)?;
+
+    build_driver(
+        toolchain,
+        &DEFAULT_DRIVER_INFO.version,
+        verbose,
+        cfg!(feature = "dev-build"),
+    )?;
+
+    // We don't want to advice the user, to install the driver again.
+    check_driver(verbose, false)
 }
 
 /// This function checks if the specified toolchain is installed. This requires
@@ -41,7 +60,7 @@ fn check_toolchain(toolchain: &str) -> Result<(), ExitStatus> {
     let mut cmd = Command::new("cargo");
     cmd.args([&format!("+{toolchain}"), "-V"]);
     if cmd.output().is_err() {
-        eprintln!("error: the required toolchain `{toolchain}` can't be found");
+        eprintln!("Error: The required toolchain `{toolchain}` can't be found");
         eprintln!();
         eprintln!("You can install the toolchain by running: rustup toolchain install {toolchain}");
         Err(ExitStatus::InvalidToolchain)
@@ -50,29 +69,32 @@ fn check_toolchain(toolchain: &str) -> Result<(), ExitStatus> {
     }
 }
 
-/// This tries to install the rustc driver specified in [`DEFAULT_DRIVER_INFO`].
-pub fn install_driver(verbose: bool) -> Result<(), ExitStatus> {
-    // Prerequisites
-    let toolchain = &DEFAULT_DRIVER_INFO.toolchain;
-    check_toolchain(&toolchain)?;
+/// This tries to compile the driver. If successful the driver binary will
+/// be places next to the executable of `cargo-linter`.
+fn build_driver(toolchain: &str, version: &str, verbose: bool, dev_build: bool) -> Result<(), ExitStatus> {
+    if dev_build {
+        println!("Compiling rustc driver");
+    } else {
+        println!("Compiling rustc driver v{version} with {toolchain}");
+    }
 
     // Build driver
     let mut cmd = Command::new("cargo");
-    cmd.arg(&format!("+{toolchain}"));
+
+    if !dev_build {
+        cmd.arg(&format!("+{toolchain}"));
+    }
 
     if verbose {
         cmd.arg("--verbose");
     }
 
-    #[cfg(feature = "dev-build")]
-    cmd.args(["build", "--bin", "linter_driver_rustc"]);
-    #[cfg(not(feature = "dev-build"))]
-    cmd.args([
-        "install",
-        "marker_rustc_driver",
-        "--version",
-        &DEFAULT_DRIVER_INFO.version,
-    ]);
+    if dev_build {
+        cmd.args(["build", "--bin", "marker_driver_rustc"]);
+    } else {
+        // TODO Set output path to the local branch thingy
+        cmd.args(["install", "marker_rustc_driver", "--version", version]);
+    }
 
     let status = cmd
         .spawn()
@@ -86,4 +108,35 @@ pub fn install_driver(verbose: bool) -> Result<(), ExitStatus> {
         // to the user via the `.spawn()` call.
         Err(ExitStatus::DriverInstallationFailed)
     }
+}
+
+fn check_driver(verbose: bool, print_advice: bool) -> Result<(), ExitStatus> {
+    let path = get_driver_path();
+    if verbose {
+        println!("Searching for driver at: {}", path.display());
+    }
+
+    if !path.exists() || !path.is_file() {
+        if print_advice {
+            eprintln!("Error: The driver binary could not be found.");
+            eprintln!();
+            eprintln!("Try installing it via `cargo marker setup`");
+        }
+
+        Err(ExitStatus::MissingDriver)
+    } else {
+        Ok(())
+    }
+}
+
+pub fn get_driver_path() -> PathBuf {
+    #[allow(unused_mut)]
+    let mut path = std::env::current_exe()
+        .expect("unable to retrieve the path of the current executable")
+        .with_file_name("marker_driver_rustc");
+
+    #[cfg(target_os = "windows")]
+    path.set_extension("exe");
+
+    path
 }
