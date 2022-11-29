@@ -12,9 +12,9 @@ The project is currently only available in this GitHub repo. For a quick test, c
 
 ## License
 
-Copyright (c) 2022-2022 Rust-linting
+Copyright (c) 2022-2022 Rust-marker
 
-Rust-linting is distributed under the terms of both the MIT license
+Rust-marker is distributed under the terms of both the MIT license
 and the Apache License (Version 2.0).
 
 See [LICENSE-APACHE](./LICENSE-APACHE), [LICENSE-MIT](./LICENSE-MIT).
