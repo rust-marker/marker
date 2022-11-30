@@ -7,21 +7,25 @@ mod driver;
 mod lints;
 
 use std::{
-    ffi::OsStr,
+    ffi::{OsStr, OsString},
     fs::create_dir_all,
+    io::{self, Write},
+    os::unix::prelude::OsStrExt,
     path::{Path, PathBuf},
-    process::{exit, Command},
+    process::exit,
 };
 
 use cli::get_clap_config;
-use driver::get_driver_path;
+use driver::{get_driver_path, run_driver};
+use lints::build_local_lint_crate;
 use once_cell::sync::Lazy;
+
+use crate::driver::print_driver_version;
 
 const CARGO_ARGS_SEPARATOR: &str = "--";
 const VERSION: &str = concat!("cargo-marker ", env!("CARGO_PKG_VERSION"));
 const LINT_KRATES_BASE_DIR: &str = "./target/marker";
-static LINT_KRATES_TARGET_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("build", "target"));
-static LINT_KRATES_OUT_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("lints", "out"));
+static MARKER_LINT_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("marker", "marker"));
 
 #[derive(Debug)]
 pub enum ExitStatus {
@@ -35,6 +39,12 @@ pub enum ExitStatus {
     DriverInstallationFailed = 300,
     /// A general collection status, for failures originating from the driver
     DriverFailed = 400,
+    /// The lint crate build failed for some reason
+    LintCrateBuildFail = 500,
+    /// Lint crate could not be found
+    LintCrateNotFound = 501,
+    /// The lint crate has been build, but the resulting binary could not be found.
+    LintCrateLibNotFound = 502,
     /// Check failed
     MarkerCheckFailed = 1000,
 }
@@ -71,7 +81,7 @@ fn main() -> Result<(), ExitStatus> {
     let verbose = matches.get_flag("verbose");
 
     if matches.get_flag("version") {
-        print_version();
+        print_version(verbose);
         return Ok(());
     }
 
@@ -85,14 +95,15 @@ fn main() -> Result<(), ExitStatus> {
 
 fn run_check(matches: &clap::ArgMatches, verbose: bool) -> Result<(), ExitStatus> {
     let mut lint_crates = vec![];
-    if let Some(cmd_lint_crates) = matches.get_many::<String>("lints") {
+    if let Some(cmd_lint_crates) = matches.get_many::<OsString>("lints") {
         println!();
         println!("Compiling Lints:");
         lint_crates.reserve(cmd_lint_crates.len());
+        let target_dir = Path::new(&*MARKER_LINT_DIR);
         for krate in cmd_lint_crates {
-            if let Ok(krate_dir) = prepare_lint_crate(krate, verbose) {
-                lint_crates.push(krate_dir);
-            }
+            let src_dir = PathBuf::from(krate);
+            let crate_file = build_local_lint_crate(src_dir.as_path(), target_dir, verbose)?;
+            lint_crates.push(crate_file.as_os_str().to_os_string());
         }
     }
 
@@ -101,115 +112,72 @@ fn run_check(matches: &clap::ArgMatches, verbose: bool) -> Result<(), ExitStatus
         exit(-1);
     }
 
-    if lint_crates.iter().any(|path| path.contains(';')) {
+    if lint_crates.iter().any(|path| path.to_string_lossy().contains(';')) {
         eprintln!("The absolute paths of lint crates are not allowed to contain a `;`");
         exit(-1);
     }
 
-    let driver_path = get_driver_path();
-    let marker_crates_env = lint_crates.join(";");
+    #[rustfmt::skip]
+    let env = vec![
+        (OsString::from("RUSTC_WORKSPACE_WRAPPER"), get_driver_path().as_os_str().to_os_string()),
+        (OsString::from("MARKER_LINT_CRATES"), lint_crates.join(OsStr::new(";")))
+    ];
     if matches.get_flag("test-setup") {
-        println!("env:RUSTC_WORKSPACE_WRAPPER={}", driver_path.display());
-        println!("env:MARKER_LINT_CRATES={marker_crates_env}");
+        print_env(env).unwrap();
         Ok(())
     } else {
-        run_driver(&driver_path, &marker_crates_env)
+        let cargo_args = std::env::args().skip_while(|c| c != CARGO_ARGS_SEPARATOR).skip(1);
+        run_driver(env, cargo_args, verbose)
     }
 }
 
-fn print_version() {
+fn print_version(verbose: bool) {
     println!("cargo-marker version: {}", env!("CARGO_PKG_VERSION"));
-}
-
-fn run_driver(driver_path: &PathBuf, lint_crates: &str) -> Result<(), ExitStatus> {
-    println!();
-    println!("Start linting:");
-
-    let mut cmd = Command::new("cargo");
-    let cargo_args = std::env::args().skip_while(|c| c != CARGO_ARGS_SEPARATOR).skip(1);
-    cmd.env("RUSTC_WORKSPACE_WRAPPER", driver_path)
-        .env("MARKER_LINT_CRATES", lint_crates)
-        .arg("check")
-        .args(cargo_args);
-
-    let exit_status = cmd
-        .spawn()
-        .expect("could not run cargo")
-        .wait()
-        .expect("failed to wait for cargo?");
-
-    if exit_status.success() {
-        Ok(())
-    } else {
-        Err(ExitStatus::MarkerCheckFailed)
-    }
-}
-
-/// This function ensures that the given crate is compiled as a library and
-/// returns the compiled library path if everything was successful. Otherwise
-/// it'll issue a warning and return `Err`
-fn prepare_lint_crate(krate: &str, verbose: bool) -> Result<String, ()> {
-    let path = Path::new(krate);
-    if !path.exists() {
-        eprintln!("The given lint can't be found, searched at: `{}`", path.display());
-        return Err(());
-    }
-
-    let mut cmd = cargo_command(verbose);
-    let exit_status = cmd
-        .current_dir(std::fs::canonicalize(path).unwrap())
-        .args([
-            "build",
-            "--lib",
-            "--target-dir",
-            &*LINT_KRATES_TARGET_DIR,
-            "-Z",
-            "unstable-options",
-            "--out-dir",
-            &*LINT_KRATES_OUT_DIR,
-        ])
-        .env("RUSTFLAGS", "--cap-lints=allow")
-        .spawn()
-        .expect("could not run cargo")
-        .wait()
-        .expect("failed to wait for cargo?");
-
-    if !exit_status.success() {
-        return Err(());
-    }
-
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
-    let lib_file_prefix = "lib";
-    #[cfg(target_os = "windows")]
-    let lib_file_prefix = "";
-
-    // FIXME: currently this expect, that the lib name is the same as the crate dir.
-    let file_name = format!(
-        "{lib_file_prefix}{}",
-        path.file_name().and_then(OsStr::to_str).unwrap_or_default()
-    );
-    let mut krate_path = Path::new(&*LINT_KRATES_OUT_DIR).join(file_name);
-
-    #[cfg(target_os = "linux")]
-    krate_path.set_extension("so");
-    #[cfg(target_os = "macos")]
-    krate_path.set_extension("dylib");
-    #[cfg(target_os = "windows")]
-    krate_path.set_extension("dll");
-
-    Ok(krate_path.display().to_string())
-}
-
-fn cargo_command(verbose: bool) -> Command {
-    // Here we want to use the normal cargo command, to go through the rustup
-    // cargo executable and with that, set the required toolchain version.
-    // This will add a slight overhead to each cargo call. This feels a bit
-    // unavoidable, until marker is delivered as part of the toolchain. Let's
-    // hope that day will happen!
-    let mut cmd = Command::new("cargo");
 
     if verbose {
-        cmd.arg("--verbose");
+        print_driver_version();
     }
-    cmd
+}
+
+fn print_env(env: Vec<(OsString, OsString)>) -> io::Result<()> {
+    // Operating systems are fun... So, this function prints out the environment
+    // values to the standard output. For Unix systems, this requires `OsStr`
+    // objects, as file names are just bytes and don't need to be valid UTF-8.
+    // Windows, on the other hand, restricts file names, but uses UTF-16. The
+    // restriction only makes it slightly better, since windows `OsString` version
+    // doesn't have a `bytes()` method. Rust additionally has a restriction on the
+    // stdout of windows, that it has to be valid UTF-8, which means more conversion.
+    //
+    // This would be so much easier if everyone followed the "UTF-8 Everywhere Manifesto"
+
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    {
+        use std::os::unix::prelude::OsStrExt;
+
+        // stdout is used directly, to print the `OsString`s without requiring
+        // them to be valid UTF-8
+        let mut lock = io::stdout().lock();
+        for (name, value) in env {
+            write!(lock, "env:")?;
+            lock.write_all(name.as_bytes())?;
+            write!(lock, "=")?;
+            lock.write_all(value.as_bytes())?;
+            writeln!(lock)?;
+        }
+
+        return Ok(());
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        for (name, value) in env {
+            if let (Some(name), Some(value)) = (name.to_str(), value.to_str()) {
+                println!("env:{name}={value}");
+            } else {
+                unreachable!("Windows requires it's file path to be valid UTF-16 AFAIK");
+            }
+        }
+
+        return Ok(());
+    }
 }

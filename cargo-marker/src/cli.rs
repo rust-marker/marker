@@ -1,4 +1,4 @@
-use clap::{Arg, ArgAction, Command};
+use clap::{builder::ValueParser, Arg, ArgAction, Command};
 
 use crate::VERSION;
 
@@ -57,6 +57,7 @@ fn check_command_args() -> impl IntoIterator<Item = impl Into<Arg>> {
             .short('l')
             .long("lints")
             .num_args(1..)
+            .value_parser(ValueParser::os_string())
             .help("Defines a set of lints crates that should be used"),
     ]
 }

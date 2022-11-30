@@ -12,7 +12,7 @@
 //! run `cargo install` for the driver with a specific toolchain. The version and
 //! toolchain are hardcoded in this crate.
 
-use std::{path::PathBuf, process::Command};
+use std::{ffi::OsString, path::PathBuf, process::Command};
 
 use once_cell::sync::Lazy;
 
@@ -31,6 +31,13 @@ struct RustcDriverInfo {
     version: String,
     #[allow(unused)]
     api_version: String,
+}
+
+pub fn print_driver_version() {
+    println!(
+        "rustc driver version: {} (toolchain: {}, api: {})",
+        DEFAULT_DRIVER_INFO.version, DEFAULT_DRIVER_INFO.toolchain, DEFAULT_DRIVER_INFO.api_version
+    );
 }
 
 /// This tries to install the rustc driver specified in [`DEFAULT_DRIVER_INFO`].
@@ -126,6 +133,34 @@ fn check_driver(verbose: bool, print_advice: bool) -> Result<(), ExitStatus> {
         Err(ExitStatus::MissingDriver)
     } else {
         Ok(())
+    }
+}
+
+pub fn run_driver(
+    env: Vec<(OsString, OsString)>,
+    cargo_args: impl Iterator<Item = String>,
+    verbose: bool,
+) -> Result<(), ExitStatus> {
+    check_driver(verbose, true)?;
+    println!();
+    println!("Start linting:");
+
+    let mut cmd = Command::new("cargo");
+    cmd.envs(env).arg("check").args(cargo_args);
+    if verbose {
+        cmd.arg("--verbose");
+    }
+
+    let exit_status = cmd
+        .spawn()
+        .expect("could not run cargo")
+        .wait()
+        .expect("failed to wait for cargo?");
+
+    if exit_status.success() {
+        Ok(())
+    } else {
+        Err(ExitStatus::MarkerCheckFailed)
     }
 }
 
