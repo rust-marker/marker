@@ -10,7 +10,6 @@ use std::{
     ffi::{OsStr, OsString},
     fs::create_dir_all,
     io::{self, Write},
-    os::unix::prelude::OsStrExt,
     path::{Path, PathBuf},
     process::exit,
 };

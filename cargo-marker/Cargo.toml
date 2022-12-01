@@ -1,8 +1,15 @@
 [package]
-name = "cargo-marker"
+name = "cargo_marker"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
+
+# Crate names in Rust are fun. I reserved `cargo_marker` as a crate name. However,
+# Cargo requires it's subcommands to use a dash like `cargo-marker`. Unable to rename
+# rename the create on crates.io we now have this hack... At least it works
+[[bin]]
+name = "cargo-marker"
+path = "src/main.rs"
 
 [dependencies]
 clap = {version = "4.0.26", features = ["string"]}
