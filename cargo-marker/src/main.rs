@@ -9,7 +9,7 @@ mod lints;
 use std::{
     ffi::{OsStr, OsString},
     fs::create_dir_all,
-    io::{self, Write},
+    io,
     path::{Path, PathBuf},
     process::exit,
 };
@@ -138,6 +138,7 @@ fn print_version(verbose: bool) {
     }
 }
 
+#[allow(clippy::unnecessary_wraps)]
 fn print_env(env: Vec<(OsString, OsString)>) -> io::Result<()> {
     // Operating systems are fun... So, this function prints out the environment
     // values to the standard output. For Unix systems, this requires `OsStr`
@@ -151,6 +152,7 @@ fn print_env(env: Vec<(OsString, OsString)>) -> io::Result<()> {
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
+        use std::io::Write;
         use std::os::unix::prelude::OsStrExt;
 
         // stdout is used directly, to print the `OsString`s without requiring
@@ -164,7 +166,7 @@ fn print_env(env: Vec<(OsString, OsString)>) -> io::Result<()> {
             writeln!(lock)?;
         }
 
-        return Ok(());
+        Ok(())
     }
 
     #[cfg(target_os = "windows")]
@@ -177,6 +179,6 @@ fn print_env(env: Vec<(OsString, OsString)>) -> io::Result<()> {
             }
         }
 
-        return Ok(());
+        Ok(())
     }
 }

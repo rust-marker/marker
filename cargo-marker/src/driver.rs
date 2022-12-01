@@ -99,7 +99,16 @@ fn build_driver(toolchain: &str, version: &str, verbose: bool, dev_build: bool) 
     if dev_build {
         cmd.args(["build", "--bin", "marker_driver_rustc"]);
     } else {
-        // TODO Set output path to the local branch thingy
+        // FIXME: This currently installs the binary in Cargo's default location.
+        // Ideally this should install the driver in the toolchain folder for the
+        // installed nightly version. This would allow the user to have multiple
+        // drivers depending on the project toolchain.
+        //
+        // We can just reuse rustup to select the correct driver for a defined
+        // toolchain. This would also simulate how the driver would be delivered
+        // in a perfect world.
+        //
+        // See #60
         cmd.args(["install", "marker_rustc_driver", "--version", version]);
     }
 
