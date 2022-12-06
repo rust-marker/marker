@@ -37,6 +37,28 @@ pub enum PatKind<'ast> {
     Slice(&'ast SlicePat<'ast>),
 }
 
+impl<'ast> PatKind<'ast> {
+    impl_pat_data_fn!(span() -> &Span<'ast>);
+}
+
+macro_rules! impl_pat_data_fn {
+    ($method:ident () -> $return_ty:ty) => {
+        impl_pat_data_fn!(
+            $method() -> $return_ty,
+            Ident, Wildcard, Rest, Ref, Struct, Tuple, Slice
+        );
+    };
+    ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
+        pub fn $method(&self) -> $return_ty {
+            match self {
+                $(PatKind::$item(data) => data.$method(),)*
+            }
+        }
+    };
+}
+
+use impl_pat_data_fn;
+
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
