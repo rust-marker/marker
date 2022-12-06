@@ -10,6 +10,8 @@ mod rest_pat;
 pub use rest_pat::*;
 mod ref_pat;
 pub use ref_pat::*;
+mod struct_pat;
+pub use struct_pat::*;
 
 pub trait PatData<'ast>: Debug {
     /// Returns the span of this pattern.
@@ -20,12 +22,13 @@ pub trait PatData<'ast>: Debug {
 
 #[repr(C)]
 #[non_exhaustive]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum PatKind<'ast> {
     Ident(&'ast IdentPat<'ast>),
     Wildcard(&'ast WildcardPat<'ast>),
     Rest(&'ast RestPat<'ast>),
     Ref(&'ast RefPat<'ast>),
+    Struct(&'ast StructPat<'ast>),
 }
 
 #[repr(C)]
