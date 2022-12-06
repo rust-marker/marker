@@ -12,6 +12,10 @@ mod ref_pat;
 pub use ref_pat::*;
 mod struct_pat;
 pub use struct_pat::*;
+mod tuple_pat;
+pub use tuple_pat::*;
+mod slice_pat;
+pub use slice_pat::*;
 
 pub trait PatData<'ast>: Debug {
     /// Returns the span of this pattern.
@@ -29,6 +33,8 @@ pub enum PatKind<'ast> {
     Rest(&'ast RestPat<'ast>),
     Ref(&'ast RefPat<'ast>),
     Struct(&'ast StructPat<'ast>),
+    Tuple(&'ast TuplePat<'ast>),
+    Slice(&'ast SlicePat<'ast>),
 }
 
 #[repr(C)]
