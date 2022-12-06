@@ -4,6 +4,12 @@ use std::{fmt::Debug, marker::PhantomData};
 
 mod ident_pat;
 pub use ident_pat::*;
+mod wildcard_pat;
+pub use wildcard_pat::*;
+mod rest_pat;
+pub use rest_pat::*;
+mod ref_pat;
+pub use ref_pat::*;
 
 pub trait PatData<'ast>: Debug {
     /// Returns the span of this pattern.
@@ -17,6 +23,9 @@ pub trait PatData<'ast>: Debug {
 #[derive(Debug, Copy, Clone)]
 pub enum PatKind<'ast> {
     Ident(&'ast IdentPat<'ast>),
+    Wildcard(&'ast WildcardPat<'ast>),
+    Rest(&'ast RestPat<'ast>),
+    Ref(&'ast RefPat<'ast>),
 }
 
 #[repr(C)]
