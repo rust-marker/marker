@@ -1,7 +1,7 @@
 use crate::{
-    ast::{AstPath, Span, SpanId, SymbolId, VarId},
+    ast::{AstPath, Span, SpanId, SymbolId},
     context::with_cx,
-    ffi::{FfiOption, FfiSlice},
+    ffi::FfiSlice,
 };
 
 use super::{CommonPatData, PatKind};
@@ -51,15 +51,17 @@ impl<'ast> StructPat<'ast> {
     }
 }
 
+/// A pattern matching a field inside a [`StructPat`] instance.
+///
+/// Patterns that bind values directly to fields like `Struct {ref mut x}` are
+/// expressed as `Struct {x: ref mut x}`. This allows a uniform view of all field
+/// patterns. (This representation was inspired by rustc)
 #[repr(C)]
 #[derive(Debug)]
 pub struct StructFieldPat<'ast> {
     span: SpanId,
     ident: SymbolId,
-    var_id: FfiOption<VarId>,
-    is_mut: bool,
-    is_ref: bool,
-    pat: FfiOption<PatKind<'ast>>,
+    pat: PatKind<'ast>,
 }
 
 impl<'ast> StructFieldPat<'ast> {
@@ -71,41 +73,14 @@ impl<'ast> StructFieldPat<'ast> {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
 
-    /// The [`VarId`] if this field pattern binds the field.
-    pub fn var_id(&self) -> Option<VarId> {
-        self.var_id.copy()
-    }
-
-    pub fn is_mut(&self) -> bool {
-        self.is_mut
-    }
-
-    pub fn is_ref(&self) -> bool {
-        self.is_ref
-    }
-
-    pub fn pat(&self) -> Option<PatKind<'ast>> {
-        self.pat.copy()
+    pub fn pat(&self) -> PatKind<'ast> {
+        self.pat
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> StructFieldPat<'ast> {
-    pub fn new(
-        span: SpanId,
-        ident: SymbolId,
-        var_id: Option<VarId>,
-        is_mut: bool,
-        is_ref: bool,
-        pat: Option<PatKind<'ast>>,
-    ) -> Self {
-        Self {
-            span,
-            ident,
-            var_id: var_id.into(),
-            is_mut,
-            is_ref,
-            pat: pat.into(),
-        }
+    pub fn new(span: SpanId, ident: SymbolId, pat: PatKind<'ast>) -> Self {
+        Self { span, ident, pat }
     }
 }
