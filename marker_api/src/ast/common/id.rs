@@ -85,6 +85,11 @@ new_id! {
 }
 
 new_id! {
+    /// This ID uniquely identifies an expression during linting.
+    pub ExprId: u64
+}
+
+new_id! {
     /// **Unstable**
     ///
     /// This id is used to identify `Span`s. This type is only intended for internal

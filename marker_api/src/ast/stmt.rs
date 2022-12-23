@@ -1,6 +1,6 @@
 use crate::ffi::FfiOption;
 
-use super::{item::ItemKind, ty::TyKind, pat::PatKind};
+use super::{item::ItemKind, pat::PatKind, ty::TyKind};
 
 #[repr(C)]
 #[non_exhaustive]
@@ -32,4 +32,3 @@ impl<'ast> LetStmt<'ast> {
 
     // FIXME: Add new method once expressions kind of exist.
 }
-
