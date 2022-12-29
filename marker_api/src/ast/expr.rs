@@ -2,6 +2,16 @@ use super::{ty::TyKind, ExprId, Span, SpanId};
 
 use std::{fmt::Debug, marker::PhantomData};
 
+mod int_lit_expr;
+pub use int_lit_expr::*;
+mod float_lit_expr;
+pub use float_lit_expr::*;
+mod str_lit_expr;
+pub use str_lit_expr::*;
+mod char_lit_expr;
+pub use char_lit_expr::*;
+mod bool_lit_expr;
+pub use bool_lit_expr::*;
 mod unstable_expr;
 pub use unstable_expr::*;
 
@@ -23,6 +33,11 @@ pub trait ExprData<'ast>: Debug {
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
 pub enum ExprKind<'ast> {
+    IntLit(&'ast IntLitExpr<'ast>),
+    FloatLit(&'ast FloatLitExpr<'ast>),
+    StrLit(&'ast StrLitExpr<'ast>),
+    CharLit(&'ast CharLitExpr<'ast>),
+    BoolLit(&'ast BoolLitExpr<'ast>),
     Unstable(&'ast UnstableExpr<'ast>),
 }
 
@@ -30,6 +45,7 @@ pub enum ExprKind<'ast> {
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
 pub enum ExprPrecedence {
+    Lit,
     /// The precedents originates from an unstable source. The stored value provides
     /// the current precedence of this expression. This is open to change
     Unstable(i32),
