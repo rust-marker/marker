@@ -3,12 +3,6 @@ name: Rust (bors)
 
 on:
   push:
-    # Don't run tests, when only text files were modified
-    paths-ignore:
-    - 'COPYRIGHT'
-    - 'LICENSE-*'
-    - '**.md'
-    - '**.txt'
     # Bors magic branches
     branches:
     - 'staging'
