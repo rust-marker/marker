@@ -32,7 +32,7 @@ pub struct Lint {
 
     /// The level of macro reporting.
     ///
-    /// See `MacroReport` for the possible levels.
+    /// See [`MacroReport`] for the possible levels.
     pub report_in_macro: MacroReport,
     // TODO: do we want these
     // pub edition_lint_opts: Option<(Edition, Level)>,
@@ -98,7 +98,15 @@ pub enum Level {
     /// The `deny` level will produce an error and stop further execution after the lint
     /// pass is complete.
     Deny,
-    /// The `forbid` level will produce an error, see `Deny`.
+    /// The `forbid` level will produce an error and cannot be overriden by the user.
+    ///
+    /// Choosing this diagnostic level should require heavy consideration, because should a lint
+    /// with this level produce a false-positive, the user won't have an option to `allow` the lint
+    /// for this particular case, and will be forced to either:
+    /// - Write wrong code just to satisfy the lint
+    /// - Remove the whole lint crate
+    ///
+    /// To produce an error, but make the lint possible to override see [`Deny`](`Self::Deny`).
     Forbid,
 }
 

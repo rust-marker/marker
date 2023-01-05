@@ -30,7 +30,7 @@ pub trait CallableData<'ast> {
     /// Returns `true`, if this callable is marked as `extern`. Bare functions
     /// only use the `extern` keyword to specify the ABI. These will currently
     /// still return `false` even if the keyword is present. In those cases,
-    /// please refer to the ABI instead.
+    /// please refer to the [`abi()`](`Self::abi`) instead.
     ///
     /// Defaults to `false` if unspecified.
     fn is_extern(&self) -> bool;
@@ -40,12 +40,12 @@ pub trait CallableData<'ast> {
 
     /// Returns `true`, if this callable has a specified `self` argument. The
     /// type of `self` can be retrieved from the first element of
-    /// [`CallableData::params()`].
+    /// [`params()`](`Self::params`).
     fn has_self(&self) -> bool;
 
     /// Returns the parameters, that this callable accepts. The `self` argument
     /// of methods, will be the first element of this slice. Use
-    /// [`CallableData::has_self`] to determine if the first argument is `self`.
+    /// [`has_self()`](`Self::has_self`) to determine if the first argument is `self`.
     fn params(&self) -> &[Parameter<'ast>];
 
     /// Returns the return type, if specified.

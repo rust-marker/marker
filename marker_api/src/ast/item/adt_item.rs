@@ -265,7 +265,7 @@ pub struct Field<'ast> {
 }
 
 impl<'ast> Field<'ast> {
-    /// The visibility of this item.
+    /// The [`Visibility`] of this item.
     pub fn visibility(&self) -> &Visibility<'ast> {
         &self.vis
     }

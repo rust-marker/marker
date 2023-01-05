@@ -5,7 +5,7 @@ use crate::{
 
 use super::{GenericParams, Lifetime, TyParamBound};
 
-/// This represents a single clause in a where statement
+/// This represents a single clause in a [`where`](<https://doc.rust-lang.org/stable/reference/items/generics.html#where-clauses>) statement
 ///
 /// ```
 /// fn foo<'a, T>()

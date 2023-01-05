@@ -73,7 +73,7 @@ where
     })
 }
 
-/// This context will be passed to each [`LintPass`][super::LintPass] call to enable the user
+/// This context will be passed to each [`LintPass`](`super::LintPass`) call to enable the user
 /// to emit lints and to retieve nodes by the given ids.
 #[repr(C)]
 pub struct AstContext<'ast> {

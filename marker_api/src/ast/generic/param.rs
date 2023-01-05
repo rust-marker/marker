@@ -31,8 +31,8 @@ pub enum GenericParamKind<'ast> {
 }
 
 impl<'ast> GenericParamKind<'ast> {
-    /// This returns the span, of the defined parameter, if this parameter is
-    /// part of the code base.
+    /// This returns the [`Span`], of the defined parameter, if this parameter originates from
+    /// source code.
     pub fn span(&self) -> Option<&Span<'ast>> {
         match self {
             GenericParamKind::Lifetime(lt) => lt.span(),

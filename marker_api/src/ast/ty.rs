@@ -97,26 +97,58 @@ pub enum TyKind<'ast> {
     // ================================
     /// The `bool` type
     Bool(&'ast BoolTy<'ast>),
-    /// A numeric type like `u32`, `i32`, `f64`
+    /// A numeric type like [`u32`], [`i32`], [`f64`]
     Num(&'ast NumTy<'ast>),
-    /// A textual type like `char` or `str`
+    /// A textual type like [`char`] or [`str`]
     Text(&'ast TextTy<'ast>),
-    /// The never type `!`
+    /// The never type [`!`](prim@never)
     Never(&'ast NeverTy<'ast>),
     // ================================
     // Sequence types
     // ================================
-    /// A tuple type like `()`, `(T, U)`
+    /// A tuple type like [`()`](prim@tuple), [`(T, U)`](prim@tuple)
     Tuple(&'ast TupleTy<'ast>),
-    /// An array with a known size like: `[T; n]`
+    /// An array with a known size like: [`[T; N]`](prim@array)
     Array(&'ast ArrayTy<'ast>),
-    /// A variable length slice like `[T]`
+    /// A variable length slice like [`[T]`](prim@slice)
     Slice(&'ast SliceTy<'ast>),
     // ================================
-    // User define types
+    // User defined types
     // ================================
+    /// A struct type like:
+    ///
+    /// ```
+    /// pub struct Foo;
+    /// pub struct Bar(u32, u32);
+    /// pub struct Baz {
+    ///     field_1: u32,
+    ///     field_2: u32,
+    /// }
+    /// ```
     Struct(&'ast StructTy<'ast>),
+    /// An enum type like:
+    ///
+    /// ```
+    /// #[repr(u32)]
+    /// pub enum Foo {
+    ///     Elem1,
+    ///     Elem2 = 1,
+    ///     Elem3(u32),
+    ///     Elem4 {
+    ///         field_1: u32,
+    ///         field_2: u32,
+    ///     }
+    /// }
+    /// ```
     Enum(&'ast EnumTy<'ast>),
+    /// A union type like:
+    ///
+    /// ```
+    /// pub union Foo {
+    ///     a: i32,
+    ///     b: f32,
+    /// }
+    /// ```
     Union(&'ast UnionTy<'ast>),
     // ================================
     // Function types
@@ -126,18 +158,18 @@ pub enum TyKind<'ast> {
     // ================================
     // Pointer types
     // ================================
-    /// A reference like `&T` or `&mut T`
+    /// A reference like [`&T`](prim@reference) or [`&mut T`](prim@reference)
     Ref(&'ast RefTy<'ast>),
-    /// A raw pointer like `*const T` or `*mut T`
+    /// A raw pointer like [`*const T`](prim@pointer) or [`*mut T`](prim@pointer)
     RawPtr(&'ast RawPtrTy<'ast>),
-    /// A function pointer like `fn (T) -> U`
+    /// A function pointer like [`fn (T) -> U`](prim@fn)
     FnPtr(&'ast FnPtrTy<'ast>),
     // ================================
     // Trait types
     // ================================
-    /// A trait object like `dyn Trait`
+    /// A trait object like [`dyn Trait`](<https://doc.rust-lang.org/stable/std/keyword.dyn.html>)
     TraitObj(&'ast TraitObjTy<'ast>),
-    /// An `impl Trait` type like:
+    /// An [`impl Trait`](<https://doc.rust-lang.org/stable/std/keyword.impl.html>) type like:
     ///
     /// ```
     /// trait Trait {}
@@ -161,8 +193,19 @@ pub enum TyKind<'ast> {
     Inferred(&'ast InferredTy<'ast>),
     /// A generic type, that has been specified in a surrounding item
     Generic(&'ast GenericTy<'ast>),
+    /// A type alias like:
+    ///
+    /// ```
+    /// type Vec3<T: Copy> = (T, T, T);
+    ///
+    /// trait TraitItem {
+    ///     type AssocType;
+    /// }
+    /// ```
+    ///
+    /// See: <https://doc.rust-lang.org/reference/items/type-aliases.html>
     Alias(&'ast AliasTy<'ast>),
-    /// The `Self` in impl blocks or trait declarations
+    /// The [`Self`](<https://doc.rust-lang.org/stable/std/keyword.SelfTy.html>) in impl blocks or trait declarations
     SelfTy(&'ast SelfTy<'ast>),
     /// A type declared relative to another type, like `Iterator::Item`
     Relative(&'ast RelativeTy<'ast>),
