@@ -6,6 +6,10 @@
 #![warn(clippy::pedantic)]
 #![allow(clippy::missing_panics_doc)]
 #![allow(clippy::module_name_repetitions)]
+#![allow(
+    clippy::needless_lifetimes,
+    reason = "some lifetimes will be required to fix ICEs, <'ast, '_> also looks weird"
+)]
 #![allow(clippy::needless_collect, reason = "it has false positives for `alloc_slice_iter`")]
 #![allow(
     clippy::too_many_lines,
@@ -35,7 +39,7 @@ use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command};
 
-const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2022-11-03";
+const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2022-12-15";
 
 struct DefaultCallbacks;
 impl rustc_driver::Callbacks for DefaultCallbacks {}

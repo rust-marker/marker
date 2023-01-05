@@ -46,7 +46,7 @@ extern "C" fn item<'ast>(data: &(), id: ItemId) -> FfiOption<ItemKind<'ast>> {
     wrapper.driver_cx.item(id).into()
 }
 
-extern "C" fn emit_lint<'ast>(data: &(), lint: &'static Lint, msg: ffi::Str, span: &Span<'ast>) {
+extern "C" fn emit_lint(data: &(), lint: &'static Lint, msg: ffi::Str, span: &Span<'_>) {
     let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
     wrapper.driver_cx.emit_lint(lint, (&msg).into(), span);
 }

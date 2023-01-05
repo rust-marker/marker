@@ -5,7 +5,7 @@ use crate::{context::RustcContext, conversion::generic::to_api_generic_args_opt}
 
 use super::to_symbol_id;
 
-pub fn to_api_path<'ast, 'tcx>(cx: &'ast RustcContext<'ast, 'tcx>, path: &hir::Path<'tcx>) -> AstPath<'ast> {
+pub fn to_api_path<'ast, 'tcx, T>(cx: &'ast RustcContext<'ast, 'tcx>, path: &hir::Path<'tcx, T>) -> AstPath<'ast> {
     AstPath::new(
         cx.storage
             .alloc_slice_iter(path.segments.iter().map(|seg| conv_segment(cx, seg))),

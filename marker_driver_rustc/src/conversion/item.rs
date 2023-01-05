@@ -425,8 +425,8 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
     fn conv_variant_data(&self, var_data: &'tcx hir::VariantData) -> AdtKind<'ast> {
         match var_data {
             hir::VariantData::Struct(fields, _recovered) => AdtKind::Field(self.conv_field_defs(fields).into()),
-            hir::VariantData::Tuple(fields, _) => AdtKind::Tuple(self.conv_field_defs(fields).into()),
-            hir::VariantData::Unit(_) => AdtKind::Unit,
+            hir::VariantData::Tuple(fields, ..) => AdtKind::Tuple(self.conv_field_defs(fields).into()),
+            hir::VariantData::Unit(..) => AdtKind::Unit,
         }
     }
 
