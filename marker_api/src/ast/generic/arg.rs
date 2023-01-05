@@ -91,8 +91,8 @@ impl<'ast> Lifetime<'ast> {
     }
 }
 
-/// A generic bound in form `<identifier=type>`. For example `Item=i32` would be
-/// the generic binding for this example:
+/// A generic bound in form `<identifier=type>`. For example, `Item=i32` would be
+/// the generic binding here:
 ///
 /// ```ignore
 /// let _baz: &dyn Iterator<Item=i32> = todo!();

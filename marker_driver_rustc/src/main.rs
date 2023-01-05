@@ -60,7 +60,7 @@ impl rustc_driver::Callbacks for MarkerCallback {
 }
 
 /// If a command-line option matches `find_arg`, then apply the predicate `pred` on its value. If
-/// true, then return it. The parameter is assumed to be either `--arg=value` or `--arg value`.
+/// `true`, then return it. The parameter is assumed to be either `--arg=value` or `--arg value`.
 fn arg_value<'a, T: Deref<Target = str>>(
     args: &'a [T],
     find_arg: &str,

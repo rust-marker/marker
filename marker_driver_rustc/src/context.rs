@@ -60,7 +60,7 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     }
 
     pub fn ast_cx(&self) -> &'ast AstContext<'ast> {
-        // The `OnceCell` is filled in the new function and can never not be set.
+        // The `OnceCell` is filled in the new function and can never be not set.
         self.ast_cx.get().unwrap()
     }
 }

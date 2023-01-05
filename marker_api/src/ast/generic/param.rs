@@ -51,8 +51,8 @@ impl<'ast> GenericParamKind<'ast> {
 /// This trait is a collection of common information that is provided by all
 /// generic parameters.
 pub trait GenericParamData<'ast> {
-    /// This returns the span, of the defined parameter, if this parameter is
-    /// part of the code base.
+    /// This returns the span, of the defined parameter, if this parameter originates from source
+    /// code.
     fn span(&self) -> Option<&Span<'ast>>;
     // FIXME: Add `fn attrs(&self) -> &[Attrs<'ast>]` once implemented.
 }

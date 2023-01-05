@@ -15,8 +15,7 @@ use super::{GenericParams, Lifetime, TyParamBound};
 ///     T::Item: Copy,
 ///     String: PartialEq<T>,
 ///     i32: Default,
-/// {
-/// }
+/// {}
 /// ```
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -67,7 +66,7 @@ impl<'ast> TyClause<'ast> {
         self.params.get()
     }
 
-    /// The type that is bound
+    /// The bound type
     pub fn ty(&self) -> TyKind<'ast> {
         self.ty
     }

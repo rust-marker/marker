@@ -4,7 +4,7 @@ use crate::ffi::{FfiOption, FfiSlice};
 
 use super::CommonItemData;
 
-/// A type alias like
+/// A type alias like:
 ///
 /// ```
 /// type Vec3<T: Copy> = (T, T, T);

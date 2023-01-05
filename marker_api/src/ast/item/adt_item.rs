@@ -243,7 +243,7 @@ enum AdtKind<'ast> {
 }
 
 impl<'ast> AdtKind<'ast> {
-    // The slice lifetime is here explicitly denoted, as this is used by the
+    // The slice lifetime here is explicitly denoted, as this is used by the
     // driver for convenience and is not part of the public API
     pub fn fields(self) -> &'ast [Field<'ast>] {
         match self {

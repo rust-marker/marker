@@ -39,8 +39,8 @@ impl<'ast> Span<'ast> {
         self.start == self.end
     }
 
-    /// Returns true, if both spans originate from the sane source. This can for
-    /// instance be the same source file or macro expansion.
+    /// Returns true, if both spans originate from the same source. For example, this can be the
+    /// same source file or macro expansion.
     pub fn is_same_source(&self, other: &Span<'ast>) -> bool {
         self.source == other.source
     }
@@ -69,8 +69,9 @@ impl<'ast> Span<'ast> {
     /// Converts a span to a code snippet if available, otherwise returns the default.
     ///
     /// This is useful if you want to provide suggestions for your lint or more generally, if you
-    /// want to convert a given `Span` to a `String`. To create suggestions consider using
-    /// [`Span::snippet_with_applicability`] to ensure that the [`Applicability`] stays correct.
+    /// want to convert a given [`Span`] to a [`String`]. To create suggestions consider using
+    /// [`snippet_with_applicability()`][Self::snippet_with_applicability] to ensure that the
+    /// [`Applicability`] stays correct.
     ///
     /// # Example
     /// ```rust,ignore
@@ -87,7 +88,7 @@ impl<'ast> Span<'ast> {
         self.snippet().unwrap_or_else(|| default.to_string())
     }
 
-    /// Same as [`Span::snippet`], but it adapts the applicability level by following rules:
+    /// Same as [`snippet()`][Self::snippet], but adapts the applicability level by following rules:
     ///
     /// - Applicability level `Unspecified` will never be changed.
     /// - If the span is inside a macro, change the applicability level to `MaybeIncorrect`.

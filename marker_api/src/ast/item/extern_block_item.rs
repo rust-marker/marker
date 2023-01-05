@@ -3,7 +3,7 @@ use crate::ffi::FfiSlice;
 
 use super::{CommonItemData, ExternItemKind};
 
-/// An extern block with items like this:
+/// An `extern` block with items like this:
 ///
 /// ```
 /// extern "C" {

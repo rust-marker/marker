@@ -5,7 +5,7 @@ use crate::ffi::{FfiOption, FfiSlice};
 
 use super::{AssocItemKind, CommonItemData};
 
-/// An impl item like these examples:
+/// An impl item like:
 ///
 /// ```
 /// # use core::ops::Add;

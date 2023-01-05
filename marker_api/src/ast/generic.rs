@@ -29,7 +29,7 @@ pub use clause::*;
 /// }
 /// ```
 ///
-/// See
+/// See:
 /// * [`GenericParams`]
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]

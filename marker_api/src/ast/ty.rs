@@ -62,7 +62,7 @@ pub trait TyData<'ast> {
     /// The [`Span`] of the type, if it's written in the source code. Only
     /// syntactic types can have spans attached to them.
     ///
-    /// Currently, every syntactic type will return a valid [`Span`] this can
+    /// Currently, every syntactic type will return a valid [`Span`], but this can
     /// change in the future.
     fn span(&self) -> Option<&Span<'ast>>;
 
@@ -187,7 +187,7 @@ impl<'ast> TyKind<'ast> {
         matches!(self, Self::Struct(..) | Self::Enum(..) | Self::Union(..))
     }
 
-    /// Returns `true` if the ty kind is function type.
+    /// Returns `true` if this is a function type.
     #[must_use]
     pub fn is_fn(&self) -> bool {
         matches!(self, Self::Fn(..) | Self::Closure(..))
@@ -199,13 +199,13 @@ impl<'ast> TyKind<'ast> {
         matches!(self, Self::Ref(..) | Self::RawPtr(..) | Self::FnPtr(..))
     }
 
-    /// Returns `true` if the ty kind is trait type.
+    /// Returns `true` if this is a trait type.
     #[must_use]
     pub fn is_trait_ty(&self) -> bool {
         matches!(self, Self::TraitObj(..) | Self::ImplTrait(..))
     }
 
-    /// Returns `true` if the ty kind is syntactic type, meaning a type that is
+    /// Returns `true` if this is a syntactic type, meaning a type that is
     /// only used in syntax like [`TyKind::Inferred`] and [`TyKind::Generic`].
     ///
     /// See [`TyKind::is_syntactic()`] to check if this type originates from

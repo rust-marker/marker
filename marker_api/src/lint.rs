@@ -7,7 +7,7 @@ pub struct Lint {
     ///
     /// This identifies the lint in attributes and in command-line arguments.
     /// In those contexts it is always lowercase. This allows
-    /// `declare_lint!()` invocations to follow the convention of upper-case
+    /// [`declare_lint!`] macro invocations to follow the convention of upper-case
     /// statics without repeating the name.
     ///
     /// The name is written with underscores, e.g., "unused_imports".
@@ -15,6 +15,8 @@ pub struct Lint {
     ///
     /// See <https://rustc-dev-guide.rust-lang.org/diagnostics.html#lint-naming>
     /// for naming guidelines.
+    ///
+    /// [`declare_lint!`]: declare_lint
     pub name: &'static str,
 
     /// Default level for the lint.
@@ -83,7 +85,7 @@ pub enum Applicability {
 #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Debug, Hash)]
 #[non_exhaustive]
 pub enum Level {
-    /// The lint is allowed. A created diagnostic will not be emitted to the user.
+    /// The lint is allowed. A created diagnostic will not be emitted to the user by default.
     /// This level can be overridden. It's useful for rather strict lints.
     Allow,
     /// The `warn` level will produce a warning if the lint was violated, however the
