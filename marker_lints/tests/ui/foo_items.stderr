@@ -1,0 +1,68 @@
+warning: a function named `foo`, consider using a more meaningful name
+ --> $DIR/foo_items.rs:2:5
+  |
+2 |     fn foo() {}
+  |     ^^^^^^^^^^^
+  |
+  = note: `#[warn(marker::foo_items)]` on by default
+
+warning: a static item named `foo`, consider using a more meaningful name
+ --> $DIR/foo_items.rs:4:5
+  |
+4 |     static FOO: i32 = 0;
+  |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: a struct named `foo`, consider using a more meaningful name
+ --> $DIR/foo_items.rs:6:5
+  |
+6 | /     struct Foo {
+7 | |         foo: i32
+8 | |     }
+  | |_____^
+
+warning: a field named `foo`, consider using a more meaningful name
+ --> $DIR/foo_items.rs:7:9
+  |
+7 |         foo: i32
+  |         ^^^^^^^^
+
+warning: a module named `foo`, consider using a more meaningful name
+  --> $DIR/foo_items.rs:11:1
+   |
+11 | / mod foo {
+12 | |     use crate::good as foo;
+13 | |
+14 | |     const FOO: i32 = 0;
+...  |
+18 | |     }
+19 | | }
+   | |_^
+
+warning: a `use` binding named `foo`, consider using a more meaningful name
+  --> $DIR/foo_items.rs:12:5
+   |
+12 |     use crate::good as foo;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: a constant item named `foo`, consider using a more meaningful name
+  --> $DIR/foo_items.rs:14:5
+   |
+14 |     const FOO: i32 = 0;
+   |     ^^^^^^^^^^^^^^^^^^^
+
+warning: an enum named `foo`, consider using a more meaningful name
+  --> $DIR/foo_items.rs:16:5
+   |
+16 | /     enum Foo {
+17 | |         Foo
+18 | |     }
+   | |_____^
+
+warning: an enum variant named `foo`, consider using a more meaningful name
+  --> $DIR/foo_items.rs:17:9
+   |
+17 |         Foo
+   |         ^^^
+
+warning: 9 warnings emitted
+
