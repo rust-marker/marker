@@ -88,7 +88,7 @@ pub enum GenericArgKind<'ast> {
 }
 
 /// This represents the generic parameters of a generic item. The bounds applied
-/// to parameters as the declaration are stored as clauses in this struct.
+/// to the parameters in the declaration are stored as clauses in this struct.
 ///
 /// ```
 /// # use std::fmt::Debug;

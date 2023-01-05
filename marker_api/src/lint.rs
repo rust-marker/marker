@@ -1,5 +1,5 @@
 #[derive(Debug, PartialEq, Eq, Hash)]
-// This can sadly not be marked as #[non_exhaustive] as the struct construction
+// This sadly cannot be marked as #[non_exhaustive] as the struct construction
 // has to be possible in a static context.
 #[doc(hidden)]
 pub struct Lint {

@@ -13,7 +13,7 @@ use super::{CommonItemData, ExternItemKind};
 /// }
 /// ```
 ///
-/// * See <https://doc.rust-lang.org/stable/reference/items/modules.html>
+/// * See <https://doc.rust-lang.org/stable/reference/items/external-blocks.html>
 #[repr(C)]
 #[derive(Debug)]
 pub struct ExternBlockItem<'ast> {

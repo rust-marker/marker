@@ -14,7 +14,7 @@ use marker_api::{
 /// change and calling functions on them would require a stable ABI which Rust
 /// doesn't provide.
 ///
-/// In this case, the `DriverContextWrapper` will be passes as a `*const ()`
+/// In this case, the `DriverContextWrapper` will be passed as a `*const ()`
 /// pointer to [`DriverCallbacks`] which will do nothing with this data other
 /// than giving it back to functions declared in this module. Since the `&dyn`
 /// object is created, only used here and everything is compiled during the same

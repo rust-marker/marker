@@ -15,7 +15,7 @@ use super::{AssocItemKind, CommonItemData};
 /// }
 /// ```
 ///
-/// * See <https://doc.rust-lang.org/stable/reference/items/modules.html>
+/// * See <https://doc.rust-lang.org/stable/reference/items/traits.html>
 #[repr(C)]
 #[derive(Debug)]
 pub struct TraitItem<'ast> {
@@ -41,7 +41,7 @@ impl<'ast> TraitItem<'ast> {
     ///
     /// ```
     /// # trait Supertrait {}
-    /// //            vvvvvvvvvvvv
+    /// //              vvvvvvvvvv
     /// trait Subtrait: Supertrait {
     ///     // ...
     /// }

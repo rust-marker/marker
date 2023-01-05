@@ -29,7 +29,7 @@ use super::{AssocItemKind, CommonItemData};
 /// unsafe impl Send for SomeItem {}
 /// ```
 ///
-/// * See <https://doc.rust-lang.org/stable/reference/items/modules.html>
+/// * See <https://doc.rust-lang.org/stable/reference/items/implementations.html>
 #[repr(C)]
 #[derive(Debug)]
 pub struct ImplItem<'ast> {

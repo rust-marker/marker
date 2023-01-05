@@ -7,7 +7,7 @@
 //! focus on ABI safety, conversion, and simplicity by expecting that both
 //! sides use these types.
 //!
-//! All of these types are naturally not part of the stable API
+//! All of these types are naturally not a part of the stable API
 #![allow(clippy::exhaustive_enums)]
 
 use std::{marker::PhantomData, slice};
@@ -47,7 +47,7 @@ impl<'a> ToString for Str<'a> {
     }
 }
 
-/// This is an FFI save option. In most cases it's better to pass a pointer and
+/// This is an FFI safe option. In most cases it's better to pass a pointer and
 /// then use `as_ref()` but this doesn't work for owned return values.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]

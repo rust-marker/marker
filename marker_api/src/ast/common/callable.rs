@@ -74,7 +74,7 @@ impl<'ast> Parameter<'ast> {
 
 impl<'ast> Parameter<'ast> {
     // Function items actually use patterns and not names. Patterns are not yet
-    // implemented though. A pattern should be good enough for now.
+    // implemented though. A name should be good enough for now.
     pub fn name(&self) -> Option<String> {
         self.name.get().map(|sym| with_cx(self, |cx| cx.symbol_str(*sym)))
     }
@@ -131,8 +131,8 @@ impl<'ast> CommonCallableData<'ast> {
     }
 }
 
-/// This macro automatically implements the [`Callable`] trait for structs that
-/// have a [`CallableData`] field called `callable_data`.
+/// This macro automatically implements the [`CallableData`] trait for structs that
+/// have a `callable_data` field.
 macro_rules! impl_callable_data_trait {
     ($self_ty:ty) => {
         impl<'ast> $crate::ast::common::CallableData<'ast> for $self_ty {

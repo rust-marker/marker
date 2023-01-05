@@ -19,8 +19,8 @@ use super::{
 };
 
 /// This converter combines a bunch of functions used to convert rustc items into
-/// api items. This is mainly used to group functions together and to not always
-/// pass the context around as an argument.
+/// api items. This is mainly used to group functions together and to avoid always
+/// passing the context around as an argument.
 pub struct ItemConverter<'ast, 'tcx> {
     cx: &'ast RustcContext<'ast, 'tcx>,
 }

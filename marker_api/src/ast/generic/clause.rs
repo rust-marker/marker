@@ -61,7 +61,7 @@ pub struct TyClause<'ast> {
 }
 
 impl<'ast> TyClause<'ast> {
-    /// Additional parameters introduced as part of this where clause with a `for`.
+    /// Additional parameters introduced as a part of this where clause with a `for`.
     pub fn params(&self) -> Option<&GenericParams<'ast>> {
         self.params.get()
     }

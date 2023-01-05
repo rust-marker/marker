@@ -160,7 +160,7 @@ impl<'ast> AstContext<'ast> {
 ///     required. These are not part of the stable API and can therefore be changed.
 ///
 /// Any changes to this struct will most likely require changes to the
-/// `DriverContextWrapper` implementation in the `liner_adapter` crate. That
+/// `DriverContextWrapper` implementation in the `marker_adapter` crate. That
 /// type provides a simple wrapper to avoid driver unrelated boilerplate code.
 #[repr(C)]
 #[doc(hidden)]

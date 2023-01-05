@@ -16,7 +16,7 @@
 /// marker_api::interface::export_lint_pass!(LintPassCustomValue, LintPassCustomValue(3));
 /// ```
 ///
-/// This macro will create some hidden items prefixed with two underscored. These
+/// This macro will create some hidden items prefixed with two underscores. These
 /// are unstable and can change in the future.
 ///
 /// ### Additional notes
@@ -60,9 +60,9 @@ pub use export_lint_pass;
 
 /// **!Unstable!**
 ///
-/// This function is used to generate external functions which can be used to
+/// This macro is used to generate external functions which can be used to
 /// transfer data safely over the C ABI. The counterpart passing the information
-/// to here is implemented in `liner_adapter`
+/// to here is implemented in `marker_adapter`
 #[macro_export]
 #[doc(hidden)]
 macro_rules! export_lint_pass_fn {

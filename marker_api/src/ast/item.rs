@@ -95,7 +95,7 @@ impl<'ast> AssocItemKind<'ast> {
     impl_item_type_fn!(AssocItemKind: name() -> Option<String>);
     impl_item_type_fn!(AssocItemKind: attrs() -> ());
     impl_item_type_fn!(AssocItemKind: as_item() -> ItemKind<'ast>);
-    // FIXME: Potentualy add a field to the items to optionally store the owner id
+    // FIXME: Potentially add a field to the items to optionally store the owner id
 }
 
 impl<'ast> From<AssocItemKind<'ast>> for ItemKind<'ast> {
@@ -240,7 +240,7 @@ impl<'ast> CommonItemData<'ast> {
     }
 }
 
-/// FIXME: Add function as  discussed in <https://github.com/rust-marker/design/issues/22>
+/// FIXME: Add function as discussed in <https://github.com/rust-marker/design/issues/22>
 /// this will require new driver callback functions
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
