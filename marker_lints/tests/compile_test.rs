@@ -57,7 +57,7 @@ struct TestSetup {
 fn run_test_setup() -> TestSetup {
     const CARGO_MARKER_INVOCATION: &[&str] = &["run", "--bin", "cargo-marker", "--features", "dev-build", "--"];
 
-    // ../rust-linting/marker_lints
+    // ../rust-marker/marker_lints
     let current_dir = env::current_dir().unwrap();
     let lint_crate_src = fs::canonicalize(&current_dir).unwrap();
     let mut cmd = Command::new("cargo");
