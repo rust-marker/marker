@@ -64,7 +64,7 @@ impl<'ast> UnionItem<'ast> {
 pub struct EnumItem<'ast> {
     data: CommonItemData<'ast>,
     generics: GenericParams<'ast>,
-    elements: FfiSlice<'ast, EnumVariant<'ast>>,
+    variants: FfiSlice<'ast, EnumVariant<'ast>>,
 }
 
 super::impl_item_data!(EnumItem, Enum);
@@ -74,18 +74,18 @@ impl<'ast> EnumItem<'ast> {
         &self.generics
     }
 
-    pub fn elements(&self) -> &[EnumVariant<'ast>] {
-        self.elements.get()
+    pub fn variants(&self) -> &[EnumVariant<'ast>] {
+        self.variants.get()
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> EnumItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, generics: GenericParams<'ast>, elements: &'ast [EnumVariant<'ast>]) -> Self {
+    pub fn new(data: CommonItemData<'ast>, generics: GenericParams<'ast>, variants: &'ast [EnumVariant<'ast>]) -> Self {
         Self {
             data,
             generics,
-            elements: elements.into(),
+            variants: variants.into(),
         }
     }
 }
@@ -106,29 +106,29 @@ impl<'ast> EnumVariant<'ast> {
 
     // FIXME: Add `fn attrs() -> ??? {}`
 
-    /// Returns `true` if this is a union element like:
+    /// Returns `true` if this is a unit variant like:
     ///
     /// ```
     /// pub enum Foo {
     ///     Bar,
     /// }
     /// ```
-    pub fn is_union_struct(&self) -> bool {
+    pub fn is_unit_variant(&self) -> bool {
         matches!(self.kind, AdtKind::Unit)
     }
 
-    /// Returns `true` if this is a tuple element like:
+    /// Returns `true` if this is a tuple variant like:
     ///
     /// ```
     /// pub enum Foo {
     ///     Bar(u32, u32)
     /// }
     /// ```
-    pub fn is_tuple_element(&self) -> bool {
+    pub fn is_tuple_variant(&self) -> bool {
         matches!(self.kind, AdtKind::Tuple(..))
     }
 
-    /// Returns `true` if this is an element with fields like:
+    /// Returns `true` if this is an variant with fields like:
     ///
     /// ```
     /// pub enum Foo {
@@ -138,7 +138,7 @@ impl<'ast> EnumVariant<'ast> {
     ///    }
     /// }
     /// ```
-    pub fn is_field_element(&self) -> bool {
+    pub fn is_field_variant(&self) -> bool {
         matches!(self.kind, AdtKind::Field(..))
     }
 
@@ -188,13 +188,13 @@ impl<'ast> StructItem<'ast> {
         &self.generics
     }
 
-    /// Returns `true` if this is a union struct like:
+    /// Returns `true` if this is a unit struct like:
     ///
     /// ```
     /// struct Name1;
     /// struct Name2 {};
     /// ```
-    pub fn is_union_struct(&self) -> bool {
+    pub fn is_unit_struct(&self) -> bool {
         matches!(self.kind, AdtKind::Unit)
     }
 
