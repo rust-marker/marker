@@ -67,6 +67,26 @@ macro_rules! lint_pass_fns {
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _item: &'ast $crate::ast::item::ConstItem<'ast>) -> ();
+            fn check_fn(
+                &(mut) self,
+                _cx: &'ast $crate::context::AstContext<'ast>,
+                _item: &'ast $crate::ast::item::FnItem<'ast>) -> ();
+            fn check_struct(
+                &(mut) self,
+                _cx: &'ast $crate::context::AstContext<'ast>,
+                _item: &'ast $crate::ast::item::StructItem<'ast>) -> ();
+            fn check_enum(
+                &(mut) self,
+                _cx: &'ast $crate::context::AstContext<'ast>,
+                _item: &'ast $crate::ast::item::EnumItem<'ast>) -> ();
+            fn check_field(
+                &(mut) self,
+                _cx: &'ast $crate::context::AstContext<'ast>,
+                _field: &'ast $crate::ast::item::Field<'ast>) -> ();
+            fn check_variant(
+                &(mut) self,
+                _cx: &'ast $crate::context::AstContext<'ast>,
+                _variant: &'ast $crate::ast::item::EnumVariant<'ast>) -> ();
         );
     };
 }
