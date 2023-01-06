@@ -2,6 +2,7 @@ use super::{ty::TyKind, ExprId, Span, SpanId};
 
 use std::{fmt::Debug, marker::PhantomData};
 
+// Literal expressions
 mod int_lit_expr;
 pub use int_lit_expr::*;
 mod float_lit_expr;
@@ -12,6 +13,9 @@ mod char_lit_expr;
 pub use char_lit_expr::*;
 mod bool_lit_expr;
 pub use bool_lit_expr::*;
+// other expressions
+mod block_expr;
+pub use block_expr::*;
 mod unstable_expr;
 pub use unstable_expr::*;
 
@@ -38,6 +42,7 @@ pub enum ExprKind<'ast> {
     StrLit(&'ast StrLitExpr<'ast>),
     CharLit(&'ast CharLitExpr<'ast>),
     BoolLit(&'ast BoolLitExpr<'ast>),
+    Block(&'ast BlockExpr<'ast>),
     Unstable(&'ast UnstableExpr<'ast>),
 }
 
@@ -45,6 +50,7 @@ pub enum ExprKind<'ast> {
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
 pub enum ExprPrecedence {
+    Block,
     Lit,
     /// The precedents originates from an unstable source. The stored value provides
     /// the current precedence of this expression. This is open to change
@@ -57,9 +63,9 @@ pub enum ExprPrecedence {
 struct CommonExprData<'ast> {
     /// The lifetime is not needed right now, but it's safer to include it for
     /// future additions. Having it in this struct makes it easier for all
-    /// pattern structs, as they will have a valid use for `'ast` even if they
+    /// expression structs, as they will have a valid use for `'ast` even if they
     /// don't need it. Otherwise, we might need to declare this field in each
-    /// pattern.
+    /// expression.
     _lifetime: PhantomData<&'ast ()>,
     id: ExprId,
     span: SpanId,
@@ -67,11 +73,11 @@ struct CommonExprData<'ast> {
 
 macro_rules! impl_expr_data {
     ($self_ty:ty, $enum_name:ident) => {
-        impl_expr_data!($self_ty, $enum_name,
-            fn precedence(&self) -> ExprPrecedence {
+        $crate::ast::expr::impl_expr_data!($self_ty, $enum_name,
+            fn precedence(&self) -> $crate::ast::expr::ExprPrecedence {
                 $crate::ast::expr::ExprPrecedence::$enum_name
             }
-        )
+        );
     };
     ($self_ty:ty, $enum_name:ident, $precedence_fn:item) => {
         impl<'ast> super::ExprData<'ast> for $self_ty {

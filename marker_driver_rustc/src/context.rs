@@ -82,7 +82,7 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
     }
 
     fn body(&'ast self, id: BodyId) -> &'ast Body<'ast> {
-        // This comment sounds kind of ominous xD
+        // This message sounds kind of ominous xD
         todo!("a body was requested {id:#?}");
     }
 

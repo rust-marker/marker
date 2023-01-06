@@ -278,7 +278,9 @@ impl<'ast> Body<'ast> {
         self.owner
     }
 
-    /// The expression wrapped by this body.
+    /// The expression wrapped by this body. In some cases, like for functions
+    /// this expression is guaranteed to be a
+    /// [block expression](`crate::ast::expr::BlockExpr`).
     pub fn expr(&self) -> ExprKind<'ast> {
         self.expr
     }

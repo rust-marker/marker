@@ -1,6 +1,6 @@
 use crate::ffi::FfiOption;
 
-use super::{item::ItemKind, pat::PatKind, ty::TyKind};
+use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::TyKind};
 
 #[repr(C)]
 #[non_exhaustive]
@@ -8,7 +8,7 @@ use super::{item::ItemKind, pat::PatKind, ty::TyKind};
 pub enum StmtKind<'ast> {
     Item(&'ast ItemKind<'ast>),
     Let(&'ast LetStmt<'ast>),
-    // FIXME: Add expression variant
+    Expr(&'ast ExprKind<'ast>),
 }
 
 #[repr(C)]
@@ -16,8 +16,8 @@ pub enum StmtKind<'ast> {
 pub struct LetStmt<'ast> {
     pat: PatKind<'ast>,
     ty: FfiOption<TyKind<'ast>>,
-    // TODO add optional init expression
-    // TODO add optional else expression
+    init_expr: ExprKind<'ast>,
+    else_expr: FfiOption<ExprKind<'ast>>,
 }
 
 impl<'ast> LetStmt<'ast> {
@@ -30,5 +30,28 @@ impl<'ast> LetStmt<'ast> {
         self.ty.copy()
     }
 
-    // FIXME: Add new method once expressions kind of exist.
+    pub fn init_expr(&self) -> ExprKind<'ast> {
+        self.init_expr
+    }
+
+    pub fn else_expr(&self) -> FfiOption<ExprKind> {
+        self.else_expr
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> LetStmt<'ast> {
+    pub fn new(
+        pat: PatKind<'ast>,
+        ty: Option<TyKind<'ast>>,
+        init_expr: ExprKind<'ast>,
+        else_expr: Option<ExprKind<'ast>>,
+    ) -> Self {
+        Self {
+            pat,
+            ty: ty.into(),
+            init_expr,
+            else_expr: else_expr.into(),
+        }
+    }
 }
