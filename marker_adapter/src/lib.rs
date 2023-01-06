@@ -59,7 +59,7 @@ impl<'ast> Adapter<'ast> {
             },
             ItemKind::Enum(data) => {
                 self.external_lint_crates.check_enum(cx, data);
-                for variant in data.elements() {
+                for variant in data.variants() {
                     self.external_lint_crates.check_variant(cx, variant);
                     for field in variant.fields() {
                         self.external_lint_crates.check_field(cx, field);
