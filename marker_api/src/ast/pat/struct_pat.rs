@@ -12,7 +12,7 @@ pub struct StructPat<'ast> {
     data: CommonPatData<'ast>,
     path: AstPath<'ast>,
     fields: FfiSlice<'ast, StructFieldPat<'ast>>,
-    is_exhaustive: bool,
+    is_non_exhaustive: bool,
 }
 
 impl<'ast> StructPat<'ast> {
@@ -28,7 +28,7 @@ impl<'ast> StructPat<'ast> {
     /// cover all fields, but have a rest pattern (`..`) to map for potential new
     /// fields or if the struct has been marked as `non_exhaustive`.
     pub fn is_non_exhaustive(&self) -> bool {
-        self.is_exhaustive
+        self.is_non_exhaustive
     }
 }
 
@@ -40,13 +40,13 @@ impl<'ast> StructPat<'ast> {
         data: CommonPatData<'ast>,
         path: AstPath<'ast>,
         fields: &'ast [StructFieldPat<'ast>],
-        is_exhaustive: bool,
+        is_non_exhaustive: bool,
     ) -> Self {
         Self {
             data,
             path,
             fields: fields.into(),
-            is_exhaustive,
+            is_non_exhaustive,
         }
     }
 }

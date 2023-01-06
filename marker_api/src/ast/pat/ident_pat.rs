@@ -42,7 +42,7 @@ impl<'ast> IdentPat<'ast> {
     /// //  ^   ^^^
     /// //  |     +-- The pattern, that the variable is bound to
     /// //  |
-    /// //  +-------- The variable which is bound
+    /// //  +-------- The bound variable
     ///     _ => println!("x is most likely negative"),
     /// }
     /// ```
