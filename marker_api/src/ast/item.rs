@@ -1,5 +1,6 @@
 use std::{fmt::Debug, marker::PhantomData};
 
+use super::expr::ExprKind;
 use super::{ItemId, Span, SymbolId};
 
 // Item implementations
@@ -255,5 +256,30 @@ impl<'ast> Visibility<'ast> {
             _lifetime: PhantomData,
             _item_id: item_id,
         }
+    }
+}
+
+/// A body represents the expression of items.
+///
+/// Bodies act like a barrier between the item and expression level. When items
+/// are requested, only the item information is retrieved and converted. Any
+/// expression parts of these items are wrapped into a body, identified via a
+/// [`BodyId`](`super::BodyId`). The body and its content will only be converted
+/// request.
+#[repr(C)]
+#[derive(Debug)]
+pub struct Body<'ast> {
+    owner: ItemId,
+    expr: ExprKind<'ast>,
+}
+
+impl<'ast> Body<'ast> {
+    pub fn owner(&self) -> ItemId {
+        self.owner
+    }
+
+    /// The expression wrapped by this body.
+    pub fn expr(&self) -> ExprKind<'ast> {
+        self.expr
     }
 }

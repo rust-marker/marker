@@ -1,5 +1,8 @@
 use marker_api::{
-    ast::{item::ItemKind, ItemId, Span, SpanOwner, SymbolId},
+    ast::{
+        item::{Body, ItemKind},
+        BodyId, ItemId, Span, SpanOwner, SymbolId,
+    },
     context::DriverCallbacks,
     ffi::{self, FfiOption},
     lint::Lint,
@@ -33,6 +36,7 @@ impl<'ast> DriverContextWrapper<'ast> {
             driver_context: unsafe { &*(self as *const DriverContextWrapper).cast::<()>() },
             emit_lint,
             item,
+            body,
             get_span,
             span_snippet,
             symbol_str,
@@ -44,6 +48,11 @@ impl<'ast> DriverContextWrapper<'ast> {
 extern "C" fn item<'ast>(data: &(), id: ItemId) -> FfiOption<ItemKind<'ast>> {
     let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
     wrapper.driver_cx.item(id).into()
+}
+
+extern "C" fn body<'ast>(data: &(), id: BodyId) -> &'ast Body<'ast> {
+    let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
+    wrapper.driver_cx.body(id)
 }
 
 extern "C" fn emit_lint(data: &(), lint: &'static Lint, msg: ffi::Str, span: &Span<'_>) {
@@ -68,6 +77,7 @@ extern "C" fn symbol_str<'ast>(data: &(), sym: SymbolId) -> ffi::Str<'ast> {
 
 pub trait DriverContext<'ast> {
     fn item(&'ast self, id: ItemId) -> Option<ItemKind<'ast>>;
+    fn body(&'ast self, id: BodyId) -> &'ast Body<'ast>;
     fn emit_lint(&'ast self, lint: &'static Lint, msg: &str, span: &Span<'ast>);
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast>;
     fn span_snippet(&'ast self, span: &Span) -> Option<&'ast str>;

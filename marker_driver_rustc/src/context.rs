@@ -2,7 +2,10 @@ use std::cell::OnceCell;
 
 use marker_adapter::context::{DriverContext, DriverContextWrapper};
 use marker_api::{
-    ast::{item::ItemKind, ItemId, Span, SpanOwner, SymbolId},
+    ast::{
+        item::{Body, ItemKind},
+        BodyId, ItemId, Span, SpanOwner, SymbolId,
+    },
     context::AstContext,
     lint::Lint,
 };
@@ -76,6 +79,11 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
 
     fn item(&'ast self, id: ItemId) -> Option<ItemKind<'ast>> {
         ItemConverter::new(self).conv_item_from_id(id)
+    }
+
+    fn body(&'ast self, id: BodyId) -> &'ast Body<'ast> {
+        // This comment sounds kind of ominous xD
+        todo!("a body was requested {id:#?}");
     }
 
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast> {

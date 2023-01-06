@@ -1,7 +1,10 @@
 use std::{cell::RefCell, mem::transmute};
 
 use crate::{
-    ast::{item::ItemKind, ItemId, Span, SpanOwner, SymbolId},
+    ast::{
+        item::{Body, ItemKind},
+        BodyId, ItemId, Span, SpanOwner, SymbolId,
+    },
     ffi,
     lint::Lint,
 };
@@ -125,6 +128,10 @@ impl<'ast> AstContext<'ast> {
     pub fn item(&self, id: ItemId) -> Option<ItemKind<'ast>> {
         self.driver.call_item(id)
     }
+
+    pub fn body(&self, id: BodyId) -> &Body<'ast> {
+        self.driver.call_body(id)
+    }
 }
 
 impl<'ast> AstContext<'ast> {
@@ -169,6 +176,7 @@ struct DriverCallbacks<'ast> {
     // Public utility
     pub emit_lint: for<'a> extern "C" fn(&'ast (), &'static Lint, ffi::Str<'a>, &Span<'ast>),
     pub item: extern "C" fn(&'ast (), id: ItemId) -> ffi::FfiOption<ItemKind<'ast>>,
+    pub body: extern "C" fn(&'ast (), id: BodyId) -> &'ast Body<'ast>,
 
     // Internal utility
     pub get_span: extern "C" fn(&'ast (), &SpanOwner) -> &'ast Span<'ast>,
@@ -192,5 +200,8 @@ impl<'ast> DriverCallbacks<'ast> {
     }
     fn call_symbol_str(&self, sym: SymbolId) -> String {
         (self.symbol_str)(self.driver_context, sym).to_string()
+    }
+    pub fn call_body(&self, id: BodyId) -> &'ast Body<'ast> {
+        (self.body)(self.driver_context, id)
     }
 }
