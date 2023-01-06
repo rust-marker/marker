@@ -7,24 +7,22 @@ use crate::context::RustcContext;
 
 use super::{to_generic_id, to_item_id, to_span_id, to_symbol_id, ty::TyConverter};
 
-pub fn to_api_lifetime<'ast, 'tcx>(
-    _cx: &'ast RustcContext<'ast, 'tcx>,
+pub fn to_api_lifetime<'ast>(
+    _cx: &'ast RustcContext<'ast, '_>,
     rust_lt: &rustc_hir::Lifetime,
 ) -> Option<Lifetime<'ast>> {
-    let kind = match rust_lt.name {
-        rustc_hir::LifetimeName::Param(local_id, rustc_hir::ParamName::Plain(ident)) => {
-            LifetimeKind::Label(to_symbol_id(ident.name), to_generic_id(local_id.to_def_id()))
+    let kind = match rust_lt.res {
+        rustc_hir::LifetimeName::Param(_) if rust_lt.is_anonymous() => return None,
+        rustc_hir::LifetimeName::Param(local_id) => {
+            LifetimeKind::Label(to_symbol_id(rust_lt.ident.name), to_generic_id(local_id.to_def_id()))
         },
-        rustc_hir::LifetimeName::Param(_local_id, rustc_hir::ParamName::Fresh) => return None,
         rustc_hir::LifetimeName::ImplicitObjectLifetimeDefault => return None,
         rustc_hir::LifetimeName::Infer => LifetimeKind::Infer,
         rustc_hir::LifetimeName::Static => LifetimeKind::Static,
-        rustc_hir::LifetimeName::Param(_, rustc_hir::ParamName::Error) | rustc_hir::LifetimeName::Error => {
-            unreachable!("would have triggered a rustc error")
-        },
+        rustc_hir::LifetimeName::Error => unreachable!("would have triggered a rustc error"),
     };
 
-    Some(Lifetime::new(Some(to_span_id(rust_lt.span)), kind))
+    Some(Lifetime::new(Some(to_span_id(rust_lt.ident.span)), kind))
 }
 
 pub fn to_api_generic_args_from_path<'ast, 'tcx>(
