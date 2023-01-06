@@ -1,8 +1,5 @@
 use marker_api::ast::{
-    generic::{
-        GenericParamKind, GenericParams, LifetimeClause, LifetimeParam, TraitBound, TyClause, TyParam, TyParamBound,
-        WhereClauseKind,
-    },
+    generic::{GenericParamKind, GenericParams, LifetimeClause, LifetimeParam, TyClause, TyParam, WhereClauseKind},
     item::{
         AdtKind, AssocItemKind, CommonItemData, ConstItem, EnumItem, EnumVariant, ExternBlockItem, ExternCrateItem,
         ExternItemKind, Field, FnItem, ImplItem, ItemKind, ModItem, StaticItem, StructItem, TraitItem, TyAliasItem,
@@ -16,7 +13,7 @@ use rustc_hir as hir;
 use crate::context::RustcContext;
 
 use super::{
-    generic::{to_api_lifetime, to_api_trait_ref},
+    generic::{conv_ast_bound, to_api_lifetime, to_api_trait_ref},
     to_api_abi, to_api_body_id, to_api_path, to_generic_id, to_item_id, to_rustc_item_id, to_span_id, to_symbol_id,
     ty::TyConverter,
 };
@@ -115,7 +112,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                     data,
                     matches!(unsafety, hir::Unsafety::Unsafe),
                     self.conv_generic(generics),
-                    self.conv_generic_bounds(bounds),
+                    conv_ast_bound(self.cx, bounds),
                     self.conv_trait_items(items),
                 )
             })),
@@ -219,7 +216,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                 TyAliasItem::new(
                     data,
                     self.conv_generic(trait_item.generics),
-                    self.conv_generic_bounds(bounds),
+                    conv_ast_bound(self.cx, bounds),
                     ty.map(|ty| self.conv_ty(ty)),
                 )
             })),
@@ -310,31 +307,6 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
         self.cx.storage.alloc_slice_iter(params.into_iter())
     }
 
-    fn conv_generic_bounds(&self, bounds: hir::GenericBounds<'tcx>) -> &'ast [TyParamBound<'ast>] {
-        if bounds.is_empty() {
-            return &[];
-        }
-
-        let bounds: Vec<_> = bounds
-            .iter()
-            .filter_map(|bound| match bound {
-                hir::GenericBound::Trait(trait_ref, modifier) => Some(TyParamBound::TraitBound(self.alloc(|| {
-                    TraitBound::new(
-                        !matches!(modifier, hir::TraitBoundModifier::None),
-                        to_api_trait_ref(self.cx, &trait_ref.trait_ref),
-                        to_span_id(bound.span()),
-                    )
-                }))),
-                hir::GenericBound::LangItemTrait(_, _, _, _) => todo!(),
-                hir::GenericBound::Outlives(rust_lt) => {
-                    to_api_lifetime(self.cx, rust_lt).map(|api_lt| TyParamBound::Lifetime(self.alloc(|| api_lt)))
-                },
-            })
-            .collect();
-
-        self.cx.storage.alloc_slice_iter(bounds.into_iter())
-    }
-
     fn conv_generic(&self, rustc_generics: &hir::Generics<'tcx>) -> GenericParams<'ast> {
         // FIXME: Update implementation to store the parameter bounds in the parameters
         let clauses: Vec<_> = rustc_generics
@@ -348,7 +320,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
                         let params = GenericParams::new(self.conv_generic_params(ty_bound.bound_generic_params), &[]);
                         let ty = self.conv_ty(ty_bound.bounded_ty);
                         Some(WhereClauseKind::Ty(self.alloc(|| {
-                            TyClause::new(Some(params), ty, self.conv_generic_bounds(predicate.bounds()))
+                            TyClause::new(Some(params), ty, conv_ast_bound(self.cx, predicate.bounds()))
                         })))
                     },
                     hir::WherePredicate::RegionPredicate(lifetime_bound) => {

@@ -2,13 +2,42 @@ use marker_api::ast::{
     generic::{BindingGenericArg, GenericArgKind, GenericArgs, Lifetime, LifetimeKind, TraitBound, TyParamBound},
     TraitRef,
 };
+use rustc_hir as hir;
 
 use crate::context::RustcContext;
 
 use super::{to_generic_id, to_item_id, to_span_id, to_symbol_id, ty::TyConverter};
 
-pub fn to_api_lifetime<'ast>(
-    _cx: &'ast RustcContext<'ast, '_>,
+pub fn conv_ast_bound<'ast, 'tcx>(
+    cx: &'ast RustcContext<'ast, 'tcx>,
+    bounds: &'tcx [hir::GenericBound],
+) -> &'ast [TyParamBound<'ast>] {
+    if bounds.is_empty() {
+        return &[];
+    }
+
+    let bounds: Vec<_> = bounds
+        .iter()
+        .filter_map(|bound| match bound {
+            hir::GenericBound::Trait(trait_ref, modifier) => Some(TyParamBound::TraitBound(cx.storage.alloc(|| {
+                TraitBound::new(
+                    !matches!(modifier, hir::TraitBoundModifier::None),
+                    to_api_trait_ref(cx, &trait_ref.trait_ref),
+                    to_span_id(bound.span()),
+                )
+            }))),
+            hir::GenericBound::LangItemTrait(_, _, _, _) => todo!(),
+            hir::GenericBound::Outlives(rust_lt) => {
+                to_api_lifetime(cx, rust_lt).map(|api_lt| TyParamBound::Lifetime(cx.storage.alloc(|| api_lt)))
+            },
+        })
+        .collect();
+
+    cx.storage.alloc_slice_iter(bounds.into_iter())
+}
+
+pub fn to_api_lifetime<'ast, 'tcx>(
+    _cx: &'ast RustcContext<'ast, 'tcx>,
     rust_lt: &rustc_hir::Lifetime,
 ) -> Option<Lifetime<'ast>> {
     let kind = match rust_lt.res {
