@@ -78,6 +78,7 @@ fn main() -> Result<(), ExitStatus> {
     );
 
     let verbose = matches.get_flag("verbose");
+    let dev_build = cfg!(feature = "dev-build");
 
     if matches.get_flag("version") {
         print_version(verbose);
@@ -85,14 +86,19 @@ fn main() -> Result<(), ExitStatus> {
     }
 
     match matches.subcommand() {
-        Some(("setup", _args)) => driver::install_driver(verbose),
-        Some(("check", args)) => run_check(args, verbose),
-        None => run_check(&matches, verbose),
+        Some(("setup", _args)) => driver::install_driver(verbose, dev_build),
+        Some(("check", args)) => run_check(args, verbose, dev_build),
+        None => run_check(&matches, verbose, dev_build),
         _ => unreachable!(),
     }
 }
 
-fn run_check(matches: &clap::ArgMatches, verbose: bool) -> Result<(), ExitStatus> {
+fn run_check(matches: &clap::ArgMatches, verbose: bool, dev_build: bool) -> Result<(), ExitStatus> {
+    // If this is a dev build, we want to recompile the driver before checking
+    if dev_build {
+        driver::install_driver(verbose, dev_build)?;
+    }
+
     let mut lint_crates = vec![];
     if let Some(cmd_lint_crates) = matches.get_many::<OsString>("lints") {
         println!();

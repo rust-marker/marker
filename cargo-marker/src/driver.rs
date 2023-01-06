@@ -41,7 +41,7 @@ pub fn print_driver_version() {
 }
 
 /// This tries to install the rustc driver specified in [`DEFAULT_DRIVER_INFO`].
-pub fn install_driver(verbose: bool) -> Result<(), ExitStatus> {
+pub fn install_driver(verbose: bool, dev_build: bool) -> Result<(), ExitStatus> {
     // The toolchain, driver version and api version should ideally be configurable.
     // However, that will require more prototyping and has a low priority rn.
     // See #60
@@ -50,12 +50,7 @@ pub fn install_driver(verbose: bool) -> Result<(), ExitStatus> {
     let toolchain = &DEFAULT_DRIVER_INFO.toolchain;
     check_toolchain(toolchain)?;
 
-    build_driver(
-        toolchain,
-        &DEFAULT_DRIVER_INFO.version,
-        verbose,
-        cfg!(feature = "dev-build"),
-    )?;
+    build_driver(toolchain, &DEFAULT_DRIVER_INFO.version, verbose, dev_build)?;
 
     // We don't want to advice the user, to install the driver again.
     check_driver(verbose, false)

@@ -1,7 +1,8 @@
 use marker_api::ast::{
     ty::{
-        AliasTy, ArrayTy, BoolTy, CommonTyData, EnumTy, FnTy, GenericTy, InferredTy, NeverTy, NumKind, NumTy, RawPtrTy,
-        RefTy, RelativeTy, SelfTy, SliceTy, StructTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind, UnionTy,
+        AliasTy, ArrayTy, BoolTy, CommonTyData, EnumTy, FnTy, GenericTy, ImplTraitTy, InferredTy, NeverTy, NumKind,
+        NumTy, RawPtrTy, RefTy, RelativeTy, SelfTy, SliceTy, StructTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind,
+        UnionTy,
     },
     CommonCallableData, Parameter,
 };
@@ -12,7 +13,7 @@ use crate::{
 };
 
 use super::{
-    generic::{to_api_generic_args, to_api_lifetime, to_api_trait_bounds_from_hir},
+    generic::{conv_ast_bound, to_api_generic_args, to_api_lifetime, to_api_trait_bounds_from_hir},
     to_generic_id, to_item_id, to_span_id, to_ty_def_id,
 };
 
@@ -82,10 +83,15 @@ impl<'ast, 'tcx> TyConverter<'ast, 'tcx> {
                 TyKind::Tuple(self.cx.storage.alloc(|| TupleTy::new(data, api_tys)))
             },
             hir::TyKind::Path(qpath) => self.conv_syn_qpath(data, qpath),
-            hir::TyKind::OpaqueDef(_, _, _) => {
-                // This requires function items to be implemented. Therefore we'll leave this as an open TODO for
-                // now
-                todo!("{:#?}", rustc_ty)
+            hir::TyKind::OpaqueDef(id, _, _) => {
+                // `impl Trait` in rustc are implemented as Items with the kind `OpaqueTy`
+                let item = self.cx.rustc_cx.hir().item(*id);
+                let hir::ItemKind::OpaqueTy(opty) = &item.kind else {
+                    unreachable!("the item of a `OpaqueDef` should be `OpaqueTy` {item:#?}");
+                };
+                let rust_bound = conv_ast_bound(self.cx, opty.bounds);
+                // FIXME: Generics are a bit weird with opaque types
+                TyKind::ImplTrait(self.cx.storage.alloc(|| ImplTraitTy::new(data, rust_bound)))
             },
             hir::TyKind::TraitObject(rust_bounds, rust_lt, _syntax) => TyKind::TraitObj(
                 self.cx
