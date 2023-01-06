@@ -7,6 +7,7 @@ use self::item::ItemKind;
 
 pub mod generic;
 pub mod item;
+pub mod pat;
 pub mod ty;
 
 #[derive(Debug)]

@@ -65,6 +65,26 @@ new_id! {
 }
 
 new_id! {
+    /// This ID uniquely identifies a variable during linting.
+    ///
+    /// A variable can have several declaration spots. This can happen if they
+    /// originate from an or binding. Like this:
+    /// ```
+    /// # #[allow(dead_code)]
+    /// # enum Helper {
+    /// #     One(&'static str),
+    /// #     Two(&'static str),
+    /// #     Three(&'static str),
+    /// # }
+    /// # let source = Helper::Three("duck");
+    /// if let Helper::One(msg) | Helper::Two(msg) = source {
+    ///     println!("{msg}");
+    /// }
+    /// ```
+    pub VarId: u64
+}
+
+new_id! {
     /// **Unstable**
     ///
     /// This id is used to identify `Span`s. This type is only intended for internal
