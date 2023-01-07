@@ -18,7 +18,7 @@ pub struct IdentPat<'ast> {
 }
 
 impl<'ast> IdentPat<'ast> {
-    pub fn name(&self) -> String {
+    pub fn name(&self) -> &str {
         with_cx(self, |cx| cx.symbol_str(self.name))
     }
 

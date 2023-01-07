@@ -42,7 +42,7 @@ pub trait ItemData<'ast>: Debug {
     fn visibility(&self) -> &Visibility<'ast>;
 
     /// This function can return [`None`] if the item was generated and has no real name
-    fn name(&self) -> Option<String>;
+    fn name(&self) -> Option<&str>;
 
     /// This returns this [`ItemData`] instance as a [`ItemKind`]. This can be useful for
     /// functions that take [`ItemKind`] as a parameter. For general function calls it's better
@@ -76,7 +76,7 @@ impl<'ast> ItemKind<'ast> {
     impl_item_type_fn!(ItemKind: id() -> ItemId);
     impl_item_type_fn!(ItemKind: span() -> &Span<'ast>);
     impl_item_type_fn!(ItemKind: visibility() -> &Visibility<'ast>);
-    impl_item_type_fn!(ItemKind: name() -> Option<String>);
+    impl_item_type_fn!(ItemKind: name() -> Option<&str>);
     impl_item_type_fn!(ItemKind: attrs() -> ());
 }
 
@@ -92,7 +92,7 @@ impl<'ast> AssocItemKind<'ast> {
     impl_item_type_fn!(AssocItemKind: id() -> ItemId);
     impl_item_type_fn!(AssocItemKind: span() -> &Span<'ast>);
     impl_item_type_fn!(AssocItemKind: visibility() -> &Visibility<'ast>);
-    impl_item_type_fn!(AssocItemKind: name() -> Option<String>);
+    impl_item_type_fn!(AssocItemKind: name() -> Option<&str>);
     impl_item_type_fn!(AssocItemKind: attrs() -> ());
     impl_item_type_fn!(AssocItemKind: as_item() -> ItemKind<'ast>);
     // FIXME: Potentially add a field to the items to optionally store the owner id
@@ -132,7 +132,7 @@ impl<'ast> ExternItemKind<'ast> {
     impl_item_type_fn!(ExternItemKind: id() -> ItemId);
     impl_item_type_fn!(ExternItemKind: span() -> &Span<'ast>);
     impl_item_type_fn!(ExternItemKind: visibility() -> &Visibility<'ast>);
-    impl_item_type_fn!(ExternItemKind: name() -> Option<String>);
+    impl_item_type_fn!(ExternItemKind: name() -> Option<&str>);
     impl_item_type_fn!(ExternItemKind: attrs() -> ());
     impl_item_type_fn!(ExternItemKind: as_item() -> ItemKind<'ast>);
 }
@@ -212,7 +212,7 @@ macro_rules! impl_item_data {
                 &self.data.vis
             }
 
-            fn name(&self) -> Option<String> {
+            fn name(&self) -> Option<&str> {
                 Some($crate::context::with_cx(self, |cx| cx.symbol_str(self.data.name)))
             }
 

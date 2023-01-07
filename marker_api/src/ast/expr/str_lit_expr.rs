@@ -21,30 +21,18 @@ impl<'ast> StrLitExpr<'ast> {
     /// This returns the UTF-8 string value of the string, if possible. Normal
     /// and raw strings in Rust are required to be UTF-8. Byte strings will be
     /// converted to UTF-8 if possible, otherwise `None` will be returned
-    pub fn str_value(&self) -> Option<String> {
+    pub fn str_value(&self) -> Option<&str> {
         match &self.str_data {
             StrKindWithData::Str(sym) | StrKindWithData::Raw(sym) => Some(with_cx(self, |cx| cx.symbol_str(*sym))),
-            StrKindWithData::Byte(bytes) => std::str::from_utf8(bytes.get()).map(ToString::to_string).ok(),
+            StrKindWithData::Byte(bytes) => std::str::from_utf8(bytes.get()).ok(),
         }
     }
 
     /// Returns the value of the string as bytes.
-    pub fn byte_value(&self) -> Box<[u8]> {
-        // The context currently returns symbols as a `String` which makes it
-        // difficult to return the bytes as a byte slice. This could be improved
-        // if the `symbol_str` returns `&'ast str`. But that's a larger todo for
-        // another time :)
-        fn box_slice(bytes: &[u8]) -> Box<[u8]> {
-            let mut vec = Vec::with_capacity(bytes.len());
-            vec.extend_from_slice(bytes);
-            vec.into_boxed_slice()
-        }
+    pub fn byte_value(&self) -> &[u8] {
         match &self.str_data {
-            StrKindWithData::Str(sym) | StrKindWithData::Raw(sym) => {
-                let str_value = with_cx(self, |cx| cx.symbol_str(*sym));
-                box_slice(str_value.as_bytes())
-            },
-            StrKindWithData::Byte(bytes) => box_slice(bytes.get()),
+            StrKindWithData::Str(sym) | StrKindWithData::Raw(sym) => with_cx(self, |cx| cx.symbol_str(*sym)).as_bytes(),
+            StrKindWithData::Byte(bytes) => bytes.get(),
         }
     }
 }

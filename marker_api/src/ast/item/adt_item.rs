@@ -100,7 +100,7 @@ pub struct EnumVariant<'ast> {
 }
 
 impl<'ast> EnumVariant<'ast> {
-    pub fn ident(&self) -> String {
+    pub fn ident(&self) -> &str {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
 
@@ -270,7 +270,7 @@ impl<'ast> Field<'ast> {
         &self.vis
     }
 
-    pub fn ident(&self) -> String {
+    pub fn ident(&self) -> &str {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
 

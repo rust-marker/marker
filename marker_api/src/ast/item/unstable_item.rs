@@ -15,7 +15,7 @@ pub struct UnstableItem<'ast> {
 super::impl_item_data!(UnstableItem, Unstable);
 
 impl<'ast> UnstableItem<'ast> {
-    pub fn feature(&self) -> Option<String> {
+    pub fn feature(&self) -> Option<&str> {
         self.feature
             .get()
             .map(|feature| with_cx(self, |cx| cx.symbol_str(*feature)))

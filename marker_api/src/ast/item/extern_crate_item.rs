@@ -30,7 +30,7 @@ impl<'ast> ExternCrateItem<'ast> {
     /// declared an alias with `as`.
     ///
     /// In most cases, you want to use this over the `get_name()` function.
-    pub fn crate_name(&self) -> String {
+    pub fn crate_name(&self) -> &str {
         with_cx(self, |cx| cx.symbol_str(self.crate_name))
     }
 }

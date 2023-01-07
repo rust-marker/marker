@@ -30,6 +30,15 @@ impl<'a> From<&'a str> for Str<'a> {
     }
 }
 
+impl<'a> Str<'a> {
+    pub fn get(&self) -> &'a str {
+        unsafe {
+            let data = slice::from_raw_parts(self.data, self.len);
+            std::str::from_utf8_unchecked(data)
+        }
+    }
+}
+
 impl<'a> From<&Str<'a>> for &'a str {
     fn from(src: &Str<'a>) -> Self {
         unsafe {
