@@ -1,12 +1,16 @@
 # Marker API
 
-This crate provides the stable API for lint crates. Here you can find representations for a simple variable name up to the AST of an entire crate. This is the only dependency needed to get start with a new *linting crate*.
+This crate provides the stable API for lint crates.
+Here you can find representations for a simple variable name up to the AST of an entire crate.
+This is the only dependency needed to get start with a new *linting crate*.
 
 :warning: This crate also contains some unstable items, which are required by the current infrastructure. These items are clearly marked and hidden from the documentation. :warning:
 
 ## Getting started
 
-To get started, create a new cargo project that compiles to a library (`cargo init --lib`). Afterwards, the `Cargo.toml` has to be edited to compile the crate to a dynamic library. You can simply add the following after the `[package]` values:
+To get started, create a new cargo project that compiles to a library (`cargo init --lib`).
+Afterwards, the `Cargo.toml` has to be edited to compile the crate to a dynamic library.
+You can simply add the following after the `[package]` values:
 
 ```toml
 [lib]

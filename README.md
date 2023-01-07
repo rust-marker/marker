@@ -4,11 +4,13 @@ A project trying to implement a stable linting API for Rust.
 
 ## Contributing
 
-The internal structure of marker and its component is documented in [`docs/internal/`](./docs/internal/).
+The internal structure of marker and its components is documented in [`docs/internal/`](./docs/internal/).
 
 ## Running
 
-The project is currently only available in this GitHub repo. For a quick test, checkout the repo and run `cargo run --bin cargo-marker -- -l ./marker_lints`. This will start `cargo-marker`, load [`./marker_lints`](./marker_lints) as a *lint crate* and run it in this repository.
+The project is currently only available in this GitHub repo.
+For a quick test, checkout the repo and run `cargo run --bin cargo-marker -- -l ./marker_lints`.
+This will start `cargo-marker`, load [`./marker_lints`](./marker_lints) as a *lint crate* and run it in this repository.
 
 ## License
 
