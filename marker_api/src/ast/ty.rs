@@ -84,7 +84,7 @@ pub trait TyData<'ast> {
     /// Returns `true`, if this type instance is a semantic type, which was
     /// determined by the driver during translation.
     ///
-    /// See [`is_syntactic`][`TyData::is_syntactic`] for an example.
+    /// See [`is_syntactic`](`TyData::is_syntactic`) for an example.
     fn is_semantic(&self) -> bool;
 }
 

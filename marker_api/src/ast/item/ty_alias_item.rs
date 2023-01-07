@@ -31,7 +31,7 @@ impl<'ast> TyAliasItem<'ast> {
         &self.generics
     }
 
-    /// Type aliases in [`TraitItem`][`super::TraitItem`]s can declare bounds on
+    /// Type aliases in [`TraitItem`](`super::TraitItem`)s can declare bounds on
     /// their types, which implementors needs to follow. This method returns these
     /// bounds. It'll return an empty slice, for type aliases which don't have any
     /// bounds declared.

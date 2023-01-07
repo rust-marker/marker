@@ -19,6 +19,7 @@ pub enum Edition {
     Edition2021,
 }
 
+// FIXME: This will need to be updated according to rust-lang/rustfix#200
 #[non_exhaustive]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Applicability {
@@ -54,23 +55,6 @@ pub enum Abi {
     /// FIXME: Remove this variant. See
     /// <https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/spec/abi/enum.Abi.html>
     Other,
-}
-
-pub struct Spanned<'ast, T> {
-    pub node: T,
-    pub span: &'ast Span<'ast>,
-}
-
-#[cfg(feature = "driver-api")]
-impl<'ast, T> Spanned<'ast, T> {
-    #[must_use]
-    pub fn new(node: T, span: &'ast Span<'ast>) -> Self {
-        Self { node, span }
-    }
-}
-
-pub trait Attribute<'ast>: Debug {
-    // FIXME: Add attribute functions
 }
 
 #[repr(C)]

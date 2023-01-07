@@ -17,7 +17,7 @@ use crate::ffi::FfiOption;
 /// ```
 ///
 /// Bounds declared with the parameter, like the `: Copy` in the example above,
-/// are stored in the [`GenericParams`][`super::GenericParams`] of the item, that
+/// are stored in the [`GenericParams`](`super::GenericParams`) of the item, that
 /// introduced this parameter.
 ///
 /// See: <https://doc.rust-lang.org/reference/items/generics.html>

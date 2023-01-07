@@ -5,9 +5,11 @@ use crate::ffi::FfiSlice;
 
 use self::item::ItemKind;
 
+pub mod expr;
 pub mod generic;
 pub mod item;
 pub mod pat;
+pub mod stmt;
 pub mod ty;
 
 #[derive(Debug)]

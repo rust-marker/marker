@@ -2,7 +2,10 @@ use std::cell::OnceCell;
 
 use marker_adapter::context::{DriverContext, DriverContextWrapper};
 use marker_api::{
-    ast::{item::ItemKind, ItemId, Span, SpanOwner, SymbolId},
+    ast::{
+        item::{Body, ItemKind},
+        BodyId, ItemId, Span, SpanOwner, SymbolId,
+    },
     context::AstContext,
     lint::Lint,
 };
@@ -19,10 +22,10 @@ use self::storage::Storage;
 pub mod storage;
 
 /// This is the central context for the rustc driver and the struct providing the
-/// callback implementation for [`AstContext`][`marker_api::context::AstContext`].
+/// callback implementation for [`AstContext`](`marker_api::context::AstContext`).
 ///
 /// The struct intentionally only stores the [`TyCtxt`] and [`LintStore`] and not
-/// a [`LateContext`][`rustc_lint::LateContext`] as the late context operates on
+/// a [`LateContext`](`rustc_lint::LateContext`) as the late context operates on
 /// the assumption that every AST node is only checked in the specific `check_`
 /// function. This will in contrast convert the entire crate at once and might
 /// also jump around inside the AST if a lint crate requests that. This also has
@@ -76,6 +79,11 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
 
     fn item(&'ast self, id: ItemId) -> Option<ItemKind<'ast>> {
         ItemConverter::new(self).conv_item_from_id(id)
+    }
+
+    fn body(&'ast self, id: BodyId) -> &'ast Body<'ast> {
+        // This message sounds kind of ominous xD
+        todo!("a body was requested {id:#?}");
     }
 
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast> {

@@ -1,5 +1,6 @@
 use std::{fmt::Debug, marker::PhantomData};
 
+use super::expr::ExprKind;
 use super::{ItemId, Span, SymbolId};
 
 // Item implementations
@@ -30,7 +31,7 @@ pub use unstable_item::*;
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
-    /// and to request items from the [`AstContext`][`crate::context::AstContext`].
+    /// and to request items from the [`AstContext`](`crate::context::AstContext`).
     fn id(&self) -> ItemId;
 
     /// The [`Span`] of the entire item. This span should be used for general item related
@@ -255,5 +256,32 @@ impl<'ast> Visibility<'ast> {
             _lifetime: PhantomData,
             _item_id: item_id,
         }
+    }
+}
+
+/// A body represents the expression of items.
+///
+/// Bodies act like a barrier between the item and expression level. When items
+/// are requested, only the item information is retrieved and converted. Any
+/// expression parts of these items are wrapped into a body, identified via a
+/// [`BodyId`](`super::BodyId`). The body and its content will only be converted
+/// request.
+#[repr(C)]
+#[derive(Debug)]
+pub struct Body<'ast> {
+    owner: ItemId,
+    expr: ExprKind<'ast>,
+}
+
+impl<'ast> Body<'ast> {
+    pub fn owner(&self) -> ItemId {
+        self.owner
+    }
+
+    /// The expression wrapped by this body. In some cases, like for functions
+    /// this expression is guaranteed to be a
+    /// [block expression](`crate::ast::expr::BlockExpr`).
+    pub fn expr(&self) -> ExprKind<'ast> {
+        self.expr
     }
 }

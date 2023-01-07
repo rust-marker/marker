@@ -13,7 +13,7 @@ super::impl_ty_data!(AliasTy<'ast>, Alias);
 
 impl<'ast> AliasTy<'ast> {
     /// This returns the [`ItemId`] belonging to the
-    /// [`TyAliasItem`][`super::super::item::TyAliasItem`] that declared this item.
+    /// [`TyAliasItem`](`super::super::item::TyAliasItem`) that declared this item.
     pub fn alias_item_id(&self) -> ItemId {
         self.item
     }
