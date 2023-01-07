@@ -22,7 +22,7 @@ pub use unstable_expr::*;
 pub trait ExprData<'ast>: Debug {
     fn id(&self) -> ExprId;
 
-    /// Returns the span of this pattern.
+    /// Returns the span of this expression.
     fn span(&self) -> &Span<'ast>;
 
     // This returns the semantic type of this expression
@@ -52,8 +52,8 @@ pub enum ExprKind<'ast> {
 pub enum ExprPrecedence {
     Block,
     Lit,
-    /// The precedents originates from an unstable source. The stored value provides
-    /// the current precedence of this expression. This is open to change
+    /// The precedence originates from an unstable source. The stored value provides
+    /// the current precedence of this expression. This might change in the future
     Unstable(i32),
 }
 

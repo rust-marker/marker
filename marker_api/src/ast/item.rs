@@ -31,7 +31,7 @@ pub use unstable_item::*;
 
 pub trait ItemData<'ast>: Debug {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
-    /// and to request items from the [`AstContext`][`crate::context::AstContext`].
+    /// and to request items from the [`AstContext`](`crate::context::AstContext`).
     fn id(&self) -> ItemId;
 
     /// The [`Span`] of the entire item. This span should be used for general item related

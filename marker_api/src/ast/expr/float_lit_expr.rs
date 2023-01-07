@@ -4,7 +4,10 @@ use super::{CommonExprData, ExprPrecedence};
 
 /// A float literal like `1.0`, `2e-2`, `2_f32`. The results of float operations
 /// can be hardware-dependent. For exact value checks, it might be better to check
-/// the written float literal or check for a range around the value in question.
+/// the written float literal by getting the code snipped from the expression span.
+/// See:
+/// * [`ExprData::span()`](`super::ExprData::span`)
+/// * [`Span::snippet()`](`crate::ast::Span::snippet`)
 ///
 /// All integer literals are unsigned, negative numbers have a unary negation
 /// operation as their parent.
@@ -29,7 +32,7 @@ impl<'ast> FloatLitExpr<'ast> {
     }
 
     /// The suffix if it has been defined by the user. Use the
-    /// [`ExprData::ty`][`super::ExprData::ty`] method to determine the type,
+    /// [`ExprData::ty`](`super::ExprData::ty`) method to determine the type,
     /// if it hasn't been specified in the suffix
     pub fn suffix(&self) -> Option<FloatSuffix> {
         self.suffix.copy()

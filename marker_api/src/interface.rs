@@ -1,4 +1,4 @@
-/// This macro marks the given struct as the main [`LintPass`][`crate::LintPass`]
+/// This macro marks the given struct as the main [`LintPass`](`crate::LintPass`)
 /// for the lint crate. For structs implementing [`Default`] it's enough to only
 /// pass in the type. Otherwise, a second argument is required to initialize an
 /// instance.
@@ -25,7 +25,7 @@
 /// that this can change in the future.
 ///
 /// The instance is created and stored in a [`thread_local!`]
-/// [`RefCell`][`std::cell::RefCell`]. One lint crate will always be called by the
+/// [`RefCell`](`std::cell::RefCell`). One lint crate will always be called by the
 /// same thread.
 #[macro_export]
 macro_rules! export_lint_pass {

@@ -23,7 +23,7 @@ impl<'ast> IntLitExpr<'ast> {
     }
 
     /// The suffix if it has been defined by the user. Use the
-    /// [`ExprData::ty`][`super::ExprData::ty`] method to determine the type,
+    /// [`ExprData::ty`](`super::ExprData::ty`) method to determine the type,
     /// if it hasn't been specified in the suffix
     pub fn suffix(&self) -> Option<IntSuffix> {
         self.suffix.copy()

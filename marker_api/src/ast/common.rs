@@ -19,7 +19,7 @@ pub enum Edition {
     Edition2021,
 }
 
-// FIXME: There will need to be updated according to rust-lang/rustfix#200
+// FIXME: This will need to be updated according to rust-lang/rustfix#200
 #[non_exhaustive]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Applicability {

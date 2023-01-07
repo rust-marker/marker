@@ -5,7 +5,7 @@ use super::{CommonExprData, ExprPrecedence};
 pub struct UnstableExpr<'ast> {
     data: CommonExprData<'ast>,
     /// For this expression, we need to specifically store the precedence, as
-    /// this could represent different expressions with different precedents.
+    /// this could represent different expressions with different precedence.
     precedence: ExprPrecedence,
 }
 

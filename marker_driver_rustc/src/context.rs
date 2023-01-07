@@ -22,10 +22,10 @@ use self::storage::Storage;
 pub mod storage;
 
 /// This is the central context for the rustc driver and the struct providing the
-/// callback implementation for [`AstContext`][`marker_api::context::AstContext`].
+/// callback implementation for [`AstContext`](`marker_api::context::AstContext`).
 ///
 /// The struct intentionally only stores the [`TyCtxt`] and [`LintStore`] and not
-/// a [`LateContext`][`rustc_lint::LateContext`] as the late context operates on
+/// a [`LateContext`](`rustc_lint::LateContext`) as the late context operates on
 /// the assumption that every AST node is only checked in the specific `check_`
 /// function. This will in contrast convert the entire crate at once and might
 /// also jump around inside the AST if a lint crate requests that. This also has
