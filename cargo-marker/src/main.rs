@@ -3,6 +3,7 @@
 #![allow(clippy::module_name_repetitions)]
 
 mod cli;
+mod config;
 mod driver;
 mod lints;
 
@@ -15,6 +16,7 @@ use std::{
 };
 
 use cli::get_clap_config;
+use config::Config;
 use driver::{get_driver_path, run_driver};
 use lints::build_local_lint_crate;
 use once_cell::sync::Lazy;
@@ -44,29 +46,60 @@ pub enum ExitStatus {
     LintCrateNotFound = 501,
     /// The lint crate has been build, but the resulting binary could not be found.
     LintCrateLibNotFound = 502,
+    /// General "bad config" error
+    BadConfiguration = 600,
+    /// No lint crates were specified -> nothing to do
+    NoLints = 601,
+    /// Can't deserialise `workspace.metadata.marker.lints` properly
+    WrongStructure = 602,
+    /// An invalid configuration value was specified
+    InvalidValue = 603,
     /// Check failed
     MarkerCheckFailed = 1000,
 }
 
 /// This creates the absolute path for a given build directory.
 fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
-    if !Path::new("./target").exists() {
+    if !Path::new("Cargo.toml").exists() {
         // FIXME: This is a temporary check to ensure that we don't randomly create files.
         // This should not be part of the release and maybe be replaced by something more
         // elegant or removed completely.
-        eprintln!("No `target` directory exists, most likely running in the wrong directory");
+        eprintln!("Cargo manifest doesn't exist (`Cargo.toml`), most likely running in the wrong directory");
         exit(-1);
     }
 
     let path = Path::new(LINT_KRATES_BASE_DIR).join(dir_name);
     if !path.exists() {
-        create_dir_all(&path).unwrap_or_else(|_| panic!("Error while creating lint krate {info_name} directory"));
+        create_dir_all(&path).unwrap_or_else(|_| panic!("Error while creating lint crate {info_name} directory"));
     }
 
     std::fs::canonicalize(path)
         .expect("This should find the directory, as we just created it")
         .display()
         .to_string()
+}
+
+fn choose_lint_crates(args: &clap::ArgMatches, config: Option<Config>) -> Result<Vec<OsString>, ExitStatus> {
+    let lint_crates: Vec<OsString> = match args.get_many::<OsString>("lints") {
+        Some(v) => v.cloned().collect(),
+        None => {
+            if let Some(config) = config {
+                config.collect_paths()?.iter().map(Into::into).collect()
+            } else {
+                eprintln!(
+                    "Please provide at least one valid lint crate, with the `--lints` argument, or `[workspace.metadata.marker.lints]` in `Cargo.toml`"
+                );
+                return Err(ExitStatus::NoLints);
+            }
+        },
+    };
+    if lint_crates.is_empty() {
+        eprintln!(
+            "Please provide at least one valid lint crate, with the `--lints` argument, or `[workspace.metadata.marker.lints]` in `Cargo.toml`"
+        );
+        return Err(ExitStatus::NoLints);
+    }
+    Ok(lint_crates)
 }
 
 fn main() -> Result<(), ExitStatus> {
@@ -77,7 +110,16 @@ fn main() -> Result<(), ExitStatus> {
             .take_while(|s| s != CARGO_ARGS_SEPARATOR),
     );
 
+    let config = match Config::get_marker_config() {
+        Ok(v) => Some(v),
+        Err(e) => match e {
+            config::ConfigFetchError::NotFound => None,
+            _ => return Err(e.emit_and_convert()),
+        },
+    };
+
     let verbose = matches.get_flag("verbose");
+    let test_build = matches.get_flag("test-setup");
     let dev_build = cfg!(feature = "dev-build");
 
     if matches.get_flag("version") {
@@ -87,39 +129,37 @@ fn main() -> Result<(), ExitStatus> {
 
     match matches.subcommand() {
         Some(("setup", _args)) => driver::install_driver(verbose, dev_build),
-        Some(("check", args)) => run_check(args, verbose, dev_build),
-        None => run_check(&matches, verbose, dev_build),
+        Some(("check", args)) => run_check(&choose_lint_crates(args, config)?, verbose, dev_build, test_build),
+        None => run_check(&choose_lint_crates(&matches, config)?, verbose, dev_build, test_build),
         _ => unreachable!(),
     }
 }
 
-fn run_check(matches: &clap::ArgMatches, verbose: bool, dev_build: bool) -> Result<(), ExitStatus> {
+fn run_check(
+    lint_crate_paths: &[OsString],
+    verbose: bool,
+    dev_build: bool,
+    test_build: bool,
+) -> Result<(), ExitStatus> {
     // If this is a dev build, we want to recompile the driver before checking
     if dev_build {
         driver::install_driver(verbose, dev_build)?;
     }
 
-    let mut lint_crates = vec![];
-    if let Some(cmd_lint_crates) = matches.get_many::<OsString>("lints") {
-        println!();
-        println!("Compiling Lints:");
-        lint_crates.reserve(cmd_lint_crates.len());
-        let target_dir = Path::new(&*MARKER_LINT_DIR);
-        for krate in cmd_lint_crates {
-            let src_dir = PathBuf::from(krate);
-            let crate_file = build_local_lint_crate(src_dir.as_path(), target_dir, verbose)?;
-            lint_crates.push(crate_file.as_os_str().to_os_string());
-        }
-    }
-
-    if lint_crates.is_empty() {
-        eprintln!("Please provide at least one valid lint crate, with the `--lints` argument");
-        exit(-1);
-    }
-
-    if lint_crates.iter().any(|path| path.to_string_lossy().contains(';')) {
+    if lint_crate_paths.iter().any(|path| path.to_string_lossy().contains(';')) {
         eprintln!("The absolute paths of lint crates are not allowed to contain a `;`");
-        exit(-1);
+        return Err(ExitStatus::InvalidValue);
+    }
+
+    let mut lint_crates = Vec::with_capacity(lint_crate_paths.len());
+
+    println!();
+    println!("Compiling Lints:");
+    let target_dir = Path::new(&*MARKER_LINT_DIR);
+    for krate in lint_crate_paths {
+        let src_dir = PathBuf::from(krate);
+        let crate_file = build_local_lint_crate(src_dir.as_path(), target_dir, verbose)?;
+        lint_crates.push(crate_file.as_os_str().to_os_string());
     }
 
     #[rustfmt::skip]
@@ -127,7 +167,7 @@ fn run_check(matches: &clap::ArgMatches, verbose: bool, dev_build: bool) -> Resu
         (OsString::from("RUSTC_WORKSPACE_WRAPPER"), get_driver_path().as_os_str().to_os_string()),
         (OsString::from("MARKER_LINT_CRATES"), lint_crates.join(OsStr::new(";")))
     ];
-    if matches.get_flag("test-setup") {
+    if test_build {
         print_env(env).unwrap();
         Ok(())
     } else {
@@ -171,8 +211,6 @@ fn print_env(env: Vec<(OsString, OsString)>) -> io::Result<()> {
             lock.write_all(value.as_bytes())?;
             writeln!(lock)?;
         }
-
-        Ok(())
     }
 
     #[cfg(target_os = "windows")]
@@ -184,7 +222,7 @@ fn print_env(env: Vec<(OsString, OsString)>) -> io::Result<()> {
                 unreachable!("Windows requires it's file path to be valid UTF-16 AFAIK");
             }
         }
-
-        Ok(())
     }
+
+    Ok(())
 }
