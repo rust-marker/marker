@@ -1,12 +1,12 @@
-use std::path::PathBuf;
+use std::{marker::PhantomData, path::PathBuf};
 
 use crate::context::with_cx;
 
-use super::{Applicability, AstPath, ItemId, SpanId};
+use super::{Applicability, AstPath, ItemId, SpanId, SymbolId};
 
 #[repr(C)]
 #[doc(hidden)]
-#[derive(Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 #[allow(clippy::exhaustive_enums)]
 enum SpanSource<'ast> {
@@ -110,6 +110,17 @@ impl<'ast> Span<'ast> {
     }
 }
 
+impl<'ast> std::fmt::Debug for Span<'ast> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Span")
+            .field("source", &self.source)
+            .field("start", &self.start)
+            .field("end", &self.end)
+            .field("snipped()", &self.snippet())
+            .finish()
+    }
+}
+
 #[cfg(feature = "driver-api")]
 impl<'ast> Span<'ast> {
     pub fn new(source: SpanSource<'ast>, start: usize, end: usize) -> Self {
@@ -147,3 +158,73 @@ impl From<SpanId> for SpanOwner {
         Self::SpecificSpan(id)
     }
 }
+
+pub struct Ident<'ast> {
+    _lifetime: PhantomData<&'ast ()>,
+    sym: SymbolId,
+    span: SpanId,
+}
+
+impl<'ast> Ident<'ast> {
+    pub fn name(&self) -> &str {
+        with_cx(self, |cx| cx.symbol_str(self.sym))
+    }
+
+    pub fn span(&self) -> &Span<'ast> {
+        with_cx(self, |cx| cx.get_span(self.span))
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> Ident<'ast> {
+    pub fn new(sym: SymbolId, span: SpanId) -> Self {
+        Self {
+            _lifetime: PhantomData,
+            sym,
+            span,
+        }
+    }
+}
+
+impl<'ast> std::fmt::Debug for Ident<'ast> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Ident")
+            .field("name", &self.name())
+            .field("span", &self.span())
+            .finish()
+    }
+}
+
+macro_rules! impl_ident_eq_for {
+    ($ty:ty) => {
+        #[allow(unused_lifetimes)]
+        impl<'a, 'ast> PartialEq<$ty> for Ident<'ast> {
+            fn eq(&self, other: &$ty) -> bool {
+                self.name().eq(other)
+            }
+        }
+    };
+}
+
+use impl_ident_eq_for;
+
+impl_ident_eq_for!(str);
+impl_ident_eq_for!(String);
+impl_ident_eq_for!(std::ffi::OsStr);
+impl_ident_eq_for!(std::ffi::OsString);
+impl_ident_eq_for!(std::borrow::Cow<'a, str>);
+
+// The following implementation sadly causes `error[E0210]`, which means that
+// marker can only provide the implementation `<ident> == <string>` and not the
+// other way around. This is a bit meh when it comes to usability, but IDK how to
+// fix it right now (~xFrednet)
+// ```
+// impl<'ast, T> PartialEq<Ident<'_>> for T
+// where
+//     T: PartialEq<str>,
+// {
+//     fn eq(&self, other: &Ident<'_>) -> bool {
+//         self.eq(other.name())
+//     }
+// }
+// ```

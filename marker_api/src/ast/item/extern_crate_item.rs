@@ -26,7 +26,7 @@ super::impl_item_data!(ExternCrateItem, ExternCrate);
 
 impl<'ast> ExternCrateItem<'ast> {
     /// This will return the original name of external crate. This will only differ
-    /// with [`ItemData::get_name`](`super::ItemData::name`) if the user has
+    /// with [`ItemData::ident`](`super::ItemData::ident`) if the user has
     /// declared an alias with `as`.
     ///
     /// In most cases, you want to use this over the `get_name()` function.
