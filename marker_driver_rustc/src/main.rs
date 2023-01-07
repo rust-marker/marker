@@ -167,8 +167,7 @@ fn main() {
         }
 
         if orig_args.iter().any(|a| a == "--version" || a == "-V") {
-            use rustc_tools_util::{get_version_info, VersionInfo};
-            let version_info = get_version_info!();
+            let version_info = rustc_tools_util::get_version_info!();
             println!("{version_info}");
             exit(0);
         }
