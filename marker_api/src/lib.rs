@@ -41,49 +41,49 @@ pub mod ffi;
 macro_rules! lint_pass_fns {
     ($name:path) => {
         $name !(($)
-            fn registered_lints(&self) -> Box<[&'static $crate::lint::Lint]>;
+            fn registered_lints<'ast>(&self) -> Box<[&'static $crate::lint::Lint]>;
 
-            fn check_item(
+            fn check_item<'ast>(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _item: $crate::ast::item::ItemKind<'ast>) -> ();
-            fn check_mod(
+            fn check_mod<'ast>(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _item: &'ast $crate::ast::item::ModItem<'ast>) -> ();
-            fn check_extern_crate(
+            fn check_extern_crate<'ast>(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _item: &'ast $crate::ast::item::ExternCrateItem<'ast>) -> ();
-            fn check_use_decl(
+            fn check_use_decl<'ast>(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _item: &'ast $crate::ast::item::UseItem<'ast>) -> ();
-            fn check_static_item(
+            fn check_static_item<'ast>(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _item: &'ast $crate::ast::item::StaticItem<'ast>) -> ();
-            fn check_const_item(
+            fn check_const_item<'ast>(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _item: &'ast $crate::ast::item::ConstItem<'ast>) -> ();
-            fn check_fn(
+            fn check_fn<'ast>(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _item: &'ast $crate::ast::item::FnItem<'ast>) -> ();
-            fn check_struct(
+            fn check_struct<'ast>(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _item: &'ast $crate::ast::item::StructItem<'ast>) -> ();
-            fn check_enum(
+            fn check_enum<'ast>(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _item: &'ast $crate::ast::item::EnumItem<'ast>) -> ();
-            fn check_field(
+            fn check_field<'ast>(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _field: &'ast $crate::ast::item::Field<'ast>) -> ();
-            fn check_variant(
+            fn check_variant<'ast>(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _variant: &'ast $crate::ast::item::EnumVariant<'ast>) -> ();
@@ -97,7 +97,10 @@ macro_rules! lint_pass_fns {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! gen_for_each_lint_pass_fn {
-    (($dollar:tt) $(fn $fn_name:ident(& $(($mut_:tt))? self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty;)+) => {
+    (
+        ($dollar:tt)
+        $(fn $fn_name:ident<'ast>(& $(($mut_:tt))? self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty;)+
+    ) => {
         /// **!Unstable!**
         ///
         /// This calls a macro for each function available in the [`LintPass`] trait. The following
@@ -105,10 +108,10 @@ macro_rules! gen_for_each_lint_pass_fn {
         /// the trait. See [`lint_pass_fns`] for more information.
         /// ```
         /// macro_rules! lint_pass_macro {
-        ///     (fn $fn_name:ident(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
+        ///     (fn $fn_name:ident<'ast>(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
         ///         // TODO
         ///     };
-        ///     (fn $fn_name:ident(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
+        ///     (fn $fn_name:ident<'ast>(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
         ///         // TODO
         ///     };
         /// }
@@ -118,7 +121,7 @@ macro_rules! gen_for_each_lint_pass_fn {
         macro_rules! for_each_lint_pass_fn {
             ($dollar macro_name:path) => {
                 $(
-                    $dollar macro_name !(fn $fn_name(& $(($mut_))? self $(, $arg_name: $arg_ty)*) -> $ret_ty);
+                    $dollar macro_name !(fn $fn_name<'ast>(& $(($mut_))? self $(, $arg_name: $arg_ty)*) -> $ret_ty);
                 )*
             }
         }
@@ -130,7 +133,7 @@ lint_pass_fns!(crate::gen_for_each_lint_pass_fn);
 /// [`LintPass`] provides some additional information about the implemented lints.
 /// The adapter will walk through the entire AST once and give each node to the
 /// registered [`LintPass`]es.
-pub trait LintPass<'ast> {
+pub trait LintPass {
     for_each_lint_pass_fn!(crate::decl_lint_pass_fn);
 }
 
@@ -138,11 +141,11 @@ pub trait LintPass<'ast> {
 /// implemented while all taking `&mut self` have an empty default implementation.
 #[doc(hidden)]
 macro_rules! decl_lint_pass_fn {
-    (fn $fn_name:ident(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
+    (fn $fn_name:ident<'ast>(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
         fn $fn_name(&self $(,$arg_name: $arg_ty)*) -> $ret_ty;
     };
-    (fn $fn_name:ident(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
-        fn $fn_name(&mut self $(,$arg_name: $arg_ty)*) -> $ret_ty {}
+    (fn $fn_name:ident<'ast>(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
+        fn $fn_name<'ast>(&mut self $(,$arg_name: $arg_ty)*) -> $ret_ty {}
     };
 }
 use decl_lint_pass_fn;

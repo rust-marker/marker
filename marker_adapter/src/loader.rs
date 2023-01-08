@@ -52,7 +52,7 @@ impl<'ast> LintCrateRegistry<'ast> {
     }
 }
 
-impl<'ast> LintPass<'ast> for LintCrateRegistry<'ast> {
+impl<'a> LintPass for LintCrateRegistry<'a> {
     fn registered_lints(&self) -> Box<[&'static Lint]> {
         let mut lints = vec![];
         for lint_pass in &self.passes {
@@ -66,11 +66,11 @@ impl<'ast> LintPass<'ast> for LintCrateRegistry<'ast> {
 
 #[macro_export]
 macro_rules! gen_lint_crate_reg_lint_pass_fn {
-    (fn $fn_name:ident(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
+    (fn $fn_name:ident<'ast>(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
         // Nothing these will be implemented manually
     };
-    (fn $fn_name:ident(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> ()) => {
-        fn $fn_name(&mut self $(, $arg_name: $arg_ty)*) {
+    (fn $fn_name:ident<'ast>(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> ()) => {
+        fn $fn_name<'ast>(&mut self $(, $arg_name: $arg_ty)*) {
             for lint_pass in self.passes.iter_mut() {
                 lint_pass.$fn_name($($arg_name, )*);
             }
@@ -83,19 +83,22 @@ macro_rules! gen_lint_crate_reg_lint_pass_fn {
 /// [`marker_api::interface::export_lint_pass`]
 #[macro_export]
 macro_rules! gen_LoadedLintCrate {
-    (($dollar:tt) $(fn $fn_name:ident(& $(($mut_:tt))? self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty;)+) => {
+    (
+        ($dollar:tt)
+        $(fn $fn_name:ident<'ast>(& $(($mut_:tt))? self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty;)+
+    ) => {
         /// This struct holds function pointers to api functions in the loaded lint crate
         /// It owns the library instance. It sadly has to be stored as a `'static`
         /// reference due to lifetime restrictions.
-        struct LoadedLintCrate<'ast> {
+        struct LoadedLintCrate<'a> {
             _lib: &'static Library,
-            set_ast_context: libloading::Symbol<'ast, unsafe extern "C" fn(&'ast AstContext<'ast>) -> ()>,
+            set_ast_context: libloading::Symbol<'a, for<'ast> unsafe extern "C" fn(&'ast AstContext<'ast>) -> ()>,
             $(
-                $fn_name: libloading::Symbol<'ast, unsafe extern "C" fn($($arg_ty,)*) -> $ret_ty>,
+                $fn_name: libloading::Symbol<'a, for<'ast> unsafe extern "C" fn($($arg_ty,)*) -> $ret_ty>,
             )*
         }
 
-        impl<'ast> LoadedLintCrate<'ast> {
+        impl<'a> LoadedLintCrate<'a> {
             /// This function tries to resolve all api functions in the given library.
             fn try_from_lib(lib: &'static Library) -> Result<Self, LoadingError> {
                 // get function pointers
@@ -110,7 +113,7 @@ macro_rules! gen_LoadedLintCrate {
                 }
 
                 let set_ast_context = unsafe {
-                    lib.get::<unsafe extern "C" fn(&'ast AstContext<'ast>) -> ()>(b"set_ast_context\0")
+                    lib.get::<for<'ast> unsafe extern "C" fn(&'ast AstContext<'ast>) -> ()>(b"set_ast_context\0")
                         .map_err(|_| LoadingError::MissingLintDeclaration)?
                 };
 
@@ -118,7 +121,7 @@ macro_rules! gen_LoadedLintCrate {
                     let $fn_name = {
                         let name: Vec<u8> = stringify!($fn_name).bytes().chain(std::iter::once(b'\0')).collect();
                         unsafe {
-                            lib.get::<unsafe extern "C" fn($($arg_ty,)*) -> $ret_ty>(&name)
+                            lib.get::<for<'ast> unsafe extern "C" fn($($arg_ty,)*) -> $ret_ty>(&name)
                                 .map_err(|_| LoadingError::MissingLintDeclaration)?
                         }
                     };
@@ -133,7 +136,7 @@ macro_rules! gen_LoadedLintCrate {
                 })
             }
 
-            fn set_ast_context(&self, cx: &'ast AstContext<'ast>) -> () {
+            fn set_ast_context<'ast>(&self, cx: &'ast AstContext<'ast>) -> () {
                 unsafe {
                     (self.set_ast_context)(cx)
                 }
@@ -141,7 +144,7 @@ macro_rules! gen_LoadedLintCrate {
 
             // safe wrapper to external functions
             $(
-                fn $fn_name(& $($mut_)* self $(, $arg_name: $arg_ty)*) -> $ret_ty {
+                fn $fn_name<'ast>(& $($mut_)* self $(, $arg_name: $arg_ty)*) -> $ret_ty {
                     unsafe {
                         (self.$fn_name)($($arg_name,)*)
                     }
