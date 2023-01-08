@@ -7,7 +7,7 @@ use crate::{
 use super::{Abi, Span, SpanId, SymbolId};
 
 /// This trait provides information about callable items and types. Some
-/// properties might not be available for every callable object. In those
+/// properties might not be available for every callable object. In these
 /// cases the default value will be returned.
 pub trait CallableData<'ast> {
     /// Returns `true`, if this callable is `const`.
@@ -22,15 +22,15 @@ pub trait CallableData<'ast> {
 
     /// Returns `true`, if this callable is marked as `unsafe`.
     ///
-    /// Defaults to `false` if unspecified. Extern functions will
+    /// Defaults to `false` if unspecified. `extern` functions will
     /// also return `false` by default, even if they require `unsafe`
     /// by default.
     fn is_unsafe(&self) -> bool;
 
-    /// Returns `true`, if this callable is marked as extern. Bare functions
+    /// Returns `true`, if this callable is marked as `extern`. Bare functions
     /// only use the `extern` keyword to specify the ABI. These will currently
     /// still return `false` even if the keyword is present. In those cases,
-    /// please refer to the ABI instead.
+    /// please refer to the [`abi()`](`Self::abi`) instead.
     ///
     /// Defaults to `false` if unspecified.
     fn is_extern(&self) -> bool;
@@ -40,12 +40,12 @@ pub trait CallableData<'ast> {
 
     /// Returns `true`, if this callable has a specified `self` argument. The
     /// type of `self` can be retrieved from the first element of
-    /// [`CallableData::params()`].
+    /// [`params()`](`Self::params`).
     fn has_self(&self) -> bool;
 
     /// Returns the parameters, that this callable accepts. The `self` argument
     /// of methods, will be the first element of this slice. Use
-    /// [`CallableData::has_self`] to determine if the first argument is `self`.
+    /// [`has_self()`](`Self::has_self`) to determine if the first argument is `self`.
     fn params(&self) -> &[Parameter<'ast>];
 
     /// Returns the return type, if specified.
@@ -74,7 +74,7 @@ impl<'ast> Parameter<'ast> {
 
 impl<'ast> Parameter<'ast> {
     // Function items actually use patterns and not names. Patterns are not yet
-    // implemented though. A pattern should be good enough for now.
+    // implemented though. A name should be good enough for now.
     pub fn name(&self) -> Option<String> {
         self.name.get().map(|sym| with_cx(self, |cx| cx.symbol_str(*sym)))
     }
@@ -131,8 +131,8 @@ impl<'ast> CommonCallableData<'ast> {
     }
 }
 
-/// This macro automatically implements the [`Callable`] trait for structs that
-/// have a [`CallableData`] field called `callable_data`.
+/// This macro automatically implements the [`CallableData`] trait for structs that
+/// have a `callable_data` field.
 macro_rules! impl_callable_data_trait {
     ($self_ty:ty) => {
         impl<'ast> $crate::ast::common::CallableData<'ast> for $self_ty {

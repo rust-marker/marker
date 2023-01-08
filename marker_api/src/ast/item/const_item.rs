@@ -3,7 +3,7 @@ use crate::ffi::FfiOption;
 
 use super::CommonItemData;
 
-/// A module item like:
+/// A const item like:
 ///
 /// ```
 /// const CONST_ITEM: u32 = 0xcafe;

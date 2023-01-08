@@ -2,7 +2,7 @@ use crate::ast::AstPath;
 
 use super::CommonItemData;
 
-/// A use declaration like:
+/// A `use` declaration like:
 ///
 /// ```ignore
 /// pub use foo::bar::*;
@@ -35,7 +35,7 @@ super::impl_item_data!(UseItem, Use);
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) enum UseKind {
-    /// Single usages like `use foo::bar` a list of multiple usages like
+    /// Single usages like `use foo::bar` a list of multiple `use` declarations like
     /// `use foo::{bar, baz}` will be desugured to `use foo::bar; use foo::baz;`
     Single,
     /// A glob import like `use foo::*`

@@ -57,8 +57,8 @@ impl<'ast> Lifetime<'ast> {
 }
 
 impl<'ast> Lifetime<'ast> {
-    /// This returns the [`GenericId`] of this lifetime, if it's labeled `None`
-    /// otherwise. `'static` will also return `None`
+    /// This returns the [`GenericId`] of this lifetime, if it's labeled, or [`None`]
+    /// otherwise. `'static` will also return [`None`]
     pub fn id(&self) -> Option<GenericId> {
         match self.kind {
             LifetimeKind::Label(_, id) => Some(id),
@@ -66,7 +66,7 @@ impl<'ast> Lifetime<'ast> {
         }
     }
 
-    /// Note that the `'static` lieftime is not a label and will therefore return `None`
+    /// Note that the `'static` lifetime is not a label and will therefore return [`None`]
     pub fn label(&self) -> Option<String> {
         match self.kind {
             LifetimeKind::Label(sym, _) => Some(with_cx(self, |cx| cx.symbol_str(sym))),
@@ -91,8 +91,8 @@ impl<'ast> Lifetime<'ast> {
     }
 }
 
-/// A generic bound in form `<identifier=type>`. For example `Item=i32` would be
-/// the generic binding for this example:
+/// A generic bound in form `<identifier=type>`. For example, `Item=i32` would be
+/// the generic binding here:
 ///
 /// ```ignore
 /// let _baz: &dyn Iterator<Item=i32> = todo!();
@@ -100,7 +100,7 @@ impl<'ast> Lifetime<'ast> {
 /// ```
 ///
 /// The corresponding instance would provide the name (`Item`), the defined type
-/// (`i32`) and potentially the span if this bound originates from source code.
+/// (`i32`) and potentially the [`Span`] if this bound originates from source code.
 ///
 /// See [paths in expressions](https://doc.rust-lang.org/reference/paths.html#paths-in-expressions)
 /// for more information.

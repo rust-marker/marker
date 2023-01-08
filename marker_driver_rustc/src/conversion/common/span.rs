@@ -41,7 +41,7 @@ fn to_api_src_info<'ast, 'tcx>(
         | rustc_span::FileName::Custom(_)
         | rustc_span::FileName::DocTest(_, _)
         | rustc_span::FileName::InlineAsm(_) => {
-            unimplemented!("the api should only receive an request spans from files and macros")
+            unimplemented!("the api should only receive and request spans from files and macros")
         },
     };
     let api_info = SpanSourceInfo {

@@ -65,7 +65,7 @@ where
             .borrow()
             .expect("`with_cx` should only be called by nodes once the context has been set");
         // Safety:
-        // This just recreates the lifetimes that were destroyed in [`set_ast_cx`].
+        // This just recreates the lifetimes that were erased in [`set_ast_cx`].
         // See the referenced docs for a full explanation.
         let cx_ast: &'src AstContext<'ast> = unsafe { transmute(cx_static) };
 
@@ -73,7 +73,7 @@ where
     })
 }
 
-/// This context will be passed to each [`super::LintPass`] call to enable the user
+/// This context will be passed to each [`LintPass`](`super::LintPass`) call to enable the user
 /// to emit lints and to retieve nodes by the given ids.
 #[repr(C)]
 pub struct AstContext<'ast> {
@@ -109,7 +109,7 @@ impl<'ast> AstContext<'ast> {
     /// message and span.
     ///
     /// For rustc the text output will look roughly to this:
-    /// ```txt
+    /// ```text
     /// error: ducks can't talk
     ///  --> $DIR/file.rs:17:5
     ///    |
@@ -160,7 +160,7 @@ impl<'ast> AstContext<'ast> {
 ///     required. These are not part of the stable API and can therefore be changed.
 ///
 /// Any changes to this struct will most likely require changes to the
-/// `DriverContextWrapper` implementation in the `liner_adapter` crate. That
+/// `DriverContextWrapper` implementation in the `marker_adapter` crate. That
 /// type provides a simple wrapper to avoid driver unrelated boilerplate code.
 #[repr(C)]
 #[doc(hidden)]

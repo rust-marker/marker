@@ -12,7 +12,7 @@ pub struct SelfTy<'ast> {
 super::impl_ty_data!(SelfTy<'ast>, SelfTy);
 
 impl<'ast> SelfTy<'ast> {
-    /// This returns the [`ItemId`] that this `Self` originates from.
+    /// This returns the [`ItemId`] that this [`Self`](<https://doc.rust-lang.org/stable/std/keyword.SelfTy.html>) originates from.
     pub fn self_source_item_id(&self) -> ItemId {
         self.item
     }

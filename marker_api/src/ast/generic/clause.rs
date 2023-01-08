@@ -5,7 +5,7 @@ use crate::{
 
 use super::{GenericParams, Lifetime, TyParamBound};
 
-/// This represents a single clause in a where statement
+/// This represents a single clause in a [`where`](<https://doc.rust-lang.org/stable/reference/items/generics.html#where-clauses>) statement
 ///
 /// ```
 /// fn foo<'a, T>()
@@ -15,8 +15,7 @@ use super::{GenericParams, Lifetime, TyParamBound};
 ///     T::Item: Copy,
 ///     String: PartialEq<T>,
 ///     i32: Default,
-/// {
-/// }
+/// {}
 /// ```
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -62,12 +61,12 @@ pub struct TyClause<'ast> {
 }
 
 impl<'ast> TyClause<'ast> {
-    /// Additional parameters introduced as part of this where clause with a `for`.
+    /// Additional parameters introduced as a part of this where clause with a `for`.
     pub fn params(&self) -> Option<&GenericParams<'ast>> {
         self.params.get()
     }
 
-    /// The type that is bound
+    /// The bound type
     pub fn ty(&self) -> TyKind<'ast> {
         self.ty
     }

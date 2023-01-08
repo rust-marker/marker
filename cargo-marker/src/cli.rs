@@ -58,6 +58,6 @@ fn check_command_args() -> impl IntoIterator<Item = impl Into<Arg>> {
             .long("lints")
             .num_args(1..)
             .value_parser(ValueParser::os_string())
-            .help("Defines a set of lints crates that should be used"),
+            .help("Defines a set of lint crates that should be used"),
     ]
 }

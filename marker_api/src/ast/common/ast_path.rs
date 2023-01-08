@@ -15,7 +15,7 @@ use crate::{
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct AstPath<'ast> {
-    // FIXME: Add optional target ID for values lifetimes etc that is faster to compare
+    // FIXME: Add optional target ID for values, lifetimes, etc that is faster to compare
     //
     // You were last trying to fix the compiler error related to lifetime identification and paths
     segments: FfiSlice<'ast, AstPathSegment<'ast>>,

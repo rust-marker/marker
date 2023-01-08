@@ -9,7 +9,7 @@ use super::to_rustc_lint_level;
 
 pub fn to_rustc_lint<'ast, 'tcx>(cx: &RustcContext<'ast, 'tcx>, api_lint: &'static Lint) -> &'static rustc_lint::Lint {
     cx.storage.lint_or_insert(api_lint, || {
-        // Not extracted to an extra function, as its very specific
+        // Not extracted to an extra function, as it's very specific
         let report_in_external_macro = match api_lint.report_in_macro {
             MacroReport::No | MacroReport::Local => false,
             MacroReport::All => true,

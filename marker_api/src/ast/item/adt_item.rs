@@ -243,7 +243,7 @@ enum AdtKind<'ast> {
 }
 
 impl<'ast> AdtKind<'ast> {
-    // The slice lifetime is here explicitly denoted, as this is used by the
+    // The slice lifetime here is explicitly denoted, as this is used by the
     // driver for convenience and is not part of the public API
     pub fn fields(self) -> &'ast [Field<'ast>] {
         match self {
@@ -265,7 +265,7 @@ pub struct Field<'ast> {
 }
 
 impl<'ast> Field<'ast> {
-    /// The visibility of this item.
+    /// The [`Visibility`] of this item.
     pub fn visibility(&self) -> &Visibility<'ast> {
         &self.vis
     }

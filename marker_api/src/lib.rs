@@ -29,9 +29,9 @@ pub mod ffi;
 /// The functions can be categorized as follows:
 ///
 /// 1. Informative functions used to retrieve information from the [`LintPass`]
-///    implementation. These functions take an unmutable reference to self and
+///    implementation. These functions take an immutable reference to self and
 ///    require a manual implementation
-/// 2. Check functions, which can be implemented to check specific nodes from the
+/// 2. `check_*` functions, which can be implemented to check specific nodes from the
 ///    AST. All of these are optional and have no return type. For us, they are
 ///    *fire and forget*.
 ///
@@ -134,7 +134,7 @@ pub trait LintPass<'ast> {
     for_each_lint_pass_fn!(crate::decl_lint_pass_fn);
 }
 
-/// This macro currently expects that all declarations taken `&self` have to be
+/// This macro currently expects that all declarations taking `&self` have to be
 /// implemented while all taking `&mut self` have an empty default implementation.
 #[doc(hidden)]
 macro_rules! decl_lint_pass_fn {

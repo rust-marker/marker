@@ -60,11 +60,11 @@ super::impl_expr_data!(
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum StrKind {
-    /// A normal standard string like `"Hello \n world"`
+    /// A normal standard string like `"Hello world!"`
     Str,
     /// A raw string like `r#"Hello World!"#`
     Raw,
-    /// A byte string like `b"Hello world!"\0`. The content of a byte string doesn't
+    /// A byte string like `b"Hello world!\0"`. The content of a byte string doesn't
     /// have to be valid UTF-8
     Byte,
 }

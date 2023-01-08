@@ -3,7 +3,7 @@ use crate::ffi::FfiSlice;
 
 use super::{CommonItemData, ExternItemKind};
 
-/// An extern block with items like this:
+/// An `extern` block with items like this:
 ///
 /// ```
 /// extern "C" {
@@ -13,7 +13,7 @@ use super::{CommonItemData, ExternItemKind};
 /// }
 /// ```
 ///
-/// * See <https://doc.rust-lang.org/stable/reference/items/modules.html>
+/// * See <https://doc.rust-lang.org/stable/reference/items/external-blocks.html>
 #[repr(C)]
 #[derive(Debug)]
 pub struct ExternBlockItem<'ast> {

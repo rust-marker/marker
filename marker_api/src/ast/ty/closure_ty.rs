@@ -8,7 +8,7 @@ pub struct ClosureTy<'ast> {
     data: CommonTyData<'ast>,
     callable_data: CommonCallableData<'ast>,
     // FIXME: Add support for `for<'lifetime>` binder
-    // FIXME: Potentualy add functions to check which `Fn` traits this implements
+    // FIXME: Potentially add functions to check which [`Fn`] traits this implements
 }
 
 #[cfg(feature = "driver-api")]
