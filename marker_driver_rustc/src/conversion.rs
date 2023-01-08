@@ -8,6 +8,7 @@ use self::item::ItemConverter;
 
 pub mod generic;
 pub mod item;
+pub mod rustc;
 pub mod ty;
 
 pub fn to_api_crate<'ast, 'tcx>(
