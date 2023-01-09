@@ -143,7 +143,7 @@ impl<'ast> AstContext<'ast> {
         self.driver.call_get_span(&span_owner.into())
     }
 
-    pub(crate) fn symbol_str(&self, sym: SymbolId) -> String {
+    pub(crate) fn symbol_str(&self, sym: SymbolId) -> &'ast str {
         self.driver.call_symbol_str(sym)
     }
 }
@@ -198,8 +198,8 @@ impl<'ast> DriverCallbacks<'ast> {
         let result: Option<ffi::Str> = (self.span_snippet)(self.driver_context, span).into();
         result.map(|x| x.to_string())
     }
-    fn call_symbol_str(&self, sym: SymbolId) -> String {
-        (self.symbol_str)(self.driver_context, sym).to_string()
+    fn call_symbol_str(&self, sym: SymbolId) -> &'ast str {
+        (self.symbol_str)(self.driver_context, sym).get()
     }
     pub fn call_body(&self, id: BodyId) -> &'ast Body<'ast> {
         (self.body)(self.driver_context, id)

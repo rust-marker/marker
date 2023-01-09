@@ -54,7 +54,7 @@ impl<'ast> AstPathSegment<'ast> {
 }
 
 impl<'ast> AstPathSegment<'ast> {
-    pub fn ident(&self) -> String {
+    pub fn ident(&self) -> &str {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
 

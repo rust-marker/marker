@@ -6,7 +6,7 @@ use marker_api::ast::{
         UnionItem, UnstableItem, UseItem, UseKind, Visibility,
     },
     ty::TyKind,
-    Abi, CommonCallableData, ItemId, Parameter,
+    Abi, CommonCallableData, Ident, ItemId, Parameter,
 };
 use rustc_hir as hir;
 
@@ -42,11 +42,11 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             return Some(*item);
         }
 
-        let name = to_symbol_id(rustc_item.ident.name);
-        let data = CommonItemData::new(id, name);
+        let ident = self.to_ident(rustc_item.ident);
+        let data = CommonItemData::new(id, ident);
         let item = match &rustc_item.kind {
             hir::ItemKind::ExternCrate(original_name) => ItemKind::ExternCrate(
-                self.alloc(|| ExternCrateItem::new(data, original_name.map_or(name, to_symbol_id))),
+                self.alloc(|| ExternCrateItem::new(data, to_symbol_id(original_name.unwrap_or(rustc_item.ident.name)))),
             ),
             hir::ItemKind::Use(path, use_kind) => {
                 let use_kind = match use_kind {
@@ -155,8 +155,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
         }
 
         let impl_item = self.cx.rustc_cx.hir().impl_item(rustc_item.id);
-        let name = to_symbol_id(rustc_item.ident.name);
-        let data = CommonItemData::new(id, name);
+        let data = CommonItemData::new(id, self.to_ident(rustc_item.ident));
 
         let item =
             match &impl_item.kind {
@@ -193,8 +192,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
         }
 
         let trait_item = self.cx.rustc_cx.hir().trait_item(rustc_item.id);
-        let name = to_symbol_id(rustc_item.ident.name);
-        let data = CommonItemData::new(id, name);
+        let data = CommonItemData::new(id, self.to_ident(rustc_item.ident));
 
         let item = match &trait_item.kind {
             hir::TraitItemKind::Const(ty, body_id) => {
@@ -239,8 +237,7 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
         }
 
         let foreign_item = self.cx.rustc_cx.hir().foreign_item(rustc_item.id);
-        let name = to_symbol_id(rustc_item.ident.name);
-        let data = CommonItemData::new(id, name);
+        let data = CommonItemData::new(id, self.to_ident(rustc_item.ident));
         let item = match &foreign_item.kind {
             hir::ForeignItemKind::Fn(fn_sig, idents, generics) => ExternItemKind::Fn(self.alloc(|| {
                 FnItem::new(
@@ -461,5 +458,10 @@ impl<'ast, 'tcx> ItemConverter<'ast, 'tcx> {
             params,
             return_ty,
         )
+    }
+
+    #[allow(clippy::unused_self, reason = "`self` is required for `'ast`")]
+    fn to_ident(&self, ident: rustc_span::symbol::Ident) -> Ident<'ast> {
+        Ident::new(to_symbol_id(ident.name), to_span_id(ident.span))
     }
 }

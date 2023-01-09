@@ -411,9 +411,9 @@ dependencies = [
 
 [[package]]
 name = "rustc_tools_util"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "598f48ce2a421542b3e64828aa742b687cc1b91d2f96591cfdb7ac5988cd6366"
+checksum = "8ba09476327c4b70ccefb6180f046ef588c26a24cf5d269a9feba316eb4f029f"
 
 [[package]]
 name = "rustfix"

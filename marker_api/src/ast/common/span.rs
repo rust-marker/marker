@@ -1,12 +1,12 @@
-use std::path::PathBuf;
+use std::{marker::PhantomData, path::PathBuf};
 
 use crate::context::with_cx;
 
-use super::{Applicability, AstPath, ItemId, SpanId};
+use super::{Applicability, AstPath, ItemId, SpanId, SymbolId};
 
 #[repr(C)]
 #[doc(hidden)]
-#[derive(Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 #[allow(clippy::exhaustive_enums)]
 enum SpanSource<'ast> {
@@ -15,7 +15,7 @@ enum SpanSource<'ast> {
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Span<'ast> {
     source: SpanSource<'ast>,
     /// The start marks the first byte in the [`SpanSource`] that is included in this
@@ -147,3 +147,69 @@ impl From<SpanId> for SpanOwner {
         Self::SpecificSpan(id)
     }
 }
+
+pub struct Ident<'ast> {
+    _lifetime: PhantomData<&'ast ()>,
+    sym: SymbolId,
+    span: SpanId,
+}
+
+impl<'ast> Ident<'ast> {
+    pub fn name(&self) -> &str {
+        with_cx(self, |cx| cx.symbol_str(self.sym))
+    }
+
+    pub fn span(&self) -> &Span<'ast> {
+        with_cx(self, |cx| cx.get_span(self.span))
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> Ident<'ast> {
+    pub fn new(sym: SymbolId, span: SpanId) -> Self {
+        Self {
+            _lifetime: PhantomData,
+            sym,
+            span,
+        }
+    }
+}
+
+impl<'ast> std::fmt::Debug for Ident<'ast> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Ident")
+            .field("name", &self.name())
+            .field("span", &self.span())
+            .finish()
+    }
+}
+
+macro_rules! impl_ident_eq_for {
+    ($ty:ty) => {
+        impl<'ast> PartialEq<$ty> for Ident<'ast> {
+            fn eq(&self, other: &$ty) -> bool {
+                self.name().eq(other)
+            }
+        }
+        impl<'ast> PartialEq<Ident<'ast>> for $ty {
+            fn eq(&self, other: &Ident<'ast>) -> bool {
+                other.name().eq(self)
+            }
+        }
+    };
+    ($($ty:ty),+) => {
+        $(
+            impl_ident_eq_for!($ty);
+        )+
+    };
+}
+
+use impl_ident_eq_for;
+
+impl_ident_eq_for!(
+    str,
+    String,
+    std::ffi::OsStr,
+    std::ffi::OsString,
+    std::borrow::Cow<'_, str>
+);

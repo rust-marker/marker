@@ -18,7 +18,7 @@ impl<'ast> RelativeTy<'ast> {
         self.ty
     }
 
-    pub fn name(&self) -> String {
+    pub fn name(&self) -> &str {
         with_cx(self, |cx| cx.symbol_str(self.name))
     }
 }

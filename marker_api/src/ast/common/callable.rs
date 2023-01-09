@@ -75,7 +75,7 @@ impl<'ast> Parameter<'ast> {
 impl<'ast> Parameter<'ast> {
     // Function items actually use patterns and not names. Patterns are not yet
     // implemented though. A name should be good enough for now.
-    pub fn name(&self) -> Option<String> {
+    pub fn name(&self) -> Option<&str> {
         self.name.get().map(|sym| with_cx(self, |cx| cx.symbol_str(*sym)))
     }
 

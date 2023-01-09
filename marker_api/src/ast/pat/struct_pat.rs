@@ -69,7 +69,7 @@ impl<'ast> StructFieldPat<'ast> {
         with_cx(self, |cx| cx.get_span(self.span))
     }
 
-    pub fn ident(&self) -> String {
+    pub fn ident(&self) -> &str {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
 

@@ -67,7 +67,7 @@ impl<'ast> Lifetime<'ast> {
     }
 
     /// Note that the `'static` lifetime is not a label and will therefore return [`None`]
-    pub fn label(&self) -> Option<String> {
+    pub fn label(&self) -> Option<&str> {
         match self.kind {
             LifetimeKind::Label(sym, _) => Some(with_cx(self, |cx| cx.symbol_str(sym))),
             _ => None,
@@ -121,7 +121,7 @@ impl<'ast> BindingGenericArg<'ast> {
     /// ```
     ///
     /// Would return `Item` as the identifier.
-    pub fn ident(&self) -> String {
+    pub fn ident(&self) -> &str {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
 
