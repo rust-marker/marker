@@ -93,12 +93,6 @@ fn choose_lint_crates(args: &clap::ArgMatches, config: Option<Config>) -> Result
             }
         },
     };
-    if lint_crates.is_empty() {
-        eprintln!(
-            "Please provide at least one valid lint crate, with the `--lints` argument, or `[workspace.metadata.marker.lints]` in `Cargo.toml`"
-        );
-        return Err(ExitStatus::NoLints);
-    }
     Ok(lint_crates)
 }
 
@@ -144,6 +138,13 @@ fn run_check(
     // If this is a dev build, we want to recompile the driver before checking
     if dev_build {
         driver::install_driver(verbose, dev_build)?;
+    }
+
+    if lint_crate_paths.is_empty() {
+        eprintln!(
+            "Please provide at least one valid lint crate, with the `--lints` argument, or `[workspace.metadata.marker.lints]` in `Cargo.toml`"
+        );
+        return Err(ExitStatus::NoLints);
     }
 
     if lint_crate_paths.iter().any(|path| path.to_string_lossy().contains(';')) {
