@@ -104,14 +104,6 @@ fn main() -> Result<(), ExitStatus> {
             .take_while(|s| s != CARGO_ARGS_SEPARATOR),
     );
 
-    let config = match Config::get_marker_config() {
-        Ok(v) => Some(v),
-        Err(e) => match e {
-            config::ConfigFetchError::NotFound => None,
-            _ => return Err(e.emit_and_convert()),
-        },
-    };
-
     let verbose = matches.get_flag("verbose");
     let test_build = matches.get_flag("test-setup");
     let dev_build = cfg!(feature = "dev-build");
@@ -120,6 +112,14 @@ fn main() -> Result<(), ExitStatus> {
         print_version(verbose);
         return Ok(());
     }
+
+    let config = match Config::get_marker_config() {
+        Ok(v) => Some(v),
+        Err(e) => match e {
+            config::ConfigFetchError::NotFound => None,
+            _ => return Err(e.emit_and_convert()),
+        },
+    };
 
     match matches.subcommand() {
         Some(("setup", _args)) => driver::install_driver(verbose, dev_build),
