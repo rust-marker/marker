@@ -76,10 +76,10 @@ extern "C" fn symbol_str<'ast>(data: &(), sym: SymbolId) -> ffi::Str<'ast> {
 }
 
 pub trait DriverContext<'ast> {
-    fn item(&'ast self, id: ItemId) -> Option<ItemKind<'ast>>;
-    fn body(&'ast self, id: BodyId) -> &'ast Body<'ast>;
+    fn item(&'ast self, api_id: ItemId) -> Option<ItemKind<'ast>>;
+    fn body(&'ast self, api_id: BodyId) -> &'ast Body<'ast>;
     fn emit_lint(&'ast self, lint: &'static Lint, msg: &str, span: &Span<'ast>);
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast>;
     fn span_snippet(&'ast self, span: &Span) -> Option<&'ast str>;
-    fn symbol_str(&'ast self, sym: SymbolId) -> &'ast str;
+    fn symbol_str(&'ast self, api_id: SymbolId) -> &'ast str;
 }
