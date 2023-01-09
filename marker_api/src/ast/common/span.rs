@@ -15,7 +15,7 @@ enum SpanSource<'ast> {
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Span<'ast> {
     source: SpanSource<'ast>,
     /// The start marks the first byte in the [`SpanSource`] that is included in this
@@ -110,17 +110,6 @@ impl<'ast> Span<'ast> {
     }
 }
 
-impl<'ast> std::fmt::Debug for Span<'ast> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Span")
-            .field("source", &self.source)
-            .field("start", &self.start)
-            .field("end", &self.end)
-            .field("snipped()", &self.snippet())
-            .finish()
-    }
-}
-
 #[cfg(feature = "driver-api")]
 impl<'ast> Span<'ast> {
     pub fn new(source: SpanSource<'ast>, start: usize, end: usize) -> Self {
@@ -197,34 +186,30 @@ impl<'ast> std::fmt::Debug for Ident<'ast> {
 
 macro_rules! impl_ident_eq_for {
     ($ty:ty) => {
-        #[allow(unused_lifetimes)]
-        impl<'a, 'ast> PartialEq<$ty> for Ident<'ast> {
+        impl<'ast> PartialEq<$ty> for Ident<'ast> {
             fn eq(&self, other: &$ty) -> bool {
                 self.name().eq(other)
             }
         }
+        impl<'ast> PartialEq<Ident<'ast>> for $ty {
+            fn eq(&self, other: &Ident<'ast>) -> bool {
+                other.name().eq(self)
+            }
+        }
+    };
+    ($($ty:ty),+) => {
+        $(
+            impl_ident_eq_for!($ty);
+        )+
     };
 }
 
 use impl_ident_eq_for;
 
-impl_ident_eq_for!(str);
-impl_ident_eq_for!(String);
-impl_ident_eq_for!(std::ffi::OsStr);
-impl_ident_eq_for!(std::ffi::OsString);
-impl_ident_eq_for!(std::borrow::Cow<'a, str>);
-
-// The following implementation sadly causes `error[E0210]`, which means that
-// marker can only provide the implementation `<ident> == <string>` and not the
-// other way around. This is a bit meh when it comes to usability, but IDK how to
-// fix it right now (~xFrednet)
-// ```
-// impl<'ast, T> PartialEq<Ident<'_>> for T
-// where
-//     T: PartialEq<str>,
-// {
-//     fn eq(&self, other: &Ident<'_>) -> bool {
-//         self.eq(other.name())
-//     }
-// }
-// ```
+impl_ident_eq_for!(
+    str,
+    String,
+    std::ffi::OsStr,
+    std::ffi::OsString,
+    std::borrow::Cow<'_, str>
+);

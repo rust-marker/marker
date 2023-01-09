@@ -42,7 +42,6 @@ pub trait ItemData<'ast>: Debug {
     fn visibility(&self) -> &Visibility<'ast>;
 
     /// This function can return [`None`] if the item was generated and has no real name
-    /// This function can return `None` if the item was generated and has no real name
     fn ident(&self) -> Option<&Ident<'ast>>;
 
     /// This returns this [`ItemData`] instance as a [`ItemKind`]. This can be useful for
