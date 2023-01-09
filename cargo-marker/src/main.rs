@@ -79,12 +79,19 @@ fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
         .to_string()
 }
 
-fn choose_lint_crates(args: &clap::ArgMatches, config: Option<Config>) -> Result<Vec<OsString>, ExitStatus> {
-    let lint_crates: Vec<OsString> = match args.get_many::<OsString>("lints") {
-        Some(v) => v.cloned().collect(),
+fn choose_lint_crates(
+    args: &clap::ArgMatches,
+    config: Option<Config>,
+) -> Result<Vec<(Option<String>, OsString)>, ExitStatus> {
+    let lint_crates: Vec<(Option<String>, OsString)> = match args.get_many::<OsString>("lints") {
+        Some(v) => v.cloned().map(|v| (None, v)).collect(),
         None => {
             if let Some(config) = config {
-                config.collect_paths()?.iter().map(Into::into).collect()
+                config
+                    .collect_crates()?
+                    .into_iter()
+                    .map(|(name, path)| (Some(name), path.into()))
+                    .collect()
             } else {
                 eprintln!(
                     "Please provide at least one valid lint crate, with the `--lints` argument, or `[workspace.metadata.marker.lints]` in `Cargo.toml`"
@@ -130,7 +137,7 @@ fn main() -> Result<(), ExitStatus> {
 }
 
 fn run_check(
-    lint_crate_paths: &[OsString],
+    crate_entries: &[(Option<String>, OsString)],
     verbose: bool,
     dev_build: bool,
     test_build: bool,
@@ -140,26 +147,34 @@ fn run_check(
         driver::install_driver(verbose, dev_build)?;
     }
 
-    if lint_crate_paths.is_empty() {
+    if crate_entries.is_empty() {
         eprintln!(
             "Please provide at least one valid lint crate, with the `--lints` argument, or `[workspace.metadata.marker.lints]` in `Cargo.toml`"
         );
         return Err(ExitStatus::NoLints);
     }
 
-    if lint_crate_paths.iter().any(|path| path.to_string_lossy().contains(';')) {
+    if crate_entries
+        .iter()
+        .any(|(_name, path)| path.to_string_lossy().contains(';'))
+    {
         eprintln!("The absolute paths of lint crates are not allowed to contain a `;`");
         return Err(ExitStatus::InvalidValue);
     }
 
-    let mut lint_crates = Vec::with_capacity(lint_crate_paths.len());
+    let mut lint_crates = Vec::with_capacity(crate_entries.len());
 
     println!();
     println!("Compiling Lints:");
     let target_dir = Path::new(&*MARKER_LINT_DIR);
-    for krate in lint_crate_paths {
-        let src_dir = PathBuf::from(krate);
-        let crate_file = build_local_lint_crate(src_dir.as_path(), target_dir, verbose)?;
+    for (name, path) in crate_entries {
+        let src_dir = PathBuf::from(path);
+        let crate_file = build_local_lint_crate(
+            name.as_ref().map(String::as_str),
+            src_dir.as_path(),
+            target_dir,
+            verbose,
+        )?;
         lint_crates.push(crate_file.as_os_str().to_os_string());
     }
 

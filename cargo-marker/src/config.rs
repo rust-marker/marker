@@ -33,6 +33,7 @@ pub enum LintDependency {
 #[serde(deny_unknown_fields)]
 pub struct LintDependencyEntry {
     path: Option<String>,
+    package: Option<String>,
     // TODO: Everything below is not yet supported
     // Registry fetching:
     version: Option<String>,
@@ -42,6 +43,8 @@ pub struct LintDependencyEntry {
     rev: Option<String>,
     branch: Option<String>,
     // Features:
+    #[serde(rename = "default-features")]
+    default_features: Option<bool>,
     features: Option<Vec<String>>,
     optional: Option<bool>,
     // TODO: do we want lint configuration here too?
@@ -115,7 +118,7 @@ impl Config {
         Ok(marker_config)
     }
 
-    pub fn collect_paths(&self) -> Result<Vec<String>, ExitStatus> {
+    pub fn collect_crates(&self) -> Result<Vec<(String, String)>, ExitStatus> {
         self.lints
             .iter()
             .map(|(name, dep)| match dep {
@@ -131,12 +134,16 @@ impl Config {
                             git,
                             rev,
                             branch,
+                            default_features,
                             features,
                             optional
                         ]
                     );
                     if let Some(ref path) = dep.path {
-                        return Ok(path.clone());
+                        if let Some(ref package) = dep.package {
+                            return Ok((package.clone(), path.clone()));
+                        }
+                        return Ok((name.clone(), path.clone()));
                     }
                     eprintln!("No `path` field found for lint crate {name}");
                     Err(ExitStatus::BadConfiguration)

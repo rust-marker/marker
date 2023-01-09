@@ -9,4 +9,4 @@ members = [
 ]
 
 [workspace.metadata.marker.lints]
-dogfood = { path = "marker_lints" }
+marker_lints = { path = "marker_lints" }

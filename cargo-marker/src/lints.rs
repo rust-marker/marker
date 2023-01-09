@@ -8,7 +8,12 @@ use crate::ExitStatus;
 
 /// This creates a debug build for a local crate. The path of the build library
 /// will be returned, if the operation was successful.
-pub fn build_local_lint_crate(crate_dir: &Path, target_dir: &Path, verbose: bool) -> Result<PathBuf, ExitStatus> {
+pub fn build_local_lint_crate(
+    package_name: Option<&str>,
+    crate_dir: &Path,
+    target_dir: &Path,
+    verbose: bool,
+) -> Result<PathBuf, ExitStatus> {
     if !crate_dir.exists() {
         eprintln!("The given lint can't be found, searched at: `{}`", crate_dir.display());
         return Err(ExitStatus::LintCrateNotFound);
@@ -16,12 +21,17 @@ pub fn build_local_lint_crate(crate_dir: &Path, target_dir: &Path, verbose: bool
 
     // Compile the lint crate
     let mut cmd = Command::new("cargo");
+    cmd.arg("build");
     if verbose {
         cmd.arg("--verbose");
     }
+    if let Some(name) = package_name {
+        cmd.arg("--package");
+        cmd.arg(name);
+    }
     let exit_status = cmd
         .current_dir(std::fs::canonicalize(crate_dir).unwrap())
-        .args(["build", "--lib", "--target-dir"])
+        .args(["--lib", "--target-dir"])
         .arg(target_dir.as_os_str())
         .env("RUSTFLAGS", "--cap-lints=allow")
         .spawn()
