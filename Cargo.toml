@@ -4,6 +4,9 @@ members = [
     "marker_adapter",
     "marker_api",
     "marker_driver_rustc",
-    # This is temporary, lint crates like this one will be managed with `cargo-liner`
+    # This is needed for rust-analyzer, uitests and other tools
     "marker_lints",
 ]
+
+[workspace.metadata.marker.lints]
+marker_lints = { path = "marker_lints" }

@@ -9,7 +9,7 @@ The internal structure of marker and its components is documented in [`docs/inte
 ## Running
 
 The project is currently only available in this GitHub repo.
-For a quick test, checkout the repo and run `cargo run --bin cargo-marker -- -l ./marker_lints`.
+For a quick test, clone the repo and run `cargo dogfood`.
 This will start `cargo-marker`, load [`./marker_lints`](./marker_lints) as a *lint crate* and run it in this repository.
 
 ## License
