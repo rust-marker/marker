@@ -160,7 +160,7 @@ fn run_check(
         return Err(ExitStatus::NoLints);
     }
 
-    if crate_entries.iter().any(LintCrateSpec::validate) {
+    if !crate_entries.iter().all(LintCrateSpec::is_valid) {
         eprintln!("The absolute paths of lint crates are not allowed to contain a `;`");
         return Err(ExitStatus::InvalidValue);
     }
@@ -171,7 +171,7 @@ fn run_check(
     println!("Compiling Lints:");
     let target_dir = Path::new(&*MARKER_LINT_DIR);
     for krate in crate_entries {
-        let crate_file = krate.build_self(target_dir, verbose)?;
+        let crate_file = krate.build(target_dir, verbose)?;
         lint_crates.push(crate_file.as_os_str().to_os_string());
     }
 

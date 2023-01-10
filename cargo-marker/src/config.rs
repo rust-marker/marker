@@ -92,7 +92,7 @@ macro_rules! unsupported_fields {
 }
 
 impl Config {
-    pub fn get_marker_config() -> Result<Config, ConfigFetchError> {
+    fn get_raw_manifest() -> Result<String, ConfigFetchError> {
         let Ok(mut config_file) = File::open(CARGO_TOML) else {
             return Err(ConfigFetchError::FileNotFound);
         };
@@ -101,6 +101,11 @@ impl Config {
         if let Err(e) = config_file.read_to_string(&mut config_str) {
             return Err(ConfigFetchError::IoError(e));
         }
+        Ok(config_str)
+    }
+
+    pub fn get_marker_config() -> Result<Config, ConfigFetchError> {
+        let config_str = Self::get_raw_manifest()?;
 
         let cargo_config = match from_str::<Value>(&config_str) {
             Ok(v) => v,

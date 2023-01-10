@@ -7,7 +7,24 @@ use std::{
 use crate::ExitStatus;
 
 pub struct LintCrateSpec<'a> {
+    /// Optional package name, exists if supplied from config:
+    /// ```toml
+    /// lint_a = { path = "" }
+    /// # `lint_a` is the package_name
+    /// lint_b = { path = "", package = "lint_c"}
+    /// # `lint_c` is the package name
+    /// ```
+    /// if the lint crate was supplied only from path, this is `None`, for example in case of
+    /// command-line arguments:
+    ///
+    /// `--lints ./marker_lints`
+    ///
+    /// where `./marker_lints` is `dir`, and `package_name` in this case is empty.
+    ///
+    /// Setting this to `None` won't validate the package name when building the package with
+    /// [`build()`](`Self::build`)
     package_name: Option<&'a str>,
+    /// Path to lint crate
     dir: &'a Path,
 }
 
@@ -17,22 +34,20 @@ impl<'a> LintCrateSpec<'a> {
     }
 
     /// Currently only checks for semicolons, can be extended in the future
-    pub fn validate(&self) -> bool {
-        self.dir.to_string_lossy().contains(';')
+    pub fn is_valid(&self) -> bool {
+        !self.dir.to_string_lossy().contains(';')
     }
 
-    pub fn build_self(&self, target_dir: &Path, verbose: bool) -> Result<PathBuf, ExitStatus> {
+    /// Creates a debug build for this crate. The path of the build library
+    /// will be returned, if the operation was successful.
+    pub fn build(&self, target_dir: &Path, verbose: bool) -> Result<PathBuf, ExitStatus> {
         build_local_lint_crate(self, target_dir, verbose)
     }
 }
 
 /// This creates a debug build for a local crate. The path of the build library
 /// will be returned, if the operation was successful.
-pub fn build_local_lint_crate(
-    krate: &LintCrateSpec<'_>,
-    target_dir: &Path,
-    verbose: bool,
-) -> Result<PathBuf, ExitStatus> {
+fn build_local_lint_crate(krate: &LintCrateSpec<'_>, target_dir: &Path, verbose: bool) -> Result<PathBuf, ExitStatus> {
     if !krate.dir.exists() {
         eprintln!("The given lint can't be found, searched at: `{}`", krate.dir.display());
         return Err(ExitStatus::LintCrateNotFound);
