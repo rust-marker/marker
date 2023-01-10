@@ -7,7 +7,9 @@ use std::{
 use crate::ExitStatus;
 
 pub struct LintCrateSpec<'a> {
-    /// Optional package name, exists if supplied from config:
+    /// Optional package name (this is always UTF-8, as opposed to `dir`), exists if supplied from
+    /// config:
+    ///
     /// ```toml
     /// lint_a = { path = "" }
     /// # `lint_a` is the package_name
