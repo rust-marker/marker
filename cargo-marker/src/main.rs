@@ -11,14 +11,14 @@ use std::{
     ffi::{OsStr, OsString},
     fs::create_dir_all,
     io,
-    path::{Path, PathBuf},
+    path::Path,
     process::exit,
 };
 
 use cli::get_clap_config;
 use config::Config;
 use driver::{get_driver_path, run_driver};
-use lints::build_local_lint_crate;
+use lints::LintCrateSpec;
 use once_cell::sync::Lazy;
 
 use crate::driver::print_driver_version;
@@ -26,6 +26,11 @@ use crate::driver::print_driver_version;
 const CARGO_ARGS_SEPARATOR: &str = "--";
 const VERSION: &str = concat!("cargo-marker ", env!("CARGO_PKG_VERSION"));
 const LINT_KRATES_BASE_DIR: &str = "./target/marker";
+const NO_LINTS_ERROR: &str = concat!(
+    "Please provide at least one valid lint crate, ",
+    "with the `--lints` argument, ",
+    "or `[workspace.metadata.marker.lints]` in `Cargo.toml`"
+);
 static MARKER_LINT_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("marker", "marker"));
 
 #[derive(Debug)]
@@ -79,28 +84,21 @@ fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
         .to_string()
 }
 
-fn choose_lint_crates(
-    args: &clap::ArgMatches,
-    config: Option<Config>,
-) -> Result<Vec<(Option<String>, OsString)>, ExitStatus> {
-    let lint_crates: Vec<(Option<String>, OsString)> = match args.get_many::<OsString>("lints") {
-        Some(v) => v.cloned().map(|v| (None, v)).collect(),
+fn choose_lint_crates<'a>(
+    args: &'a clap::ArgMatches,
+    config: Option<&'a Config>,
+) -> Result<Vec<LintCrateSpec<'a>>, ExitStatus> {
+    match args.get_many::<OsString>("lints") {
+        Some(v) => Ok(v.map(|v| LintCrateSpec::new(None, v.as_ref())).collect()),
         None => {
             if let Some(config) = config {
-                config
-                    .collect_crates()?
-                    .into_iter()
-                    .map(|(name, path)| (Some(name), path.into()))
-                    .collect()
+                config.collect_crates()
             } else {
-                eprintln!(
-                    "Please provide at least one valid lint crate, with the `--lints` argument, or `[workspace.metadata.marker.lints]` in `Cargo.toml`"
-                );
-                return Err(ExitStatus::NoLints);
+                eprintln!("{NO_LINTS_ERROR}");
+                Err(ExitStatus::NoLints)
             }
         },
-    };
-    Ok(lint_crates)
+    }
 }
 
 fn main() -> Result<(), ExitStatus> {
@@ -130,14 +128,24 @@ fn main() -> Result<(), ExitStatus> {
 
     match matches.subcommand() {
         Some(("setup", _args)) => driver::install_driver(verbose, dev_build),
-        Some(("check", args)) => run_check(&choose_lint_crates(args, config)?, verbose, dev_build, test_build),
-        None => run_check(&choose_lint_crates(&matches, config)?, verbose, dev_build, test_build),
+        Some(("check", args)) => run_check(
+            &choose_lint_crates(args, config.as_ref())?,
+            verbose,
+            dev_build,
+            test_build,
+        ),
+        None => run_check(
+            &choose_lint_crates(&matches, config.as_ref())?,
+            verbose,
+            dev_build,
+            test_build,
+        ),
         _ => unreachable!(),
     }
 }
 
 fn run_check(
-    crate_entries: &[(Option<String>, OsString)],
+    crate_entries: &[LintCrateSpec],
     verbose: bool,
     dev_build: bool,
     test_build: bool,
@@ -148,16 +156,11 @@ fn run_check(
     }
 
     if crate_entries.is_empty() {
-        eprintln!(
-            "Please provide at least one valid lint crate, with the `--lints` argument, or `[workspace.metadata.marker.lints]` in `Cargo.toml`"
-        );
+        eprintln!("{NO_LINTS_ERROR}");
         return Err(ExitStatus::NoLints);
     }
 
-    if crate_entries
-        .iter()
-        .any(|(_name, path)| path.to_string_lossy().contains(';'))
-    {
+    if crate_entries.iter().any(LintCrateSpec::validate) {
         eprintln!("The absolute paths of lint crates are not allowed to contain a `;`");
         return Err(ExitStatus::InvalidValue);
     }
@@ -167,14 +170,8 @@ fn run_check(
     println!();
     println!("Compiling Lints:");
     let target_dir = Path::new(&*MARKER_LINT_DIR);
-    for (name, path) in crate_entries {
-        let src_dir = PathBuf::from(path);
-        let crate_file = build_local_lint_crate(
-            name.as_ref().map(String::as_str),
-            src_dir.as_path(),
-            target_dir,
-            verbose,
-        )?;
+    for krate in crate_entries {
+        let crate_file = krate.build_self(target_dir, verbose)?;
         lint_crates.push(crate_file.as_os_str().to_os_string());
     }
 

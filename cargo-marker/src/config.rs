@@ -8,7 +8,7 @@ use serde::Deserialize;
 
 use toml_edit::easy::{from_str, Value};
 
-use crate::ExitStatus;
+use crate::{lints::LintCrateSpec, ExitStatus};
 
 const CARGO_TOML: &str = "Cargo.toml";
 
@@ -118,7 +118,7 @@ impl Config {
         Ok(marker_config)
     }
 
-    pub fn collect_crates(&self) -> Result<Vec<(String, String)>, ExitStatus> {
+    pub fn collect_crates(&self) -> Result<Vec<LintCrateSpec>, ExitStatus> {
         self.lints
             .iter()
             .map(|(name, dep)| match dep {
@@ -141,9 +141,9 @@ impl Config {
                     );
                     if let Some(ref path) = dep.path {
                         if let Some(ref package) = dep.package {
-                            return Ok((package.clone(), path.clone()));
+                            return Ok(LintCrateSpec::new(Some(package), path.as_ref()));
                         }
-                        return Ok((name.clone(), path.clone()));
+                        return Ok(LintCrateSpec::new(Some(name), path.as_ref()));
                     }
                     eprintln!("No `path` field found for lint crate {name}");
                     Err(ExitStatus::BadConfiguration)

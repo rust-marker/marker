@@ -6,16 +6,35 @@ use std::{
 
 use crate::ExitStatus;
 
+pub struct LintCrateSpec<'a> {
+    package_name: Option<&'a str>,
+    dir: &'a Path,
+}
+
+impl<'a> LintCrateSpec<'a> {
+    pub fn new(package_name: Option<&'a str>, dir: &'a Path) -> Self {
+        Self { package_name, dir }
+    }
+
+    /// Currently only checks for semicolons, can be extended in the future
+    pub fn validate(&self) -> bool {
+        self.dir.to_string_lossy().contains(';')
+    }
+
+    pub fn build_self(&self, target_dir: &Path, verbose: bool) -> Result<PathBuf, ExitStatus> {
+        build_local_lint_crate(self, target_dir, verbose)
+    }
+}
+
 /// This creates a debug build for a local crate. The path of the build library
 /// will be returned, if the operation was successful.
 pub fn build_local_lint_crate(
-    package_name: Option<&str>,
-    crate_dir: &Path,
+    krate: &LintCrateSpec<'_>,
     target_dir: &Path,
     verbose: bool,
 ) -> Result<PathBuf, ExitStatus> {
-    if !crate_dir.exists() {
-        eprintln!("The given lint can't be found, searched at: `{}`", crate_dir.display());
+    if !krate.dir.exists() {
+        eprintln!("The given lint can't be found, searched at: `{}`", krate.dir.display());
         return Err(ExitStatus::LintCrateNotFound);
     }
 
@@ -25,12 +44,12 @@ pub fn build_local_lint_crate(
     if verbose {
         cmd.arg("--verbose");
     }
-    if let Some(name) = package_name {
+    if let Some(name) = krate.package_name {
         cmd.arg("--package");
         cmd.arg(name);
     }
     let exit_status = cmd
-        .current_dir(std::fs::canonicalize(crate_dir).unwrap())
+        .current_dir(std::fs::canonicalize(krate.dir).unwrap())
         .args(["--lib", "--target-dir"])
         .arg(target_dir.as_os_str())
         .env("RUSTFLAGS", "--cap-lints=allow")
@@ -53,7 +72,7 @@ pub fn build_local_lint_crate(
     // See marker#60
     let file_name = format!(
         "{lib_file_prefix}{}",
-        crate_dir.file_name().and_then(OsStr::to_str).unwrap_or_default()
+        krate.dir.file_name().and_then(OsStr::to_str).unwrap_or_default()
     );
     // Here `debug` is attached as the crate is build with the `cargo build` command
     let mut krate_path = target_dir.join("debug").join(file_name);
