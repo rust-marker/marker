@@ -30,12 +30,12 @@ fn emit_foo_lint<'ast, S: Into<String>>(cx: &'ast AstContext<'ast>, description:
 #[derive(Default)]
 struct TestLintPass {}
 
-impl<'ast> LintPass<'ast> for TestLintPass {
+impl LintPass for TestLintPass {
     fn registered_lints(&self) -> Box<[&'static Lint]> {
         Box::new([TEST_LINT])
     }
 
-    fn check_static_item(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {
+    fn check_static_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {
         if let Some(name) = item.ident() {
             let name = name.name();
             if name.starts_with("PRINT_TYPE") {
@@ -49,19 +49,19 @@ impl<'ast> LintPass<'ast> for TestLintPass {
         }
     }
 
-    fn check_const_item(&mut self, cx: &'ast AstContext<'ast>, item: &'ast ConstItem<'ast>) {
+    fn check_const_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast ConstItem<'ast>) {
         if matches!(item.ident(), Some(name) if name == "FOO") {
             emit_foo_lint(cx, "a constant item", item.span());
         }
     }
 
-    fn check_extern_crate(&mut self, cx: &'ast AstContext<'ast>, item: &'ast ExternCrateItem<'ast>) {
+    fn check_extern_crate<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast ExternCrateItem<'ast>) {
         if matches!(item.ident(), Some(name) if name == "foo") {
             emit_foo_lint(cx, "an `extern` crate", item.span());
         }
     }
 
-    fn check_use_decl(&mut self, cx: &'ast AstContext<'ast>, item: &'ast UseItem<'ast>) {
+    fn check_use_decl<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast UseItem<'ast>) {
         if item.is_glob() {
             return;
         }
@@ -70,37 +70,37 @@ impl<'ast> LintPass<'ast> for TestLintPass {
         }
     }
 
-    fn check_field(&mut self, cx: &'ast AstContext<'ast>, field: &'ast Field<'ast>) {
+    fn check_field<'ast>(&mut self, cx: &'ast AstContext<'ast>, field: &'ast Field<'ast>) {
         if field.ident() == "foo" {
             emit_foo_lint(cx, "a field", field.span());
         }
     }
 
-    fn check_variant(&mut self, cx: &'ast AstContext<'ast>, variant: &'ast EnumVariant<'ast>) {
+    fn check_variant<'ast>(&mut self, cx: &'ast AstContext<'ast>, variant: &'ast EnumVariant<'ast>) {
         if variant.ident() == "Foo" {
             emit_foo_lint(cx, "an enum variant", variant.span());
         }
     }
 
-    fn check_mod(&mut self, cx: &'ast AstContext<'ast>, item: &'ast ModItem<'ast>) {
+    fn check_mod<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast ModItem<'ast>) {
         if matches!(item.ident(), Some(name) if name == "foo") {
             emit_foo_lint(cx, "a module", item.span());
         }
     }
 
-    fn check_enum(&mut self, cx: &'ast AstContext<'ast>, item: &'ast EnumItem<'ast>) {
+    fn check_enum<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast EnumItem<'ast>) {
         if matches!(item.ident(), Some(name) if name == "Foo") {
             emit_foo_lint(cx, "an enum", item.span());
         }
     }
 
-    fn check_struct(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StructItem<'ast>) {
+    fn check_struct<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StructItem<'ast>) {
         if matches!(item.ident(), Some(name) if name == "Foo") {
             emit_foo_lint(cx, "a struct", item.span());
         }
     }
 
-    fn check_fn(&mut self, cx: &'ast AstContext<'ast>, item: &'ast FnItem<'ast>) {
+    fn check_fn<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast FnItem<'ast>) {
         if matches!(item.ident(), Some(name) if name == "foo") {
             emit_foo_lint(cx, "a function", item.span());
         }

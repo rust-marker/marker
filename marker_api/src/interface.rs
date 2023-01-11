@@ -66,13 +66,13 @@ pub use export_lint_pass;
 #[macro_export]
 #[doc(hidden)]
 macro_rules! export_lint_pass_fn {
-    (fn $fn_name:ident(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
+    (fn $fn_name:ident<'ast>(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
         #[no_mangle]
         pub extern "C" fn $fn_name<'ast>($($arg_name: $arg_ty),*) -> $ret_ty {
             super::__MARKER_STATE.with(|state| state.borrow().$fn_name($($arg_name),*))
         }
     };
-    (fn $fn_name:ident(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
+    (fn $fn_name:ident<'ast>(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
         #[no_mangle]
         pub extern "C" fn $fn_name<'ast>($($arg_name: $arg_ty),*) -> $ret_ty {
             super::__MARKER_STATE.with(|state| state.borrow_mut().$fn_name($($arg_name),*))

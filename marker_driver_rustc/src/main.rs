@@ -32,7 +32,7 @@ extern crate rustc_target;
 
 pub mod context;
 pub mod conversion;
-mod entry;
+mod lint_pass;
 
 use std::env;
 use std::ops::Deref;
@@ -54,7 +54,7 @@ impl rustc_driver::Callbacks for MarkerCallback {
         assert!(config.register_lints.is_none());
 
         config.register_lints = Some(Box::new(|_sess, lint_store| {
-            lint_store.register_late_pass(|_| Box::new(entry::MarkerLintPass));
+            lint_store.register_late_pass(|_| Box::new(lint_pass::MarkerLintPass));
         }));
     }
 }

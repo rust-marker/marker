@@ -29,22 +29,22 @@ use marker_api::{lint::Lint, LintPass};
 // name, default lint level and description.
 marker_api::lint::declare_lint!(YOUR_LINT_NAME, Allow, "the lint descritpion");
 
-// Here we create an object that'll implement `LintPass<'ast>`. This struct can
+// Here we create an object that'll implement `LintPass`. This struct can
 // hold data used for linting. A mutable reference of this struct is passed to
-// each check in `LintPass<'ast>`
+// each check in `LintPass`
 #[derive(Debug)]
 struct TestLintPass;
 
 // Here we implement the `LintPass` for our struct. It only requires the
 // implementation of one function, that returns all lints which are implemented
 // by this crate.
-impl<'ast> LintPass<'ast> for TestLintPass {
+impl LintPass for TestLintPass {
     fn registered_lints(&self) -> Box<[&'static Lint]> {
         Box::new([YOUR_LINT_NAME])
     }
 
     // Here we can finally start linting, by implementing `check_*` functions.
-    // See `LintPass<'ast>` for a complete list of provided callbacks.
+    // See `LintPass` for a complete list of provided callbacks.
 }
 
 // Last but not least, we have to mark our object that implements `LintPass`.
