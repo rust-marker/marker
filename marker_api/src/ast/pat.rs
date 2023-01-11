@@ -18,6 +18,8 @@ mod slice_pat;
 pub use slice_pat::*;
 mod or_pat;
 pub use or_pat::*;
+mod unstable_pat;
+pub use unstable_pat::*;
 
 pub trait PatData<'ast>: Debug {
     /// Returns the span of this pattern.
@@ -38,6 +40,7 @@ pub enum PatKind<'ast> {
     Tuple(&'ast TuplePat<'ast>),
     Slice(&'ast SlicePat<'ast>),
     Or(&'ast OrPat<'ast>),
+    Unstable(&'ast UnstablePat<'ast>),
 }
 
 impl<'ast> PatKind<'ast> {
@@ -48,7 +51,7 @@ macro_rules! impl_pat_data_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_pat_data_fn!(
             $method() -> $return_ty,
-            Ident, Wildcard, Rest, Ref, Struct, Tuple, Slice, Or
+            Ident, Wildcard, Rest, Ref, Struct, Tuple, Slice, Or, Unstable
         );
     };
     ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
