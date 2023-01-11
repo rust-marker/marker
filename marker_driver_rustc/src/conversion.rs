@@ -1,3 +1,4 @@
+#![doc = include_str!("../../docs/internal/rustc_driver/conversion.md")]
 #![allow(
     clippy::unused_self,
     reason = "`self` should be used for the `'ast` lifetime and consistency"
