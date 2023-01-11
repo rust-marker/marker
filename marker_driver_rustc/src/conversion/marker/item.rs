@@ -45,7 +45,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                     hir::UseKind::Glob => UseKind::Glob,
                     hir::UseKind::ListStem => return None,
                 };
-                ItemKind::Use(self.alloc(|| UseItem::new(data, self.to_api_path(path), use_kind)))
+                ItemKind::Use(self.alloc(|| UseItem::new(data, self.to_path(path), use_kind)))
             },
             hir::ItemKind::Static(rustc_ty, rustc_mut, rustc_body_id) => ItemKind::Static(self.alloc(|| {
                 StaticItem::new(

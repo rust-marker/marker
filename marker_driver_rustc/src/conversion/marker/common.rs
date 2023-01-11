@@ -2,11 +2,13 @@ use std::mem::{size_of, transmute};
 
 use marker_api::ast::{
     Abi, AstPath, AstPathSegment, BodyId, CrateId, GenericId, Ident, ItemId, Span, SpanId, SpanSource, SymbolId,
-    TraitRef, TyDefId,
+    TraitRef, TyDefId, VarId,
 };
 use rustc_hir as hir;
 
-use crate::conversion::common::{BodyIdLayout, GenericIdLayout, ItemIdLayout, SpanSourceInfo, TyDefIdLayout};
+use crate::conversion::common::{
+    BodyIdLayout, GenericIdLayout, ItemIdLayout, SpanSourceInfo, TyDefIdLayout, VarIdLayout,
+};
 
 use super::MarkerConversionContext;
 
@@ -76,6 +78,14 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
         SymbolId::new(sym.as_u32())
     }
 
+    pub fn to_symbol_id_for_num(&self, num: u32) -> SymbolId {
+        *self
+            .num_symbols
+            .borrow_mut()
+            .entry(num)
+            .or_insert_with(|| self.to_symbol_id(rustc_span::Symbol::intern(&num.to_string())))
+    }
+
     #[must_use]
     pub fn to_generic_id(&self, id: impl Into<GenericIdLayout>) -> GenericId {
         assert_eq!(
@@ -124,6 +134,18 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
         // The layout is validated with the `assert` above
         unsafe { transmute(layout) }
     }
+
+    #[must_use]
+    pub fn to_var_id(&self, rustc_id: hir::HirId) -> VarId {
+        assert_eq!(size_of::<VarId>(), size_of::<VarIdLayout>(), "the layout is invalid");
+        let layout = VarIdLayout {
+            owner: rustc_id.owner.def_id.local_def_index.as_u32(),
+            index: rustc_id.local_id.as_u32(),
+        };
+        // # Safety
+        // The layout is validated with the `assert` above
+        unsafe { transmute(layout) }
+    }
 }
 
 // Other magical cool things
@@ -142,13 +164,22 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
         }
     }
 
-    #[must_use]
-    pub fn to_api_path<T>(&self, path: &hir::Path<'tcx, T>) -> AstPath<'ast> {
-        AstPath::new(self.alloc_slice_iter(path.segments.iter().map(|seg| self.to_api_path_segment(seg))))
+    pub fn to_path_from_qpath(&self, qpath: &hir::QPath<'tcx>) -> AstPath<'ast> {
+        match qpath {
+            hir::QPath::Resolved(None, path) => self.to_path(path),
+            hir::QPath::Resolved(Some(_ty), _) => todo!("{qpath:#?}"),
+            hir::QPath::TypeRelative(_, _) => todo!("{qpath:#?}"),
+            hir::QPath::LangItem(_, _, _) => todo!("{qpath:#?}"),
+        }
     }
 
     #[must_use]
-    fn to_api_path_segment(&self, segment: &hir::PathSegment<'tcx>) -> AstPathSegment<'ast> {
+    pub fn to_path<T>(&self, path: &hir::Path<'tcx, T>) -> AstPath<'ast> {
+        AstPath::new(self.alloc_slice_iter(path.segments.iter().map(|seg| self.to_path_segment(seg))))
+    }
+
+    #[must_use]
+    fn to_path_segment(&self, segment: &hir::PathSegment<'tcx>) -> AstPathSegment<'ast> {
         AstPathSegment::new(
             self.to_symbol_id(segment.ident.name),
             Some(self.to_generic_args(segment.args)),

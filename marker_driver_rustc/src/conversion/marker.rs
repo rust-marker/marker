@@ -6,12 +6,13 @@
 mod common;
 mod generics;
 mod item;
+mod pat;
 mod ty;
 
 use std::cell::RefCell;
 
 use crate::context::storage::Storage;
-use marker_api::ast::{item::ItemKind, Crate, ItemId};
+use marker_api::ast::{item::ItemKind, Crate, ItemId, SymbolId};
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 
@@ -19,6 +20,7 @@ pub struct MarkerConversionContext<'ast, 'tcx> {
     rustc_cx: rustc_middle::ty::TyCtxt<'tcx>,
     storage: &'ast Storage<'ast>,
     items: RefCell<FxHashMap<ItemId, ItemKind<'ast>>>,
+    num_symbols: RefCell<FxHashMap<u32, SymbolId>>,
 }
 
 // General util functions
@@ -28,6 +30,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
             rustc_cx,
             storage,
             items: RefCell::default(),
+            num_symbols: RefCell::default(),
         }
     }
 
