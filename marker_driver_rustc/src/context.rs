@@ -12,10 +12,7 @@ use marker_api::{
 use rustc_lint::LintStore;
 use rustc_middle::ty::TyCtxt;
 
-use crate::conversion::{
-    item::ItemConverter, to_api_span, to_rustc_item_id, to_rustc_lint, to_rustc_span, to_rustc_span_from_id,
-    to_rustc_symbol,
-};
+use crate::conversion::{marker::MarkerConversionContext, rustc::RustcConversionContext};
 
 use self::storage::Storage;
 
@@ -34,6 +31,9 @@ pub struct RustcContext<'ast, 'tcx> {
     pub rustc_cx: TyCtxt<'tcx>,
     pub lint_store: &'tcx LintStore,
     pub storage: &'ast Storage<'ast>,
+    pub marker_converter: MarkerConversionContext<'ast, 'tcx>,
+    pub rustc_converter: RustcConversionContext<'ast, 'tcx>,
+
     /// This is the [`AstContext`] wrapping callbacks to this instance of the
     /// [`RustcContext`]. The once cell will be set immediately after the creation
     /// which makes it safe to access afterwards.
@@ -47,6 +47,8 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
             rustc_cx,
             lint_store,
             storage,
+            marker_converter: MarkerConversionContext::new(rustc_cx, storage),
+            rustc_converter: RustcConversionContext::new(rustc_cx, storage),
             ast_cx: OnceCell::new(),
         });
 
@@ -67,18 +69,20 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
 
 impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
     fn emit_lint(&'ast self, api_lint: &'static Lint, msg: &str, api_span: &Span<'ast>) {
-        let rustc_lint = to_rustc_lint(self, api_lint);
+        let rustc_lint = self.rustc_converter.to_lint(api_lint);
         self.rustc_cx.struct_span_lint_hir(
             rustc_lint,
             rustc_hir::CRATE_HIR_ID,
-            to_rustc_span(self, api_span),
+            self.rustc_converter.to_span(api_span),
             msg,
             |diag| diag,
         );
     }
 
-    fn item(&'ast self, id: ItemId) -> Option<ItemKind<'ast>> {
-        ItemConverter::new(self).conv_item_from_id(id)
+    fn item(&'ast self, api_id: ItemId) -> Option<ItemKind<'ast>> {
+        let rustc_id = self.rustc_converter.to_item_id(api_id);
+        let rust_item = self.rustc_cx.hir().item(rustc_id);
+        self.marker_converter.to_item(rust_item)
     }
 
     fn body(&'ast self, id: BodyId) -> &'ast Body<'ast> {
@@ -88,18 +92,19 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
 
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast> {
         let rustc_span = match owner {
-            SpanOwner::Item(item) => self.rustc_cx.hir().item(to_rustc_item_id(*item)).span,
-            SpanOwner::SpecificSpan(span_id) => to_rustc_span_from_id(*span_id),
+            SpanOwner::Item(item) => self.rustc_cx.hir().item(self.rustc_converter.to_item_id(*item)).span,
+            SpanOwner::SpecificSpan(span_id) => self.rustc_converter.to_span_from_id(*span_id),
         };
-        to_api_span(self, rustc_span)
+        self.storage.alloc(|| self.marker_converter.to_span(rustc_span))
     }
 
     fn span_snippet(&self, _span: &Span) -> Option<&'ast str> {
         todo!()
     }
 
-    fn symbol_str(&'ast self, sym: SymbolId) -> &'ast str {
-        let sym = to_rustc_symbol(sym);
+    fn symbol_str(&'ast self, api_id: SymbolId) -> &'ast str {
+        let sym = self.rustc_converter.to_symbol(api_id);
+        // # Safety
         // Based on the comment of `rustc_span::Symbol::as_str` this should be fine.
         unsafe { std::mem::transmute(sym.as_str()) }
     }

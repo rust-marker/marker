@@ -1,18 +1,13 @@
 use std::cell::RefCell;
 
 use bumpalo::Bump;
-use marker_api::{
-    ast::{item::ItemKind, ItemId, SpanSource},
-    lint::Lint,
-};
+use marker_api::ast::SpanSource;
 use rustc_hash::FxHashMap;
 
-use crate::conversion::SpanSourceInfo;
+use crate::conversion::common::SpanSourceInfo;
 
 pub struct Storage<'ast> {
     buffer: Bump,
-    lint_map: RefCell<FxHashMap<&'static Lint, &'static rustc_lint::Lint>>,
-    pub items: RefCell<FxHashMap<ItemId, ItemKind<'ast>>>,
     span_src_map: RefCell<FxHashMap<rustc_span::FileName, SpanSource<'ast>>>,
     span_infos: RefCell<FxHashMap<SpanSource<'ast>, SpanSourceInfo>>,
 }
@@ -21,8 +16,6 @@ impl<'ast> Default for Storage<'ast> {
     fn default() -> Self {
         Self {
             buffer: Bump::new(),
-            lint_map: RefCell::default(),
-            items: RefCell::default(),
             span_src_map: RefCell::default(),
             span_infos: RefCell::default(),
         }
@@ -49,14 +42,6 @@ impl<'ast> Storage<'ast> {
 }
 
 impl<'ast> Storage<'ast> {
-    pub fn lint_or_insert<F: FnOnce() -> &'static rustc_lint::Lint>(
-        &self,
-        api_lint: &'static Lint,
-        init: F,
-    ) -> &'static rustc_lint::Lint {
-        self.lint_map.borrow_mut().entry(api_lint).or_insert_with(init)
-    }
-
     pub fn span_src(&self, rustc_src: &rustc_span::FileName) -> Option<SpanSource<'ast>> {
         self.span_src_map.borrow().get(rustc_src).copied()
     }
