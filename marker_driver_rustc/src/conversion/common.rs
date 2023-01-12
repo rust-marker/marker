@@ -21,12 +21,12 @@ pub struct BodyIdLayout {
     // Note: AFAIK rustc only loads bodies from the current crate, this allows
     // rustc to only store the index of the `DefId` and leave out the crate index.
     // Other drivers, will most likely require additional information, like the
-    // crate id,
+    // crate id.
     pub owner: u32,
     pub index: u32,
 }
 
-/// Used as a target for [`Into`] implementations, not that it shouldn't be
+/// Used as a target for [`Into`] implementations, note that it shouldn't be
 /// used as a transmute target. Instead the specific ID layouts should be used.
 pub struct DefIdInfo {
     pub index: u32,

@@ -56,11 +56,6 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
         rustc_crate_id: hir::def_id::CrateNum,
         rustc_root_mod: &'tcx hir::Mod<'tcx>,
     ) -> &'ast Crate<'ast> {
-        self.alloc(|| {
-            Crate::new(
-                self.to_create_id(rustc_crate_id),
-                self.to_items(rustc_root_mod.item_ids),
-            )
-        })
+        self.alloc(|| Crate::new(self.to_crate_id(rustc_crate_id), self.to_items(rustc_root_mod.item_ids)))
     }
 }

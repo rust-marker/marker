@@ -53,7 +53,7 @@ impl From<hir::def_id::DefId> for ItemIdLayout {
 // Ids
 impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
     #[must_use]
-    pub fn to_create_id(&self, rustc_id: hir::def_id::CrateNum) -> CrateId {
+    pub fn to_crate_id(&self, rustc_id: hir::def_id::CrateNum) -> CrateId {
         assert_eq!(size_of::<CrateId>(), 4);
         CrateId::new(rustc_id.as_u32())
     }
