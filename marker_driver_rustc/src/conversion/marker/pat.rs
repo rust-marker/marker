@@ -106,8 +106,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
 
     fn new_rest_pat(&self) -> PatKind<'ast> {
         // This is a dummy span, it's dirty, but at least works for the mean time :)
-        let span = rustc_span::Span::default();
-        let data = CommonPatData::new(self.to_span_id(span));
+        let data = CommonPatData::new(self.to_span_id(rustc_span::DUMMY_SP));
         PatKind::Rest(self.alloc(|| RestPat::new(data)))
     }
 }
