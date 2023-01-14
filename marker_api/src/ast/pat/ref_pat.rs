@@ -5,6 +5,7 @@ use super::{CommonPatData, PatKind};
 pub struct RefPat<'ast> {
     data: CommonPatData<'ast>,
     pattern: PatKind<'ast>,
+    is_mut: bool,
 }
 
 impl<'ast> RefPat<'ast> {
@@ -12,13 +13,17 @@ impl<'ast> RefPat<'ast> {
     pub fn pattern(&self) -> PatKind<'ast> {
         self.pattern
     }
+
+    pub fn is_mut(&self) -> bool {
+        self.is_mut
+    }
 }
 
 super::impl_pat_data!(RefPat<'ast>, Ref);
 
 #[cfg(feature = "driver-api")]
 impl<'ast> RefPat<'ast> {
-    pub fn new(data: CommonPatData<'ast>, pattern: PatKind<'ast>) -> Self {
-        Self { data, pattern }
+    pub fn new(data: CommonPatData<'ast>, pattern: PatKind<'ast>, is_mut: bool) -> Self {
+        Self { data, pattern, is_mut }
     }
 }

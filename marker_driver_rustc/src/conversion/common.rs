@@ -38,3 +38,9 @@ pub struct SpanSourceInfo {
     pub rustc_span_cx: rustc_span::hygiene::SyntaxContext,
     pub rustc_start_offset: usize,
 }
+
+#[repr(C)]
+pub struct VarIdLayout {
+    pub owner: u32,
+    pub index: u32,
+}
