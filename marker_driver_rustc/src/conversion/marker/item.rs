@@ -12,8 +12,8 @@ use super::MarkerConversionContext;
 
 impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
     #[must_use]
-    pub fn to_items(&self, item: &[hir::ItemId]) -> &'ast [ItemKind<'ast>] {
-        let items: Vec<_> = item
+    pub fn to_items(&self, items: &[hir::ItemId]) -> &'ast [ItemKind<'ast>] {
+        let items: Vec<_> = items
             .iter()
             .map(|rid| self.rustc_cx.hir().item(*rid))
             .filter_map(|rustc_item| self.to_item(rustc_item))
@@ -21,6 +21,12 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
         self.alloc_slice_iter(items.into_iter())
     }
 
+    pub fn to_item_from_id(&self, item: hir::ItemId) -> Option<ItemKind<'ast>> {
+        let item = self.rustc_cx.hir().item(item);
+        self.to_item(item)
+    }
+
+    #[must_use]
     pub fn to_item(&self, rustc_item: &'tcx hir::Item<'tcx>) -> Option<ItemKind<'ast>> {
         let id = self.to_item_id(rustc_item.owner_id);
         // During normal conversion, this'll never be hit. However, if the user

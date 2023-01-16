@@ -4,12 +4,11 @@ use rustc_hir as hir;
 use super::MarkerConversionContext;
 
 impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
-    pub fn to_stmt(&self, stmt: &hir::Stmt<'tcx>) -> StmtKind<'ast> {
+    pub fn to_stmt(&self, stmt: &hir::Stmt<'tcx>) -> Option<StmtKind<'ast>> {
         match &stmt.kind {
-            hir::StmtKind::Local(local) => StmtKind::Let(self.alloc(|| self.to_let_stmt(local))),
-            hir::StmtKind::Item(_) => todo!(),
-            hir::StmtKind::Expr(_) => todo!(),
-            hir::StmtKind::Semi(_) => todo!(),
+            hir::StmtKind::Local(local) => Some(StmtKind::Let(self.alloc(|| self.to_let_stmt(local)))),
+            hir::StmtKind::Item(item) => self.to_item_from_id(*item).map(StmtKind::Item),
+            hir::StmtKind::Expr(expr) | hir::StmtKind::Semi(expr) => Some(StmtKind::Expr(self.to_expr(expr))),
         }
     }
 

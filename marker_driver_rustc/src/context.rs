@@ -104,8 +104,13 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
 
     fn symbol_str(&'ast self, api_id: SymbolId) -> &'ast str {
         let sym = self.rustc_converter.to_symbol(api_id);
+        // The lifetime is fake, as documented in [`rustc_span::Span::as_str()`].
+        // It'll definitely live longer than the `'ast` lifetime, it's transmuted to.
+        let rustc_str: &str = sym.as_str();
         // # Safety
-        // Based on the comment of `rustc_span::Symbol::as_str` this should be fine.
-        unsafe { std::mem::transmute(sym.as_str()) }
+        // `'ast` is shorter than `'tcx` or any rustc lifetime. This transmute
+        // in combination with the comment above is therefore safe.
+        let api_str: &'ast str = unsafe { std::mem::transmute(rustc_str) };
+        api_str
     }
 }

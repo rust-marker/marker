@@ -102,7 +102,19 @@ Block(
             span: SpanId(..),
         },
         stmts: [],
-        expr: None,
+        expr: Some(
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 3,
+                    suffix: None,
+                },
+            ),
+        ),
     },
 )
 

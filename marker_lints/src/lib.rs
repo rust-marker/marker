@@ -7,6 +7,7 @@ use marker_api::{
             ConstItem, EnumItem, EnumVariant, ExternCrateItem, Field, FnItem, ItemData, ModItem, StaticItem,
             StructItem, UseItem,
         },
+        pat::PatKind,
         stmt::StmtKind,
         Span,
     },
@@ -108,8 +109,13 @@ impl LintPass for TestLintPass {
     }
 
     fn check_stmt<'ast>(&mut self, _cx: &'ast AstContext<'ast>, stmt: StmtKind<'ast>) {
-        if let StmtKind::Let(stmt) = stmt {
-            if let Some(expr) = stmt.init_expr() {
+        // I didn't realize that `let_chains` are still unstable. This makes the
+        // code a significantly less readable -.-
+        if let StmtKind::Let(lets) = stmt {
+            let PatKind::Ident(ident) = lets.pat() else { return };
+            if ident.name().starts_with("_print") {
+                let Some(expr) = lets.init_expr() else { return };
+
                 println!("{expr:#?}\n");
             }
         }

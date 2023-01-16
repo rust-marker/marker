@@ -43,8 +43,10 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
 
     #[must_use]
     fn to_block_expr(&self, data: CommonExprData<'ast>, block: &hir::Block<'tcx>) -> BlockExpr<'ast> {
-        let stmts = self.alloc_slice_iter(block.stmts.iter().map(|stmt| self.to_stmt(stmt)));
-        BlockExpr::new(data, stmts, None)
+        let stmts: Vec<_> = block.stmts.iter().filter_map(|stmt| self.to_stmt(stmt)).collect();
+        let stmts = self.alloc_slice_iter(stmts.into_iter());
+        let expr = block.expr.map(|expr| self.to_expr(expr));
+        BlockExpr::new(data, stmts, expr)
     }
 
     fn to_expr_from_lit_kind(&self, data: CommonExprData<'ast>, lit_kind: &rustc_ast::LitKind) -> ExprKind<'ast> {
