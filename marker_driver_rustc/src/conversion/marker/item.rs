@@ -1,8 +1,8 @@
 use marker_api::ast::{
     item::{
-        AdtKind, AssocItemKind, CommonItemData, ConstItem, EnumItem, EnumVariant, ExternBlockItem, ExternCrateItem,
-        ExternItemKind, Field, FnItem, ImplItem, ItemKind, ModItem, StaticItem, StructItem, TraitItem, TyAliasItem,
-        UnionItem, UnstableItem, UseItem, UseKind, Visibility,
+        AdtKind, AssocItemKind, Body, CommonItemData, ConstItem, EnumItem, EnumVariant, ExternBlockItem,
+        ExternCrateItem, ExternItemKind, Field, FnItem, ImplItem, ItemKind, ModItem, StaticItem, StructItem, TraitItem,
+        TyAliasItem, UnionItem, UnstableItem, UseItem, UseKind, Visibility,
     },
     Abi, CommonCallableData, Parameter,
 };
@@ -58,16 +58,12 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
             hir::ItemKind::Const(rustc_ty, rustc_body_id) => ItemKind::Const(
                 self.alloc(|| ConstItem::new(data, self.to_ty(*rustc_ty), Some(self.to_body_id(*rustc_body_id)))),
             ),
-            hir::ItemKind::Fn(fn_sig, generics, _body_id) => ItemKind::Fn(self.alloc(|| {
-                // Add a whole bunch of these things. The generic conversion should
-                // be done in the generics module yay
+            hir::ItemKind::Fn(fn_sig, generics, body_id) => ItemKind::Fn(self.alloc(|| {
                 FnItem::new(
                     data,
                     self.to_generic_params(generics),
                     self.to_callable_data_from_fn_sig(fn_sig, false),
-                    // FIXME: This is set to `None`, while the `body()` function is not implemented
-                    // Some(self.to_body_id(*body_id)),
-                    None,
+                    Some(self.to_body_id(*body_id)),
                 )
             })),
             hir::ItemKind::Mod(rustc_mod) => {
@@ -337,5 +333,16 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
 
         self.items.borrow_mut().insert(id, item.as_item());
         item
+    }
+
+    pub fn to_body(&self, body: &hir::Body<'tcx>) -> &'ast Body<'ast> {
+        let id = self.to_body_id(body.id());
+        if let Some(&body) = self.bodies.borrow().get(&id) {
+            return body;
+        }
+        let owner = self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id()));
+        let api_body = self.alloc(|| Body::new(owner, self.to_expr(body.value)));
+        self.bodies.borrow_mut().insert(id, api_body);
+        api_body
     }
 }

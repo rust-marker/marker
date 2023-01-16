@@ -33,6 +33,11 @@ pub struct DefIdInfo {
     pub krate: u32,
 }
 
+pub struct ExprIdLayout {
+    pub owner: u32,
+    pub index: u32,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct SpanSourceInfo {
     pub rustc_span_cx: rustc_span::hygiene::SyntaxContext,

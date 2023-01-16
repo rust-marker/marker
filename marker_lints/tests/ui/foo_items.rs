@@ -4,7 +4,7 @@ mod good {
     static FOO: i32 = 0;
 
     struct Foo {
-        foo: i32
+        foo: i32,
     }
 }
 
@@ -14,7 +14,7 @@ mod foo {
     const FOO: i32 = 0;
 
     enum Foo {
-        Foo
+        Foo,
     }
 }
 

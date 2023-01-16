@@ -7,6 +7,7 @@ use marker_api::{
             ConstItem, EnumItem, EnumVariant, ExternCrateItem, Field, FnItem, ItemData, ModItem, StaticItem,
             StructItem, UseItem,
         },
+        stmt::StmtKind,
         Span,
     },
     context::AstContext,
@@ -103,6 +104,14 @@ impl LintPass for TestLintPass {
     fn check_fn<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast FnItem<'ast>) {
         if matches!(item.ident(), Some(name) if name == "foo") {
             emit_foo_lint(cx, "a function", item.span());
+        }
+    }
+
+    fn check_stmt<'ast>(&mut self, _cx: &'ast AstContext<'ast>, stmt: StmtKind<'ast>) {
+        if let StmtKind::Let(stmt) = stmt {
+            if let Some(expr) = stmt.init_expr() {
+                println!("{expr:#?}\n");
+            }
         }
     }
 }

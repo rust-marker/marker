@@ -86,8 +86,8 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
     }
 
     fn body(&'ast self, id: BodyId) -> &'ast Body<'ast> {
-        // This message sounds kind of ominous xD
-        todo!("a body was requested {id:#?}");
+        let rustc_body = self.rustc_cx.hir().body(self.rustc_converter.to_body_id(id));
+        self.marker_converter.to_body(rustc_body)
     }
 
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast> {
