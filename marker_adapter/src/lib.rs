@@ -94,6 +94,9 @@ impl<'ast> Adapter<'ast> {
                 for stmt in block.stmts() {
                     self.external_lint_crates.check_stmt(cx, *stmt)
                 }
+                if let Some(expr) = block.expr() {
+                    self.process_expr(cx, expr)
+                }
             },
             _ => {},
         }
