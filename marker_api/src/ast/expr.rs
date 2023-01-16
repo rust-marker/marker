@@ -46,6 +46,13 @@ pub enum ExprKind<'ast> {
     Unstable(&'ast UnstableExpr<'ast>),
 }
 
+impl<'ast> ExprKind<'ast> {
+    impl_expr_kind_fn!(span() -> &Span<'ast>);
+    impl_expr_kind_fn!(id() -> ExprId);
+    impl_expr_kind_fn!(ty() -> TyKind<'ast>);
+    impl_expr_kind_fn!(precedence() -> ExprPrecedence);
+}
+
 #[repr(C)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
@@ -56,6 +63,23 @@ pub enum ExprPrecedence {
     /// the current precedence of this expression. This might change in the future
     Unstable(i32),
 }
+
+macro_rules! impl_expr_kind_fn {
+    ($method:ident () -> $return_ty:ty) => {
+        impl_expr_kind_fn!($method() -> $return_ty,
+            IntLit, FloatLit, StrLit, CharLit, BoolLit, Block, Unstable
+        );
+    };
+    ($method:ident () -> $return_ty:ty $(, $kind:ident)+) => {
+        pub fn $method(&self) -> $return_ty {
+            match self {
+                $(ExprKind::$kind(data) => data.$method(),)*
+            }
+        }
+    };
+}
+
+use impl_expr_kind_fn;
 
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -69,6 +93,17 @@ struct CommonExprData<'ast> {
     _lifetime: PhantomData<&'ast ()>,
     id: ExprId,
     span: SpanId,
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> CommonExprData<'ast> {
+    pub fn new(id: ExprId, span: SpanId) -> Self {
+        Self {
+            _lifetime: PhantomData,
+            id,
+            span,
+        }
+    }
 }
 
 macro_rules! impl_expr_data {
