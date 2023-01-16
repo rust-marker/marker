@@ -9,7 +9,7 @@ mod loader;
 
 use loader::LintCrateRegistry;
 use marker_api::{
-    ast::{item::ItemKind, Crate},
+    ast::{expr::ExprKind, item::ItemKind, BodyId, Crate},
     context::AstContext,
     lint::Lint,
     LintPass,
@@ -26,6 +26,11 @@ impl<'ast> Adapter<'ast> {
     pub fn new_from_env() -> Self {
         let external_lint_crates = LintCrateRegistry::new_from_env();
         Self { external_lint_crates }
+    }
+
+    #[must_use]
+    pub fn registered_lints(&self) -> Box<[&'static Lint]> {
+        self.external_lint_crates.registered_lints()
     }
 
     pub fn process_krate(&mut self, cx: &'ast AstContext<'ast>, krate: &Crate<'ast>) {
@@ -50,7 +55,12 @@ impl<'ast> Adapter<'ast> {
             ItemKind::Static(data) => self.external_lint_crates.check_static_item(cx, data),
             ItemKind::Const(data) => self.external_lint_crates.check_const_item(cx, data),
             // FIXME: Function-local items are not yet processed
-            ItemKind::Fn(data) => self.external_lint_crates.check_fn(cx, data),
+            ItemKind::Fn(data) => {
+                self.external_lint_crates.check_fn(cx, data);
+                if let Some(id) = data.body() {
+                    self.process_body(cx, id);
+                }
+            },
             ItemKind::Struct(data) => {
                 self.external_lint_crates.check_struct(cx, data);
                 for field in data.fields() {
@@ -70,8 +80,26 @@ impl<'ast> Adapter<'ast> {
         }
     }
 
-    #[must_use]
-    pub fn registered_lints(&self) -> Box<[&'static Lint]> {
-        self.external_lint_crates.registered_lints()
+    fn process_body(&mut self, cx: &'ast AstContext<'ast>, id: BodyId) {
+        let body = cx.body(id);
+        self.external_lint_crates.check_body(cx, body);
+        let expr = body.expr();
+        self.process_expr(cx, expr);
+    }
+
+    fn process_expr(&mut self, cx: &'ast AstContext<'ast>, expr: ExprKind<'ast>) {
+        self.external_lint_crates.check_expr(cx, expr);
+        #[expect(clippy::single_match)]
+        match expr {
+            ExprKind::Block(block) => {
+                for stmt in block.stmts() {
+                    self.external_lint_crates.check_stmt(cx, *stmt);
+                }
+                if let Some(expr) = block.expr() {
+                    self.process_expr(cx, expr);
+                }
+            },
+            _ => {},
+        }
     }
 }

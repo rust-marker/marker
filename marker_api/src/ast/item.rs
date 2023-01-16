@@ -278,10 +278,16 @@ impl<'ast> Body<'ast> {
         self.owner
     }
 
-    /// The expression wrapped by this body. In some cases, like for functions
-    /// this expression is guaranteed to be a
+    /// The expression wrapped by this body. In most cases this will be a
     /// [block expression](`crate::ast::expr::BlockExpr`).
     pub fn expr(&self) -> ExprKind<'ast> {
         self.expr
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> Body<'ast> {
+    pub fn new(owner: ItemId, expr: ExprKind<'ast>) -> Self {
+        Self { owner, expr }
     }
 }

@@ -87,6 +87,18 @@ macro_rules! lint_pass_fns {
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _variant: &'ast $crate::ast::item::EnumVariant<'ast>) -> ();
+            fn check_body<'ast>(
+                &(mut) self,
+                _cx: &'ast $crate::context::AstContext<'ast>,
+                _body: &'ast $crate::ast::item::Body<'ast>) -> ();
+            fn check_stmt<'ast>(
+                &(mut) self,
+                _cx: &'ast $crate::context::AstContext<'ast>,
+                _stmt: $crate::ast::stmt::StmtKind<'ast>) -> ();
+            fn check_expr<'ast>(
+                &(mut) self,
+                _cx: &'ast $crate::context::AstContext<'ast>,
+                _expr: $crate::ast::expr::ExprKind<'ast>) -> ();
         );
     };
 }
