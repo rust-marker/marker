@@ -1,4 +1,7 @@
-use crate::{ast::stmt::StmtKind, ffi::{FfiSlice, FfiOption}};
+use crate::{
+    ast::stmt::StmtKind,
+    ffi::{FfiOption, FfiSlice},
+};
 
 use super::{CommonExprData, ExprKind};
 
@@ -7,7 +10,7 @@ use super::{CommonExprData, ExprKind};
 pub struct BlockExpr<'ast> {
     data: CommonExprData<'ast>,
     stmts: FfiSlice<'ast, StmtKind<'ast>>,
-    expr: FfiOption<ExprKind<'ast>>
+    expr: FfiOption<ExprKind<'ast>>,
 }
 
 impl<'ast> BlockExpr<'ast> {
@@ -32,7 +35,7 @@ impl<'ast> BlockExpr<'ast> {
         Self {
             data,
             stmts: stmts.into(),
-            expr: expr.into()
+            expr: expr.into(),
         }
     }
 }

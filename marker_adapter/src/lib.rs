@@ -58,7 +58,7 @@ impl<'ast> Adapter<'ast> {
             ItemKind::Fn(data) => {
                 self.external_lint_crates.check_fn(cx, data);
                 if let Some(id) = data.body() {
-                    self.process_body(cx, id)
+                    self.process_body(cx, id);
                 }
             },
             ItemKind::Struct(data) => {
@@ -89,13 +89,14 @@ impl<'ast> Adapter<'ast> {
 
     fn process_expr(&mut self, cx: &'ast AstContext<'ast>, expr: ExprKind<'ast>) {
         self.external_lint_crates.check_expr(cx, expr);
+        #[expect(clippy::single_match)]
         match expr {
             ExprKind::Block(block) => {
                 for stmt in block.stmts() {
-                    self.external_lint_crates.check_stmt(cx, *stmt)
+                    self.external_lint_crates.check_stmt(cx, *stmt);
                 }
                 if let Some(expr) = block.expr() {
-                    self.process_expr(cx, expr)
+                    self.process_expr(cx, expr);
                 }
             },
             _ => {},

@@ -58,14 +58,16 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
             hir::ItemKind::Const(rustc_ty, rustc_body_id) => ItemKind::Const(
                 self.alloc(|| ConstItem::new(data, self.to_ty(*rustc_ty), Some(self.to_body_id(*rustc_body_id)))),
             ),
-            hir::ItemKind::Fn(fn_sig, generics, body_id) => ItemKind::Fn(self.alloc(|| {
+            hir::ItemKind::Fn(fn_sig, generics, _body_id) => ItemKind::Fn(self.alloc(|| {
                 // Add a whole bunch of these things. The generic conversion should
                 // be done in the generics module yay
                 FnItem::new(
                     data,
                     self.to_generic_params(generics),
                     self.to_callable_data_from_fn_sig(fn_sig, false),
-                    Some(self.to_body_id(*body_id)),
+                    // FIXME: This is set to `None`, while the `body()` function is not implemented
+                    // Some(self.to_body_id(*body_id)),
+                    None,
                 )
             })),
             hir::ItemKind::Mod(rustc_mod) => {
