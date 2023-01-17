@@ -110,7 +110,7 @@ impl LintPass for TestLintPass {
 
     fn check_stmt<'ast>(&mut self, _cx: &'ast AstContext<'ast>, stmt: StmtKind<'ast>) {
         // I didn't realize that `let_chains` are still unstable. This makes the
-        // code a significantly less readable -.-
+        // code significantly less readable -.-
         if let StmtKind::Let(lets) = stmt {
             let PatKind::Ident(ident) = lets.pat() else { return };
             if ident.name().starts_with("_print") {
