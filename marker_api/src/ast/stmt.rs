@@ -6,9 +6,9 @@ use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::TyKind, Span, Span
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
 pub enum StmtKind<'ast> {
-    Item(&'ast ItemKind<'ast>),
+    Item(ItemKind<'ast>),
     Let(&'ast LetStmt<'ast>),
-    Expr(&'ast ExprKind<'ast>),
+    Expr(ExprKind<'ast>),
 }
 
 #[repr(C)]

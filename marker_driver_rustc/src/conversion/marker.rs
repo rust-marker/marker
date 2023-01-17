@@ -4,15 +4,21 @@
 //! together and share access to common objects easily.
 
 mod common;
+mod expr;
 mod generics;
 mod item;
 mod pat;
+mod stmts;
 mod ty;
 
 use std::cell::RefCell;
 
 use crate::context::storage::Storage;
-use marker_api::ast::{item::ItemKind, Crate, ItemId, SymbolId};
+use marker_api::ast::{
+    expr::ExprKind,
+    item::{Body, ItemKind},
+    BodyId, Crate, ExprId, ItemId, SymbolId,
+};
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 
@@ -20,6 +26,8 @@ pub struct MarkerConversionContext<'ast, 'tcx> {
     rustc_cx: rustc_middle::ty::TyCtxt<'tcx>,
     storage: &'ast Storage<'ast>,
     items: RefCell<FxHashMap<ItemId, ItemKind<'ast>>>,
+    bodies: RefCell<FxHashMap<BodyId, &'ast Body<'ast>>>,
+    exprs: RefCell<FxHashMap<ExprId, ExprKind<'ast>>>,
     num_symbols: RefCell<FxHashMap<u32, SymbolId>>,
 }
 
@@ -30,6 +38,8 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
             rustc_cx,
             storage,
             items: RefCell::default(),
+            bodies: RefCell::default(),
+            exprs: RefCell::default(),
             num_symbols: RefCell::default(),
         }
     }

@@ -18,7 +18,7 @@ static PRINT_TYPE_COMPLEX: Option<
 
 pub union UnionItem {
     _f: f32,
-    _i: i32
+    _i: i32,
 }
 
 pub struct AllowSync<T> {

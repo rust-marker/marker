@@ -86,8 +86,8 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
     }
 
     fn body(&'ast self, id: BodyId) -> &'ast Body<'ast> {
-        // This message sounds kind of ominous xD
-        todo!("a body was requested {id:#?}");
+        let rustc_body = self.rustc_cx.hir().body(self.rustc_converter.to_body_id(id));
+        self.marker_converter.to_body(rustc_body)
     }
 
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast> {
@@ -104,8 +104,13 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
 
     fn symbol_str(&'ast self, api_id: SymbolId) -> &'ast str {
         let sym = self.rustc_converter.to_symbol(api_id);
+        // The lifetime is fake, as documented in [`rustc_span::Span::as_str()`].
+        // It'll definitely live longer than the `'ast` lifetime, it's transmuted to.
+        let rustc_str: &str = sym.as_str();
         // # Safety
-        // Based on the comment of `rustc_span::Symbol::as_str` this should be fine.
-        unsafe { std::mem::transmute(sym.as_str()) }
+        // `'ast` is shorter than `'tcx` or any rustc lifetime. This transmute
+        // in combination with the comment above is therefore safe.
+        let api_str: &'ast str = unsafe { std::mem::transmute(rustc_str) };
+        api_str
     }
 }

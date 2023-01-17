@@ -1,13 +1,13 @@
 use std::mem::{size_of, transmute};
 
 use marker_api::ast::{
-    Abi, AstPath, AstPathSegment, BodyId, CrateId, GenericId, Ident, ItemId, Span, SpanId, SpanSource, SymbolId,
-    TraitRef, TyDefId, VarId,
+    Abi, AstPath, AstPathSegment, BodyId, CrateId, ExprId, GenericId, Ident, ItemId, Span, SpanId, SpanSource,
+    SymbolId, TraitRef, TyDefId, VarId,
 };
 use rustc_hir as hir;
 
 use crate::conversion::common::{
-    BodyIdLayout, GenericIdLayout, ItemIdLayout, SpanSourceInfo, TyDefIdLayout, VarIdLayout,
+    BodyIdLayout, ExprIdLayout, GenericIdLayout, ItemIdLayout, SpanSourceInfo, TyDefIdLayout, VarIdLayout,
 };
 
 use super::MarkerConversionContext;
@@ -139,6 +139,18 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
     pub fn to_var_id(&self, rustc_id: hir::HirId) -> VarId {
         assert_eq!(size_of::<VarId>(), size_of::<VarIdLayout>(), "the layout is invalid");
         let layout = VarIdLayout {
+            owner: rustc_id.owner.def_id.local_def_index.as_u32(),
+            index: rustc_id.local_id.as_u32(),
+        };
+        // # Safety
+        // The layout is validated with the `assert` above
+        unsafe { transmute(layout) }
+    }
+
+    #[must_use]
+    pub fn to_expr_id(&self, rustc_id: hir::HirId) -> ExprId {
+        assert_eq!(size_of::<ExprId>(), size_of::<ExprIdLayout>(), "the layout is invalid");
+        let layout = ExprIdLayout {
             owner: rustc_id.owner.def_id.local_def_index.as_u32(),
             index: rustc_id.local_id.as_u32(),
         };
