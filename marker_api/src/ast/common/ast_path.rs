@@ -6,11 +6,7 @@
 // split it up into an `ItemPath`, `GenericPath` etc. implementation.
 
 use super::SymbolId;
-use crate::{
-    ast::generic::GenericArgs,
-    context::with_cx,
-    ffi::{FfiOption, FfiSlice},
-};
+use crate::{ast::generic::GenericArgs, context::with_cx, ffi::FfiSlice};
 
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -40,16 +36,13 @@ impl<'ast> AstPath<'ast> {
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct AstPathSegment<'ast> {
     ident: SymbolId,
-    generics: FfiOption<GenericArgs<'ast>>,
+    generics: GenericArgs<'ast>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> AstPathSegment<'ast> {
-    pub fn new(ident: SymbolId, generics: Option<GenericArgs<'ast>>) -> Self {
-        Self {
-            ident,
-            generics: generics.into(),
-        }
+    pub fn new(ident: SymbolId, generics: GenericArgs<'ast>) -> Self {
+        Self { ident, generics }
     }
 }
 
@@ -58,7 +51,7 @@ impl<'ast> AstPathSegment<'ast> {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
 
-    pub fn generics(&self) -> Option<&GenericArgs<'ast>> {
-        self.generics.get()
+    pub fn generics(&self) -> &GenericArgs<'ast> {
+        &self.generics
     }
 }

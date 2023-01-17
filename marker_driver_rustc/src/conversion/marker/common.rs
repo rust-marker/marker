@@ -171,7 +171,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
     fn to_path_segment(&self, segment: &hir::PathSegment<'tcx>) -> AstPathSegment<'ast> {
         AstPathSegment::new(
             self.to_symbol_id(segment.ident.name),
-            Some(self.to_generic_args(segment.args)),
+            self.to_generic_args(segment.args),
         )
     }
 
