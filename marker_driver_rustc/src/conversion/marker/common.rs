@@ -9,6 +9,7 @@ use rustc_hir as hir;
 use crate::conversion::common::{
     BodyIdLayout, ExprIdLayout, GenericIdLayout, ItemIdLayout, SpanSourceInfo, TyDefIdLayout, VarIdLayout,
 };
+use crate::transmute_id;
 
 use super::MarkerConversionContext;
 
@@ -88,75 +89,51 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
 
     #[must_use]
     pub fn to_generic_id(&self, id: impl Into<GenericIdLayout>) -> GenericId {
-        assert_eq!(
-            size_of::<GenericId>(),
-            size_of::<GenericIdLayout>(),
-            "the layout is invalid"
-        );
-        let layout: GenericIdLayout = id.into();
-        // # Safety
-        // The layout is validated with the `assert` above
-        unsafe { transmute(layout) }
+        transmute_id!(GenericIdLayout as GenericId = id.into())
     }
 
     #[must_use]
     pub fn to_ty_def_id(&self, rustc_id: hir::def_id::DefId) -> TyDefId {
-        assert_eq!(
-            size_of::<TyDefId>(),
-            size_of::<TyDefIdLayout>(),
-            "the layout is invalid"
-        );
-        let layout = TyDefIdLayout {
-            krate: rustc_id.krate.as_u32(),
-            index: rustc_id.index.as_u32(),
-        };
-        // # Safety
-        // The layout is validated with the `assert` above
-        unsafe { transmute(layout) }
+        transmute_id!(
+            TyDefIdLayout as TyDefId = TyDefIdLayout {
+                krate: rustc_id.krate.as_u32(),
+                index: rustc_id.index.as_u32(),
+            }
+        )
     }
 
     pub fn to_item_id(&self, id: impl Into<ItemIdLayout>) -> ItemId {
-        let layout: ItemIdLayout = id.into();
-        assert_eq!(size_of::<ItemId>(), size_of::<ItemIdLayout>(), "the layout is invalid");
-        // # Safety
-        // The layout is validated with the `assert` above
-        unsafe { transmute(layout) }
+        transmute_id!(ItemIdLayout as ItemId = id.into())
     }
 
     #[must_use]
     pub fn to_body_id(&self, rustc_id: hir::BodyId) -> BodyId {
-        assert_eq!(size_of::<BodyId>(), size_of::<BodyIdLayout>(), "the layout is invalid");
-        let layout = BodyIdLayout {
-            owner: rustc_id.hir_id.owner.def_id.local_def_index.as_u32(),
-            index: rustc_id.hir_id.local_id.as_u32(),
-        };
-        // # Safety
-        // The layout is validated with the `assert` above
-        unsafe { transmute(layout) }
+        transmute_id!(
+            BodyIdLayout as BodyId = BodyIdLayout {
+                owner: rustc_id.hir_id.owner.def_id.local_def_index.as_u32(),
+                index: rustc_id.hir_id.local_id.as_u32(),
+            }
+        )
     }
 
     #[must_use]
     pub fn to_var_id(&self, rustc_id: hir::HirId) -> VarId {
-        assert_eq!(size_of::<VarId>(), size_of::<VarIdLayout>(), "the layout is invalid");
-        let layout = VarIdLayout {
-            owner: rustc_id.owner.def_id.local_def_index.as_u32(),
-            index: rustc_id.local_id.as_u32(),
-        };
-        // # Safety
-        // The layout is validated with the `assert` above
-        unsafe { transmute(layout) }
+        transmute_id!(
+            VarIdLayout as VarId = VarIdLayout {
+                owner: rustc_id.owner.def_id.local_def_index.as_u32(),
+                index: rustc_id.local_id.as_u32(),
+            }
+        )
     }
 
     #[must_use]
     pub fn to_expr_id(&self, rustc_id: hir::HirId) -> ExprId {
-        assert_eq!(size_of::<ExprId>(), size_of::<ExprIdLayout>(), "the layout is invalid");
-        let layout = ExprIdLayout {
-            owner: rustc_id.owner.def_id.local_def_index.as_u32(),
-            index: rustc_id.local_id.as_u32(),
-        };
-        // # Safety
-        // The layout is validated with the `assert` above
-        unsafe { transmute(layout) }
+        transmute_id!(
+            ExprIdLayout as ExprId = ExprIdLayout {
+                owner: rustc_id.owner.def_id.local_def_index.as_u32(),
+                index: rustc_id.local_id.as_u32(),
+            }
+        )
     }
 }
 

@@ -7,6 +7,7 @@ use marker_api::{
 use rustc_hir as hir;
 
 use crate::conversion::common::{BodyIdLayout, DefIdInfo, GenericIdLayout, ItemIdLayout, TyDefIdLayout};
+use crate::transmute_id;
 
 use super::RustcConversionContext;
 
@@ -14,10 +15,7 @@ macro_rules! impl_into_def_id_for {
     ($id:ty, $layout:ty) => {
         impl From<$id> for DefIdInfo {
             fn from(value: $id) -> Self {
-                assert_eq!(size_of::<$id>(), size_of::<$layout>(), "the layout is invalid");
-                // # Safety
-                // The layout is validated with the `assert` above
-                let layout: $layout = unsafe { transmute(value) };
+                let layout = transmute_id!($id as $layout = value);
                 DefIdInfo {
                     index: layout.index,
                     krate: layout.krate,
@@ -48,10 +46,7 @@ impl<'ast, 'tcx> RustcConversionContext<'ast, 'tcx> {
 
     #[must_use]
     pub fn to_item_id(&self, api_id: ItemId) -> hir::ItemId {
-        assert_eq!(size_of::<ItemId>(), size_of::<ItemIdLayout>(), "the layout is invalid");
-        // # Safety
-        // The layout is validated with the `assert` above
-        let layout: ItemIdLayout = unsafe { transmute(api_id) };
+        let layout = transmute_id!(ItemId as ItemIdLayout = api_id);
         hir::ItemId {
             owner_id: hir::OwnerId {
                 def_id: hir::def_id::LocalDefId {
@@ -63,10 +58,7 @@ impl<'ast, 'tcx> RustcConversionContext<'ast, 'tcx> {
 
     #[must_use]
     pub fn to_body_id(&self, api_id: BodyId) -> hir::BodyId {
-        assert_eq!(size_of::<BodyId>(), size_of::<BodyIdLayout>(), "the layout is invalid");
-        // # Safety
-        // The layout is validated with the `assert` above
-        let layout: BodyIdLayout = unsafe { transmute(api_id) };
+        let layout = transmute_id!(BodyId as BodyIdLayout = api_id);
         hir::BodyId {
             hir_id: hir::HirId {
                 owner: hir::OwnerId {
