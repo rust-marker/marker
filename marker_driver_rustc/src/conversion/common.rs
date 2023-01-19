@@ -49,3 +49,15 @@ pub struct VarIdLayout {
     pub owner: u32,
     pub index: u32,
 }
+
+#[macro_export]
+macro_rules! transmute_id {
+    ($t1:ty as $t2:ty = $e:expr) => {
+        {
+            assert_eq!(size_of::<$t1>(), size_of::<$t2>(), "the layout is invalid");
+            // # Safety
+            // The layout is validated with the `assert` above
+            unsafe { transmute::<$t1, $t2>($e) }
+        }
+    };
+}
