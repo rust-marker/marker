@@ -115,6 +115,10 @@ impl<'a, T> FfiSlice<'a, T> {
     pub fn as_slice(&self) -> &'a [T] {
         self.into()
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
 }
 
 impl<'a, T> From<&'a [T]> for FfiSlice<'a, T> {
