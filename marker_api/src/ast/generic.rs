@@ -41,6 +41,10 @@ impl<'ast> GenericArgs<'ast> {
     pub fn args(&self) -> &'ast [GenericArgKind<'ast>] {
         self.args.get()
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.args.is_empty()
+    }
 }
 
 #[cfg(feature = "driver-api")]

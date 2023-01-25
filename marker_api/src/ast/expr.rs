@@ -3,20 +3,22 @@ use super::{ty::TyKind, ExprId, Span, SpanId};
 use std::{fmt::Debug, marker::PhantomData};
 
 // Literal expressions
-mod int_lit_expr;
-pub use int_lit_expr::*;
-mod float_lit_expr;
-pub use float_lit_expr::*;
-mod str_lit_expr;
-pub use str_lit_expr::*;
-mod char_lit_expr;
-pub use char_lit_expr::*;
 mod bool_lit_expr;
+mod char_lit_expr;
+mod float_lit_expr;
+mod int_lit_expr;
+mod str_lit_expr;
 pub use bool_lit_expr::*;
+pub use char_lit_expr::*;
+pub use float_lit_expr::*;
+pub use int_lit_expr::*;
+pub use str_lit_expr::*;
 // other expressions
 mod block_expr;
-pub use block_expr::*;
+mod op_exprs;
 mod unstable_expr;
+pub use block_expr::*;
+pub use op_exprs::*;
 pub use unstable_expr::*;
 
 pub trait ExprData<'ast>: Debug {
@@ -43,6 +45,11 @@ pub enum ExprKind<'ast> {
     CharLit(&'ast CharLitExpr<'ast>),
     BoolLit(&'ast BoolLitExpr<'ast>),
     Block(&'ast BlockExpr<'ast>),
+    UnaryOp(&'ast UnaryOpExpr<'ast>),
+    Borrow(&'ast BorrowExpr<'ast>),
+    BinaryOp(&'ast BinaryOpExpr<'ast>),
+    QuestionMark(&'ast QuestionMarkExpr<'ast>),
+    As(&'ast AsExpr<'ast>),
     Unstable(&'ast UnstableExpr<'ast>),
 }
 
@@ -53,12 +60,80 @@ impl<'ast> ExprKind<'ast> {
     impl_expr_kind_fn!(precedence() -> ExprPrecedence);
 }
 
-#[repr(C)]
+#[repr(u32)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
 pub enum ExprPrecedence {
-    Block,
-    Lit,
+    Lit = 0x1400_0000,
+    Block = 0x1400_0001,
+
+    Path = 0x1300_0000,
+
+    Method = 0x1200_0000,
+
+    Field = 0x1100_0000,
+
+    Fn = 0x1000_0000,
+    Index = 0x1000_0001,
+
+    QuestionMark = 0x0F00_0000,
+
+    /// The unary `-` operator
+    Neg = 0x0E00_0000,
+    /// The `!` operator
+    Not = 0x0E00_0001,
+    /// The unary `*` operator
+    Deref = 0x0E00_0002,
+    /// The unary `&` operator
+    Reference = 0x0E00_0003,
+
+    As = 0x0D00_0000,
+
+    /// The binary `*` operator
+    Mul = 0x0C00_0000,
+    /// The `/` operator
+    Div = 0x0C00_0001,
+    /// The `%` operator
+    Rem = 0x0C00_0002,
+
+    /// The `+` operator
+    Add = 0x0B00_0000,
+    /// The binary `-` operator
+    Sub = 0x0B00_0001,
+
+    /// The `>>` operator
+    Shr = 0x0A00_0000,
+    /// The `<<` operator
+    Shl = 0x0A00_0001,
+
+    /// The binary `&` operator
+    BitAnd = 0x0900_0000,
+
+    /// The `^` operator
+    BitXor = 0x0800_0000,
+
+    /// The `|` operator
+    BitOr = 0x0700_0000,
+
+    /// The `==`, `!=`, `<`, `<=`, `>`, `>=` operators
+    Comparison = 0x0600_0000,
+
+    /// The `&&` operator
+    And = 0x0500_0000,
+
+    /// The `||` operator
+    Or = 0x0400_0000,
+
+    /// Ranges `0..10`, `0..=8`
+    Range = 0x0300_0000,
+
+    /// This precedence level includes compound assignment operators, like:
+    /// `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=`
+    AssignOp = 0x0200_0000,
+
+    Closure = 0x0100_0000,
+    Break = 0x0100_0001,
+    Return = 0x0100_0002,
     /// The precedence originates from an unstable source. The stored value provides
     /// the current precedence of this expression. This might change in the future
     Unstable(i32),
@@ -67,7 +142,8 @@ pub enum ExprPrecedence {
 macro_rules! impl_expr_kind_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_expr_kind_fn!($method() -> $return_ty,
-            IntLit, FloatLit, StrLit, CharLit, BoolLit, Block, Unstable
+            IntLit, FloatLit, StrLit, CharLit, BoolLit, Block, UnaryOp, Borrow,
+            BinaryOp, QuestionMark, As, Unstable
         );
     };
     ($method:ident () -> $return_ty:ty $(, $kind:ident)+) => {
