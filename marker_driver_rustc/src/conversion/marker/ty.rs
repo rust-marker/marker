@@ -51,7 +51,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                     self.to_syn_ty(mut_ty.ty),
                 )
             })),
-            hir::TyKind::Rptr(rust_lt, mut_ty) => TyKind::Ref(self.alloc(|| {
+            hir::TyKind::Ref(rust_lt, mut_ty) => TyKind::Ref(self.alloc(|| {
                 RefTy::new(
                     data,
                     self.to_lifetime(rust_lt),
