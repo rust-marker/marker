@@ -148,6 +148,7 @@ impl From<SpanId> for SpanOwner {
     }
 }
 
+#[derive(PartialEq, Eq, Hash)]
 pub struct Ident<'ast> {
     _lifetime: PhantomData<&'ast ()>,
     sym: SymbolId,

@@ -16,9 +16,11 @@ pub use str_lit_expr::*;
 // other expressions
 mod block_expr;
 mod op_exprs;
+mod path_expr;
 mod unstable_expr;
 pub use block_expr::*;
 pub use op_exprs::*;
+pub use path_expr::*;
 pub use unstable_expr::*;
 
 pub trait ExprData<'ast>: Debug {
@@ -50,6 +52,7 @@ pub enum ExprKind<'ast> {
     BinaryOp(&'ast BinaryOpExpr<'ast>),
     QuestionMark(&'ast QuestionMarkExpr<'ast>),
     As(&'ast AsExpr<'ast>),
+    Path(&'ast PathExpr<'ast>),
     Unstable(&'ast UnstableExpr<'ast>),
 }
 
@@ -143,7 +146,7 @@ macro_rules! impl_expr_kind_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_expr_kind_fn!($method() -> $return_ty,
             IntLit, FloatLit, StrLit, CharLit, BoolLit, Block, UnaryOp, Borrow,
-            BinaryOp, QuestionMark, As, Unstable
+            BinaryOp, QuestionMark, As, Path, Unstable
         );
     };
     ($method:ident () -> $return_ty:ty $(, $kind:ident)+) => {

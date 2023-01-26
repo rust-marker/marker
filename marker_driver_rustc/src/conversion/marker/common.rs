@@ -169,10 +169,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
 
     #[must_use]
     fn to_path_segment(&self, segment: &hir::PathSegment<'tcx>) -> AstPathSegment<'ast> {
-        AstPathSegment::new(
-            self.to_symbol_id(segment.ident.name),
-            self.to_generic_args(segment.args),
-        )
+        AstPathSegment::new(self.to_ident(segment.ident), self.to_generic_args(segment.args))
     }
 
     pub fn to_trait_ref(&self, trait_ref: &rustc_hir::TraitRef<'tcx>) -> TraitRef<'ast> {

@@ -79,6 +79,10 @@ impl<T> FfiOption<T> {
             FfiOption::None => None,
         }
     }
+
+    pub fn is_some(&self) -> bool {
+        matches!(self, FfiOption::Some(_))
+    }
 }
 
 impl<T> From<FfiOption<T>> for Option<T> {
