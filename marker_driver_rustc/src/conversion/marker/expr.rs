@@ -1,6 +1,6 @@
 use marker_api::ast::expr::{
-    BlockExpr, BoolLitExpr, CharLitExpr, CommonExprData, ExprKind, FloatLitExpr, FloatSuffix, IntLitExpr, IntSuffix,
-    StrLitData, StrLitExpr,
+    BlockExpr, BoolLitExpr, CharLitExpr, CommonExprData, ExprKind, ExprPrecedence, FloatLitExpr, FloatSuffix,
+    IntLitExpr, IntSuffix, StrLitData, StrLitExpr, UnstableExpr,
 };
 use rustc_hir as hir;
 use std::str::FromStr;
@@ -30,12 +30,18 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
         }
 
         let data = CommonExprData::new(id, self.to_span_id(expr.span));
-        let expr = match &expr.kind {
-            hir::ExprKind::Lit(spanned_lit) => self.to_expr_from_lit_kind(data, &spanned_lit.node),
-            hir::ExprKind::Block(block, None) => ExprKind::Block(self.alloc(|| self.to_block_expr(data, block))),
-            hir::ExprKind::Err => unreachable!("would have triggered a rustc error"),
-            _ => todo!("{expr:#?}"),
-        };
+        let expr =
+            match &expr.kind {
+                hir::ExprKind::Lit(spanned_lit) => self.to_expr_from_lit_kind(data, &spanned_lit.node),
+                hir::ExprKind::Block(block, None) => ExprKind::Block(self.alloc(|| self.to_block_expr(data, block))),
+                hir::ExprKind::Err => unreachable!("would have triggered a rustc error"),
+                _ => {
+                    eprintln!("skipping not implemented expr at: {:?}", expr.span);
+                    ExprKind::Unstable(self.alloc(|| {
+                        UnstableExpr::new(data, ExprPrecedence::Unstable(i32::from(expr.precedence().order())))
+                    }))
+                },
+            };
 
         self.exprs.borrow_mut().insert(id, expr);
         expr
