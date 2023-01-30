@@ -5,7 +5,7 @@
 // FIXME: It might be useful to not use a single path for everything, but instead
 // split it up into an `ItemPath`, `GenericPath` etc. implementation.
 
-use super::{Ident, ItemId, VarId};
+use super::{GenericId, Ident, ItemId, VarId};
 use crate::{
     ast::{generic::GenericArgs, ty::TyKind},
     ffi::{FfiOption, FfiSlice},
@@ -61,7 +61,7 @@ pub struct AstQPath<'ast> {
     self_ty: FfiOption<TyKind<'ast>>,
     path_ty: FfiOption<TyKind<'ast>>,
     path: AstPath<'ast>,
-    target: QPathTarget,
+    target: AstPathTarget,
 }
 
 impl<'ast> AstQPath<'ast> {
@@ -133,7 +133,7 @@ impl<'ast> AstQPath<'ast> {
     }
 
     /// This function resolves the target of this path.
-    pub fn resolve(&self) -> QPathTarget {
+    pub fn resolve(&self) -> AstPathTarget {
         // For rust-analyzer or future drivers, it might make sense to return
         // `Option<QualifiedPathTarget>` instead, as the path might be dead,
         // when a lint crate calls this function. However, I have the feeling
@@ -143,6 +143,14 @@ impl<'ast> AstQPath<'ast> {
         // the `AstContext`, might fail. The outcome is the same, but all
         // "failable" resolution will be grouped in the `AstContext`
         self.target
+    }
+
+    /// This returns the [`GenericArgs`] specified on the last segment of the path.
+    /// This is especially useful, for paths pointing to types or functions. For
+    /// example, the `u32` of the path `Vec<u32>`, is stored in the [`GenericArgs`]
+    /// as a type parameter.
+    pub fn generics(&self) -> &GenericArgs<'ast> {
+        self.path.generics()
     }
 }
 
@@ -158,10 +166,26 @@ impl<'a, 'ast> TryFrom<&'a AstQPath<'ast>> for &'a AstPath<'ast> {
     }
 }
 
+impl<'ast> AstQPath<'ast> {
+    pub fn new(
+        self_ty: Option<TyKind<'ast>>,
+        path_ty: Option<TyKind<'ast>>,
+        path: AstPath<'ast>,
+        target: AstPathTarget,
+    ) -> Self {
+        Self {
+            self_ty: self_ty.into(),
+            path_ty: path_ty.into(),
+            path,
+            target,
+        }
+    }
+}
+
 #[repr(C)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum QPathTarget {
+pub enum AstPathTarget {
     /// The `Self` type, the [`ItemId`] points to the item,
     /// that the `Self` originates from. This will usually be an
     /// [`ImplItem`](crate::ast::item::ImplItem) or
@@ -174,6 +198,8 @@ pub enum QPathTarget {
     Item(ItemId),
     /// The path target is a local variable, identified by the [`VarId`].
     Var(VarId),
+    /// The path target is a generic type, identified by the [`GenericId`].
+    Generic(GenericId),
 }
 
 #[repr(C)]
@@ -186,6 +212,7 @@ pub struct AstPath<'ast> {
 #[cfg(feature = "driver-api")]
 impl<'ast> AstPath<'ast> {
     pub fn new(segments: &'ast [AstPathSegment<'ast>]) -> Self {
+        debug_assert!(!segments.is_empty());
         Self {
             segments: segments.into(),
         }
@@ -195,6 +222,18 @@ impl<'ast> AstPath<'ast> {
 impl<'ast> AstPath<'ast> {
     pub fn segments(&self) -> &[AstPathSegment<'ast>] {
         self.segments.get()
+    }
+
+    /// This returns the [`GenericArgs`] specified on the last segment of the path.
+    /// This is especially useful, for paths pointing to types or functions. For
+    /// example, the `u32` of the path `Vec<u32>`, is stored in the [`GenericArgs`]
+    /// as a type parameter.
+    pub fn generics(&self) -> &GenericArgs<'ast> {
+        self.segments
+            .get()
+            .last()
+            .expect("a path always has at least on segment")
+            .generics()
     }
 }
 

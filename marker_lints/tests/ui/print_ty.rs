@@ -7,14 +7,17 @@ static PRINT_TYPE_PRIMITIVE_3: Option<(char, bool, f32, f64)> = None;
 static PRINT_TYPE_SEQUENCE: Option<AllowSync<(&[i32], [i32; 8])>> = None;
 static PRINT_TYPE_POINTER: Option<AllowSync<(&'static str, *const i32, *mut i32)>> = None;
 static PRINT_TYPE_COMPLEX: Option<
-    AllowSync<(
-        String,
-        Option<String>,
-        Vec<UnionItem>,
-        Box<dyn Debug>,
-        Box<dyn Iterator<Item = i32> + 'static>,
-    )>,
+AllowSync<(
+    AliasTy,
+    String,
+    Option<String>,
+    Vec<UnionItem>,
+    Box<dyn Debug>,
+    Box<dyn Iterator<Item = i32> + 'static>,
+)>,
 > = None;
+
+type AliasTy = (u8, u16);
 
 pub union UnionItem {
     _f: f32,

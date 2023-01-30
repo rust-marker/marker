@@ -6,8 +6,8 @@ warning: Printing type for
   |
   = note: `#[warn(marker::test_lint)]` on by default
 
-Enum(
-    EnumTy {
+Path(
+    PathTy {
         data: CommonTyData {
             _lifetime: PhantomData<&()>,
             span: Some(
@@ -15,36 +15,57 @@ Enum(
             ),
             is_syntactic: true,
         },
-        def_id: TyDefId(..),
-        generic_args: GenericArgs {
-            args: [
-                Ty(
-                    Tuple(
-                        (
-                            Num(
-                                u8,
-                            ),
-                            Num(
-                                u16,
-                            ),
-                            Num(
-                                u32,
-                            ),
-                            Num(
-                                u64,
-                            ),
-                            Num(
-                                u128,
-                            ),
-                            Num(
-                                usize,
-                            ),
-                        ),
-                    ),
-                ),
-            ],
+        path: AstQPath {
+            self_ty: None,
+            path_ty: None,
+            path: AstPath {
+                segments: [
+                    AstPathSegment {
+                        ident: Ident {
+                            name: "Option",
+                            span: Span {
+                                source: File(
+                                    "$DIR/print_ty.rs",
+                                ),
+                                start: 85,
+                                end: 91,
+                            },
+                        },
+                        generics: GenericArgs {
+                            args: [
+                                Ty(
+                                    Tuple(
+                                        (
+                                            Num(
+                                                u8,
+                                            ),
+                                            Num(
+                                                u16,
+                                            ),
+                                            Num(
+                                                u32,
+                                            ),
+                                            Num(
+                                                u64,
+                                            ),
+                                            Num(
+                                                u128,
+                                            ),
+                                            Num(
+                                                usize,
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ],
+                        },
+                    },
+                ],
+            },
+            target: Item(
+                ItemId(..),
+            ),
         },
-        is_non_exhaustive: false,
     },
 )
 
@@ -55,8 +76,8 @@ warning: Printing type for
 5 | static PRINT_TYPE_PRIMITIVE_2: Option<(i8, i16, i32, i64, i128, isize)> = None;
   |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Enum(
-    EnumTy {
+Path(
+    PathTy {
         data: CommonTyData {
             _lifetime: PhantomData<&()>,
             span: Some(
@@ -64,36 +85,57 @@ Enum(
             ),
             is_syntactic: true,
         },
-        def_id: TyDefId(..),
-        generic_args: GenericArgs {
-            args: [
-                Ty(
-                    Tuple(
-                        (
-                            Num(
-                                i8,
-                            ),
-                            Num(
-                                i16,
-                            ),
-                            Num(
-                                i32,
-                            ),
-                            Num(
-                                i64,
-                            ),
-                            Num(
-                                i128,
-                            ),
-                            Num(
-                                isize,
-                            ),
-                        ),
-                    ),
-                ),
-            ],
+        path: AstQPath {
+            self_ty: None,
+            path_ty: None,
+            path: AstPath {
+                segments: [
+                    AstPathSegment {
+                        ident: Ident {
+                            name: "Option",
+                            span: Span {
+                                source: File(
+                                    "$DIR/print_ty.rs",
+                                ),
+                                start: 165,
+                                end: 171,
+                            },
+                        },
+                        generics: GenericArgs {
+                            args: [
+                                Ty(
+                                    Tuple(
+                                        (
+                                            Num(
+                                                i8,
+                                            ),
+                                            Num(
+                                                i16,
+                                            ),
+                                            Num(
+                                                i32,
+                                            ),
+                                            Num(
+                                                i64,
+                                            ),
+                                            Num(
+                                                i128,
+                                            ),
+                                            Num(
+                                                isize,
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ],
+                        },
+                    },
+                ],
+            },
+            target: Item(
+                ItemId(..),
+            ),
         },
-        is_non_exhaustive: false,
     },
 )
 
@@ -104,8 +146,8 @@ warning: Printing type for
 6 | static PRINT_TYPE_PRIMITIVE_3: Option<(char, bool, f32, f64)> = None;
   |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Enum(
-    EnumTy {
+Path(
+    PathTy {
         data: CommonTyData {
             _lifetime: PhantomData<&()>,
             span: Some(
@@ -113,30 +155,51 @@ Enum(
             ),
             is_syntactic: true,
         },
-        def_id: TyDefId(..),
-        generic_args: GenericArgs {
-            args: [
-                Ty(
-                    Tuple(
-                        (
-                            Text(
-                                char,
-                            ),
-                            Bool(
-                                bool,
-                            ),
-                            Num(
-                                f32,
-                            ),
-                            Num(
-                                f64,
-                            ),
-                        ),
-                    ),
-                ),
-            ],
+        path: AstQPath {
+            self_ty: None,
+            path_ty: None,
+            path: AstPath {
+                segments: [
+                    AstPathSegment {
+                        ident: Ident {
+                            name: "Option",
+                            span: Span {
+                                source: File(
+                                    "$DIR/print_ty.rs",
+                                ),
+                                start: 245,
+                                end: 251,
+                            },
+                        },
+                        generics: GenericArgs {
+                            args: [
+                                Ty(
+                                    Tuple(
+                                        (
+                                            Text(
+                                                char,
+                                            ),
+                                            Bool(
+                                                bool,
+                                            ),
+                                            Num(
+                                                f32,
+                                            ),
+                                            Num(
+                                                f64,
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ],
+                        },
+                    },
+                ],
+            },
+            target: Item(
+                ItemId(..),
+            ),
         },
-        is_non_exhaustive: false,
     },
 )
 
@@ -147,8 +210,8 @@ warning: Printing type for
 7 | static PRINT_TYPE_SEQUENCE: Option<AllowSync<(&[i32], [i32; 8])>> = None;
   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Enum(
-    EnumTy {
+Path(
+    PathTy {
         data: CommonTyData {
             _lifetime: PhantomData<&()>,
             span: Some(
@@ -156,72 +219,114 @@ Enum(
             ),
             is_syntactic: true,
         },
-        def_id: TyDefId(..),
-        generic_args: GenericArgs {
-            args: [
-                Ty(
-                    Struct(
-                        StructTy {
-                            data: CommonTyData {
-                                _lifetime: PhantomData<&()>,
-                                span: Some(
-                                    SpanId(..),
+        path: AstQPath {
+            self_ty: None,
+            path_ty: None,
+            path: AstPath {
+                segments: [
+                    AstPathSegment {
+                        ident: Ident {
+                            name: "Option",
+                            span: Span {
+                                source: File(
+                                    "$DIR/print_ty.rs",
                                 ),
-                                is_syntactic: true,
+                                start: 312,
+                                end: 318,
                             },
-                            def_id: TyDefId(..),
-                            generic_args: GenericArgs {
-                                args: [
-                                    Ty(
-                                        Tuple(
-                                            (
-                                                Ref(
-                                                    RefTy {
-                                                        data: CommonTyData {
-                                                            _lifetime: PhantomData<&()>,
-                                                            span: Some(
-                                                                SpanId(..),
-                                                            ),
-                                                            is_syntactic: true,
-                                                        },
-                                                        lifetime: Some(
-                                                            Lifetime {
-                                                                _lifetime: PhantomData<&()>,
-                                                                span: Some(
-                                                                    SpanId(..),
-                                                                ),
-                                                                kind: Static,
-                                                            },
-                                                        ),
-                                                        is_mut: false,
-                                                        inner_ty: Slice(
-                                                            [
-                                                                Num(
-                                                                    i32,
-                                                                ),
-                                                            ],
-                                                        ),
-                                                    },
-                                                ),
-                                                Array(
-                                                    [
-                                                        Num(
-                                                            i32,
-                                                        ),
-                                                    ],
-                                                ),
-                                            ),
-                                        ),
-                                    ),
-                                ],
-                            },
-                            is_non_exhaustive: false,
                         },
-                    ),
-                ),
-            ],
+                        generics: GenericArgs {
+                            args: [
+                                Ty(
+                                    Path(
+                                        PathTy {
+                                            data: CommonTyData {
+                                                _lifetime: PhantomData<&()>,
+                                                span: Some(
+                                                    SpanId(..),
+                                                ),
+                                                is_syntactic: true,
+                                            },
+                                            path: AstQPath {
+                                                self_ty: None,
+                                                path_ty: None,
+                                                path: AstPath {
+                                                    segments: [
+                                                        AstPathSegment {
+                                                            ident: Ident {
+                                                                name: "AllowSync",
+                                                                span: Span {
+                                                                    source: File(
+                                                                        "$DIR/print_ty.rs",
+                                                                    ),
+                                                                    start: 319,
+                                                                    end: 328,
+                                                                },
+                                                            },
+                                                            generics: GenericArgs {
+                                                                args: [
+                                                                    Ty(
+                                                                        Tuple(
+                                                                            (
+                                                                                Ref(
+                                                                                    RefTy {
+                                                                                        data: CommonTyData {
+                                                                                            _lifetime: PhantomData<&()>,
+                                                                                            span: Some(
+                                                                                                SpanId(..),
+                                                                                            ),
+                                                                                            is_syntactic: true,
+                                                                                        },
+                                                                                        lifetime: Some(
+                                                                                            Lifetime {
+                                                                                                _lifetime: PhantomData<&()>,
+                                                                                                span: Some(
+                                                                                                    SpanId(..),
+                                                                                                ),
+                                                                                                kind: Static,
+                                                                                            },
+                                                                                        ),
+                                                                                        is_mut: false,
+                                                                                        inner_ty: Slice(
+                                                                                            [
+                                                                                                Num(
+                                                                                                    i32,
+                                                                                                ),
+                                                                                            ],
+                                                                                        ),
+                                                                                    },
+                                                                                ),
+                                                                                Array(
+                                                                                    [
+                                                                                        Num(
+                                                                                            i32,
+                                                                                        ),
+                                                                                    ],
+                                                                                ),
+                                                                            ),
+                                                                        ),
+                                                                    ),
+                                                                ],
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                                target: Item(
+                                                    ItemId(..),
+                                                ),
+                                            },
+                                        },
+                                    ),
+                                ),
+                            ],
+                        },
+                    },
+                ],
+            },
+            target: Item(
+                ItemId(..),
+            ),
         },
-        is_non_exhaustive: false,
     },
 )
 
@@ -232,8 +337,8 @@ warning: Printing type for
 8 | static PRINT_TYPE_POINTER: Option<AllowSync<(&'static str, *const i32, *mut i32)>> = None;
   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Enum(
-    EnumTy {
+Path(
+    PathTy {
         data: CommonTyData {
             _lifetime: PhantomData<&()>,
             span: Some(
@@ -241,91 +346,133 @@ Enum(
             ),
             is_syntactic: true,
         },
-        def_id: TyDefId(..),
-        generic_args: GenericArgs {
-            args: [
-                Ty(
-                    Struct(
-                        StructTy {
-                            data: CommonTyData {
-                                _lifetime: PhantomData<&()>,
-                                span: Some(
-                                    SpanId(..),
+        path: AstQPath {
+            self_ty: None,
+            path_ty: None,
+            path: AstPath {
+                segments: [
+                    AstPathSegment {
+                        ident: Ident {
+                            name: "Option",
+                            span: Span {
+                                source: File(
+                                    "$DIR/print_ty.rs",
                                 ),
-                                is_syntactic: true,
+                                start: 385,
+                                end: 391,
                             },
-                            def_id: TyDefId(..),
-                            generic_args: GenericArgs {
-                                args: [
-                                    Ty(
-                                        Tuple(
-                                            (
-                                                Ref(
-                                                    RefTy {
-                                                        data: CommonTyData {
-                                                            _lifetime: PhantomData<&()>,
-                                                            span: Some(
-                                                                SpanId(..),
-                                                            ),
-                                                            is_syntactic: true,
-                                                        },
-                                                        lifetime: Some(
-                                                            Lifetime {
-                                                                _lifetime: PhantomData<&()>,
-                                                                span: Some(
-                                                                    SpanId(..),
-                                                                ),
-                                                                kind: Static,
-                                                            },
-                                                        ),
-                                                        is_mut: false,
-                                                        inner_ty: Text(
-                                                            str,
-                                                        ),
-                                                    },
-                                                ),
-                                                RawPtr(
-                                                    RawPtrTy {
-                                                        data: CommonTyData {
-                                                            _lifetime: PhantomData<&()>,
-                                                            span: Some(
-                                                                SpanId(..),
-                                                            ),
-                                                            is_syntactic: true,
-                                                        },
-                                                        is_mut: false,
-                                                        inner_ty: Num(
-                                                            i32,
-                                                        ),
-                                                    },
-                                                ),
-                                                RawPtr(
-                                                    RawPtrTy {
-                                                        data: CommonTyData {
-                                                            _lifetime: PhantomData<&()>,
-                                                            span: Some(
-                                                                SpanId(..),
-                                                            ),
-                                                            is_syntactic: true,
-                                                        },
-                                                        is_mut: true,
-                                                        inner_ty: Num(
-                                                            i32,
-                                                        ),
-                                                    },
-                                                ),
-                                            ),
-                                        ),
-                                    ),
-                                ],
-                            },
-                            is_non_exhaustive: false,
                         },
-                    ),
-                ),
-            ],
+                        generics: GenericArgs {
+                            args: [
+                                Ty(
+                                    Path(
+                                        PathTy {
+                                            data: CommonTyData {
+                                                _lifetime: PhantomData<&()>,
+                                                span: Some(
+                                                    SpanId(..),
+                                                ),
+                                                is_syntactic: true,
+                                            },
+                                            path: AstQPath {
+                                                self_ty: None,
+                                                path_ty: None,
+                                                path: AstPath {
+                                                    segments: [
+                                                        AstPathSegment {
+                                                            ident: Ident {
+                                                                name: "AllowSync",
+                                                                span: Span {
+                                                                    source: File(
+                                                                        "$DIR/print_ty.rs",
+                                                                    ),
+                                                                    start: 392,
+                                                                    end: 401,
+                                                                },
+                                                            },
+                                                            generics: GenericArgs {
+                                                                args: [
+                                                                    Ty(
+                                                                        Tuple(
+                                                                            (
+                                                                                Ref(
+                                                                                    RefTy {
+                                                                                        data: CommonTyData {
+                                                                                            _lifetime: PhantomData<&()>,
+                                                                                            span: Some(
+                                                                                                SpanId(..),
+                                                                                            ),
+                                                                                            is_syntactic: true,
+                                                                                        },
+                                                                                        lifetime: Some(
+                                                                                            Lifetime {
+                                                                                                _lifetime: PhantomData<&()>,
+                                                                                                span: Some(
+                                                                                                    SpanId(..),
+                                                                                                ),
+                                                                                                kind: Static,
+                                                                                            },
+                                                                                        ),
+                                                                                        is_mut: false,
+                                                                                        inner_ty: Text(
+                                                                                            str,
+                                                                                        ),
+                                                                                    },
+                                                                                ),
+                                                                                RawPtr(
+                                                                                    RawPtrTy {
+                                                                                        data: CommonTyData {
+                                                                                            _lifetime: PhantomData<&()>,
+                                                                                            span: Some(
+                                                                                                SpanId(..),
+                                                                                            ),
+                                                                                            is_syntactic: true,
+                                                                                        },
+                                                                                        is_mut: false,
+                                                                                        inner_ty: Num(
+                                                                                            i32,
+                                                                                        ),
+                                                                                    },
+                                                                                ),
+                                                                                RawPtr(
+                                                                                    RawPtrTy {
+                                                                                        data: CommonTyData {
+                                                                                            _lifetime: PhantomData<&()>,
+                                                                                            span: Some(
+                                                                                                SpanId(..),
+                                                                                            ),
+                                                                                            is_syntactic: true,
+                                                                                        },
+                                                                                        is_mut: true,
+                                                                                        inner_ty: Num(
+                                                                                            i32,
+                                                                                        ),
+                                                                                    },
+                                                                                ),
+                                                                            ),
+                                                                        ),
+                                                                    ),
+                                                                ],
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                                target: Item(
+                                                    ItemId(..),
+                                                ),
+                                            },
+                                        },
+                                    ),
+                                ),
+                            ],
+                        },
+                    },
+                ],
+            },
+            target: Item(
+                ItemId(..),
+            ),
         },
-        is_non_exhaustive: false,
     },
 )
 
@@ -335,16 +482,16 @@ warning: Printing type for
    |
 9  |   static PRINT_TYPE_COMPLEX: Option<
    |  ____________________________^
-10 | |     AllowSync<(
-11 | |         String,
-12 | |         Option<String>,
+10 | | AllowSync<(
+11 | |     AliasTy,
+12 | |     String,
 ...  |
-16 | |     )>,
-17 | | > = None;
+17 | | )>,
+18 | | > = None;
    | |_^
 
-Enum(
-    EnumTy {
+Path(
+    PathTy {
         data: CommonTyData {
             _lifetime: PhantomData<&()>,
             span: Some(
@@ -352,231 +499,458 @@ Enum(
             ),
             is_syntactic: true,
         },
-        def_id: TyDefId(..),
-        generic_args: GenericArgs {
-            args: [
-                Ty(
-                    Struct(
-                        StructTy {
-                            data: CommonTyData {
-                                _lifetime: PhantomData<&()>,
-                                span: Some(
-                                    SpanId(..),
+        path: AstQPath {
+            self_ty: None,
+            path_ty: None,
+            path: AstPath {
+                segments: [
+                    AstPathSegment {
+                        ident: Ident {
+                            name: "Option",
+                            span: Span {
+                                source: File(
+                                    "$DIR/print_ty.rs",
                                 ),
-                                is_syntactic: true,
+                                start: 476,
+                                end: 482,
                             },
-                            def_id: TyDefId(..),
-                            generic_args: GenericArgs {
-                                args: [
-                                    Ty(
-                                        Tuple(
-                                            (
-                                                Struct(
-                                                    StructTy {
-                                                        data: CommonTyData {
-                                                            _lifetime: PhantomData<&()>,
-                                                            span: Some(
-                                                                SpanId(..),
-                                                            ),
-                                                            is_syntactic: true,
-                                                        },
-                                                        def_id: TyDefId(..),
-                                                        generic_args: GenericArgs {
-                                                            args: [],
-                                                        },
-                                                        is_non_exhaustive: false,
-                                                    },
+                        },
+                        generics: GenericArgs {
+                            args: [
+                                Ty(
+                                    Path(
+                                        PathTy {
+                                            data: CommonTyData {
+                                                _lifetime: PhantomData<&()>,
+                                                span: Some(
+                                                    SpanId(..),
                                                 ),
-                                                Enum(
-                                                    EnumTy {
-                                                        data: CommonTyData {
-                                                            _lifetime: PhantomData<&()>,
-                                                            span: Some(
-                                                                SpanId(..),
-                                                            ),
-                                                            is_syntactic: true,
-                                                        },
-                                                        def_id: TyDefId(..),
-                                                        generic_args: GenericArgs {
-                                                            args: [
-                                                                Ty(
-                                                                    Struct(
-                                                                        StructTy {
-                                                                            data: CommonTyData {
-                                                                                _lifetime: PhantomData<&()>,
-                                                                                span: Some(
-                                                                                    SpanId(..),
-                                                                                ),
-                                                                                is_syntactic: true,
-                                                                            },
-                                                                            def_id: TyDefId(..),
-                                                                            generic_args: GenericArgs {
-                                                                                args: [],
-                                                                            },
-                                                                            is_non_exhaustive: false,
-                                                                        },
+                                                is_syntactic: true,
+                                            },
+                                            path: AstQPath {
+                                                self_ty: None,
+                                                path_ty: None,
+                                                path: AstPath {
+                                                    segments: [
+                                                        AstPathSegment {
+                                                            ident: Ident {
+                                                                name: "AllowSync",
+                                                                span: Span {
+                                                                    source: File(
+                                                                        "$DIR/print_ty.rs",
                                                                     ),
-                                                                ),
-                                                            ],
-                                                        },
-                                                        is_non_exhaustive: false,
-                                                    },
-                                                ),
-                                                Struct(
-                                                    StructTy {
-                                                        data: CommonTyData {
-                                                            _lifetime: PhantomData<&()>,
-                                                            span: Some(
-                                                                SpanId(..),
-                                                            ),
-                                                            is_syntactic: true,
-                                                        },
-                                                        def_id: TyDefId(..),
-                                                        generic_args: GenericArgs {
-                                                            args: [
-                                                                Ty(
-                                                                    Union(
-                                                                        UnionTy {
-                                                                            data: CommonTyData {
-                                                                                _lifetime: PhantomData<&()>,
-                                                                                span: Some(
-                                                                                    SpanId(..),
-                                                                                ),
-                                                                                is_syntactic: true,
-                                                                            },
-                                                                            def_id: TyDefId(..),
-                                                                            generic_args: GenericArgs {
-                                                                                args: [],
-                                                                            },
-                                                                        },
-                                                                    ),
-                                                                ),
-                                                            ],
-                                                        },
-                                                        is_non_exhaustive: false,
-                                                    },
-                                                ),
-                                                Struct(
-                                                    StructTy {
-                                                        data: CommonTyData {
-                                                            _lifetime: PhantomData<&()>,
-                                                            span: Some(
-                                                                SpanId(..),
-                                                            ),
-                                                            is_syntactic: true,
-                                                        },
-                                                        def_id: TyDefId(..),
-                                                        generic_args: GenericArgs {
-                                                            args: [
-                                                                Ty(
-                                                                    TraitObj(
-                                                                        TraitObjTy {
-                                                                            data: CommonTyData {
-                                                                                _lifetime: PhantomData<&()>,
-                                                                                span: Some(
-                                                                                    SpanId(..),
-                                                                                ),
-                                                                                is_syntactic: true,
-                                                                            },
-                                                                            trait_bound: [
-                                                                                TraitBound(
-                                                                                    TraitBound {
-                                                                                        is_relaxed: false,
-                                                                                        trait_ref: TraitRef {
-                                                                                            item_id: ItemId(..),
-                                                                                            generics: GenericArgs {
-                                                                                                args: [],
-                                                                                            },
+                                                                    start: 484,
+                                                                    end: 493,
+                                                                },
+                                                            },
+                                                            generics: GenericArgs {
+                                                                args: [
+                                                                    Ty(
+                                                                        Tuple(
+                                                                            (
+                                                                                Path(
+                                                                                    PathTy {
+                                                                                        data: CommonTyData {
+                                                                                            _lifetime: PhantomData<&()>,
+                                                                                            span: Some(
+                                                                                                SpanId(..),
+                                                                                            ),
+                                                                                            is_syntactic: true,
                                                                                         },
-                                                                                        span: SpanId(..),
-                                                                                    },
-                                                                                ),
-                                                                            ],
-                                                                        },
-                                                                    ),
-                                                                ),
-                                                            ],
-                                                        },
-                                                        is_non_exhaustive: false,
-                                                    },
-                                                ),
-                                                Struct(
-                                                    StructTy {
-                                                        data: CommonTyData {
-                                                            _lifetime: PhantomData<&()>,
-                                                            span: Some(
-                                                                SpanId(..),
-                                                            ),
-                                                            is_syntactic: true,
-                                                        },
-                                                        def_id: TyDefId(..),
-                                                        generic_args: GenericArgs {
-                                                            args: [
-                                                                Ty(
-                                                                    TraitObj(
-                                                                        TraitObjTy {
-                                                                            data: CommonTyData {
-                                                                                _lifetime: PhantomData<&()>,
-                                                                                span: Some(
-                                                                                    SpanId(..),
-                                                                                ),
-                                                                                is_syntactic: true,
-                                                                            },
-                                                                            trait_bound: [
-                                                                                TraitBound(
-                                                                                    TraitBound {
-                                                                                        is_relaxed: false,
-                                                                                        trait_ref: TraitRef {
-                                                                                            item_id: ItemId(..),
-                                                                                            generics: GenericArgs {
-                                                                                                args: [
-                                                                                                    Binding(
-                                                                                                        BindingGenericArg {
-                                                                                                            span: Some(
-                                                                                                                SpanId(..),
-                                                                                                            ),
-                                                                                                            ident: SymbolId(..),
-                                                                                                            ty: Num(
-                                                                                                                i32,
-                                                                                                            ),
+                                                                                        path: AstQPath {
+                                                                                            self_ty: None,
+                                                                                            path_ty: None,
+                                                                                            path: AstPath {
+                                                                                                segments: [
+                                                                                                    AstPathSegment {
+                                                                                                        ident: Ident {
+                                                                                                            name: "AliasTy",
+                                                                                                            span: Span {
+                                                                                                                source: File(
+                                                                                                                    "$DIR/print_ty.rs",
+                                                                                                                ),
+                                                                                                                start: 500,
+                                                                                                                end: 507,
+                                                                                                            },
                                                                                                         },
-                                                                                                    ),
+                                                                                                        generics: GenericArgs {
+                                                                                                            args: [],
+                                                                                                        },
+                                                                                                    },
                                                                                                 ],
                                                                                             },
+                                                                                            target: Item(
+                                                                                                ItemId(..),
+                                                                                            ),
                                                                                         },
-                                                                                        span: SpanId(..),
                                                                                     },
                                                                                 ),
-                                                                                Lifetime(
-                                                                                    Lifetime {
-                                                                                        _lifetime: PhantomData<&()>,
-                                                                                        span: Some(
-                                                                                            SpanId(..),
-                                                                                        ),
-                                                                                        kind: Static,
+                                                                                Path(
+                                                                                    PathTy {
+                                                                                        data: CommonTyData {
+                                                                                            _lifetime: PhantomData<&()>,
+                                                                                            span: Some(
+                                                                                                SpanId(..),
+                                                                                            ),
+                                                                                            is_syntactic: true,
+                                                                                        },
+                                                                                        path: AstQPath {
+                                                                                            self_ty: None,
+                                                                                            path_ty: None,
+                                                                                            path: AstPath {
+                                                                                                segments: [
+                                                                                                    AstPathSegment {
+                                                                                                        ident: Ident {
+                                                                                                            name: "String",
+                                                                                                            span: Span {
+                                                                                                                source: File(
+                                                                                                                    "$DIR/print_ty.rs",
+                                                                                                                ),
+                                                                                                                start: 513,
+                                                                                                                end: 519,
+                                                                                                            },
+                                                                                                        },
+                                                                                                        generics: GenericArgs {
+                                                                                                            args: [],
+                                                                                                        },
+                                                                                                    },
+                                                                                                ],
+                                                                                            },
+                                                                                            target: Item(
+                                                                                                ItemId(..),
+                                                                                            ),
+                                                                                        },
                                                                                     },
                                                                                 ),
-                                                                            ],
-                                                                        },
+                                                                                Path(
+                                                                                    PathTy {
+                                                                                        data: CommonTyData {
+                                                                                            _lifetime: PhantomData<&()>,
+                                                                                            span: Some(
+                                                                                                SpanId(..),
+                                                                                            ),
+                                                                                            is_syntactic: true,
+                                                                                        },
+                                                                                        path: AstQPath {
+                                                                                            self_ty: None,
+                                                                                            path_ty: None,
+                                                                                            path: AstPath {
+                                                                                                segments: [
+                                                                                                    AstPathSegment {
+                                                                                                        ident: Ident {
+                                                                                                            name: "Option",
+                                                                                                            span: Span {
+                                                                                                                source: File(
+                                                                                                                    "$DIR/print_ty.rs",
+                                                                                                                ),
+                                                                                                                start: 525,
+                                                                                                                end: 531,
+                                                                                                            },
+                                                                                                        },
+                                                                                                        generics: GenericArgs {
+                                                                                                            args: [
+                                                                                                                Ty(
+                                                                                                                    Path(
+                                                                                                                        PathTy {
+                                                                                                                            data: CommonTyData {
+                                                                                                                                _lifetime: PhantomData<&()>,
+                                                                                                                                span: Some(
+                                                                                                                                    SpanId(..),
+                                                                                                                                ),
+                                                                                                                                is_syntactic: true,
+                                                                                                                            },
+                                                                                                                            path: AstQPath {
+                                                                                                                                self_ty: None,
+                                                                                                                                path_ty: None,
+                                                                                                                                path: AstPath {
+                                                                                                                                    segments: [
+                                                                                                                                        AstPathSegment {
+                                                                                                                                            ident: Ident {
+                                                                                                                                                name: "String",
+                                                                                                                                                span: Span {
+                                                                                                                                                    source: File(
+                                                                                                                                                        "$DIR/print_ty.rs",
+                                                                                                                                                    ),
+                                                                                                                                                    start: 532,
+                                                                                                                                                    end: 538,
+                                                                                                                                                },
+                                                                                                                                            },
+                                                                                                                                            generics: GenericArgs {
+                                                                                                                                                args: [],
+                                                                                                                                            },
+                                                                                                                                        },
+                                                                                                                                    ],
+                                                                                                                                },
+                                                                                                                                target: Item(
+                                                                                                                                    ItemId(..),
+                                                                                                                                ),
+                                                                                                                            },
+                                                                                                                        },
+                                                                                                                    ),
+                                                                                                                ),
+                                                                                                            ],
+                                                                                                        },
+                                                                                                    },
+                                                                                                ],
+                                                                                            },
+                                                                                            target: Item(
+                                                                                                ItemId(..),
+                                                                                            ),
+                                                                                        },
+                                                                                    },
+                                                                                ),
+                                                                                Path(
+                                                                                    PathTy {
+                                                                                        data: CommonTyData {
+                                                                                            _lifetime: PhantomData<&()>,
+                                                                                            span: Some(
+                                                                                                SpanId(..),
+                                                                                            ),
+                                                                                            is_syntactic: true,
+                                                                                        },
+                                                                                        path: AstQPath {
+                                                                                            self_ty: None,
+                                                                                            path_ty: None,
+                                                                                            path: AstPath {
+                                                                                                segments: [
+                                                                                                    AstPathSegment {
+                                                                                                        ident: Ident {
+                                                                                                            name: "Vec",
+                                                                                                            span: Span {
+                                                                                                                source: File(
+                                                                                                                    "$DIR/print_ty.rs",
+                                                                                                                ),
+                                                                                                                start: 545,
+                                                                                                                end: 548,
+                                                                                                            },
+                                                                                                        },
+                                                                                                        generics: GenericArgs {
+                                                                                                            args: [
+                                                                                                                Ty(
+                                                                                                                    Path(
+                                                                                                                        PathTy {
+                                                                                                                            data: CommonTyData {
+                                                                                                                                _lifetime: PhantomData<&()>,
+                                                                                                                                span: Some(
+                                                                                                                                    SpanId(..),
+                                                                                                                                ),
+                                                                                                                                is_syntactic: true,
+                                                                                                                            },
+                                                                                                                            path: AstQPath {
+                                                                                                                                self_ty: None,
+                                                                                                                                path_ty: None,
+                                                                                                                                path: AstPath {
+                                                                                                                                    segments: [
+                                                                                                                                        AstPathSegment {
+                                                                                                                                            ident: Ident {
+                                                                                                                                                name: "UnionItem",
+                                                                                                                                                span: Span {
+                                                                                                                                                    source: File(
+                                                                                                                                                        "$DIR/print_ty.rs",
+                                                                                                                                                    ),
+                                                                                                                                                    start: 549,
+                                                                                                                                                    end: 558,
+                                                                                                                                                },
+                                                                                                                                            },
+                                                                                                                                            generics: GenericArgs {
+                                                                                                                                                args: [],
+                                                                                                                                            },
+                                                                                                                                        },
+                                                                                                                                    ],
+                                                                                                                                },
+                                                                                                                                target: Item(
+                                                                                                                                    ItemId(..),
+                                                                                                                                ),
+                                                                                                                            },
+                                                                                                                        },
+                                                                                                                    ),
+                                                                                                                ),
+                                                                                                            ],
+                                                                                                        },
+                                                                                                    },
+                                                                                                ],
+                                                                                            },
+                                                                                            target: Item(
+                                                                                                ItemId(..),
+                                                                                            ),
+                                                                                        },
+                                                                                    },
+                                                                                ),
+                                                                                Path(
+                                                                                    PathTy {
+                                                                                        data: CommonTyData {
+                                                                                            _lifetime: PhantomData<&()>,
+                                                                                            span: Some(
+                                                                                                SpanId(..),
+                                                                                            ),
+                                                                                            is_syntactic: true,
+                                                                                        },
+                                                                                        path: AstQPath {
+                                                                                            self_ty: None,
+                                                                                            path_ty: None,
+                                                                                            path: AstPath {
+                                                                                                segments: [
+                                                                                                    AstPathSegment {
+                                                                                                        ident: Ident {
+                                                                                                            name: "Box",
+                                                                                                            span: Span {
+                                                                                                                source: File(
+                                                                                                                    "$DIR/print_ty.rs",
+                                                                                                                ),
+                                                                                                                start: 565,
+                                                                                                                end: 568,
+                                                                                                            },
+                                                                                                        },
+                                                                                                        generics: GenericArgs {
+                                                                                                            args: [
+                                                                                                                Ty(
+                                                                                                                    TraitObj(
+                                                                                                                        TraitObjTy {
+                                                                                                                            data: CommonTyData {
+                                                                                                                                _lifetime: PhantomData<&()>,
+                                                                                                                                span: Some(
+                                                                                                                                    SpanId(..),
+                                                                                                                                ),
+                                                                                                                                is_syntactic: true,
+                                                                                                                            },
+                                                                                                                            trait_bound: [
+                                                                                                                                TraitBound(
+                                                                                                                                    TraitBound {
+                                                                                                                                        is_relaxed: false,
+                                                                                                                                        trait_ref: TraitRef {
+                                                                                                                                            item_id: ItemId(..),
+                                                                                                                                            generics: GenericArgs {
+                                                                                                                                                args: [],
+                                                                                                                                            },
+                                                                                                                                        },
+                                                                                                                                        span: SpanId(..),
+                                                                                                                                    },
+                                                                                                                                ),
+                                                                                                                            ],
+                                                                                                                        },
+                                                                                                                    ),
+                                                                                                                ),
+                                                                                                            ],
+                                                                                                        },
+                                                                                                    },
+                                                                                                ],
+                                                                                            },
+                                                                                            target: Item(
+                                                                                                ItemId(..),
+                                                                                            ),
+                                                                                        },
+                                                                                    },
+                                                                                ),
+                                                                                Path(
+                                                                                    PathTy {
+                                                                                        data: CommonTyData {
+                                                                                            _lifetime: PhantomData<&()>,
+                                                                                            span: Some(
+                                                                                                SpanId(..),
+                                                                                            ),
+                                                                                            is_syntactic: true,
+                                                                                        },
+                                                                                        path: AstQPath {
+                                                                                            self_ty: None,
+                                                                                            path_ty: None,
+                                                                                            path: AstPath {
+                                                                                                segments: [
+                                                                                                    AstPathSegment {
+                                                                                                        ident: Ident {
+                                                                                                            name: "Box",
+                                                                                                            span: Span {
+                                                                                                                source: File(
+                                                                                                                    "$DIR/print_ty.rs",
+                                                                                                                ),
+                                                                                                                start: 585,
+                                                                                                                end: 588,
+                                                                                                            },
+                                                                                                        },
+                                                                                                        generics: GenericArgs {
+                                                                                                            args: [
+                                                                                                                Ty(
+                                                                                                                    TraitObj(
+                                                                                                                        TraitObjTy {
+                                                                                                                            data: CommonTyData {
+                                                                                                                                _lifetime: PhantomData<&()>,
+                                                                                                                                span: Some(
+                                                                                                                                    SpanId(..),
+                                                                                                                                ),
+                                                                                                                                is_syntactic: true,
+                                                                                                                            },
+                                                                                                                            trait_bound: [
+                                                                                                                                TraitBound(
+                                                                                                                                    TraitBound {
+                                                                                                                                        is_relaxed: false,
+                                                                                                                                        trait_ref: TraitRef {
+                                                                                                                                            item_id: ItemId(..),
+                                                                                                                                            generics: GenericArgs {
+                                                                                                                                                args: [
+                                                                                                                                                    Binding(
+                                                                                                                                                        BindingGenericArg {
+                                                                                                                                                            span: Some(
+                                                                                                                                                                SpanId(..),
+                                                                                                                                                            ),
+                                                                                                                                                            ident: SymbolId(..),
+                                                                                                                                                            ty: Num(
+                                                                                                                                                                i32,
+                                                                                                                                                            ),
+                                                                                                                                                        },
+                                                                                                                                                    ),
+                                                                                                                                                ],
+                                                                                                                                            },
+                                                                                                                                        },
+                                                                                                                                        span: SpanId(..),
+                                                                                                                                    },
+                                                                                                                                ),
+                                                                                                                                Lifetime(
+                                                                                                                                    Lifetime {
+                                                                                                                                        _lifetime: PhantomData<&()>,
+                                                                                                                                        span: Some(
+                                                                                                                                            SpanId(..),
+                                                                                                                                        ),
+                                                                                                                                        kind: Static,
+                                                                                                                                    },
+                                                                                                                                ),
+                                                                                                                            ],
+                                                                                                                        },
+                                                                                                                    ),
+                                                                                                                ),
+                                                                                                            ],
+                                                                                                        },
+                                                                                                    },
+                                                                                                ],
+                                                                                            },
+                                                                                            target: Item(
+                                                                                                ItemId(..),
+                                                                                            ),
+                                                                                        },
+                                                                                    },
+                                                                                ),
+                                                                            ),
+                                                                        ),
                                                                     ),
-                                                                ),
-                                                            ],
+                                                                ],
+                                                            },
                                                         },
-                                                        is_non_exhaustive: false,
-                                                    },
+                                                    ],
+                                                },
+                                                target: Item(
+                                                    ItemId(..),
                                                 ),
-                                            ),
-                                        ),
+                                            },
+                                        },
                                     ),
-                                ],
-                            },
-                            is_non_exhaustive: false,
+                                ),
+                            ],
                         },
-                    ),
-                ),
-            ],
+                    },
+                ],
+            },
+            target: Item(
+                ItemId(..),
+            ),
         },
-        is_non_exhaustive: false,
     },
 )
 

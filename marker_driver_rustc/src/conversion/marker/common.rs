@@ -1,8 +1,8 @@
 use std::mem::{size_of, transmute};
 
 use marker_api::ast::{
-    Abi, AstPath, AstPathSegment, BodyId, CrateId, ExprId, GenericId, Ident, ItemId, Span, SpanId, SpanSource,
-    SymbolId, TraitRef, TyDefId, VarId,
+    Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, CrateId, ExprId, GenericId, Ident, ItemId, Span,
+    SpanId, SpanSource, SymbolId, TraitRef, TyDefId, VarId,
 };
 use rustc_hir as hir;
 
@@ -153,10 +153,54 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
         }
     }
 
+    pub fn to_qpath(&self, qpath: &hir::QPath<'tcx>) -> AstQPath<'ast> {
+        match qpath {
+            hir::QPath::Resolved(self_ty, path) => AstQPath::new(
+                self_ty.map(|ty| self.to_ty(ty)),
+                None,
+                self.to_path(path),
+                self.to_path_target(&path.res),
+            ),
+            hir::QPath::TypeRelative(_, _) => todo!("{qpath:#?}"),
+            hir::QPath::LangItem(_, _, _) => todo!("{qpath:#?}"),
+        }
+    }
+
+    fn to_path_target(&self, res: &hir::def::Res) -> AstPathTarget {
+        match res {
+            hir::def::Res::Def(
+                hir::def::DefKind::LifetimeParam | hir::def::DefKind::TyParam | hir::def::DefKind::ConstParam,
+                id,
+            ) => AstPathTarget::Generic(self.to_generic_id(*id)),
+            hir::def::Res::Def(
+                hir::def::DefKind::TyAlias
+                | hir::def::DefKind::Enum
+                | hir::def::DefKind::Struct
+                | hir::def::DefKind::Union
+                | hir::def::DefKind::Trait
+                | hir::def::DefKind::ForeignTy
+                | hir::def::DefKind::TraitAlias,
+                id,
+            ) => AstPathTarget::Item(self.to_item_id(*id)),
+            hir::def::Res::Def(_, _) => todo!(),
+            hir::def::Res::PrimTy(_) => todo!(),
+            hir::def::Res::SelfTyParam { trait_: def_id, .. } | hir::def::Res::SelfTyAlias { alias_to: def_id, .. } => {
+                AstPathTarget::SelfTy(self.to_item_id(*def_id))
+            },
+            hir::def::Res::SelfCtor(_) => todo!(),
+            hir::def::Res::Local(_) => todo!(),
+            hir::def::Res::ToolMod => todo!(),
+            hir::def::Res::NonMacroAttr(_) => todo!(),
+            hir::def::Res::Err => todo!(),
+        }
+    }
+
     pub fn to_path_from_qpath(&self, qpath: &hir::QPath<'tcx>) -> AstPath<'ast> {
         match qpath {
             hir::QPath::Resolved(None, path) => self.to_path(path),
-            hir::QPath::Resolved(Some(_ty), _) => todo!("{qpath:#?}"),
+            hir::QPath::Resolved(Some(_ty), _) => {
+                unreachable!("type relative path should never be converted to an `AstPath`")
+            },
             hir::QPath::TypeRelative(_, _) => todo!("{qpath:#?}"),
             hir::QPath::LangItem(_, _, _) => todo!("{qpath:#?}"),
         }

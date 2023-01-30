@@ -1,8 +1,7 @@
 use marker_api::ast::{
     ty::{
-        AliasTy, ArrayTy, BoolTy, CommonTyData, EnumTy, FnTy, GenericTy, ImplTraitTy, InferredTy, NeverTy, NumKind,
-        NumTy, RawPtrTy, RefTy, RelativeTy, SelfTy, SliceTy, StructTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind,
-        UnionTy,
+        ArrayTy, BoolTy, CommonTyData, FnTy, ImplTraitTy, InferredTy, NeverTy, NumKind, NumTy, PathTy, RawPtrTy, RefTy,
+        SliceTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind,
     },
     CommonCallableData, Parameter,
 };
@@ -126,21 +125,23 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
         match qpath {
             hir::QPath::Resolved(None, path) => match path.res {
                 hir::def::Res::Def(
-                    hir::def::DefKind::Enum | hir::def::DefKind::Struct | hir::def::DefKind::Union,
-                    id,
-                ) => self.to_syn_ty_from_adt_id(data, id, path.segments.last().and_then(|s| s.args)),
-                hir::def::Res::Def(
-                    hir::def::DefKind::LifetimeParam | hir::def::DefKind::TyParam | hir::def::DefKind::ConstParam,
-                    id,
-                ) => TyKind::Generic(self.alloc(|| GenericTy::new(data, self.to_generic_id(id)))),
-                hir::def::Res::Def(hir::def::DefKind::TyAlias, id) => {
-                    TyKind::Alias(self.alloc(|| AliasTy::new(data, self.to_item_id(id))))
+                    hir::def::DefKind::LifetimeParam
+                    | hir::def::DefKind::TyParam
+                    | hir::def::DefKind::ConstParam
+                    | hir::def::DefKind::TyAlias
+                    | hir::def::DefKind::Enum
+                    | hir::def::DefKind::Struct
+                    | hir::def::DefKind::Union
+                    | hir::def::DefKind::Trait
+                    | hir::def::DefKind::ForeignTy
+                    | hir::def::DefKind::TraitAlias,
+                    _,
+                )
+                | hir::def::Res::SelfTyParam { .. }
+                | hir::def::Res::SelfTyAlias { .. } => {
+                    TyKind::Path(self.alloc(|| PathTy::new(data, self.to_qpath(qpath))))
                 },
                 hir::def::Res::PrimTy(prim_ty) => self.to_syn_ty_from_prim_ty(data, prim_ty),
-                hir::def::Res::SelfTyParam { trait_: def_id, .. }
-                | hir::def::Res::SelfTyAlias { alias_to: def_id, .. } => {
-                    TyKind::SelfTy(self.alloc(|| SelfTy::new(data, self.to_item_id(def_id))))
-                },
                 hir::def::Res::Def(_, _)
                 | hir::def::Res::SelfCtor(_)
                 | hir::def::Res::Local(_)
@@ -149,30 +150,8 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 hir::def::Res::Err => unreachable!("would have triggered a rustc error"),
             },
             hir::QPath::Resolved(_, _) => todo!(),
-            hir::QPath::TypeRelative(ty, segment) => TyKind::Relative(
-                self.alloc(|| RelativeTy::new(data, self.to_syn_ty(ty), self.to_symbol_id(segment.ident.name))),
-            ),
+            hir::QPath::TypeRelative(_, _) => todo!(),
             hir::QPath::LangItem(_, _, _) => todo!(),
-        }
-    }
-
-    fn to_syn_ty_from_adt_id(
-        &self,
-        data: CommonTyData<'ast>,
-        adt_id: hir::def_id::DefId,
-        rustc_args: Option<&'tcx hir::GenericArgs<'tcx>>,
-    ) -> TyKind<'ast> {
-        let adt = self.rustc_cx.adt_def(adt_id);
-        let def_id = self.to_ty_def_id(adt_id);
-        let generic_args = self.to_generic_args(rustc_args);
-        match adt.adt_kind() {
-            rustc_middle::ty::AdtKind::Struct => TyKind::Struct(
-                self.alloc(|| StructTy::new(data, def_id, generic_args, adt.is_variant_list_non_exhaustive())),
-            ),
-            rustc_middle::ty::AdtKind::Enum => TyKind::Enum(
-                self.alloc(|| EnumTy::new(data, def_id, generic_args, adt.is_variant_list_non_exhaustive())),
-            ),
-            rustc_middle::ty::AdtKind::Union => TyKind::Union(self.alloc(|| UnionTy::new(data, def_id, generic_args))),
         }
     }
 
