@@ -11,63 +11,85 @@ use crate::{
     ffi::{FfiOption, FfiSlice},
 };
 
-/// A path identifying a unique item. The path might be type relative
+/// [`AstPath`]s are used to identify items. A qualified path (`QPath`) can be
+/// used in expressions and types to identify associated items on types. For
+/// traits it's additionally possible to specify the type that should be used
+/// as `Self`. This is sometimes needed to disambiguate an item, if it exists
+/// both as an associated item on a type, and as an associated item on traits,
+/// that this type implements.
+///
+/// In the following example, the `Item` has two implementations of the associated
+/// `foo()` function. One is provided by the `impl` block and the other one by the
+/// `Foo` trait. When calling `Item::foo()` the `impl` block implementation will
+/// targeted. To access the trait function, the path has to be specified, with `Item`
+/// declared as the `Self` type.
+///
+/// ```
+/// // Item
+/// struct Item;
+/// impl Item {
+///     fn foo() {
+///         println!("foo() from Item")
+///     }
+/// }
+///
+/// // trait
+/// trait Foo {
+///     fn foo();
+/// }
+/// impl Foo for Item {
+///     fn foo() {
+///         println!("foo() from Foo trait");
+///     }
+/// }
+///
+/// // Calls the `foo()` method of `impl Item`
+/// Item::foo(); // -> "foo() from Item"
+///
+/// // Calls the `foo()` method of `trait Foo` with `Item` as the `Self` type
+/// <Item as Foo>::foo(); // -> "foo() from Foo trait"
+/// ```
+///
+/// This representation can also be used to reference non-associated items, to
+/// make it more flexible. For these items, the path type will be [`None`]. The
+/// target can be resolved via the [`resolve()`](AstQPath::resolve) method.
+/// Alternatively, the [`AstPath`] representation can be accessed via
+/// [`as_path_lossy()`](AstQPath::as_path_lossy) or the [`TryInto`] implementation.
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
-pub struct QualifiedAstPath<'ast> {
+pub struct AstQPath<'ast> {
     self_ty: FfiOption<TyKind<'ast>>,
     path_ty: FfiOption<TyKind<'ast>>,
     path: AstPath<'ast>,
-    target: QualifiedPathTarget,
+    target: QPathTarget,
 }
 
-impl<'ast> QualifiedAstPath<'ast> {
-    /// Qualified paths can be type relative. Additionally, a type can be specified
-    /// that should be used as `Self`. The specification of the `Self` type is
-    /// sometimes needed to resolve the right item, when accessing trait implementations.
+impl<'ast> AstQPath<'ast> {
+    /// This method will return [`Some`], if the path has a specified `Self`
+    /// type. The main type for type relative paths is provided by
+    /// [`path_ty()`][`AstQPath::path_ty()`].
     ///
-    /// In the following example, the `Item` has two implementations of the
-    /// `foo()` function. One is provided by the `impl` block and the other one
-    /// by the `Foo` trait. When calling `Item::foo()` the `impl` block implementation
-    /// will targeted. To access the trait function, the path to it has to be
-    /// specified, with `Item` declared as the `Self` type.
     /// ```
-    /// // Item
-    /// struct Item;
-    /// impl Item {
-    ///     fn foo() {
-    ///         println!("foo() from Item")
-    ///     }
-    /// }
-    ///
-    /// // trait
-    /// trait Foo {
-    ///     fn foo();
-    /// }
-    /// impl Foo for Item {
-    ///     fn foo() {
-    ///         println!("foo() from Trait");
-    ///     }
-    /// }
-    ///
-    /// // Calls the `foo()` method of `impl Item`
-    /// Item::foo();
-    /// // Calls the `foo()` method of `trait Foo` with `Item` as `Self`
-    /// <Item as Foo>::foo();
+    /// # let _: Vec<i32> =
+    ///     <Vec<_> as Default>::default();
+    /// //   ^^^^^^ The specified `Self` type `Vec<_>`
     /// ```
     ///
-    /// This function will only return a `Some`, if a `Self` type is specified.
-    /// The type for a normal type relative path is provided by
-    /// [`path_ty()`][`QualifiedAstPath::path_ty()`].
+    /// The [`AstQPath`] description contains more details, when this might
+    /// be necessary.
     pub fn self_ty(&self) -> Option<TyKind<'ast>> {
         self.self_ty.copy()
     }
 
-    /// This returns the type of the path, if the path is type relative, `None`
-    /// otherwise. In some cases, the path might include the specification of a
-    /// `Self` type, to resolve the correct item. See
-    /// [`self_ty()`][`QualifiedAstPath::self_ty()`] for a detailed explanation
-    /// and example.
+    /// This method will return [`Some`], if the path is type relative.
+    ///
+    /// ```
+    /// # let _: Vec<i32> =
+    ///     <Vec<_> as Default>::default();
+    /// //             ^^^^^^^ The path is relative to the `Default` trait
+    /// ```
+    ///
+    /// The optional `Self` type can be accessed via [`self_ty`](AstQPath::self_ty()).
     pub fn path_ty(&self) -> Option<TyKind<'ast>> {
         self.path_ty.copy()
     }
@@ -86,26 +108,32 @@ impl<'ast> QualifiedAstPath<'ast> {
     /// // AstPath: `Default::default`
     /// ```
     ///
-    /// The method is lossy. as the optional `Self` type isn't included in this
-    /// path. To resolve the target, the qualified path should be used. See
-    /// [`self_ty()`][`QualifiedAstPath::self_ty()`] for a detailed explanation
-    /// of the `Self` type.
-    pub fn to_path_lossy(&self) -> &AstPath<'ast> {
+    /// ### Warning
+    ///
+    /// The method is lossy, as the optional `Self` type isn't included in this
+    /// path. The conversion is lossless, if no `Self` type was specified. To
+    /// resolve a qualified path [`resolve()`](Self::resolve()) should be used.
+    ///
+    /// Omitting the `Self` type can be useful, in cases, where access to associated
+    /// trait items should be analyzed, regardless of potential `Self` types.
+    /// Alternatively, [`segments()`](AstQPath::segments()) can be used to access the
+    /// segments directly.
+    pub fn as_path_lossy(&self) -> &AstPath<'ast> {
         &self.path
     }
 
     /// This returns the [`AstPathSegment`]s of the path. For type relative
     /// paths, this will include the type itself. The optional `Self` type
     /// isn't represented in these segments. These segments are identical with
-    /// the segments provided by the path of.
-    /// [`to_path_lossy()`](QualifiedAstPath::to_path_lossy). The documentation
+    /// the segments provided by the path of
+    /// [`as_path_lossy()`](AstQPath::as_path_lossy()). The documentation
     /// of that function contains more details.
     pub fn segments(&self) -> &[AstPathSegment<'ast>] {
         self.path.segments()
     }
 
     /// This function resolves the target of this path.
-    pub fn resolve(&self) -> QualifiedPathTarget {
+    pub fn resolve(&self) -> QPathTarget {
         // For rust-analyzer or future drivers, it might make sense to return
         // `Option<QualifiedPathTarget>` instead, as the path might be dead,
         // when a lint crate calls this function. However, I have the feeling
@@ -118,10 +146,10 @@ impl<'ast> QualifiedAstPath<'ast> {
     }
 }
 
-impl<'a, 'ast> TryFrom<&'a QualifiedAstPath<'ast>> for &'a AstPath<'ast> {
+impl<'a, 'ast> TryFrom<&'a AstQPath<'ast>> for &'a AstPath<'ast> {
     type Error = ();
 
-    fn try_from(value: &'a QualifiedAstPath<'ast>) -> Result<Self, Self::Error> {
+    fn try_from(value: &'a AstQPath<'ast>) -> Result<Self, Self::Error> {
         if value.self_ty.is_some() {
             Err(())
         } else {
@@ -133,7 +161,7 @@ impl<'a, 'ast> TryFrom<&'a QualifiedAstPath<'ast>> for &'a AstPath<'ast> {
 #[repr(C)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum QualifiedPathTarget {
+pub enum QPathTarget {
     /// The `Self` type, the [`ItemId`] points to the item,
     /// that the `Self` originates from. This will usually be an
     /// [`ImplItem`](crate::ast::item::ImplItem) or
