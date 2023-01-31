@@ -8,6 +8,7 @@
 
 [![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/46214)
 ![CI Status](https://github.com/rust-marker/marker/actions/workflows/rust_bors.yml/badge.svg)
+[![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/cargo_marker.svg)](#license)
 
 **An experimental linting interface for Rust. Let's make custom lints a reality!**
 
@@ -45,10 +46,7 @@ Internal structure of marker and its components is documented in [`docs/internal
 
 ## License
 
-Copyright (c) 2022-2022 Rust-marker
-
 Rust-marker is distributed under the terms of both the MIT license
 and the Apache License (Version 2.0).
 
 See [LICENSE-APACHE](./LICENSE-APACHE), [LICENSE-MIT](./LICENSE-MIT).
-
