@@ -15,10 +15,12 @@ pub use int_lit_expr::*;
 pub use str_lit_expr::*;
 // other expressions
 mod block_expr;
+mod call_exprs;
 mod op_exprs;
 mod path_expr;
 mod unstable_expr;
 pub use block_expr::*;
+pub use call_exprs::*;
 pub use op_exprs::*;
 pub use path_expr::*;
 pub use unstable_expr::*;
@@ -53,6 +55,7 @@ pub enum ExprKind<'ast> {
     QuestionMark(&'ast QuestionMarkExpr<'ast>),
     As(&'ast AsExpr<'ast>),
     Path(&'ast PathExpr<'ast>),
+    Call(&'ast CallExpr<'ast>),
     Unstable(&'ast UnstableExpr<'ast>),
 }
 
@@ -73,6 +76,7 @@ pub enum ExprPrecedence {
     Path = 0x1300_0000,
 
     Method = 0x1200_0000,
+    Call = 0x1200_0001,
 
     Field = 0x1100_0000,
 
@@ -146,7 +150,7 @@ macro_rules! impl_expr_kind_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_expr_kind_fn!($method() -> $return_ty,
             IntLit, FloatLit, StrLit, CharLit, BoolLit, Block, UnaryOp, Borrow,
-            BinaryOp, QuestionMark, As, Path, Unstable
+            BinaryOp, QuestionMark, As, Path, Call, Unstable
         );
     };
     ($method:ident () -> $return_ty:ty $(, $kind:ident)+) => {
