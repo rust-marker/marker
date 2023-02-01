@@ -239,6 +239,7 @@ impl<'ast> AstPath<'ast> {
 
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "driver-api", derive(Clone))]
 pub struct AstPathSegment<'ast> {
     ident: Ident<'ast>,
     generics: GenericArgs<'ast>,

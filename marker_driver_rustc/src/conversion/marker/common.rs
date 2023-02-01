@@ -1,5 +1,6 @@
 use std::mem::{size_of, transmute};
 
+use marker_api::ast::ty::TyKind;
 use marker_api::ast::{
     Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, CrateId, ExprId, GenericId, Ident, ItemId, Span,
     SpanId, SpanSource, SymbolId, TraitRef, TyDefId, VarId,
@@ -161,7 +162,44 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 self.to_path(path),
                 self.to_path_target(&path.res),
             ),
-            hir::QPath::TypeRelative(_, _) => todo!("{qpath:#?}"),
+            _ => {
+                unreachable!("`to_qpath` should only be called for resolved paths, use `to_qpath_from_expr` instead")
+            },
+        }
+    }
+
+    pub fn to_qpath_from_expr(&self, qpath: &hir::QPath<'tcx>, expr: &hir::Expr<'_>) -> AstQPath<'ast> {
+        match qpath {
+            hir::QPath::Resolved(_, _) => {
+                // This one doesn't require special handling for expressions and can
+                // therefore be passed of to the normal `to_qpath`
+                self.to_qpath(qpath)
+            },
+            hir::QPath::TypeRelative(rustc_ty, segment) => {
+                // Segment and type conversion
+                let marker_ty = self.to_ty(*rustc_ty);
+                let TyKind::Path(ty_path) = marker_ty else {
+                    unimplemented!("driver expected the type to be a path");
+                };
+                let segs = ty_path.path().segments().iter().cloned();
+                let segments: Vec<_> = segs.chain(std::iter::once(self.to_path_segment(segment))).collect();
+                let path = AstPath::new(self.alloc_slice_iter(segments.into_iter()));
+
+                let res = self
+                    .rustc_ty_check
+                    .borrow_mut()
+                    .get_or_insert_with(|| {
+                        let id = self
+                            .rustc_body
+                            .borrow()
+                            .expect("expressions are only translated inside bodies");
+                        self.rustc_cx.typeck_body(id)
+                    })
+                    .qpath_res(qpath, expr.hir_id);
+                let res = self.to_path_target(&res);
+
+                AstQPath::new(None, Some(marker_ty), path, res)
+            },
             hir::QPath::LangItem(_, _, _) => todo!("{qpath:#?}"),
         }
     }
@@ -174,24 +212,27 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
             ) => AstPathTarget::Generic(self.to_generic_id(*id)),
             hir::def::Res::Def(
                 hir::def::DefKind::TyAlias
+                | hir::def::DefKind::Fn
                 | hir::def::DefKind::Enum
                 | hir::def::DefKind::Struct
                 | hir::def::DefKind::Union
                 | hir::def::DefKind::Trait
                 | hir::def::DefKind::ForeignTy
-                | hir::def::DefKind::TraitAlias,
+                | hir::def::DefKind::AssocTy
+                | hir::def::DefKind::TraitAlias
+                | hir::def::DefKind::AssocFn,
                 id,
             ) => AstPathTarget::Item(self.to_item_id(*id)),
-            hir::def::Res::Def(_, _) => todo!(),
-            hir::def::Res::PrimTy(_) => todo!(),
+            hir::def::Res::Def(_, _) => todo!("{res:#?}"),
+            hir::def::Res::PrimTy(_) => todo!("{res:#?}"),
             hir::def::Res::SelfTyParam { trait_: def_id, .. } | hir::def::Res::SelfTyAlias { alias_to: def_id, .. } => {
                 AstPathTarget::SelfTy(self.to_item_id(*def_id))
             },
-            hir::def::Res::SelfCtor(_) => todo!(),
-            hir::def::Res::Local(_) => todo!(),
-            hir::def::Res::ToolMod => todo!(),
-            hir::def::Res::NonMacroAttr(_) => todo!(),
-            hir::def::Res::Err => todo!(),
+            hir::def::Res::SelfCtor(_) => todo!("{res:#?}"),
+            hir::def::Res::Local(id) => AstPathTarget::Var(self.to_var_id(*id)),
+            hir::def::Res::ToolMod => todo!("{res:#?}"),
+            hir::def::Res::NonMacroAttr(_) => todo!("{res:#?}"),
+            hir::def::Res::Err => unreachable!("this should have triggered an error in rustc"),
         }
     }
 

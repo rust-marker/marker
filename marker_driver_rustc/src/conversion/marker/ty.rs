@@ -123,7 +123,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
 
     fn to_syn_ty_from_qpath(&self, data: CommonTyData<'ast>, qpath: &hir::QPath<'tcx>) -> TyKind<'ast> {
         match qpath {
-            hir::QPath::Resolved(None, path) => match path.res {
+            hir::QPath::Resolved(_, path) => match path.res {
                 hir::def::Res::Def(
                     hir::def::DefKind::LifetimeParam
                     | hir::def::DefKind::TyParam
@@ -133,6 +133,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                     | hir::def::DefKind::Struct
                     | hir::def::DefKind::Union
                     | hir::def::DefKind::Trait
+                    | hir::def::DefKind::AssocTy
                     | hir::def::DefKind::ForeignTy
                     | hir::def::DefKind::TraitAlias,
                     _,
@@ -149,9 +150,8 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 | hir::def::Res::NonMacroAttr(_) => unreachable!("not a syntactic type {path:#?}"),
                 hir::def::Res::Err => unreachable!("would have triggered a rustc error"),
             },
-            hir::QPath::Resolved(_, _) => todo!(),
-            hir::QPath::TypeRelative(_, _) => todo!(),
-            hir::QPath::LangItem(_, _, _) => todo!(),
+            hir::QPath::TypeRelative(_, _) => todo!("{qpath:#?}"),
+            hir::QPath::LangItem(_, _, _) => todo!("{qpath:#?}"),
         }
     }
 
