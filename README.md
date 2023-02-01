@@ -7,7 +7,7 @@
 <br/>
 
 [![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/46214)
-![CI Status](https://github.com/rust-marker/marker/actions/workflows/rust_bors.yml/badge.svg)
+[![CI Status](https://github.com/rust-marker/marker/actions/workflows/rust_bors.yml/badge.svg)](https://github.com/rust-marker/marker/actions?query=event%3Apush+workflow%3A%22Rust+(bors)%22)
 
 **An experimental linting interface for Rust. Let's make custom lints a reality!**
 
@@ -26,7 +26,7 @@ What's next:
 - The main goal is to complete the AST representation, and start on user tests
 - A focus is also set on tooling. Working with marker should be simple and fun for lint developers and users.
 - The project is designed to support multiple drivers and unify code analysis for Rust. Additionally, drivers like `rust-analyzer` will be investigated.
-- ...and a lot more things! Check out the open [issues](https://github.com/rust-marker/marker/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)
+- ...and a lot more things! Check out the [open issues](https://github.com/rust-marker/marker/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)
 
 Sounds interesting?
 * Do you have a lint idea? Help us out by creating a [user story](https://github.com/rust-marker/design/issues/new?assignees=&labels=A-user-story&template=user-story.md&title=)
