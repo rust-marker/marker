@@ -24,8 +24,8 @@ Call(
                                         source: File(
                                             "$DIR/print_path_expr.rs",
                                         ),
-                                        start: 325,
-                                        end: 329,
+                                        start: 359,
+                                        end: 363,
                                     },
                                 },
                                 generics: GenericArgs {
@@ -94,8 +94,8 @@ Call(
                                                         source: File(
                                                             "$DIR/print_path_expr.rs",
                                                         ),
-                                                        start: 356,
-                                                        end: 359,
+                                                        start: 390,
+                                                        end: 393,
                                                     },
                                                 },
                                                 generics: GenericArgs {
@@ -126,8 +126,8 @@ Call(
                                         source: File(
                                             "$DIR/print_path_expr.rs",
                                         ),
-                                        start: 356,
-                                        end: 359,
+                                        start: 390,
+                                        end: 393,
                                     },
                                 },
                                 generics: GenericArgs {
@@ -147,8 +147,8 @@ Call(
                                         source: File(
                                             "$DIR/print_path_expr.rs",
                                         ),
-                                        start: 368,
-                                        end: 371,
+                                        start: 402,
+                                        end: 405,
                                     },
                                 },
                                 generics: GenericArgs {
@@ -216,8 +216,8 @@ Call(
                                                                         source: File(
                                                                             "$DIR/print_path_expr.rs",
                                                                         ),
-                                                                        start: 398,
-                                                                        end: 403,
+                                                                        start: 432,
+                                                                        end: 437,
                                                                     },
                                                                 },
                                                                 generics: GenericArgs {
@@ -243,8 +243,8 @@ Call(
                                                         source: File(
                                                             "$DIR/print_path_expr.rs",
                                                         ),
-                                                        start: 407,
-                                                        end: 408,
+                                                        start: 441,
+                                                        end: 442,
                                                     },
                                                 },
                                                 generics: GenericArgs {
@@ -258,8 +258,8 @@ Call(
                                                         source: File(
                                                             "$DIR/print_path_expr.rs",
                                                         ),
-                                                        start: 411,
-                                                        end: 417,
+                                                        start: 445,
+                                                        end: 451,
                                                     },
                                                 },
                                                 generics: GenericArgs {
@@ -284,8 +284,8 @@ Call(
                                         source: File(
                                             "$DIR/print_path_expr.rs",
                                         ),
-                                        start: 407,
-                                        end: 408,
+                                        start: 441,
+                                        end: 442,
                                     },
                                 },
                                 generics: GenericArgs {
@@ -299,8 +299,8 @@ Call(
                                         source: File(
                                             "$DIR/print_path_expr.rs",
                                         ),
-                                        start: 411,
-                                        end: 417,
+                                        start: 445,
+                                        end: 451,
                                     },
                                 },
                                 generics: GenericArgs {
@@ -314,8 +314,8 @@ Call(
                                         source: File(
                                             "$DIR/print_path_expr.rs",
                                         ),
-                                        start: 419,
-                                        end: 420,
+                                        start: 453,
+                                        end: 454,
                                     },
                                 },
                                 generics: GenericArgs {
@@ -382,8 +382,8 @@ Call(
                                                                         source: File(
                                                                             "$DIR/print_path_expr.rs",
                                                                         ),
-                                                                        start: 448,
-                                                                        end: 453,
+                                                                        start: 482,
+                                                                        end: 487,
                                                                     },
                                                                 },
                                                                 generics: GenericArgs {
@@ -409,8 +409,8 @@ Call(
                                                         source: File(
                                                             "$DIR/print_path_expr.rs",
                                                         ),
-                                                        start: 457,
-                                                        end: 458,
+                                                        start: 491,
+                                                        end: 492,
                                                     },
                                                 },
                                                 generics: GenericArgs {
@@ -424,8 +424,8 @@ Call(
                                                         source: File(
                                                             "$DIR/print_path_expr.rs",
                                                         ),
-                                                        start: 461,
-                                                        end: 467,
+                                                        start: 495,
+                                                        end: 501,
                                                     },
                                                 },
                                                 generics: GenericArgs {
@@ -451,8 +451,8 @@ Call(
                                         source: File(
                                             "$DIR/print_path_expr.rs",
                                         ),
-                                        start: 471,
-                                        end: 472,
+                                        start: 505,
+                                        end: 506,
                                     },
                                 },
                                 generics: GenericArgs {
@@ -466,8 +466,8 @@ Call(
                                         source: File(
                                             "$DIR/print_path_expr.rs",
                                         ),
-                                        start: 475,
-                                        end: 476,
+                                        start: 509,
+                                        end: 510,
                                     },
                                 },
                                 generics: GenericArgs {
@@ -505,8 +505,8 @@ Path(
                                 source: File(
                                     "$DIR/print_path_expr.rs",
                                 ),
-                                start: 520,
-                                end: 523,
+                                start: 554,
+                                end: 557,
                             },
                         },
                         generics: GenericArgs {

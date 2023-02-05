@@ -95,7 +95,11 @@ impl<'ast> AstQPath<'ast> {
     }
 
     /// This returns a [`AstPath`] of the referenced item. For type relative
-    /// paths, this will include the type itself. For example:
+    /// paths, this will include the type itself, if the type can be expressed
+    /// as a [`AstPathSegment`]. For some types l,ike slices, this is not possible.
+    /// The type has to be retrieved from [`path_ty()`][`AstQPath::path_ty()`].
+    ///
+    /// ### Examples:
     ///
     /// ```
     /// let _: Vec<i32> = Vec::default();
@@ -106,13 +110,18 @@ impl<'ast> AstQPath<'ast> {
     ///
     /// let _: Vec<i32> = <Vec<_> as Default>::default();
     /// // AstPath: `Default::default`
+    ///
+    ///  let _ = [0_u8].is_ascii();
+    /// // AstPath: `is_ascii`
     /// ```
     ///
     /// ### Warning
     ///
     /// The method is lossy, as the optional `Self` type isn't included in this
-    /// path. The conversion is lossless, if no `Self` type was specified. To
-    /// resolve a qualified path [`resolve()`](Self::resolve()) should be used.
+    /// path. The path type might also be missing, if it can't be represented as
+    /// a [`AstPathSegment`]. The conversion is lossless, if both types are none
+    /// or if the path type can be represented. To resolve a qualified path
+    /// [`resolve()`](Self::resolve()) should be used.
     ///
     /// Omitting the `Self` type can be useful, in cases, where access to associated
     /// trait items should be analyzed, regardless of potential `Self` types.
@@ -158,7 +167,15 @@ impl<'a, 'ast> TryFrom<&'a AstQPath<'ast>> for &'a AstPath<'ast> {
     type Error = ();
 
     fn try_from(value: &'a AstQPath<'ast>) -> Result<Self, Self::Error> {
-        if value.self_ty.is_some() {
+        fn is_segment_representable(ty: Option<TyKind<'_>>) -> bool {
+            if let Some(ty) = ty {
+                ty.is_primitive_ty()
+                    || matches!(ty, TyKind::Path(path_ty) if is_segment_representable(path_ty.path().path_ty()))
+            } else {
+                true
+            }
+        }
+        if value.self_ty.is_some() && is_segment_representable(value.path_ty.copy()) {
             Err(())
         } else {
             Ok(&value.path)
@@ -200,6 +217,8 @@ pub enum AstPathTarget {
     Var(VarId),
     /// The path target is a generic type, identified by the [`GenericId`].
     Generic(GenericId),
+    /// The target wasn't resolved, but should be available in the future.
+    Wip,
 }
 
 #[repr(C)]

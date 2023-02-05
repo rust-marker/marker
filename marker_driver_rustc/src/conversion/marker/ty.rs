@@ -64,7 +64,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 let api_tys = self.alloc_slice_iter(rustc_tys.iter().map(|rustc_ty| self.to_syn_ty(rustc_ty)));
                 TyKind::Tuple(self.alloc(|| TupleTy::new(data, api_tys)))
             },
-            hir::TyKind::Path(qpath) => self.to_syn_ty_from_qpath(data, qpath),
+            hir::TyKind::Path(qpath) => self.to_syn_ty_from_qpath(data, qpath, rustc_ty),
             // Continue ty conversion
             hir::TyKind::Err => unreachable!("would have triggered a rustc error"),
             hir::TyKind::Typeof(_) => unreachable!("docs state: 'Unused for now.'"),
@@ -121,7 +121,12 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
         )
     }
 
-    fn to_syn_ty_from_qpath(&self, data: CommonTyData<'ast>, qpath: &hir::QPath<'tcx>) -> TyKind<'ast> {
+    fn to_syn_ty_from_qpath(
+        &self,
+        data: CommonTyData<'ast>,
+        qpath: &hir::QPath<'tcx>,
+        rustc_ty: &hir::Ty<'_>,
+    ) -> TyKind<'ast> {
         match qpath {
             hir::QPath::Resolved(_, path) => match path.res {
                 hir::def::Res::Def(
@@ -140,7 +145,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 )
                 | hir::def::Res::SelfTyParam { .. }
                 | hir::def::Res::SelfTyAlias { .. } => {
-                    TyKind::Path(self.alloc(|| PathTy::new(data, self.to_qpath(qpath))))
+                    TyKind::Path(self.alloc(|| PathTy::new(data, self.to_qpath_from_ty(qpath, rustc_ty))))
                 },
                 hir::def::Res::PrimTy(prim_ty) => self.to_syn_ty_from_prim_ty(data, prim_ty),
                 hir::def::Res::Def(_, _)
@@ -150,7 +155,9 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 | hir::def::Res::NonMacroAttr(_) => unreachable!("not a syntactic type {path:#?}"),
                 hir::def::Res::Err => unreachable!("would have triggered a rustc error"),
             },
-            hir::QPath::TypeRelative(_, _) => todo!("{qpath:#?}"),
+            hir::QPath::TypeRelative(_, _) => {
+                TyKind::Path(self.alloc(|| PathTy::new(data, self.to_qpath_from_ty(qpath, rustc_ty))))
+            },
             hir::QPath::LangItem(_, _, _) => todo!("{qpath:#?}"),
         }
     }

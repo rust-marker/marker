@@ -6,6 +6,7 @@ use marker_api::ast::{
     SpanId, SpanSource, SymbolId, TraitRef, TyDefId, VarId,
 };
 use rustc_hir as hir;
+use rustc_middle as mid;
 
 use crate::conversion::common::{
     BodyIdLayout, ExprIdLayout, GenericIdLayout, ItemIdLayout, SpanSourceInfo, TyDefIdLayout, VarIdLayout,
@@ -154,7 +155,15 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
         }
     }
 
-    pub fn to_qpath(&self, qpath: &hir::QPath<'tcx>) -> AstQPath<'ast> {
+    /// This function converts the given [`hir::QPath`] into an [`AstQPath`].
+    /// Rustc doesn't resolve all path and path segments at once, which means
+    /// that the path target can be [`hir::def::Res::Err`]. In those cases
+    /// `resolve` will be called, to resolve the target of the [`hir::QPath`]
+    /// if possible
+    fn to_qpath<F>(&self, qpath: &hir::QPath<'tcx>, resolve: F) -> AstQPath<'ast>
+    where
+        F: Fn() -> Option<hir::def::Res>,
+    {
         match qpath {
             hir::QPath::Resolved(self_ty, path) => AstQPath::new(
                 self_ty.map(|ty| self.to_ty(ty)),
@@ -162,45 +171,97 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 self.to_path(path),
                 self.to_path_target(&path.res),
             ),
-            _ => {
-                unreachable!("`to_qpath` should only be called for resolved paths, use `to_qpath_from_expr` instead")
+            hir::QPath::TypeRelative(rustc_ty, segment) => {
+                // Segment and type conversion
+                let marker_ty = self.to_ty(*rustc_ty);
+                let mut segments = if let TyKind::Path(ty_path) = marker_ty {
+                    ty_path.path().segments().to_vec()
+                } else {
+                    Vec::with_capacity(1)
+                };
+                segments.push(self.to_path_segment(segment));
+                let path = AstPath::new(self.alloc_slice_iter(segments.into_iter()));
+
+                // Res resolution
+                let res = if segment.res == hir::def::Res::Err {
+                    if let Some(res) = resolve() {
+                        self.to_path_target(&res)
+                    } else {
+                        // FIXME: The current method doesn't work to resolve
+                        // complicated trait bounds. Returning WIP is the best
+                        // workaround rn
+                        AstPathTarget::Wip
+                    }
+                } else {
+                    self.to_path_target(&segment.res)
+                };
+
+                AstQPath::new(None, Some(marker_ty), path, res)
             },
+            hir::QPath::LangItem(_, _, _) => todo!(),
         }
     }
 
     pub fn to_qpath_from_expr(&self, qpath: &hir::QPath<'tcx>, expr: &hir::Expr<'_>) -> AstQPath<'ast> {
+        self.to_qpath(qpath, || Some(self.resolve_qpath_in_body(qpath, expr.hir_id)))
+    }
+
+    pub fn to_qpath_from_ty(&self, qpath: &hir::QPath<'tcx>, rustc_ty: &hir::Ty<'_>) -> AstQPath<'ast> {
+        fn res_resolution_parent<'tcx>(
+            rustc_cx: rustc_middle::ty::TyCtxt<'tcx>,
+            hir_id: hir::HirId,
+        ) -> hir::Node<'tcx> {
+            rustc_cx
+                .hir()
+                .parent_iter(hir_id)
+                .map(|(_id, node)| node)
+                .find(|node| matches!(node, hir::Node::Expr(_) | hir::Node::Stmt(_) | hir::Node::Item(_)))
+                .expect("types will always have a statement, expression or item as their parent")
+        }
+
+        self.to_qpath(qpath, || match res_resolution_parent(self.rustc_cx, rustc_ty.hir_id) {
+            hir::Node::Expr(_) | hir::Node::Stmt(_) => Some(self.resolve_qpath_in_body(qpath, rustc_ty.hir_id)),
+            hir::Node::Item(item) => self.resolve_qpath_in_item(qpath, item.owner_id.to_def_id(), rustc_ty),
+            hir::Node::TypeBinding(_) => None,
+            _ => unreachable!("types will always have a statement, expression or item as their parent"),
+        })
+    }
+
+    /// This function resolves the [`hir::QPath`] target based on the type
+    /// context of the current body. It can only be called inside bodies.
+    fn resolve_qpath_in_body(&self, qpath: &hir::QPath<'tcx>, hir_id: hir::HirId) -> hir::def::Res {
+        self.rustc_ty_check
+            .borrow_mut()
+            .get_or_insert_with(|| {
+                let id = self
+                    .rustc_body
+                    .borrow()
+                    .expect("expressions are only translated inside bodies");
+                self.rustc_cx.typeck_body(id)
+            })
+            .qpath_res(qpath, hir_id)
+    }
+
+    fn resolve_qpath_in_item(
+        &self,
+        qpath: &hir::QPath<'tcx>,
+        item_id: hir::def_id::DefId,
+        rustc_ty: &hir::Ty<'_>,
+    ) -> Option<hir::def::Res> {
         match qpath {
-            hir::QPath::Resolved(_, _) => {
-                // This one doesn't require special handling for expressions and can
-                // therefore be passed of to the normal `to_qpath`
-                self.to_qpath(qpath)
+            hir::QPath::TypeRelative(_, _) => {
+                let item_cx = rustc_hir_analysis::collect::ItemCtxt::new(self.rustc_cx, item_id);
+                let mid_ty = item_cx.to_ty(rustc_ty);
+                if let mid::ty::Alias(_, mid::ty::AliasTy { def_id, .. }) = *mid_ty.kind() {
+                    // Here we know that this is an associated type, as normal type
+                    // aliases are stored as `hir::QPath::Resolved`. Since this is
+                    // type relative, it has to be an associated type.
+                    Some(hir::def::Res::Def(hir::def::DefKind::AssocTy, def_id))
+                } else {
+                    None
+                }
             },
-            hir::QPath::TypeRelative(rustc_ty, segment) => {
-                // Segment and type conversion
-                let marker_ty = self.to_ty(*rustc_ty);
-                let TyKind::Path(ty_path) = marker_ty else {
-                    unimplemented!("driver expected the type to be a path");
-                };
-                let segs = ty_path.path().segments().iter().cloned();
-                let segments: Vec<_> = segs.chain(std::iter::once(self.to_path_segment(segment))).collect();
-                let path = AstPath::new(self.alloc_slice_iter(segments.into_iter()));
-
-                let res = self
-                    .rustc_ty_check
-                    .borrow_mut()
-                    .get_or_insert_with(|| {
-                        let id = self
-                            .rustc_body
-                            .borrow()
-                            .expect("expressions are only translated inside bodies");
-                        self.rustc_cx.typeck_body(id)
-                    })
-                    .qpath_res(qpath, expr.hir_id);
-                let res = self.to_path_target(&res);
-
-                AstQPath::new(None, Some(marker_ty), path, res)
-            },
-            hir::QPath::LangItem(_, _, _) => todo!("{qpath:#?}"),
+            _ => unreachable!("other `QPath` variants don't need to be manually resolved at the item level"),
         }
     }
 
@@ -220,7 +281,9 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 | hir::def::DefKind::ForeignTy
                 | hir::def::DefKind::AssocTy
                 | hir::def::DefKind::TraitAlias
-                | hir::def::DefKind::AssocFn,
+                | hir::def::DefKind::AssocFn
+                | hir::def::DefKind::Static(_)
+                | hir::def::DefKind::Ctor(_, _),
                 id,
             ) => AstPathTarget::Item(self.to_item_id(*id)),
             hir::def::Res::Def(_, _) => todo!("{res:#?}"),

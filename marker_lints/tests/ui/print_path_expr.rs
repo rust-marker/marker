@@ -7,8 +7,8 @@ pub trait A {
 pub trait B {
     type CoolTy: A;
 
-    fn b() {
-        println!("b()");
+    fn assoc_item_ty(cool: Self::CoolTy) -> Self::CoolTy {
+        cool
     }
 }
 
