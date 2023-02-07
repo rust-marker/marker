@@ -1,3 +1,5 @@
+// normalize-stderr-windows: "tests/ui/" -> "$DIR/"
+
 pub trait A {
     fn a() {
         println!("a()");
