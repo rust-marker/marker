@@ -1,4 +1,4 @@
-// normalize-stderr-windows: "tests/ui/" -> "$DIR/"
+// normalize-stdout-windows: "tests/ui/" -> "$$DIR/"
 
 pub trait A {
     fn a() {

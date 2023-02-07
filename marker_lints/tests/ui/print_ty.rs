@@ -1,4 +1,4 @@
-// normalize-stderr-windows: "tests/ui/" -> "$DIR/"
+// normalize-stderr-windows: "tests/ui/" -> "$$DIR/"
 
 use core::fmt::Debug;
 use core::marker::PhantomData;
