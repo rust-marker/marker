@@ -22,6 +22,11 @@ fn process_crate(rustc_cx: &rustc_lint::LateContext<'_>) {
 fn process_crate_lifetime<'ast, 'tcx: 'ast>(rustc_cx: &rustc_lint::LateContext<'tcx>, storage: &'ast Storage<'ast>) {
     let driver_cx = RustcContext::new(rustc_cx.tcx, rustc_cx.lint_store, storage);
 
+    // To support debug printing of AST nodes, as these might sometimes require the
+    // context. Note that this only sets the cx for the rustc side. Each lint crate
+    // has their own storage for cx.
+    marker_api::context::set_ast_cx(driver_cx.ast_cx());
+
     let krate = driver_cx
         .marker_converter
         .to_crate(rustc_hir::def_id::LOCAL_CRATE, driver_cx.rustc_cx.hir().root_module());

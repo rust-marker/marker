@@ -20,13 +20,6 @@ mod array_ty;
 pub use array_ty::*;
 mod slice_ty;
 pub use slice_ty::*;
-// User defined types
-mod struct_ty;
-pub use struct_ty::*;
-mod enum_ty;
-pub use enum_ty::*;
-mod union_ty;
-pub use union_ty::*;
 // Function types
 mod fn_ty;
 pub use fn_ty::*;
@@ -47,14 +40,8 @@ pub use impl_trait_ty::*;
 // Syntactic types
 mod inferred_ty;
 pub use inferred_ty::*;
-mod generic_ty;
-pub use generic_ty::*;
-mod alias_ty;
-pub use alias_ty::*;
-mod self_ty;
-pub use self_ty::*;
-mod relative_ty;
-pub use relative_ty::*;
+mod path_ty;
+pub use path_ty::*;
 
 pub trait TyData<'ast> {
     fn as_kind(&'ast self) -> TyKind<'ast>;
@@ -113,44 +100,6 @@ pub enum TyKind<'ast> {
     /// A variable length slice like [`[T]`](prim@slice)
     Slice(&'ast SliceTy<'ast>),
     // ================================
-    // User defined types
-    // ================================
-    /// A struct type like:
-    ///
-    /// ```
-    /// pub struct Foo;
-    /// pub struct Bar(u32, u32);
-    /// pub struct Baz {
-    ///     field_1: u32,
-    ///     field_2: u32,
-    /// }
-    /// ```
-    Struct(&'ast StructTy<'ast>),
-    /// An enum type like:
-    ///
-    /// ```
-    /// #[repr(u32)]
-    /// pub enum Foo {
-    ///     Elem1,
-    ///     Elem2 = 1,
-    ///     Elem3(u32),
-    ///     Elem4 {
-    ///         field_1: u32,
-    ///         field_2: u32,
-    ///     }
-    /// }
-    /// ```
-    Enum(&'ast EnumTy<'ast>),
-    /// A union type like:
-    ///
-    /// ```
-    /// pub union Foo {
-    ///     a: i32,
-    ///     b: f32,
-    /// }
-    /// ```
-    Union(&'ast UnionTy<'ast>),
-    // ================================
     // Function types
     // ================================
     Fn(&'ast FnTy<'ast>),
@@ -191,24 +140,7 @@ pub enum TyKind<'ast> {
     // ================================
     /// An inferred type
     Inferred(&'ast InferredTy<'ast>),
-    /// A generic type, that has been specified in a surrounding item
-    Generic(&'ast GenericTy<'ast>),
-    /// A type alias like:
-    ///
-    /// ```
-    /// type Vec3<T: Copy> = (T, T, T);
-    ///
-    /// trait TraitItem {
-    ///     type AssocType;
-    /// }
-    /// ```
-    ///
-    /// See: <https://doc.rust-lang.org/reference/items/type-aliases.html>
-    Alias(&'ast AliasTy<'ast>),
-    /// The [`Self`](<https://doc.rust-lang.org/stable/std/keyword.SelfTy.html>) in impl blocks or trait declarations
-    SelfTy(&'ast SelfTy<'ast>),
-    /// A type declared relative to another type, like `Iterator::Item`
-    Relative(&'ast RelativeTy<'ast>),
+    Path(&'ast PathTy<'ast>),
 }
 
 impl<'ast> TyKind<'ast> {
@@ -222,12 +154,6 @@ impl<'ast> TyKind<'ast> {
     #[must_use]
     pub fn is_sequence_ty(&self) -> bool {
         matches!(self, Self::Tuple(..) | Self::Array(..) | Self::Slice(..))
-    }
-
-    /// Returns `true` if this is a user defined type.
-    #[must_use]
-    pub fn is_user_defined_type(&self) -> bool {
-        matches!(self, Self::Struct(..) | Self::Enum(..) | Self::Union(..))
     }
 
     /// Returns `true` if this is a function type.
@@ -249,7 +175,7 @@ impl<'ast> TyKind<'ast> {
     }
 
     /// Returns `true` if this is a syntactic type, meaning a type that is
-    /// only used in syntax like [`TyKind::Inferred`] and [`TyKind::Generic`].
+    /// only used in syntax like [`TyKind::Inferred`].
     ///
     /// See [`TyKind::is_syntactic()`] to check if this type originates from
     /// a syntactic definition.
@@ -270,9 +196,8 @@ impl<'ast> TyKind<'ast> {
 macro_rules! impl_ty_data_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_ty_data_fn!($method() -> $return_ty,
-        Bool, Num, Text, Never, Tuple, Array, Slice, Struct, Enum, Union, Fn,
-        Closure, Ref, RawPtr, FnPtr, TraitObj, ImplTrait, Inferred, Generic,
-        Alias, SelfTy, Relative);
+        Bool, Num, Text, Never, Tuple, Array, Slice, Fn, Closure, Ref,
+        RawPtr, FnPtr, TraitObj, ImplTrait, Inferred, Path);
     };
     ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
         pub fn $method(&self) -> $return_ty {

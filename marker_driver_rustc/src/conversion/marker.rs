@@ -25,10 +25,25 @@ use rustc_hir as hir;
 pub struct MarkerConversionContext<'ast, 'tcx> {
     rustc_cx: rustc_middle::ty::TyCtxt<'tcx>,
     storage: &'ast Storage<'ast>,
+
+    // Converted nodes cache
     items: RefCell<FxHashMap<ItemId, ItemKind<'ast>>>,
     bodies: RefCell<FxHashMap<BodyId, &'ast Body<'ast>>>,
     exprs: RefCell<FxHashMap<ExprId, ExprKind<'ast>>>,
     num_symbols: RefCell<FxHashMap<u32, SymbolId>>,
+
+    // Context information
+    /// This holds the [`hir::BodyId`] of the body that is currently being
+    /// converted. This may be [`None`] for items, but should always be [`Some`]
+    /// for expressions, since they can (AFAIK) only occur inside bodies.
+    /// Individual expressions can be requested via the driver context, however,
+    /// this driver only provides IDs of converted expressions, meaning that
+    /// the requested expression would be returned from cache and not
+    /// require additional translations.
+    rustc_body: RefCell<Option<hir::BodyId>>,
+    /// Requested on demand from rustc using a [`hir::BodyId`] see
+    /// [`MarkerConversionContext::rustc_body`] for more information
+    rustc_ty_check: RefCell<Option<&'tcx rustc_middle::ty::TypeckResults<'tcx>>>,
 }
 
 // General util functions
@@ -41,6 +56,8 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
             bodies: RefCell::default(),
             exprs: RefCell::default(),
             num_symbols: RefCell::default(),
+            rustc_body: RefCell::default(),
+            rustc_ty_check: RefCell::default(),
         }
     }
 

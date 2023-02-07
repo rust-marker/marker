@@ -1,6 +1,6 @@
 use marker_api::ast::expr::{
-    BlockExpr, BoolLitExpr, CharLitExpr, CommonExprData, ExprKind, ExprPrecedence, FloatLitExpr, FloatSuffix,
-    IntLitExpr, IntSuffix, StrLitData, StrLitExpr, UnstableExpr,
+    BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, ExprKind, ExprPrecedence, FloatLitExpr, FloatSuffix,
+    IntLitExpr, IntSuffix, PathExpr, StrLitData, StrLitExpr, UnstableExpr,
 };
 use rustc_hir as hir;
 use std::str::FromStr;
@@ -23,6 +23,11 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
     }
 
     #[must_use]
+    pub fn to_exprs(&self, exprs: &[hir::Expr<'tcx>]) -> &'ast [ExprKind<'ast>] {
+        self.alloc_slice_iter(exprs.iter().map(|expr| self.to_expr(expr)))
+    }
+
+    #[must_use]
     pub fn to_expr(&self, expr: &hir::Expr<'tcx>) -> ExprKind<'ast> {
         let id = self.to_expr_id(expr.hir_id);
         if let Some(expr) = self.exprs.borrow().get(&id) {
@@ -34,6 +39,12 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
             match &expr.kind {
                 hir::ExprKind::Lit(spanned_lit) => self.to_expr_from_lit_kind(data, &spanned_lit.node),
                 hir::ExprKind::Block(block, None) => ExprKind::Block(self.alloc(|| self.to_block_expr(data, block))),
+                hir::ExprKind::Call(operand, args) => {
+                    ExprKind::Call(self.alloc(|| CallExpr::new(data, self.to_expr(operand), self.to_exprs(args))))
+                },
+                hir::ExprKind::Path(qpath) => {
+                    ExprKind::Path(self.alloc(|| PathExpr::new(data, self.to_qpath_from_expr(qpath, expr))))
+                },
                 hir::ExprKind::Err => unreachable!("would have triggered a rustc error"),
                 _ => {
                     eprintln!("skipping not implemented expr at: {:?}", expr.span);

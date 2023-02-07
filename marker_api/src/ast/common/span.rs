@@ -148,6 +148,8 @@ impl From<SpanId> for SpanOwner {
     }
 }
 
+#[derive(PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "driver-api", derive(Clone))]
 pub struct Ident<'ast> {
     _lifetime: PhantomData<&'ast ()>,
     sym: SymbolId,

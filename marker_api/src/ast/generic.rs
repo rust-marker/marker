@@ -33,6 +33,7 @@ pub use clause::*;
 /// * [`GenericParams`]
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "driver-api", derive(Clone))]
 pub struct GenericArgs<'ast> {
     args: FfiSlice<'ast, GenericArgKind<'ast>>,
 }
@@ -60,6 +61,7 @@ impl<'ast> GenericArgs<'ast> {
 #[repr(C)]
 #[non_exhaustive]
 #[derive(Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "driver-api", derive(Clone))]
 pub enum GenericArgKind<'ast> {
     /// A lifetime as a generic argument, like this:
     ///
