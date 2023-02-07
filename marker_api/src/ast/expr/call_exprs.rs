@@ -4,7 +4,7 @@ use super::{CommonExprData, ExprKind};
 
 /// A [call expression](https://doc.rust-lang.org/reference/expressions/call-expr.html#call-expressions)
 /// calling a function. The called function is identified using an expression,
-/// called *operand*. The following shows a few examples off call expressions:
+/// called *operand*. The following shows a few examples of call expressions:
 /// ```
 /// # pub fn foo(_: u32) {}
 /// //  vvv The operand pointing to a function called `foo`

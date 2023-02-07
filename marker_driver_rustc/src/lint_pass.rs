@@ -23,7 +23,7 @@ fn process_crate_lifetime<'ast, 'tcx: 'ast>(rustc_cx: &rustc_lint::LateContext<'
     let driver_cx = RustcContext::new(rustc_cx.tcx, rustc_cx.lint_store, storage);
 
     // To support debug printing of AST nodes, as these might sometimes require the
-    // contest. Note that this only sets the cx for the rustc side. Each lint crate
+    // context. Note that this only sets the cx for the rustc side. Each lint crate
     // has their own storage for cx.
     marker_api::context::set_ast_cx(driver_cx.ast_cx());
 

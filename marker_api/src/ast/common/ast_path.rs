@@ -144,7 +144,7 @@ impl<'ast> AstQPath<'ast> {
     /// This function resolves the target of this path.
     pub fn resolve(&self) -> AstPathTarget {
         // For rust-analyzer or future drivers, it might make sense to return
-        // `Option<QualifiedPathTarget>` instead, as the path might be dead,
+        // `Option<AstPathTarget>` instead, as the path might be dead,
         // when a lint crate calls this function. However, I have the feeling
         // that this would make the API less ergonomic. The `AstContext` will
         // already need to handle these cases explicitly. Currently, a user can
@@ -183,6 +183,7 @@ impl<'a, 'ast> TryFrom<&'a AstQPath<'ast>> for &'a AstPath<'ast> {
     }
 }
 
+#[cfg(feature = "driver-api")]
 impl<'ast> AstQPath<'ast> {
     pub fn new(
         self_ty: Option<TyKind<'ast>>,
@@ -251,7 +252,7 @@ impl<'ast> AstPath<'ast> {
         self.segments
             .get()
             .last()
-            .expect("a path always has at least on segment")
+            .expect("a path always has at least one segment")
             .generics()
     }
 }
