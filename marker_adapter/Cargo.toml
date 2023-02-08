@@ -10,3 +10,4 @@ license = "MIT OR Apache-2.0"
 marker_api = { path = "../marker_api" }
 
 libloading = "0.7.3"
+cfg-if = "1.0.0"
