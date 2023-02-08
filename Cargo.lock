@@ -309,6 +309,7 @@ dependencies = [
 name = "marker_adapter"
 version = "0.1.0"
 dependencies = [
+ "cfg-if",
  "libloading",
  "marker_api",
 ]
