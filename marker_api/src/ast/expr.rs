@@ -2,25 +2,15 @@ use super::{ty::TyKind, ExprId, Span, SpanId};
 
 use std::{fmt::Debug, marker::PhantomData};
 
-// Literal expressions
-mod bool_lit_expr;
-mod char_lit_expr;
-mod float_lit_expr;
-mod int_lit_expr;
-mod str_lit_expr;
-pub use bool_lit_expr::*;
-pub use char_lit_expr::*;
-pub use float_lit_expr::*;
-pub use int_lit_expr::*;
-pub use str_lit_expr::*;
-// other expressions
 mod block_expr;
 mod call_exprs;
+mod lit_expr;
 mod op_exprs;
 mod path_expr;
 mod unstable_expr;
 pub use block_expr::*;
 pub use call_exprs::*;
+pub use lit_expr::*;
 pub use op_exprs::*;
 pub use path_expr::*;
 pub use unstable_expr::*;
