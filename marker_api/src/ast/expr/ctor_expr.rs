@@ -43,7 +43,7 @@ super::impl_expr_data!(
     ArrayExpr<'ast>,
     Array,
     fn precedence(&self) -> ExprPrecedence {
-        ExprPrecedence::Pattern
+        ExprPrecedence::Ctor
     }
 );
 
@@ -88,14 +88,14 @@ super::impl_expr_data!(
     TupleExpr<'ast>,
     Tuple,
     fn precedence(&self) -> ExprPrecedence {
-        ExprPrecedence::Pattern
+        ExprPrecedence::Ctor
     }
 );
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TupleExpr<'ast> {
-    pub fn new(data: CommonExprData<'ast>, elements: FfiSlice<'ast, ExprKind<'ast>>) -> Self {
-        Self { data, elements }
+    pub fn new(data: CommonExprData<'ast>, elements: &'ast[ExprKind<'ast>]) -> Self {
+        Self { data, elements: elements.into() }
     }
 }
 
