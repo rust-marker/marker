@@ -51,6 +51,7 @@ pub enum ExprKind<'ast> {
     Array(&'ast ArrayExpr<'ast>),
     Tuple(&'ast TupleExpr<'ast>),
     Ctor(&'ast CtorExpr<'ast>),
+    Range(&'ast RangeExpr<'ast>),
     Unstable(&'ast UnstableExpr<'ast>),
 }
 
@@ -146,7 +147,8 @@ macro_rules! impl_expr_kind_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_expr_kind_fn!($method() -> $return_ty,
             IntLit, FloatLit, StrLit, CharLit, BoolLit, Block, UnaryOp, Borrow,
-            BinaryOp, QuestionMark, As, Path, Call, Array, Tuple, Ctor, Unstable
+            BinaryOp, QuestionMark, As, Path, Call, Array, Tuple, Ctor, Range,
+            Unstable
         );
     };
     ($method:ident () -> $return_ty:ty $(, $kind:ident)+) => {

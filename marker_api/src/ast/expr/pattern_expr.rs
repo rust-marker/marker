@@ -224,3 +224,54 @@ impl<'ast> CtorField<'ast> {
         Self { span, ident, expr }
     }
 }
+
+/// A range expression, like these:
+///
+/// ```
+/// 1..9;
+/// 3..;
+/// ..5;
+/// ..;
+/// 0..=1;
+/// ```
+#[repr(C)]
+#[derive(Debug)]
+pub struct RangeExpr<'ast> {
+    data: CommonExprData<'ast>,
+    start: FfiOption<ExprKind<'ast>>,
+    end: FfiOption<ExprKind<'ast>>,
+    is_inclusive: bool,
+}
+
+impl<'ast> RangeExpr<'ast> {
+    pub fn start(&self) -> Option<ExprKind<'ast>> {
+        self.start.copy()
+    }
+
+    pub fn end(&self) -> Option<ExprKind<'ast>> {
+        self.start.copy()
+    }
+
+    pub fn is_inclusive(&self) -> bool {
+        self.is_inclusive
+    }
+}
+
+super::impl_expr_data!(RangeExpr<'ast>, Range);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> RangeExpr<'ast> {
+    pub fn new(
+        data: CommonExprData<'ast>,
+        start: Option<ExprKind<'ast>>,
+        end: Option<ExprKind<'ast>>,
+        is_inclusive: bool,
+    ) -> Self {
+        Self {
+            data,
+            start: start.into(),
+            end: end.into(),
+            is_inclusive,
+        }
+    }
+}
