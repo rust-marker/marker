@@ -1,0 +1,127 @@
+Tuple(
+    TupleExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        elements: [
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 1,
+                    suffix: None,
+                },
+            ),
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 2,
+                    suffix: None,
+                },
+            ),
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 3,
+                    suffix: None,
+                },
+            ),
+        ],
+    },
+)
+
+Array(
+    ArrayExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        elements: [
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 1,
+                    suffix: None,
+                },
+            ),
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 2,
+                    suffix: None,
+                },
+            ),
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 3,
+                    suffix: None,
+                },
+            ),
+        ],
+        len_expr: None,
+    },
+)
+
+Array(
+    ArrayExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        elements: [
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 1,
+                    suffix: None,
+                },
+            ),
+        ],
+        len_expr: Some(
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 3,
+                    suffix: None,
+                },
+            ),
+        ),
+    },
+)
+

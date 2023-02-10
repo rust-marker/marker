@@ -1,6 +1,6 @@
 use marker_api::ast::expr::{
-    BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, ExprKind, ExprPrecedence, FloatLitExpr, FloatSuffix,
-    IntLitExpr, IntSuffix, PathExpr, StrLitData, StrLitExpr, UnstableExpr,
+    ArrayExpr, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, ExprKind, ExprPrecedence, FloatLitExpr,
+    FloatSuffix, IntLitExpr, IntSuffix, PathExpr, StrLitData, StrLitExpr, TupleExpr, UnstableExpr,
 };
 use rustc_hir as hir;
 use std::str::FromStr;
@@ -44,6 +44,16 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 },
                 hir::ExprKind::Path(qpath) => {
                     ExprKind::Path(self.alloc(|| PathExpr::new(data, self.to_qpath_from_expr(qpath, expr))))
+                },
+                hir::ExprKind::Tup(exprs) => ExprKind::Tuple(self.alloc(|| TupleExpr::new(data, self.to_exprs(exprs)))),
+                hir::ExprKind::Array(exprs) => {
+                    ExprKind::Array(self.alloc(|| ArrayExpr::new(data, self.to_exprs(exprs), None)))
+                },
+                hir::ExprKind::Repeat(expr, hir::ArrayLen::Body(anon_const)) => {
+                    let len_body = self.to_body(self.rustc_cx.hir().body(anon_const.body));
+                    ExprKind::Array(self.alloc(|| {
+                        ArrayExpr::new(data, self.alloc_slice_iter([self.to_expr(expr)]), Some(len_body.expr()))
+                    }))
                 },
                 hir::ExprKind::Err => unreachable!("would have triggered a rustc error"),
                 _ => {
