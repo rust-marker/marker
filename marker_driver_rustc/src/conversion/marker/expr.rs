@@ -1,6 +1,6 @@
 use marker_api::ast::expr::{
     ArrayExpr, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, ExprKind, ExprPrecedence, FloatLitExpr,
-    FloatSuffix, IntLitExpr, IntSuffix, PathExpr, StrLitData, StrLitExpr, TupleExpr, UnstableExpr,
+    FloatSuffix, IntLitExpr, IntSuffix, PathExpr, RangeExpr, StrLitData, StrLitExpr, TupleExpr, UnstableExpr,
 };
 use rustc_hir as hir;
 use std::str::FromStr;
@@ -40,7 +40,15 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 hir::ExprKind::Lit(spanned_lit) => self.to_expr_from_lit_kind(data, &spanned_lit.node),
                 hir::ExprKind::Block(block, None) => ExprKind::Block(self.alloc(|| self.to_block_expr(data, block))),
                 hir::ExprKind::Call(operand, args) => {
-                    ExprKind::Call(self.alloc(|| CallExpr::new(data, self.to_expr(operand), self.to_exprs(args))))
+                    if let hir::ExprKind::Path(hir::QPath::LangItem(hir::LangItem::RangeInclusiveNew, _, _)) =
+                        operand.kind
+                    {
+                        ExprKind::Range(self.alloc(|| {
+                            RangeExpr::new(data, Some(self.to_expr(&args[0])), Some(self.to_expr(&args[1])), true)
+                        }))
+                    } else {
+                        ExprKind::Call(self.alloc(|| CallExpr::new(data, self.to_expr(operand), self.to_exprs(args))))
+                    }
                 },
                 hir::ExprKind::Path(qpath) => {
                     ExprKind::Path(self.alloc(|| PathExpr::new(data, self.to_qpath_from_expr(qpath, expr))))
@@ -54,6 +62,29 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                     ExprKind::Array(self.alloc(|| {
                         ArrayExpr::new(data, self.alloc_slice_iter([self.to_expr(expr)]), Some(len_body.expr()))
                     }))
+                },
+                hir::ExprKind::Struct(path, fields, _base) => match path {
+                    hir::QPath::LangItem(hir::LangItem::RangeFull, _, _) => {
+                        ExprKind::Range(self.alloc(|| RangeExpr::new(data, None, None, false)))
+                    },
+                    hir::QPath::LangItem(hir::LangItem::RangeFrom, _, _) => ExprKind::Range(
+                        self.alloc(|| RangeExpr::new(data, Some(self.to_expr(fields[0].expr)), None, false)),
+                    ),
+                    hir::QPath::LangItem(hir::LangItem::RangeTo, _, _) => ExprKind::Range(
+                        self.alloc(|| RangeExpr::new(data, None, Some(self.to_expr(fields[0].expr)), false)),
+                    ),
+                    hir::QPath::LangItem(hir::LangItem::Range, _, _) => ExprKind::Range(self.alloc(|| {
+                        RangeExpr::new(
+                            data,
+                            Some(self.to_expr(fields[0].expr)),
+                            Some(self.to_expr(fields[1].expr)),
+                            false,
+                        )
+                    })),
+                    hir::QPath::LangItem(hir::LangItem::RangeToInclusive, _, _) => ExprKind::Range(
+                        self.alloc(|| RangeExpr::new(data, None, Some(self.to_expr(fields[0].expr)), true)),
+                    ),
+                    _ => todo!("{expr:#?}"),
                 },
                 hir::ExprKind::Err => unreachable!("would have triggered a rustc error"),
                 _ => {

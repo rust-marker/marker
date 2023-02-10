@@ -125,3 +125,165 @@ Array(
     },
 )
 
+Range(
+    RangeExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        start: Some(
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 11,
+                    suffix: None,
+                },
+            ),
+        ),
+        end: None,
+        is_inclusive: false,
+    },
+)
+
+Range(
+    RangeExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        start: Some(
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 1,
+                    suffix: None,
+                },
+            ),
+        ),
+        end: Some(
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 3,
+                    suffix: None,
+                },
+            ),
+        ),
+        is_inclusive: false,
+    },
+)
+
+Range(
+    RangeExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        start: None,
+        end: Some(
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 3,
+                    suffix: None,
+                },
+            ),
+        ),
+        is_inclusive: false,
+    },
+)
+
+Range(
+    RangeExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        start: None,
+        end: Some(
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 3,
+                    suffix: None,
+                },
+            ),
+        ),
+        is_inclusive: true,
+    },
+)
+
+Range(
+    RangeExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        start: Some(
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 1,
+                    suffix: None,
+                },
+            ),
+        ),
+        end: Some(
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 3,
+                    suffix: None,
+                },
+            ),
+        ),
+        is_inclusive: true,
+    },
+)
+
+Range(
+    RangeExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        start: None,
+        end: None,
+        is_inclusive: false,
+    },
+)
+
