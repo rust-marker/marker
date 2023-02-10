@@ -50,6 +50,7 @@ pub enum ExprKind<'ast> {
     Call(&'ast CallExpr<'ast>),
     Array(&'ast ArrayExpr<'ast>),
     Tuple(&'ast TupleExpr<'ast>),
+    Ctor(&'ast CtorExpr<'ast>),
     Unstable(&'ast UnstableExpr<'ast>),
 }
 
@@ -66,7 +67,7 @@ impl<'ast> ExprKind<'ast> {
 pub enum ExprPrecedence {
     Lit = 0x1400_0000,
     Block = 0x1400_0001,
-    Pattern = 0x1400_0002,
+    Ctor = 0x1400_0002,
 
     Path = 0x1300_0000,
 
@@ -145,7 +146,7 @@ macro_rules! impl_expr_kind_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_expr_kind_fn!($method() -> $return_ty,
             IntLit, FloatLit, StrLit, CharLit, BoolLit, Block, UnaryOp, Borrow,
-            BinaryOp, QuestionMark, As, Path, Call, Array, Tuple, Unstable
+            BinaryOp, QuestionMark, As, Path, Call, Array, Tuple, Ctor, Unstable
         );
     };
     ($method:ident () -> $return_ty:ty $(, $kind:ident)+) => {
