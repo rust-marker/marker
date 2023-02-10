@@ -1,6 +1,4 @@
-//! This module contains all expressions, which are typically used to construct
-//! or deconstruct data. A simple example is the [`ArrayExpr`] which can be
-//! used to create or destruct an array.
+//! This module contains all expressions, which are typically used to construct data.
 
 use crate::{
     ast::{AstQPath, Ident, Span, SpanId},
@@ -10,16 +8,13 @@ use crate::{
 
 use super::{CommonExprData, ExprKind, ExprPrecedence};
 
-/// An array expressions can be used to construct an array or destruct an array.
+/// An expression constructing an array.
 ///
 /// ```
 /// //            vvvvvvvvvvvv An array expression with four element expressions
 /// let array_1 = [1, 2, 3, 4];
-/// //            vvvvvv An array expression with one element and one len expression
+/// //            vvvvvv A repeat array expression with repeat and length operands
 /// let array_2 = [6; 3];
-///
-/// //  vvvvvvvvv An array expression destructing `array_2`
-/// let [a, b, c] = array_2;
 /// ```
 #[repr(C)]
 #[derive(Debug)]
@@ -62,14 +57,11 @@ impl<'ast> ArrayExpr<'ast> {
     }
 }
 
-/// A tuple expression used to construct or deconstruct a tuple.
+/// An expression used to construct a tuple.
 ///
 /// ```
 /// //          vvvvvvvvvvvv A tuple expression with four elements
 /// let slice = (1, 2, 3, 4);
-///
-/// //  vvvvvvvvvvvv A tuple expression destructing `slice`
-/// let (a, b, c, _) = slice;
 /// ```
 #[repr(C)]
 #[derive(Debug)]
@@ -94,13 +86,16 @@ super::impl_expr_data!(
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TupleExpr<'ast> {
-    pub fn new(data: CommonExprData<'ast>, elements: &'ast[ExprKind<'ast>]) -> Self {
-        Self { data, elements: elements.into() }
+    pub fn new(data: CommonExprData<'ast>, elements: &'ast [ExprKind<'ast>]) -> Self {
+        Self {
+            data,
+            elements: elements.into(),
+        }
     }
 }
 
-/// An expression constructing structs, unions and enum variants. For tuple
-/// constructors, the field names will correspond to the field index.
+/// An expression used to construct structs, unions and enum variants. For tuple
+/// constructors, the field names will correspond to the field indices.
 ///
 /// ```
 /// # #[derive(Debug, Default)]
@@ -154,7 +149,7 @@ pub struct CtorExpr<'ast> {
 }
 
 impl<'ast> CtorExpr<'ast> {
-    /// The path will point to the
+    /// The path identifies the item or enum variant that will be constructed.
     pub fn path(&self) -> &AstQPath<'ast> {
         &self.path
     }
@@ -249,7 +244,7 @@ impl<'ast> RangeExpr<'ast> {
     }
 
     pub fn end(&self) -> Option<ExprKind<'ast>> {
-        self.start.copy()
+        self.end.copy()
     }
 
     pub fn is_inclusive(&self) -> bool {
