@@ -1,7 +1,10 @@
-use marker_api::ast::expr::{
-    ArrayExpr, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, CtorExpr, CtorField, ExprKind,
-    ExprPrecedence, FloatLitExpr, FloatSuffix, IntLitExpr, IntSuffix, PathExpr, RangeExpr, StrLitData, StrLitExpr,
-    TupleExpr, UnstableExpr,
+use marker_api::ast::{
+    expr::{
+        ArrayExpr, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, CtorExpr, CtorField, ExprKind,
+        ExprPrecedence, FloatLitExpr, FloatSuffix, IntLitExpr, IntSuffix, PathExpr, RangeExpr, StrLitData, StrLitExpr,
+        TupleExpr, UnstableExpr,
+    },
+    Ident,
 };
 use rustc_hir as hir;
 use std::str::FromStr;
@@ -40,16 +43,40 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
             match &expr.kind {
                 hir::ExprKind::Lit(spanned_lit) => self.to_expr_from_lit_kind(data, &spanned_lit.node),
                 hir::ExprKind::Block(block, None) => ExprKind::Block(self.alloc(|| self.to_block_expr(data, block))),
-                hir::ExprKind::Call(operand, args) => {
-                    if let hir::ExprKind::Path(hir::QPath::LangItem(hir::LangItem::RangeInclusiveNew, _, _)) =
-                        operand.kind
-                    {
+                hir::ExprKind::Call(operand, args) => match &operand.kind {
+                    hir::ExprKind::Path(hir::QPath::LangItem(hir::LangItem::RangeInclusiveNew, _, _)) => {
                         ExprKind::Range(self.alloc(|| {
                             RangeExpr::new(data, Some(self.to_expr(&args[0])), Some(self.to_expr(&args[1])), true)
                         }))
-                    } else {
-                        ExprKind::Call(self.alloc(|| CallExpr::new(data, self.to_expr(operand), self.to_exprs(args))))
-                    }
+                    },
+                    hir::ExprKind::Path(
+                        qpath @ hir::QPath::Resolved(
+                            None,
+                            hir::Path {
+                                // The correct def resolution is done by `to_qpath_from_expr`
+                                res: hir::def::Res::Def(hir::def::DefKind::Ctor(_, _), _),
+                                ..
+                            },
+                        ),
+                    ) => {
+                        let fields = self.alloc_slice_iter(args.iter().enumerate().map(|(index, expr)| {
+                            CtorField::new(
+                                self.to_span_id(expr.span),
+                                Ident::new(
+                                    self.to_symbol_id_for_num(
+                                        u32::try_from(index).expect("a index over 2^32 us unexpected"),
+                                    ),
+                                    self.to_span_id(rustc_span::DUMMY_SP),
+                                ),
+                                self.to_expr(expr),
+                            )
+                        }));
+                        ExprKind::Ctor(
+                            self.alloc(|| CtorExpr::new(data, self.to_qpath_from_expr(qpath, expr), fields, None)),
+                        )
+                    },
+
+                    _ => ExprKind::Call(self.alloc(|| CallExpr::new(data, self.to_expr(operand), self.to_exprs(args)))),
                 },
                 hir::ExprKind::Path(qpath) => {
                     ExprKind::Path(self.alloc(|| PathExpr::new(data, self.to_qpath_from_expr(qpath, expr))))

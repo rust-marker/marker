@@ -33,10 +33,10 @@ fn main() {
 
     let _print_ctor = Union { a: 8 };
 
-    // let _ = TupleStruct(1, 2);
+    let _print_ctor = TupleStruct(1, 2);
     let _print_ctor = TupleStruct { 0: 3, ..TupleStruct::default() };
 
-    let _ = Enum::A;
-    // let _ = Enum::B(1);
-    // let _ = Enum::C { f1: 44, f2: 55 };
+    let _print_ctor = Enum::A;
+    let _print_ctor = Enum::B(1);
+    // let _print_ctor = Enum::C { f1: 44, f2: 55 };
 }

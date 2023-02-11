@@ -7,6 +7,7 @@ use marker_api::ast::{
 };
 use rustc_hir as hir;
 use rustc_middle as mid;
+use rustc_middle::ty::DefIdTree;
 
 use crate::conversion::common::{
     BodyIdLayout, ExprIdLayout, GenericIdLayout, ItemIdLayout, SpanSourceInfo, TyDefIdLayout, VarIdLayout,
@@ -282,10 +283,13 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 | hir::def::DefKind::AssocTy
                 | hir::def::DefKind::TraitAlias
                 | hir::def::DefKind::AssocFn
-                | hir::def::DefKind::Static(_)
-                | hir::def::DefKind::Ctor(_, _),
+                | hir::def::DefKind::Static(_),
                 id,
             ) => AstPathTarget::Item(self.to_item_id(*id)),
+            hir::def::Res::Def(hir::def::DefKind::Ctor(_, _), ctor_id) => {
+                let target = self.rustc_cx.parent(*ctor_id);
+                AstPathTarget::Item(self.to_item_id(target))
+            },
             hir::def::Res::Def(_, _) => todo!("{res:#?}"),
             hir::def::Res::PrimTy(_) => todo!("{res:#?}"),
             hir::def::Res::SelfTyParam { trait_: def_id, .. } | hir::def::Res::SelfTyAlias { alias_to: def_id, .. } => {
