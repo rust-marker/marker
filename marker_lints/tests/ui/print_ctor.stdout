@@ -848,8 +848,8 @@ Ctor(
     },
 )
 
-Path(
-    PathExpr {
+Ctor(
+    CtorExpr {
         data: CommonExprData {
             _lifetime: PhantomData<&()>,
             id: ExprId(..),
@@ -892,10 +892,12 @@ Path(
                     },
                 ],
             },
-            target: Item(
-                ItemId(..),
+            target: Variant(
+                VariantId(..),
             ),
         },
+        fields: [],
+        base: None,
     },
 )
 
@@ -943,8 +945,8 @@ Ctor(
                     },
                 ],
             },
-            target: Item(
-                ItemId(..),
+            target: Variant(
+                VariantId(..),
             ),
         },
         fields: [
@@ -968,6 +970,108 @@ Ctor(
                             span: SpanId(..),
                         },
                         value: 1,
+                        suffix: None,
+                    },
+                ),
+            },
+        ],
+        base: None,
+    },
+)
+
+Ctor(
+    CtorExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        path: AstQPath {
+            self_ty: None,
+            path_ty: None,
+            path: AstPath {
+                segments: [
+                    AstPathSegment {
+                        ident: Ident {
+                            name: "Enum",
+                            span: Span {
+                                source: File(
+                                    "$DIR/print_ctor.rs",
+                                ),
+                                start: 911,
+                                end: 915,
+                            },
+                        },
+                        generics: GenericArgs {
+                            args: [],
+                        },
+                    },
+                    AstPathSegment {
+                        ident: Ident {
+                            name: "C",
+                            span: Span {
+                                source: File(
+                                    "$DIR/print_ctor.rs",
+                                ),
+                                start: 917,
+                                end: 918,
+                            },
+                        },
+                        generics: GenericArgs {
+                            args: [],
+                        },
+                    },
+                ],
+            },
+            target: Variant(
+                VariantId(..),
+            ),
+        },
+        fields: [
+            CtorField {
+                span: SpanId(..),
+                ident: Ident {
+                    name: "f1",
+                    span: Span {
+                        source: File(
+                            "$DIR/print_ctor.rs",
+                        ),
+                        start: 921,
+                        end: 923,
+                    },
+                },
+                expr: IntLit(
+                    IntLitExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        value: 44,
+                        suffix: None,
+                    },
+                ),
+            },
+            CtorField {
+                span: SpanId(..),
+                ident: Ident {
+                    name: "f2",
+                    span: Span {
+                        source: File(
+                            "$DIR/print_ctor.rs",
+                        ),
+                        start: 929,
+                        end: 931,
+                    },
+                },
+                expr: IntLit(
+                    IntLitExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        value: 55,
                         suffix: None,
                     },
                 ),

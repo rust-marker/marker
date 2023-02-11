@@ -38,5 +38,5 @@ fn main() {
 
     let _print_ctor = Enum::A;
     let _print_ctor = Enum::B(1);
-    // let _print_ctor = Enum::C { f1: 44, f2: 55 };
+    let _print_ctor = Enum::C { f1: 44, f2: 55 };
 }

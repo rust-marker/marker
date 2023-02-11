@@ -3,7 +3,7 @@ use std::mem::{size_of, transmute};
 use marker_api::ast::ty::TyKind;
 use marker_api::ast::{
     Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, CrateId, ExprId, GenericId, Ident, ItemId, Span,
-    SpanId, SpanSource, SymbolId, TraitRef, TyDefId, VarId,
+    SpanId, SpanSource, SymbolId, TraitRef, TyDefId, VarId, VariantId,
 };
 use rustc_hir as hir;
 use rustc_middle as mid;
@@ -107,6 +107,10 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
 
     pub fn to_item_id(&self, id: impl Into<ItemIdLayout>) -> ItemId {
         transmute_id!(ItemIdLayout as ItemId = id.into())
+    }
+
+    pub fn to_variant_id(&self, id: impl Into<ItemIdLayout>) -> VariantId {
+        transmute_id!(ItemIdLayout as VariantId = id.into())
     }
 
     #[must_use]
@@ -286,10 +290,15 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 | hir::def::DefKind::Static(_),
                 id,
             ) => AstPathTarget::Item(self.to_item_id(*id)),
-            hir::def::Res::Def(hir::def::DefKind::Ctor(_, _), ctor_id) => {
+            hir::def::Res::Def(hir::def::DefKind::Ctor(hir::def::CtorOf::Struct, _), ctor_id) => {
                 let target = self.rustc_cx.parent(*ctor_id);
                 AstPathTarget::Item(self.to_item_id(target))
             },
+            hir::def::Res::Def(hir::def::DefKind::Ctor(hir::def::CtorOf::Variant, _), ctor_id) => {
+                let target = self.rustc_cx.parent(*ctor_id);
+                AstPathTarget::Variant(self.to_variant_id(target))
+            },
+            hir::def::Res::Def(hir::def::DefKind::Variant, id) => AstPathTarget::Variant(self.to_variant_id(*id)),
             hir::def::Res::Def(_, _) => todo!("{res:#?}"),
             hir::def::Res::PrimTy(_) => todo!("{res:#?}"),
             hir::def::Res::SelfTyParam { trait_: def_id, .. } | hir::def::Res::SelfTyAlias { alias_to: def_id, .. } => {

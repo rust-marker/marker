@@ -94,6 +94,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
             hir::ItemKind::Enum(enum_def, generics) => {
                 let variants = self.alloc_slice_iter(enum_def.variants.iter().map(|variant| {
                     EnumVariant::new(
+                        self.to_variant_id(variant.def_id),
                         self.to_symbol_id(variant.ident.name),
                         self.to_span_id(variant.span),
                         self.to_adt_kind(&variant.data),

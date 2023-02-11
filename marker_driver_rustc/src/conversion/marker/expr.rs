@@ -64,7 +64,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                                 self.to_span_id(expr.span),
                                 Ident::new(
                                     self.to_symbol_id_for_num(
-                                        u32::try_from(index).expect("a index over 2^32 us unexpected"),
+                                        u32::try_from(index).expect("a index over 2^32 is unexpected"),
                                     ),
                                     self.to_span_id(rustc_span::DUMMY_SP),
                                 ),
@@ -78,6 +78,15 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
 
                     _ => ExprKind::Call(self.alloc(|| CallExpr::new(data, self.to_expr(operand), self.to_exprs(args)))),
                 },
+                hir::ExprKind::Path(
+                    path @ hir::QPath::Resolved(
+                        None,
+                        hir::Path {
+                            res: hir::def::Res::Def(hir::def::DefKind::Ctor(_, _), ..),
+                            ..
+                        },
+                    ),
+                ) => ExprKind::Ctor(self.alloc(|| CtorExpr::new(data, self.to_qpath_from_expr(path, expr), &[], None))),
                 hir::ExprKind::Path(qpath) => {
                     ExprKind::Path(self.alloc(|| PathExpr::new(data, self.to_qpath_from_expr(qpath, expr))))
                 },

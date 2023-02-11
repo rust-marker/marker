@@ -50,6 +50,11 @@ new_id! {
 }
 
 new_id! {
+    ///  This ID uniquely identifies an enum variant during linting.
+    pub VariantId: u64
+}
+
+new_id! {
     /// This ID uniquely identifies a user defined type during linting.
     pub TyDefId: u64
 }
