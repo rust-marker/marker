@@ -97,6 +97,7 @@ pub struct EnumVariant<'ast> {
     span: SpanId,
     kind: AdtKind<'ast>,
     // FIXME: Add <discriminant: FfiOption<ExprKind<'ast>>>
+    // FIXME: Add some kind of ID to reference individual variants
 }
 
 impl<'ast> EnumVariant<'ast> {
