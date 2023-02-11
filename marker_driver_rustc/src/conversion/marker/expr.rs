@@ -1,6 +1,7 @@
 use marker_api::ast::expr::{
-    ArrayExpr, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, ExprKind, ExprPrecedence, FloatLitExpr,
-    FloatSuffix, IntLitExpr, IntSuffix, PathExpr, RangeExpr, StrLitData, StrLitExpr, TupleExpr, UnstableExpr,
+    ArrayExpr, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, CtorExpr, CtorField, ExprKind,
+    ExprPrecedence, FloatLitExpr, FloatSuffix, IntLitExpr, IntSuffix, PathExpr, RangeExpr, StrLitData, StrLitExpr,
+    TupleExpr, UnstableExpr,
 };
 use rustc_hir as hir;
 use std::str::FromStr;
@@ -63,7 +64,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                         ArrayExpr::new(data, self.alloc_slice_iter([self.to_expr(expr)]), Some(len_body.expr()))
                     }))
                 },
-                hir::ExprKind::Struct(path, fields, _base) => match path {
+                hir::ExprKind::Struct(path, fields, base) => match path {
                     hir::QPath::LangItem(hir::LangItem::RangeFull, _, _) => {
                         ExprKind::Range(self.alloc(|| RangeExpr::new(data, None, None, false)))
                     },
@@ -84,7 +85,24 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                     hir::QPath::LangItem(hir::LangItem::RangeToInclusive, _, _) => ExprKind::Range(
                         self.alloc(|| RangeExpr::new(data, None, Some(self.to_expr(fields[0].expr)), true)),
                     ),
-                    _ => todo!("{expr:#?}"),
+                    _ => {
+                        let ctor_fields = self.alloc_slice_iter(fields.iter().map(|field| {
+                            CtorField::new(
+                                self.to_span_id(field.span),
+                                self.to_ident(field.ident),
+                                self.to_expr(field.expr),
+                            )
+                        }));
+
+                        ExprKind::Ctor(self.alloc(|| {
+                            CtorExpr::new(
+                                data,
+                                self.to_qpath_from_expr(path, expr),
+                                ctor_fields,
+                                base.map(|expr| self.to_expr(expr)),
+                            )
+                        }))
+                    },
                 },
                 hir::ExprKind::Err => unreachable!("would have triggered a rustc error"),
                 _ => {

@@ -287,3 +287,477 @@ Range(
     },
 )
 
+Ctor(
+    CtorExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        path: AstQPath {
+            self_ty: None,
+            path_ty: None,
+            path: AstPath {
+                segments: [
+                    AstPathSegment {
+                        ident: Ident {
+                            name: "FieldStruct",
+                            span: Span {
+                                source: File(
+                                    "$DIR/print_ctor.rs",
+                                ),
+                                start: 573,
+                                end: 584,
+                            },
+                        },
+                        generics: GenericArgs {
+                            args: [],
+                        },
+                    },
+                ],
+            },
+            target: Item(
+                ItemId(..),
+            ),
+        },
+        fields: [
+            CtorField {
+                span: SpanId(..),
+                ident: Ident {
+                    name: "a",
+                    span: Span {
+                        source: File(
+                            "$DIR/print_ctor.rs",
+                        ),
+                        start: 587,
+                        end: 588,
+                    },
+                },
+                expr: IntLit(
+                    IntLitExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        value: 1,
+                        suffix: None,
+                    },
+                ),
+            },
+            CtorField {
+                span: SpanId(..),
+                ident: Ident {
+                    name: "b",
+                    span: Span {
+                        source: File(
+                            "$DIR/print_ctor.rs",
+                        ),
+                        start: 593,
+                        end: 594,
+                    },
+                },
+                expr: IntLit(
+                    IntLitExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        value: 2,
+                        suffix: None,
+                    },
+                ),
+            },
+        ],
+        base: None,
+    },
+)
+
+Ctor(
+    CtorExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        path: AstQPath {
+            self_ty: None,
+            path_ty: None,
+            path: AstPath {
+                segments: [
+                    AstPathSegment {
+                        ident: Ident {
+                            name: "FieldStruct",
+                            span: Span {
+                                source: File(
+                                    "$DIR/print_ctor.rs",
+                                ),
+                                start: 623,
+                                end: 634,
+                            },
+                        },
+                        generics: GenericArgs {
+                            args: [],
+                        },
+                    },
+                ],
+            },
+            target: Item(
+                ItemId(..),
+            ),
+        },
+        fields: [
+            CtorField {
+                span: SpanId(..),
+                ident: Ident {
+                    name: "a",
+                    span: Span {
+                        source: File(
+                            "$DIR/print_ctor.rs",
+                        ),
+                        start: 637,
+                        end: 638,
+                    },
+                },
+                expr: IntLit(
+                    IntLitExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        value: 10,
+                        suffix: None,
+                    },
+                ),
+            },
+        ],
+        base: Some(
+            Call(
+                CallExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    operand: Path(
+                        PathExpr {
+                            data: CommonExprData {
+                                _lifetime: PhantomData<&()>,
+                                id: ExprId(..),
+                                span: SpanId(..),
+                            },
+                            path: AstQPath {
+                                self_ty: None,
+                                path_ty: Some(
+                                    Path(
+                                        PathTy {
+                                            data: CommonTyData {
+                                                _lifetime: PhantomData<&()>,
+                                                span: Some(
+                                                    SpanId(..),
+                                                ),
+                                                is_syntactic: true,
+                                            },
+                                            path: AstQPath {
+                                                self_ty: None,
+                                                path_ty: None,
+                                                path: AstPath {
+                                                    segments: [
+                                                        AstPathSegment {
+                                                            ident: Ident {
+                                                                name: "FieldStruct",
+                                                                span: Span {
+                                                                    source: File(
+                                                                        "$DIR/print_ctor.rs",
+                                                                    ),
+                                                                    start: 646,
+                                                                    end: 657,
+                                                                },
+                                                            },
+                                                            generics: GenericArgs {
+                                                                args: [],
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                                target: Item(
+                                                    ItemId(..),
+                                                ),
+                                            },
+                                        },
+                                    ),
+                                ),
+                                path: AstPath {
+                                    segments: [
+                                        AstPathSegment {
+                                            ident: Ident {
+                                                name: "FieldStruct",
+                                                span: Span {
+                                                    source: File(
+                                                        "$DIR/print_ctor.rs",
+                                                    ),
+                                                    start: 646,
+                                                    end: 657,
+                                                },
+                                            },
+                                            generics: GenericArgs {
+                                                args: [],
+                                            },
+                                        },
+                                        AstPathSegment {
+                                            ident: Ident {
+                                                name: "default",
+                                                span: Span {
+                                                    source: File(
+                                                        "$DIR/print_ctor.rs",
+                                                    ),
+                                                    start: 659,
+                                                    end: 666,
+                                                },
+                                            },
+                                            generics: GenericArgs {
+                                                args: [],
+                                            },
+                                        },
+                                    ],
+                                },
+                                target: Item(
+                                    ItemId(..),
+                                ),
+                            },
+                        },
+                    ),
+                    args: [],
+                },
+            ),
+        ),
+    },
+)
+
+Ctor(
+    CtorExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        path: AstQPath {
+            self_ty: None,
+            path_ty: None,
+            path: AstPath {
+                segments: [
+                    AstPathSegment {
+                        ident: Ident {
+                            name: "Union",
+                            span: Span {
+                                source: File(
+                                    "$DIR/print_ctor.rs",
+                                ),
+                                start: 695,
+                                end: 700,
+                            },
+                        },
+                        generics: GenericArgs {
+                            args: [],
+                        },
+                    },
+                ],
+            },
+            target: Item(
+                ItemId(..),
+            ),
+        },
+        fields: [
+            CtorField {
+                span: SpanId(..),
+                ident: Ident {
+                    name: "a",
+                    span: Span {
+                        source: File(
+                            "$DIR/print_ctor.rs",
+                        ),
+                        start: 703,
+                        end: 704,
+                    },
+                },
+                expr: IntLit(
+                    IntLitExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        value: 8,
+                        suffix: None,
+                    },
+                ),
+            },
+        ],
+        base: None,
+    },
+)
+
+Ctor(
+    CtorExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        path: AstQPath {
+            self_ty: None,
+            path_ty: None,
+            path: AstPath {
+                segments: [
+                    AstPathSegment {
+                        ident: Ident {
+                            name: "TupleStruct",
+                            span: Span {
+                                source: File(
+                                    "$DIR/print_ctor.rs",
+                                ),
+                                start: 768,
+                                end: 779,
+                            },
+                        },
+                        generics: GenericArgs {
+                            args: [],
+                        },
+                    },
+                ],
+            },
+            target: Item(
+                ItemId(..),
+            ),
+        },
+        fields: [
+            CtorField {
+                span: SpanId(..),
+                ident: Ident {
+                    name: "0",
+                    span: Span {
+                        source: File(
+                            "$DIR/print_ctor.rs",
+                        ),
+                        start: 782,
+                        end: 783,
+                    },
+                },
+                expr: IntLit(
+                    IntLitExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        value: 3,
+                        suffix: None,
+                    },
+                ),
+            },
+        ],
+        base: Some(
+            Call(
+                CallExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    operand: Path(
+                        PathExpr {
+                            data: CommonExprData {
+                                _lifetime: PhantomData<&()>,
+                                id: ExprId(..),
+                                span: SpanId(..),
+                            },
+                            path: AstQPath {
+                                self_ty: None,
+                                path_ty: Some(
+                                    Path(
+                                        PathTy {
+                                            data: CommonTyData {
+                                                _lifetime: PhantomData<&()>,
+                                                span: Some(
+                                                    SpanId(..),
+                                                ),
+                                                is_syntactic: true,
+                                            },
+                                            path: AstQPath {
+                                                self_ty: None,
+                                                path_ty: None,
+                                                path: AstPath {
+                                                    segments: [
+                                                        AstPathSegment {
+                                                            ident: Ident {
+                                                                name: "TupleStruct",
+                                                                span: Span {
+                                                                    source: File(
+                                                                        "$DIR/print_ctor.rs",
+                                                                    ),
+                                                                    start: 790,
+                                                                    end: 801,
+                                                                },
+                                                            },
+                                                            generics: GenericArgs {
+                                                                args: [],
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                                target: Item(
+                                                    ItemId(..),
+                                                ),
+                                            },
+                                        },
+                                    ),
+                                ),
+                                path: AstPath {
+                                    segments: [
+                                        AstPathSegment {
+                                            ident: Ident {
+                                                name: "TupleStruct",
+                                                span: Span {
+                                                    source: File(
+                                                        "$DIR/print_ctor.rs",
+                                                    ),
+                                                    start: 790,
+                                                    end: 801,
+                                                },
+                                            },
+                                            generics: GenericArgs {
+                                                args: [],
+                                            },
+                                        },
+                                        AstPathSegment {
+                                            ident: Ident {
+                                                name: "default",
+                                                span: Span {
+                                                    source: File(
+                                                        "$DIR/print_ctor.rs",
+                                                    ),
+                                                    start: 803,
+                                                    end: 810,
+                                                },
+                                            },
+                                            generics: GenericArgs {
+                                                args: [],
+                                            },
+                                        },
+                                    ],
+                                },
+                                target: Item(
+                                    ItemId(..),
+                                ),
+                            },
+                        },
+                    ),
+                    args: [],
+                },
+            ),
+        ),
+    },
+)
+
