@@ -50,7 +50,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                     }
                     StructFieldPat::new(
                         self.to_span_id(pat.span),
-                        self.to_symbol_id_for_num(u32::try_from(index).expect("a index over 2^32 us unexpected")),
+                        self.to_symbol_id_for_num(u32::try_from(index).expect("a index over 2^32 is unexpected")),
                         self.to_pat(pat),
                     )
                 }));

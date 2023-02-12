@@ -1,6 +1,10 @@
-use marker_api::ast::expr::{
-    BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, ExprKind, ExprPrecedence, FloatLitExpr, FloatSuffix,
-    IntLitExpr, IntSuffix, PathExpr, StrLitData, StrLitExpr, UnstableExpr,
+use marker_api::ast::{
+    expr::{
+        ArrayExpr, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, CtorExpr, CtorField, ExprKind,
+        ExprPrecedence, FloatLitExpr, FloatSuffix, IntLitExpr, IntSuffix, PathExpr, RangeExpr, StrLitData, StrLitExpr,
+        TupleExpr, UnstableExpr,
+    },
+    Ident,
 };
 use rustc_hir as hir;
 use std::str::FromStr;
@@ -39,11 +43,102 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
             match &expr.kind {
                 hir::ExprKind::Lit(spanned_lit) => self.to_expr_from_lit_kind(data, &spanned_lit.node),
                 hir::ExprKind::Block(block, None) => ExprKind::Block(self.alloc(|| self.to_block_expr(data, block))),
-                hir::ExprKind::Call(operand, args) => {
-                    ExprKind::Call(self.alloc(|| CallExpr::new(data, self.to_expr(operand), self.to_exprs(args))))
+                hir::ExprKind::Call(operand, args) => match &operand.kind {
+                    hir::ExprKind::Path(hir::QPath::LangItem(hir::LangItem::RangeInclusiveNew, _, _)) => {
+                        ExprKind::Range(self.alloc(|| {
+                            RangeExpr::new(data, Some(self.to_expr(&args[0])), Some(self.to_expr(&args[1])), true)
+                        }))
+                    },
+                    hir::ExprKind::Path(
+                        qpath @ hir::QPath::Resolved(
+                            None,
+                            hir::Path {
+                                // The correct def resolution is done by `to_qpath_from_expr`
+                                res: hir::def::Res::Def(hir::def::DefKind::Ctor(_, _), _),
+                                ..
+                            },
+                        ),
+                    ) => {
+                        let fields = self.alloc_slice_iter(args.iter().enumerate().map(|(index, expr)| {
+                            CtorField::new(
+                                self.to_span_id(expr.span),
+                                Ident::new(
+                                    self.to_symbol_id_for_num(
+                                        u32::try_from(index).expect("a index over 2^32 is unexpected"),
+                                    ),
+                                    self.to_span_id(rustc_span::DUMMY_SP),
+                                ),
+                                self.to_expr(expr),
+                            )
+                        }));
+                        ExprKind::Ctor(
+                            self.alloc(|| CtorExpr::new(data, self.to_qpath_from_expr(qpath, expr), fields, None)),
+                        )
+                    },
+
+                    _ => ExprKind::Call(self.alloc(|| CallExpr::new(data, self.to_expr(operand), self.to_exprs(args)))),
                 },
+                hir::ExprKind::Path(
+                    path @ hir::QPath::Resolved(
+                        None,
+                        hir::Path {
+                            res: hir::def::Res::Def(hir::def::DefKind::Ctor(_, _), ..),
+                            ..
+                        },
+                    ),
+                ) => ExprKind::Ctor(self.alloc(|| CtorExpr::new(data, self.to_qpath_from_expr(path, expr), &[], None))),
                 hir::ExprKind::Path(qpath) => {
                     ExprKind::Path(self.alloc(|| PathExpr::new(data, self.to_qpath_from_expr(qpath, expr))))
+                },
+                hir::ExprKind::Tup(exprs) => ExprKind::Tuple(self.alloc(|| TupleExpr::new(data, self.to_exprs(exprs)))),
+                hir::ExprKind::Array(exprs) => {
+                    ExprKind::Array(self.alloc(|| ArrayExpr::new(data, self.to_exprs(exprs), None)))
+                },
+                hir::ExprKind::Repeat(expr, hir::ArrayLen::Body(anon_const)) => {
+                    let len_body = self.to_body(self.rustc_cx.hir().body(anon_const.body));
+                    ExprKind::Array(self.alloc(|| {
+                        ArrayExpr::new(data, self.alloc_slice_iter([self.to_expr(expr)]), Some(len_body.expr()))
+                    }))
+                },
+                hir::ExprKind::Struct(path, fields, base) => match path {
+                    hir::QPath::LangItem(hir::LangItem::RangeFull, _, _) => {
+                        ExprKind::Range(self.alloc(|| RangeExpr::new(data, None, None, false)))
+                    },
+                    hir::QPath::LangItem(hir::LangItem::RangeFrom, _, _) => ExprKind::Range(
+                        self.alloc(|| RangeExpr::new(data, Some(self.to_expr(fields[0].expr)), None, false)),
+                    ),
+                    hir::QPath::LangItem(hir::LangItem::RangeTo, _, _) => ExprKind::Range(
+                        self.alloc(|| RangeExpr::new(data, None, Some(self.to_expr(fields[0].expr)), false)),
+                    ),
+                    hir::QPath::LangItem(hir::LangItem::Range, _, _) => ExprKind::Range(self.alloc(|| {
+                        RangeExpr::new(
+                            data,
+                            Some(self.to_expr(fields[0].expr)),
+                            Some(self.to_expr(fields[1].expr)),
+                            false,
+                        )
+                    })),
+                    hir::QPath::LangItem(hir::LangItem::RangeToInclusive, _, _) => ExprKind::Range(
+                        self.alloc(|| RangeExpr::new(data, None, Some(self.to_expr(fields[0].expr)), true)),
+                    ),
+                    _ => {
+                        let ctor_fields = self.alloc_slice_iter(fields.iter().map(|field| {
+                            CtorField::new(
+                                self.to_span_id(field.span),
+                                self.to_ident(field.ident),
+                                self.to_expr(field.expr),
+                            )
+                        }));
+
+                        ExprKind::Ctor(self.alloc(|| {
+                            CtorExpr::new(
+                                data,
+                                self.to_qpath_from_expr(path, expr),
+                                ctor_fields,
+                                base.map(|expr| self.to_expr(expr)),
+                            )
+                        }))
+                    },
                 },
                 hir::ExprKind::Err => unreachable!("would have triggered a rustc error"),
                 _ => {

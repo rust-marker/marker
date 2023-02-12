@@ -1,6 +1,6 @@
 use crate::ast::generic::GenericParams;
 use crate::ast::ty::TyKind;
-use crate::ast::{Span, SpanId, SymbolId};
+use crate::ast::{Span, SpanId, SymbolId, VariantId};
 use crate::context::with_cx;
 use crate::ffi::FfiSlice;
 
@@ -93,14 +93,18 @@ impl<'ast> EnumItem<'ast> {
 #[repr(C)]
 #[derive(Debug)]
 pub struct EnumVariant<'ast> {
+    id: VariantId,
     ident: SymbolId,
     span: SpanId,
     kind: AdtKind<'ast>,
     // FIXME: Add <discriminant: FfiOption<ExprKind<'ast>>>
-    // FIXME: Add some kind of ID to reference individual variants
 }
 
 impl<'ast> EnumVariant<'ast> {
+    pub fn id(&self) -> VariantId {
+        self.id
+    }
+
     pub fn ident(&self) -> &str {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
@@ -159,8 +163,8 @@ impl<'ast> EnumVariant<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> EnumVariant<'ast> {
-    pub fn new(ident: SymbolId, span: SpanId, kind: AdtKind<'ast>) -> Self {
-        Self { ident, span, kind }
+    pub fn new(id: VariantId, ident: SymbolId, span: SpanId, kind: AdtKind<'ast>) -> Self {
+        Self { id, ident, span, kind }
     }
 }
 

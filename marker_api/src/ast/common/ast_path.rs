@@ -5,7 +5,7 @@
 // FIXME: It might be useful to not use a single path for everything, but instead
 // split it up into an `ItemPath`, `GenericPath` etc. implementation.
 
-use super::{GenericId, Ident, ItemId, VarId};
+use super::{GenericId, Ident, ItemId, VarId, VariantId};
 use crate::{
     ast::{generic::GenericArgs, ty::TyKind},
     ffi::{FfiOption, FfiSlice},
@@ -214,6 +214,8 @@ pub enum AstPathTarget {
     /// [`StaticItem`](crate::ast::item::ImplItem),
     /// [`FnItem`](crate::ast::item::FnItem).
     Item(ItemId),
+    /// The path target is a variant from an enum, identified by the [`VariantId`]
+    Variant(VariantId),
     /// The path target is a local variable, identified by the [`VarId`].
     Var(VarId),
     /// The path target is a generic type, identified by the [`GenericId`].
