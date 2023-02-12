@@ -8,6 +8,7 @@ mod ctor_expr;
 mod lit_expr;
 mod op_exprs;
 mod path_expr;
+mod place_expr;
 mod unstable_expr;
 pub use block_expr::*;
 pub use call_exprs::*;
@@ -15,6 +16,7 @@ pub use ctor_expr::*;
 pub use lit_expr::*;
 pub use op_exprs::*;
 pub use path_expr::*;
+pub use place_expr::*;
 pub use unstable_expr::*;
 
 pub trait ExprData<'ast>: Debug {
@@ -52,6 +54,8 @@ pub enum ExprKind<'ast> {
     Tuple(&'ast TupleExpr<'ast>),
     Ctor(&'ast CtorExpr<'ast>),
     Range(&'ast RangeExpr<'ast>),
+    Index(&'ast IndexExpr<'ast>),
+    Field(&'ast FieldExpr<'ast>),
     Unstable(&'ast UnstableExpr<'ast>),
 }
 
@@ -148,7 +152,7 @@ macro_rules! impl_expr_kind_fn {
         impl_expr_kind_fn!($method() -> $return_ty,
             IntLit, FloatLit, StrLit, CharLit, BoolLit, Block, UnaryOp, Borrow,
             BinaryOp, QuestionMark, As, Path, Call, Array, Tuple, Ctor, Range,
-            Unstable
+            Index, Field, Unstable
         );
     };
     ($method:ident () -> $return_ty:ty $(, $kind:ident)+) => {
