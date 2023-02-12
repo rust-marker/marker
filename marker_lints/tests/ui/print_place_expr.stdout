@@ -1,0 +1,110 @@
+Field(
+    FieldExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        operand: Path(
+            PathExpr {
+                data: CommonExprData {
+                    _lifetime: PhantomData<&()>,
+                    id: ExprId(..),
+                    span: SpanId(..),
+                },
+                path: AstQPath {
+                    self_ty: None,
+                    path_ty: None,
+                    path: AstPath {
+                        segments: [
+                            AstPathSegment {
+                                ident: Ident {
+                                    name: "object",
+                                    span: Span {
+                                        source: File(
+                                            "$DIR/print_place_expr.rs",
+                                        ),
+                                        start: 219,
+                                        end: 225,
+                                    },
+                                },
+                                generics: GenericArgs {
+                                    args: [],
+                                },
+                            },
+                        ],
+                    },
+                    target: Var(
+                        VarId(..),
+                    ),
+                },
+            },
+        ),
+        field: Ident {
+            name: "a",
+            span: Span {
+                source: File(
+                    "$DIR/print_place_expr.rs",
+                ),
+                start: 226,
+                end: 227,
+            },
+        },
+    },
+)
+
+Field(
+    FieldExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        operand: Path(
+            PathExpr {
+                data: CommonExprData {
+                    _lifetime: PhantomData<&()>,
+                    id: ExprId(..),
+                    span: SpanId(..),
+                },
+                path: AstQPath {
+                    self_ty: None,
+                    path_ty: None,
+                    path: AstPath {
+                        segments: [
+                            AstPathSegment {
+                                ident: Ident {
+                                    name: "tuple",
+                                    span: Span {
+                                        source: File(
+                                            "$DIR/print_place_expr.rs",
+                                        ),
+                                        start: 258,
+                                        end: 263,
+                                    },
+                                },
+                                generics: GenericArgs {
+                                    args: [],
+                                },
+                            },
+                        ],
+                    },
+                    target: Var(
+                        VarId(..),
+                    ),
+                },
+            },
+        ),
+        field: Ident {
+            name: "0",
+            span: Span {
+                source: File(
+                    "$DIR/print_place_expr.rs",
+                ),
+                start: 264,
+                end: 265,
+            },
+        },
+    },
+)
+

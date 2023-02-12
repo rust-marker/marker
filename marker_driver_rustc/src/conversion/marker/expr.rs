@@ -1,8 +1,8 @@
 use marker_api::ast::{
     expr::{
         ArrayExpr, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, CtorExpr, CtorField, ExprKind,
-        ExprPrecedence, FloatLitExpr, FloatSuffix, IntLitExpr, IntSuffix, PathExpr, RangeExpr, StrLitData, StrLitExpr,
-        TupleExpr, UnstableExpr,
+        ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, IndexExpr, IntLitExpr, IntSuffix, PathExpr, RangeExpr,
+        StrLitData, StrLitExpr, TupleExpr, UnstableExpr,
     },
     Ident,
 };
@@ -139,6 +139,12 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                             )
                         }))
                     },
+                },
+                hir::ExprKind::Index(operand, index) => {
+                    ExprKind::Index(self.alloc(|| IndexExpr::new(data, self.to_expr(operand), self.to_expr(index))))
+                },
+                hir::ExprKind::Field(operand, field) => {
+                    ExprKind::Field(self.alloc(|| FieldExpr::new(data, self.to_expr(operand), self.to_ident(*field))))
                 },
                 hir::ExprKind::Err => unreachable!("would have triggered a rustc error"),
                 _ => {
