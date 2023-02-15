@@ -12,7 +12,7 @@ use marker_api::{
 use rustc_lint::LintStore;
 use rustc_middle::ty::TyCtxt;
 
-use crate::conversion::{marker::MarkerConversionContext, rustc::RustcConversionContext};
+use crate::conversion::{marker::MarkerConverter, rustc::RustcConversionContext};
 
 use self::storage::Storage;
 
@@ -31,7 +31,7 @@ pub struct RustcContext<'ast, 'tcx> {
     pub rustc_cx: TyCtxt<'tcx>,
     pub lint_store: &'tcx LintStore,
     pub storage: &'ast Storage<'ast>,
-    pub marker_converter: MarkerConversionContext<'ast, 'tcx>,
+    pub marker_converter: MarkerConverter<'ast, 'tcx>,
     pub rustc_converter: RustcConversionContext<'ast, 'tcx>,
 
     /// This is the [`AstContext`] wrapping callbacks to this instance of the
@@ -47,7 +47,7 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
             rustc_cx,
             lint_store,
             storage,
-            marker_converter: MarkerConversionContext::new(rustc_cx, storage),
+            marker_converter: MarkerConverter::new(rustc_cx, storage),
             rustc_converter: RustcConversionContext::new(rustc_cx, storage),
             ast_cx: OnceCell::new(),
         });

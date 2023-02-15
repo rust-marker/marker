@@ -4,9 +4,9 @@ use marker_api::ast::generic::{
 };
 use rustc_hir as hir;
 
-use super::MarkerConversionContext;
+use super::MarkerConverterInner;
 
-impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_lifetime(&self, rust_lt: &hir::Lifetime) -> Option<Lifetime<'ast>> {
         let kind = match rust_lt.res {

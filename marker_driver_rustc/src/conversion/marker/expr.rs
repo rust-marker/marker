@@ -9,9 +9,9 @@ use marker_api::ast::{
 use rustc_hir as hir;
 use std::str::FromStr;
 
-use super::MarkerConversionContext;
+use super::MarkerConverterInner;
 
-impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_expr_from_block(&self, block: &hir::Block<'tcx>) -> ExprKind<'ast> {
         let id = self.to_expr_id(block.hir_id);

@@ -14,7 +14,7 @@ use crate::conversion::common::{
 };
 use crate::transmute_id;
 
-use super::MarkerConversionContext;
+use super::MarkerConverterInner;
 
 impl From<hir::def_id::LocalDefId> for GenericIdLayout {
     fn from(value: hir::def_id::LocalDefId) -> Self {
@@ -57,7 +57,7 @@ impl From<hir::def_id::DefId> for ItemIdLayout {
 }
 
 // Ids
-impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_crate_id(&self, rustc_id: hir::def_id::CrateNum) -> CrateId {
         assert_eq!(size_of::<CrateId>(), 4);
@@ -96,6 +96,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
     }
 
     #[must_use]
+    #[expect(dead_code, reason = "will be used later")]
     pub fn to_ty_def_id(&self, rustc_id: hir::def_id::DefId) -> TyDefId {
         transmute_id!(
             TyDefIdLayout as TyDefId = TyDefIdLayout {
@@ -145,7 +146,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
 }
 
 // Other magical cool things
-impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_ident(&self, ident: rustc_span::symbol::Ident) -> Ident<'ast> {
         Ident::new(self.to_symbol_id(ident.name), self.to_span_id(ident.span))

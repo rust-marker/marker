@@ -1,9 +1,9 @@
 use marker_api::ast::stmt::{LetStmt, StmtKind};
 use rustc_hir as hir;
 
-use super::MarkerConversionContext;
+use super::MarkerConverterInner;
 
-impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     pub fn to_stmt(&self, stmt: &hir::Stmt<'tcx>) -> Option<StmtKind<'ast>> {
         match &stmt.kind {
             hir::StmtKind::Local(local) => Some(StmtKind::Let(self.alloc(|| self.to_let_stmt(local)))),

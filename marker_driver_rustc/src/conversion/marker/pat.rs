@@ -4,9 +4,9 @@ use marker_api::ast::pat::{
 };
 use rustc_hir as hir;
 
-use super::MarkerConversionContext;
+use super::MarkerConverterInner;
 
-impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_pat(&self, pat: &hir::Pat<'tcx>) -> PatKind<'ast> {
         // Here we don't need to take special care for caching, as marker patterns

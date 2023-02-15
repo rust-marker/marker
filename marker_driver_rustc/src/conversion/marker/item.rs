@@ -8,9 +8,9 @@ use marker_api::ast::{
 };
 use rustc_hir as hir;
 
-use super::MarkerConversionContext;
+use super::MarkerConverterInner;
 
-impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_items(&self, items: &[hir::ItemId]) -> &'ast [ItemKind<'ast>] {
         let items: Vec<_> = items

@@ -7,7 +7,7 @@ use marker_api::ast::{
 };
 use rustc_hir as hir;
 
-use super::MarkerConversionContext;
+use super::MarkerConverterInner;
 
 pub enum TySource<'tcx> {
     Syn(&'tcx hir::Ty<'tcx>),
@@ -19,7 +19,7 @@ impl<'tcx> From<&'tcx hir::Ty<'tcx>> for TySource<'tcx> {
     }
 }
 
-impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_ty(&self, source: impl Into<TySource<'tcx>>) -> TyKind<'ast> {
         let source: TySource<'tcx> = source.into();
@@ -29,7 +29,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
     }
 }
 
-impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     fn to_syn_ty(&self, rustc_ty: &'tcx hir::Ty<'tcx>) -> TyKind<'ast> {
         let data = CommonTyData::new_syntactic(self.to_span_id(rustc_ty.span));
