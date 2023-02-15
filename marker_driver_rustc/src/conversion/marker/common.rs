@@ -287,6 +287,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 | hir::def::DefKind::AssocTy
                 | hir::def::DefKind::TraitAlias
                 | hir::def::DefKind::AssocFn
+                | hir::def::DefKind::Const
                 | hir::def::DefKind::Static(_),
                 id,
             ) => AstPathTarget::Item(self.to_item_id(*id)),

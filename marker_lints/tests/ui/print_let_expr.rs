@@ -1,3 +1,5 @@
+// normalize-stdout-windows: "tests/ui/" -> "$$DIR/"
+
 fn main() {
     let _print_str = r#"Hello"#;
     let _print_byte_str = b"Hello\n";

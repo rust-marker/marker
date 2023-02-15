@@ -24,8 +24,8 @@ Method(
                                         source: File(
                                             "$DIR/print_object_exprs.rs",
                                         ),
-                                        start: 273,
-                                        end: 276,
+                                        start: 327,
+                                        end: 330,
                                     },
                                 },
                                 generics: GenericArgs {
@@ -47,8 +47,8 @@ Method(
                     source: File(
                         "$DIR/print_object_exprs.rs",
                     ),
-                    start: 277,
-                    end: 282,
+                    start: 331,
+                    end: 336,
                 },
             },
             generics: GenericArgs {
@@ -85,8 +85,8 @@ Method(
                                         source: File(
                                             "$DIR/print_object_exprs.rs",
                                         ),
-                                        start: 310,
-                                        end: 313,
+                                        start: 364,
+                                        end: 367,
                                     },
                                 },
                                 generics: GenericArgs {
@@ -108,8 +108,8 @@ Method(
                     source: File(
                         "$DIR/print_object_exprs.rs",
                     ),
-                    start: 314,
-                    end: 317,
+                    start: 368,
+                    end: 371,
                 },
             },
             generics: GenericArgs {
