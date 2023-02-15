@@ -11,6 +11,7 @@ pub struct BlockExpr<'ast> {
     data: CommonExprData<'ast>,
     stmts: FfiSlice<'ast, StmtKind<'ast>>,
     expr: FfiOption<ExprKind<'ast>>,
+    is_unsafe: bool,
 }
 
 impl<'ast> BlockExpr<'ast> {
@@ -25,17 +26,27 @@ impl<'ast> BlockExpr<'ast> {
     pub fn expr(&self) -> Option<ExprKind<'ast>> {
         self.expr.copy()
     }
+
+    pub fn is_unsafe(&self) -> bool {
+        self.is_unsafe
+    }
 }
 
 super::impl_expr_data!(BlockExpr<'ast>, Block);
 
 #[cfg(feature = "driver-api")]
 impl<'ast> BlockExpr<'ast> {
-    pub fn new(data: CommonExprData<'ast>, stmts: &'ast [StmtKind<'ast>], expr: Option<ExprKind<'ast>>) -> Self {
+    pub fn new(
+        data: CommonExprData<'ast>,
+        stmts: &'ast [StmtKind<'ast>],
+        expr: Option<ExprKind<'ast>>,
+        is_unsafe: bool,
+    ) -> Self {
         Self {
             data,
             stmts: stmts.into(),
             expr: expr.into(),
+            is_unsafe,
         }
     }
 }

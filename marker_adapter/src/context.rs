@@ -1,7 +1,7 @@
 use marker_api::{
     ast::{
         item::{Body, ItemKind},
-        BodyId, ItemId, Span, SpanOwner, SymbolId,
+        BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId,
     },
     context::DriverCallbacks,
     ffi::{self, FfiOption},
@@ -40,6 +40,7 @@ impl<'ast> DriverContextWrapper<'ast> {
             get_span,
             span_snippet,
             symbol_str,
+            resolve_method_target,
         }
     }
 }
@@ -75,6 +76,11 @@ extern "C" fn symbol_str<'ast>(data: &(), sym: SymbolId) -> ffi::Str<'ast> {
     wrapper.driver_cx.symbol_str(sym).into()
 }
 
+extern "C" fn resolve_method_target(data: &(), id: ExprId) -> ItemId {
+    let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
+    wrapper.driver_cx.resolve_method_target(id)
+}
+
 pub trait DriverContext<'ast> {
     fn item(&'ast self, api_id: ItemId) -> Option<ItemKind<'ast>>;
     fn body(&'ast self, api_id: BodyId) -> &'ast Body<'ast>;
@@ -82,4 +88,5 @@ pub trait DriverContext<'ast> {
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast>;
     fn span_snippet(&'ast self, span: &Span) -> Option<&'ast str>;
     fn symbol_str(&'ast self, api_id: SymbolId) -> &'ast str;
+    fn resolve_method_target(&'ast self, id: ExprId) -> ItemId;
 }

@@ -1,4 +1,8 @@
-use crate::ffi::FfiSlice;
+use crate::{
+    ast::{AstPathSegment, ItemId},
+    context::with_cx,
+    ffi::FfiSlice,
+};
 
 use super::{CommonExprData, ExprKind};
 
@@ -49,6 +53,56 @@ impl<'ast> CallExpr<'ast> {
         Self {
             data,
             operand,
+            args: args.into(),
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct MethodExpr<'ast> {
+    data: CommonExprData<'ast>,
+    receiver: ExprKind<'ast>,
+    method: AstPathSegment<'ast>,
+    args: FfiSlice<'ast, ExprKind<'ast>>,
+}
+
+impl<'ast> MethodExpr<'ast> {
+    pub fn receiver(&self) -> ExprKind<'ast> {
+        self.receiver
+    }
+
+    /// This is the identifier of the method, being called on the receiver.
+    pub fn method(&self) -> &AstPathSegment<'ast> {
+        &self.method
+    }
+
+    /// This method resolves the [`ItemId`] of the method being called by this
+    /// expression.
+    pub fn resolve(&self) -> ItemId {
+        with_cx(self, |cx| cx.resolve_method_target(self.data.id))
+    }
+
+    /// The arguments given to the operand.
+    pub fn args(&self) -> &[ExprKind<'ast>] {
+        self.args.get()
+    }
+}
+
+super::impl_expr_data!(MethodExpr<'ast>, Method);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> MethodExpr<'ast> {
+    pub fn new(
+        data: CommonExprData<'ast>,
+        receiver: ExprKind<'ast>,
+        method: AstPathSegment<'ast>,
+        args: &'ast [ExprKind<'ast>],
+    ) -> Self {
+        Self {
+            data,
+            receiver,
+            method,
             args: args.into(),
         }
     }

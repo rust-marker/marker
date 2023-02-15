@@ -115,6 +115,32 @@ Block(
                 },
             ),
         ),
+        is_unsafe: false,
+    },
+)
+
+Block(
+    BlockExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        stmts: [],
+        expr: Some(
+            IntLit(
+                IntLitExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    value: 0,
+                    suffix: None,
+                },
+            ),
+        ),
+        is_unsafe: true,
     },
 )
 

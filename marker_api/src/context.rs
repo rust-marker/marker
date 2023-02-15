@@ -3,7 +3,7 @@ use std::{cell::RefCell, mem::transmute};
 use crate::{
     ast::{
         item::{Body, ItemKind},
-        BodyId, ItemId, Span, SpanOwner, SymbolId,
+        BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId,
     },
     ffi,
     lint::Lint,
@@ -146,6 +146,10 @@ impl<'ast> AstContext<'ast> {
     pub(crate) fn symbol_str(&self, sym: SymbolId) -> &'ast str {
         self.driver.call_symbol_str(sym)
     }
+
+    pub(crate) fn resolve_method_target(&self, expr: ExprId) -> ItemId {
+        self.driver.resolve_method_target(expr)
+    }
 }
 
 /// This struct holds function pointers to driver implementations of required
@@ -182,6 +186,7 @@ struct DriverCallbacks<'ast> {
     pub get_span: extern "C" fn(&'ast (), &SpanOwner) -> &'ast Span<'ast>,
     pub span_snippet: extern "C" fn(&'ast (), &Span) -> ffi::FfiOption<ffi::Str<'ast>>,
     pub symbol_str: extern "C" fn(&'ast (), SymbolId) -> ffi::Str<'ast>,
+    pub resolve_method_target: extern "C" fn(&'ast (), ExprId) -> ItemId,
 }
 
 impl<'ast> DriverCallbacks<'ast> {
@@ -203,5 +208,8 @@ impl<'ast> DriverCallbacks<'ast> {
     }
     pub fn call_body(&self, id: BodyId) -> &'ast Body<'ast> {
         (self.body)(self.driver_context, id)
+    }
+    pub fn resolve_method_target(&self, expr: ExprId) -> ItemId {
+        (self.resolve_method_target)(self.driver_context, expr)
     }
 }

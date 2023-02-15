@@ -287,6 +287,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 | hir::def::DefKind::AssocTy
                 | hir::def::DefKind::TraitAlias
                 | hir::def::DefKind::AssocFn
+                | hir::def::DefKind::Const
                 | hir::def::DefKind::Static(_),
                 id,
             ) => AstPathTarget::Item(self.to_item_id(*id)),
@@ -329,7 +330,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
     }
 
     #[must_use]
-    fn to_path_segment(&self, segment: &hir::PathSegment<'tcx>) -> AstPathSegment<'ast> {
+    pub fn to_path_segment(&self, segment: &hir::PathSegment<'tcx>) -> AstPathSegment<'ast> {
         AstPathSegment::new(self.to_ident(segment.ident), self.to_generic_args(segment.args))
     }
 
