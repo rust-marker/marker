@@ -329,7 +329,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
     }
 
     #[must_use]
-    fn to_path_segment(&self, segment: &hir::PathSegment<'tcx>) -> AstPathSegment<'ast> {
+    pub fn to_path_segment(&self, segment: &hir::PathSegment<'tcx>) -> AstPathSegment<'ast> {
         AstPathSegment::new(self.to_ident(segment.ident), self.to_generic_args(segment.args))
     }
 

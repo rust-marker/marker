@@ -1,8 +1,8 @@
 use marker_api::ast::{
     expr::{
         ArrayExpr, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, CtorExpr, CtorField, ExprKind,
-        ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, IndexExpr, IntLitExpr, IntSuffix, PathExpr, RangeExpr,
-        StrLitData, StrLitExpr, TupleExpr, UnstableExpr,
+        ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, IndexExpr, IntLitExpr, IntSuffix, MethodExpr, PathExpr,
+        RangeExpr, StrLitData, StrLitExpr, TupleExpr, UnstableExpr,
     },
     Ident,
 };
@@ -78,6 +78,14 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
 
                     _ => ExprKind::Call(self.alloc(|| CallExpr::new(data, self.to_expr(operand), self.to_exprs(args)))),
                 },
+                hir::ExprKind::MethodCall(method, receiver, args, _span) => ExprKind::Method(self.alloc(|| {
+                    MethodExpr::new(
+                        data,
+                        self.to_expr(receiver),
+                        self.to_path_segment(method),
+                        self.to_exprs(args),
+                    )
+                })),
                 hir::ExprKind::Path(
                     path @ hir::QPath::Resolved(
                         None,

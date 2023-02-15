@@ -4,7 +4,7 @@ use marker_adapter::context::{DriverContext, DriverContextWrapper};
 use marker_api::{
     ast::{
         item::{Body, ItemKind},
-        BodyId, ItemId, Span, SpanOwner, SymbolId,
+        BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId,
     },
     context::AstContext,
     lint::Lint,
@@ -112,5 +112,9 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         // in combination with the comment above is therefore safe.
         let api_str: &'ast str = unsafe { std::mem::transmute(rustc_str) };
         api_str
+    }
+
+    fn resolve_method_target(&'ast self, _id: ExprId) -> ItemId {
+        todo!()
     }
 }

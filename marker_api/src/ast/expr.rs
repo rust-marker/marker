@@ -50,6 +50,7 @@ pub enum ExprKind<'ast> {
     As(&'ast AsExpr<'ast>),
     Path(&'ast PathExpr<'ast>),
     Call(&'ast CallExpr<'ast>),
+    Method(&'ast MethodExpr<'ast>),
     Array(&'ast ArrayExpr<'ast>),
     Tuple(&'ast TupleExpr<'ast>),
     Ctor(&'ast CtorExpr<'ast>),
@@ -151,7 +152,7 @@ macro_rules! impl_expr_kind_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_expr_kind_fn!($method() -> $return_ty,
             IntLit, FloatLit, StrLit, CharLit, BoolLit, Block, UnaryOp, Borrow,
-            BinaryOp, QuestionMark, As, Path, Call, Array, Tuple, Ctor, Range,
+            BinaryOp, QuestionMark, As, Path, Call, Method, Array, Tuple, Ctor, Range,
             Index, Field, Unstable
         );
     };
