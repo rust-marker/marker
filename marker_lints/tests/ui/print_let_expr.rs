@@ -7,4 +7,5 @@ fn main() {
     let _print_hex_int = 0xcafe;
     let _print_byte = b'D';
     let _print_block_int = { 3 };
+    let _print_unsafe_block = unsafe { 0 };
 }
