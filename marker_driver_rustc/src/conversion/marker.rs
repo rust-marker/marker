@@ -1,6 +1,6 @@
 //! This module and its sub modules form the translation layer from rustc's
 //! internal representation to markers representation. All conversion methods
-//! are implemented as methods of the [`MarkerConversionContext`] to group them
+//! are implemented as methods of the [`MarkerConverterInner`] to group them
 //! together and share access to common objects easily.
 
 mod common;
@@ -78,7 +78,7 @@ struct MarkerConverterInner<'ast, 'tcx> {
     /// require additional translations.
     rustc_body: RefCell<Option<hir::BodyId>>,
     /// Requested on demand from rustc using a [`hir::BodyId`] see
-    /// [`MarkerConversionContext::rustc_body`] for more information
+    /// [`MarkerConverterInner::rustc_body`] for more information
     rustc_ty_check: RefCell<Option<&'tcx rustc_middle::ty::TypeckResults<'tcx>>>,
 }
 

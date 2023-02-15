@@ -9,7 +9,7 @@ use rustc_hir as hir;
 use crate::conversion::common::{BodyIdLayout, DefIdInfo, GenericIdLayout, ItemIdLayout, TyDefIdLayout};
 use crate::transmute_id;
 
-use super::RustcConversionContext;
+use super::RustcConverter;
 
 macro_rules! impl_into_def_id_for {
     ($id:ty, $layout:ty) => {
@@ -37,7 +37,7 @@ pub struct SpanSourceInfo {
     pub rustc_start_offset: usize,
 }
 
-impl<'ast, 'tcx> RustcConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
     #[must_use]
     pub fn to_crate_num(&self, api_id: CrateId) -> hir::def_id::CrateNum {
         assert_eq!(size_of::<CrateId>(), 4);

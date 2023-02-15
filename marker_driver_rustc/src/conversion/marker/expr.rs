@@ -101,9 +101,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             },
             hir::ExprKind::Repeat(expr, hir::ArrayLen::Body(anon_const)) => {
                 let len_body = self.to_body(self.rustc_cx.hir().body(anon_const.body));
-                ExprKind::Array(
-                    self.alloc({ ArrayExpr::new(data, self.alloc_slice([self.to_expr(expr)]), Some(len_body.expr())) }),
-                )
+                ExprKind::Array(self.alloc(ArrayExpr::new(
+                    data,
+                    self.alloc_slice([self.to_expr(expr)]),
+                    Some(len_body.expr()),
+                )))
             },
             hir::ExprKind::Struct(path, fields, base) => match path {
                 hir::QPath::LangItem(hir::LangItem::RangeFull, _, _) => {

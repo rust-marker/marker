@@ -12,7 +12,7 @@ use marker_api::{
 use rustc_lint::LintStore;
 use rustc_middle::ty::TyCtxt;
 
-use crate::conversion::{marker::MarkerConverter, rustc::RustcConversionContext};
+use crate::conversion::{marker::MarkerConverter, rustc::RustcConverter};
 
 use self::storage::Storage;
 
@@ -32,7 +32,7 @@ pub struct RustcContext<'ast, 'tcx> {
     pub lint_store: &'tcx LintStore,
     pub storage: &'ast Storage<'ast>,
     pub marker_converter: MarkerConverter<'ast, 'tcx>,
-    pub rustc_converter: RustcConversionContext<'ast, 'tcx>,
+    pub rustc_converter: RustcConverter<'ast, 'tcx>,
 
     /// This is the [`AstContext`] wrapping callbacks to this instance of the
     /// [`RustcContext`]. The once cell will be set immediately after the creation
@@ -48,7 +48,7 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
             lint_store,
             storage,
             marker_converter: MarkerConverter::new(rustc_cx, storage),
-            rustc_converter: RustcConversionContext::new(rustc_cx, storage),
+            rustc_converter: RustcConverter::new(rustc_cx, storage),
             ast_cx: OnceCell::new(),
         });
 
