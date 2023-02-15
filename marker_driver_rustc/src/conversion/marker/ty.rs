@@ -7,7 +7,7 @@ use marker_api::ast::{
 };
 use rustc_hir as hir;
 
-use super::MarkerConversionContext;
+use super::MarkerConverterInner;
 
 pub enum TySource<'tcx> {
     Syn(&'tcx hir::Ty<'tcx>),
@@ -19,7 +19,7 @@ impl<'tcx> From<&'tcx hir::Ty<'tcx>> for TySource<'tcx> {
     }
 }
 
-impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_ty(&self, source: impl Into<TySource<'tcx>>) -> TyKind<'ast> {
         let source: TySource<'tcx> = source.into();
@@ -29,7 +29,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
     }
 }
 
-impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     fn to_syn_ty(&self, rustc_ty: &'tcx hir::Ty<'tcx>) -> TyKind<'ast> {
         let data = CommonTyData::new_syntactic(self.to_span_id(rustc_ty.span));
@@ -39,18 +39,16 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
         // they can't be requested individually over the API. Instead, they're
         // always stored as part of a parent node.
         match &rustc_ty.kind {
-            hir::TyKind::Slice(inner_ty) => TyKind::Slice(self.alloc(|| SliceTy::new(data, self.to_syn_ty(inner_ty)))),
-            hir::TyKind::Array(inner_ty, _) => {
-                TyKind::Array(self.alloc(|| ArrayTy::new(data, self.to_syn_ty(inner_ty))))
-            },
-            hir::TyKind::Ptr(mut_ty) => TyKind::RawPtr(self.alloc(|| {
+            hir::TyKind::Slice(inner_ty) => TyKind::Slice(self.alloc(SliceTy::new(data, self.to_syn_ty(inner_ty)))),
+            hir::TyKind::Array(inner_ty, _) => TyKind::Array(self.alloc(ArrayTy::new(data, self.to_syn_ty(inner_ty)))),
+            hir::TyKind::Ptr(mut_ty) => TyKind::RawPtr(self.alloc({
                 RawPtrTy::new(
                     data,
                     matches!(mut_ty.mutbl, rustc_ast::Mutability::Mut),
                     self.to_syn_ty(mut_ty.ty),
                 )
             })),
-            hir::TyKind::Ref(rust_lt, mut_ty) => TyKind::Ref(self.alloc(|| {
+            hir::TyKind::Ref(rust_lt, mut_ty) => TyKind::Ref(self.alloc({
                 RefTy::new(
                     data,
                     self.to_lifetime(rust_lt),
@@ -58,11 +56,11 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                     self.to_syn_ty(mut_ty.ty),
                 )
             })),
-            hir::TyKind::BareFn(rust_fn) => TyKind::Fn(self.alloc(|| self.to_syn_fn_ty(data, rust_fn))),
-            hir::TyKind::Never => TyKind::Never(self.alloc(|| NeverTy::new(data))),
+            hir::TyKind::BareFn(rust_fn) => TyKind::Fn(self.alloc(self.to_syn_fn_ty(data, rust_fn))),
+            hir::TyKind::Never => TyKind::Never(self.alloc(NeverTy::new(data))),
             hir::TyKind::Tup(rustc_tys) => {
-                let api_tys = self.alloc_slice_iter(rustc_tys.iter().map(|rustc_ty| self.to_syn_ty(rustc_ty)));
-                TyKind::Tuple(self.alloc(|| TupleTy::new(data, api_tys)))
+                let api_tys = self.alloc_slice(rustc_tys.iter().map(|rustc_ty| self.to_syn_ty(rustc_ty)));
+                TyKind::Tuple(self.alloc(TupleTy::new(data, api_tys)))
             },
             hir::TyKind::Path(qpath) => self.to_syn_ty_from_qpath(data, qpath, rustc_ty),
             // Continue ty conversion
@@ -76,12 +74,13 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 };
                 let rust_bound = self.to_ty_param_bound(opty.bounds);
                 // FIXME: Generics are a bit weird with opaque types
-                TyKind::ImplTrait(self.alloc(|| ImplTraitTy::new(data, rust_bound)))
+                TyKind::ImplTrait(self.alloc(ImplTraitTy::new(data, rust_bound)))
             },
-            hir::TyKind::TraitObject(rust_bounds, rust_lt, _syntax) => TyKind::TraitObj(
-                self.alloc(|| TraitObjTy::new(data, self.to_ty_param_bound_from_hir(rust_bounds, rust_lt))),
-            ),
-            hir::TyKind::Infer => TyKind::Inferred(self.alloc(|| InferredTy::new(data))),
+            hir::TyKind::TraitObject(rust_bounds, rust_lt, _syntax) => TyKind::TraitObj(self.alloc(TraitObjTy::new(
+                data,
+                self.to_ty_param_bound_from_hir(rust_bounds, rust_lt),
+            ))),
+            hir::TyKind::Infer => TyKind::Inferred(self.alloc(InferredTy::new(data))),
         }
     }
 
@@ -100,7 +99,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                     Some(self.to_span_id(name.span)),
                 )
             });
-        let params = self.alloc_slice_iter(params);
+        let params = self.alloc_slice(params);
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = rust_fn.decl.output {
             Some(self.to_syn_ty(rust_ty))
         } else {
@@ -145,7 +144,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 )
                 | hir::def::Res::SelfTyParam { .. }
                 | hir::def::Res::SelfTyAlias { .. } => {
-                    TyKind::Path(self.alloc(|| PathTy::new(data, self.to_qpath_from_ty(qpath, rustc_ty))))
+                    TyKind::Path(self.alloc(PathTy::new(data, self.to_qpath_from_ty(qpath, rustc_ty))))
                 },
                 hir::def::Res::PrimTy(prim_ty) => self.to_syn_ty_from_prim_ty(data, prim_ty),
                 hir::def::Res::Def(_, _)
@@ -156,7 +155,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 hir::def::Res::Err => unreachable!("would have triggered a rustc error"),
             },
             hir::QPath::TypeRelative(_, _) => {
-                TyKind::Path(self.alloc(|| PathTy::new(data, self.to_qpath_from_ty(qpath, rustc_ty))))
+                TyKind::Path(self.alloc(PathTy::new(data, self.to_qpath_from_ty(qpath, rustc_ty))))
             },
             hir::QPath::LangItem(_, _, _) => todo!("{qpath:#?}"),
         }
@@ -184,12 +183,12 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 rustc_ast::FloatTy::F32 => NumKind::F32,
                 rustc_ast::FloatTy::F64 => NumKind::F64,
             },
-            hir::PrimTy::Str => return TyKind::Text(self.alloc(|| TextTy::new(data, TextKind::Str))),
-            hir::PrimTy::Bool => return TyKind::Bool(self.alloc(|| BoolTy::new(data))),
+            hir::PrimTy::Str => return TyKind::Text(self.alloc(TextTy::new(data, TextKind::Str))),
+            hir::PrimTy::Bool => return TyKind::Bool(self.alloc(BoolTy::new(data))),
             hir::PrimTy::Char => {
-                return TyKind::Text(self.alloc(|| TextTy::new(data, TextKind::Char)));
+                return TyKind::Text(self.alloc(TextTy::new(data, TextKind::Char)));
             },
         };
-        TyKind::Num(self.alloc(|| NumTy::new(data, num_kind)))
+        TyKind::Num(self.alloc(NumTy::new(data, num_kind)))
     }
 }

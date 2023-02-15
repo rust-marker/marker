@@ -1,6 +1,6 @@
 //! This module and its sub modules form the translation layer from rustc's
 //! internal representation to markers representation. All conversion methods
-//! are implemented as methods of the [`MarkerConversionContext`] to group them
+//! are implemented as methods of the [`MarkerConverterInner`] to group them
 //! together and share access to common objects easily.
 
 mod common;
@@ -17,12 +17,48 @@ use crate::context::storage::Storage;
 use marker_api::ast::{
     expr::ExprKind,
     item::{Body, ItemKind},
-    BodyId, Crate, ExprId, ItemId, SymbolId,
+    BodyId, Crate, ExprId, ItemId, Span, SymbolId,
 };
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 
-pub struct MarkerConversionContext<'ast, 'tcx> {
+/// An interface to convert rustc's IR to marker types.
+///
+/// This is a wrapper for [`MarkerConverterInner`] which is responsible for the
+/// actual conversion. The conversion code from [`MarkerConverterInner`] has certain
+/// expectations when it comes to the internal state. Using this wrapper ensures,
+/// that these expectations are always fulfilled.
+pub struct MarkerConverter<'ast, 'tcx> {
+    inner: MarkerConverterInner<'ast, 'tcx>,
+}
+
+impl<'ast, 'tcx> MarkerConverter<'ast, 'tcx> {
+    pub fn new(rustc_cx: rustc_middle::ty::TyCtxt<'tcx>, storage: &'ast Storage<'ast>) -> Self {
+        Self {
+            inner: MarkerConverterInner::new(rustc_cx, storage),
+        }
+    }
+
+    forward_to_inner!(pub fn to_item(&self, rustc_item: &'tcx hir::Item<'tcx>) -> Option<ItemKind<'ast>>);
+    forward_to_inner!(pub fn to_body(&self, body: &hir::Body<'tcx>) -> &'ast Body<'ast>);
+    forward_to_inner!(pub fn to_span(&self, rustc_span: rustc_span::Span) -> Span<'ast>);
+    forward_to_inner!(pub fn to_crate(
+        &self,
+        rustc_crate_id: hir::def_id::CrateNum,
+        rustc_root_mod: &'tcx hir::Mod<'tcx>,
+    ) -> &'ast Crate<'ast>);
+}
+
+macro_rules! forward_to_inner {
+    (pub fn $fn_name:ident(&self $(, $arg_name:ident: $arg_ty:ty)* $(,)?) -> $ret_ty:ty) => {
+        pub fn $fn_name(&self $(, $arg_name: $arg_ty)*) -> $ret_ty {
+            self.inner.$fn_name($($arg_name, )*)
+        }
+    };
+}
+use forward_to_inner;
+
+struct MarkerConverterInner<'ast, 'tcx> {
     rustc_cx: rustc_middle::ty::TyCtxt<'tcx>,
     storage: &'ast Storage<'ast>,
 
@@ -42,13 +78,13 @@ pub struct MarkerConversionContext<'ast, 'tcx> {
     /// require additional translations.
     rustc_body: RefCell<Option<hir::BodyId>>,
     /// Requested on demand from rustc using a [`hir::BodyId`] see
-    /// [`MarkerConversionContext::rustc_body`] for more information
+    /// [`MarkerConverterInner::rustc_body`] for more information
     rustc_ty_check: RefCell<Option<&'tcx rustc_middle::ty::TypeckResults<'tcx>>>,
 }
 
 // General util functions
-impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
-    pub fn new(rustc_cx: rustc_middle::ty::TyCtxt<'tcx>, storage: &'ast Storage<'ast>) -> Self {
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
+    fn new(rustc_cx: rustc_middle::ty::TyCtxt<'tcx>, storage: &'ast Storage<'ast>) -> Self {
         Self {
             rustc_cx,
             storage,
@@ -62,30 +98,30 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
     }
 
     #[must_use]
-    fn alloc<F, T>(&self, f: F) -> &'ast T
-    where
-        F: FnOnce() -> T,
-    {
-        self.storage.alloc(f)
+    fn alloc<T>(&self, t: T) -> &'ast T {
+        self.storage.alloc(t)
     }
 
     #[must_use]
-    fn alloc_slice_iter<T, I>(&self, iter: I) -> &'ast [T]
+    fn alloc_slice<T, I>(&self, iter: I) -> &'ast [T]
     where
         I: IntoIterator<Item = T>,
         I::IntoIter: ExactSizeIterator,
     {
-        self.storage.alloc_slice_iter(iter)
+        self.storage.alloc_slice(iter)
     }
 }
 
-impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
-    pub fn to_crate(
+    fn to_crate(
         &self,
         rustc_crate_id: hir::def_id::CrateNum,
         rustc_root_mod: &'tcx hir::Mod<'tcx>,
     ) -> &'ast Crate<'ast> {
-        self.alloc(|| Crate::new(self.to_crate_id(rustc_crate_id), self.to_items(rustc_root_mod.item_ids)))
+        self.alloc(Crate::new(
+            self.to_crate_id(rustc_crate_id),
+            self.to_items(rustc_root_mod.item_ids),
+        ))
     }
 }

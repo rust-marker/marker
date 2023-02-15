@@ -1,8 +1,8 @@
 use marker_api::lint::{Lint, MacroReport};
 
-use super::RustcConversionContext;
+use super::RustcConverter;
 
-impl<'ast, 'tcx> RustcConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
     pub fn to_lint(&self, api_lint: &'static Lint) -> &'static rustc_lint::Lint {
         self.lints.borrow_mut().entry(api_lint).or_insert_with(|| {
             // Not extracted to an extra function, as it's very specific

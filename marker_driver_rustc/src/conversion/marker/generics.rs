@@ -4,9 +4,9 @@ use marker_api::ast::generic::{
 };
 use rustc_hir as hir;
 
-use super::MarkerConversionContext;
+use super::MarkerConverterInner;
 
-impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_lifetime(&self, rust_lt: &hir::Lifetime) -> Option<Lifetime<'ast>> {
         let kind = match rust_lt.res {
@@ -40,15 +40,15 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
             .filter_map(|rustc_arg| match rustc_arg {
                 rustc_hir::GenericArg::Lifetime(rust_lt) => self
                     .to_lifetime(rust_lt)
-                    .map(|lifetime| GenericArgKind::Lifetime(self.alloc(|| lifetime))),
-                rustc_hir::GenericArg::Type(r_ty) => Some(GenericArgKind::Ty(self.alloc(|| self.to_ty(*r_ty)))),
+                    .map(|lifetime| GenericArgKind::Lifetime(self.alloc(lifetime))),
+                rustc_hir::GenericArg::Type(r_ty) => Some(GenericArgKind::Ty(self.alloc(self.to_ty(*r_ty)))),
                 rustc_hir::GenericArg::Const(_) => todo!(),
                 rustc_hir::GenericArg::Infer(_) => todo!(),
             })
             .collect();
         args.extend(rustc_args.bindings.iter().map(|binding| match &binding.kind {
             rustc_hir::TypeBindingKind::Equality { term } => match term {
-                rustc_hir::Term::Ty(rustc_ty) => GenericArgKind::Binding(self.alloc(|| {
+                rustc_hir::Term::Ty(rustc_ty) => GenericArgKind::Binding(self.alloc({
                     BindingGenericArg::new(
                         Some(self.to_span_id(binding.span)),
                         self.to_symbol_id(binding.ident.name),
@@ -59,7 +59,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
             },
             rustc_hir::TypeBindingKind::Constraint { .. } => todo!(),
         }));
-        GenericArgs::new(self.alloc_slice_iter(args.drain(..)))
+        GenericArgs::new(self.alloc_slice(args))
     }
 
     pub fn to_generic_params(&self, rustc_generics: &hir::Generics<'tcx>) -> GenericParams<'ast> {
@@ -74,13 +74,13 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                         let params =
                             GenericParams::new(self.to_generic_param_kinds(ty_bound.bound_generic_params), &[]);
                         let ty = self.to_ty(ty_bound.bounded_ty);
-                        Some(WhereClauseKind::Ty(self.alloc(|| {
+                        Some(WhereClauseKind::Ty(self.alloc({
                             TyClause::new(Some(params), ty, self.to_ty_param_bound(predicate.bounds()))
                         })))
                     },
                     hir::WherePredicate::RegionPredicate(lifetime_bound) => {
                         self.to_lifetime(lifetime_bound.lifetime).map(|lifetime| {
-                            WhereClauseKind::Lifetime(self.alloc(|| {
+                            WhereClauseKind::Lifetime(self.alloc({
                                 let bounds: Vec<_> = lifetime_bound
                                     .bounds
                                     .iter()
@@ -90,7 +90,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                                     })
                                     .collect();
                                 let bounds = if bounds.is_empty() {
-                                    self.alloc_slice_iter(bounds.into_iter())
+                                    self.alloc_slice(bounds)
                                 } else {
                                     &[]
                                 };
@@ -104,7 +104,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 }
             })
             .collect();
-        let clauses = self.alloc_slice_iter(clauses.into_iter());
+        let clauses = self.alloc_slice(clauses);
 
         GenericParams::new(self.to_generic_param_kinds(rustc_generics.params), clauses)
     }
@@ -127,18 +127,20 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 match rustc_param.kind {
                     hir::GenericParamKind::Lifetime {
                         kind: hir::LifetimeParamKind::Explicit,
-                    } => Some(GenericParamKind::Lifetime(
-                        self.alloc(|| LifetimeParam::new(id, name, Some(span))),
-                    )),
+                    } => Some(GenericParamKind::Lifetime(self.alloc(LifetimeParam::new(
+                        id,
+                        name,
+                        Some(span),
+                    )))),
                     hir::GenericParamKind::Type { synthetic: false, .. } => {
-                        Some(GenericParamKind::Ty(self.alloc(|| TyParam::new(Some(span), name, id))))
+                        Some(GenericParamKind::Ty(self.alloc(TyParam::new(Some(span), name, id))))
                     },
                     _ => None,
                 }
             })
             .collect();
 
-        self.alloc_slice_iter(params.into_iter())
+        self.alloc_slice(params)
     }
 
     #[must_use]
@@ -150,7 +152,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
         let bounds: Vec<_> = bounds
             .iter()
             .filter_map(|bound| match bound {
-                hir::GenericBound::Trait(trait_ref, modifier) => Some(TyParamBound::TraitBound(self.alloc(|| {
+                hir::GenericBound::Trait(trait_ref, modifier) => Some(TyParamBound::TraitBound(self.alloc({
                     TraitBound::new(
                         !matches!(modifier, hir::TraitBoundModifier::None),
                         self.to_trait_ref(&trait_ref.trait_ref),
@@ -160,11 +162,11 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
                 hir::GenericBound::LangItemTrait(_, _, _, _) => todo!(),
                 hir::GenericBound::Outlives(rust_lt) => self
                     .to_lifetime(rust_lt)
-                    .map(|api_lt| TyParamBound::Lifetime(self.alloc(|| api_lt))),
+                    .map(|api_lt| TyParamBound::Lifetime(self.alloc(api_lt))),
             })
             .collect();
 
-        self.alloc_slice_iter(bounds.into_iter())
+        self.alloc_slice(bounds)
     }
 
     pub fn to_ty_param_bound_from_hir(
@@ -173,7 +175,7 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
         rust_lt: &rustc_hir::Lifetime,
     ) -> &'ast [TyParamBound<'ast>] {
         let traits = rust_bounds.iter().map(|rust_trait_ref| {
-            TyParamBound::TraitBound(self.storage.alloc(|| {
+            TyParamBound::TraitBound(self.storage.alloc({
                 TraitBound::new(
                     false,
                     self.to_trait_ref(&rust_trait_ref.trait_ref),
@@ -185,10 +187,10 @@ impl<'ast, 'tcx> MarkerConversionContext<'ast, 'tcx> {
         if let Some(lt) = self.to_lifetime(rust_lt) {
             // alloc_slice_iter requires a const size, which is not possible otherwise
             let mut bounds: Vec<_> = traits.collect();
-            bounds.push(TyParamBound::Lifetime(self.alloc(move || lt)));
-            self.alloc_slice_iter(bounds.drain(..))
+            bounds.push(TyParamBound::Lifetime(self.alloc(lt)));
+            self.alloc_slice(bounds)
         } else {
-            self.alloc_slice_iter(traits)
+            self.alloc_slice(traits)
         }
     }
 }
