@@ -18,7 +18,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             .map(|rid| self.rustc_cx.hir().item(*rid))
             .filter_map(|rustc_item| self.to_item(rustc_item))
             .collect();
-        self.alloc_slice_iter(items.into_iter())
+        self.alloc_slice(items)
     }
 
     pub fn to_item_from_id(&self, item: hir::ItemId) -> Option<ItemKind<'ast>> {
@@ -42,7 +42,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let ident = self.to_ident(rustc_item.ident);
         let data = CommonItemData::new(id, ident);
         let item = match &rustc_item.kind {
-            hir::ItemKind::ExternCrate(original_name) => ItemKind::ExternCrate(self.alloc(|| {
+            hir::ItemKind::ExternCrate(original_name) => ItemKind::ExternCrate(self.alloc({
                 ExternCrateItem::new(data, self.to_symbol_id(original_name.unwrap_or(rustc_item.ident.name)))
             })),
             hir::ItemKind::Use(path, use_kind) => {
@@ -51,9 +51,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     hir::UseKind::Glob => UseKind::Glob,
                     hir::UseKind::ListStem => return None,
                 };
-                ItemKind::Use(self.alloc(|| UseItem::new(data, self.to_path(path), use_kind)))
+                ItemKind::Use(self.alloc(UseItem::new(data, self.to_path(path), use_kind)))
             },
-            hir::ItemKind::Static(rustc_ty, rustc_mut, rustc_body_id) => ItemKind::Static(self.alloc(|| {
+            hir::ItemKind::Static(rustc_ty, rustc_mut, rustc_body_id) => ItemKind::Static(self.alloc({
                 StaticItem::new(
                     data,
                     matches!(*rustc_mut, rustc_ast::Mutability::Mut),
@@ -61,10 +61,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     self.to_ty(*rustc_ty),
                 )
             })),
-            hir::ItemKind::Const(rustc_ty, rustc_body_id) => ItemKind::Const(
-                self.alloc(|| ConstItem::new(data, self.to_ty(*rustc_ty), Some(self.to_body_id(*rustc_body_id)))),
-            ),
-            hir::ItemKind::Fn(fn_sig, generics, body_id) => ItemKind::Fn(self.alloc(|| {
+            hir::ItemKind::Const(rustc_ty, rustc_body_id) => ItemKind::Const(self.alloc(ConstItem::new(
+                data,
+                self.to_ty(*rustc_ty),
+                Some(self.to_body_id(*rustc_body_id)),
+            ))),
+            hir::ItemKind::Fn(fn_sig, generics, body_id) => ItemKind::Fn(self.alloc({
                 FnItem::new(
                     data,
                     self.to_generic_params(generics),
@@ -73,14 +75,14 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 )
             })),
             hir::ItemKind::Mod(rustc_mod) => {
-                ItemKind::Mod(self.alloc(|| ModItem::new(data, self.to_items(rustc_mod.item_ids))))
+                ItemKind::Mod(self.alloc(ModItem::new(data, self.to_items(rustc_mod.item_ids))))
             },
-            hir::ItemKind::ForeignMod { abi, items } => ItemKind::ExternBlock(self.alloc(|| {
+            hir::ItemKind::ForeignMod { abi, items } => ItemKind::ExternBlock(self.alloc({
                 let abi = self.to_abi(*abi);
                 ExternBlockItem::new(data, abi, self.to_external_items(items, abi))
             })),
             hir::ItemKind::Macro(_, _) | hir::ItemKind::GlobalAsm(_) => return None,
-            hir::ItemKind::TyAlias(rustc_ty, rustc_generics) => ItemKind::TyAlias(self.alloc(|| {
+            hir::ItemKind::TyAlias(rustc_ty, rustc_generics) => ItemKind::TyAlias(self.alloc({
                 TyAliasItem::new(
                     data,
                     self.to_generic_params(rustc_generics),
@@ -88,11 +90,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     Some(self.to_ty(*rustc_ty)),
                 )
             })),
-            hir::ItemKind::OpaqueTy(_) => ItemKind::Unstable(
-                self.alloc(|| UnstableItem::new(data, Some(self.to_symbol_id(rustc_span::sym::type_alias_impl_trait)))),
-            ),
+            hir::ItemKind::OpaqueTy(_) => ItemKind::Unstable(self.alloc(UnstableItem::new(
+                data,
+                Some(self.to_symbol_id(rustc_span::sym::type_alias_impl_trait)),
+            ))),
             hir::ItemKind::Enum(enum_def, generics) => {
-                let variants = self.alloc_slice_iter(enum_def.variants.iter().map(|variant| {
+                let variants = self.alloc_slice(enum_def.variants.iter().map(|variant| {
                     EnumVariant::new(
                         self.to_variant_id(variant.def_id),
                         self.to_symbol_id(variant.ident.name),
@@ -100,19 +103,21 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                         self.to_adt_kind(&variant.data),
                     )
                 }));
-                ItemKind::Enum(self.alloc(|| EnumItem::new(data, self.to_generic_params(generics), variants)))
+                ItemKind::Enum(self.alloc(EnumItem::new(data, self.to_generic_params(generics), variants)))
             },
-            hir::ItemKind::Struct(var_data, generics) => ItemKind::Struct(
-                self.alloc(|| StructItem::new(data, self.to_generic_params(generics), self.to_adt_kind(var_data))),
-            ),
-            hir::ItemKind::Union(var_data, generics) => ItemKind::Union(self.alloc(|| {
+            hir::ItemKind::Struct(var_data, generics) => ItemKind::Struct(self.alloc(StructItem::new(
+                data,
+                self.to_generic_params(generics),
+                self.to_adt_kind(var_data),
+            ))),
+            hir::ItemKind::Union(var_data, generics) => ItemKind::Union(self.alloc({
                 UnionItem::new(
                     data,
                     self.to_generic_params(generics),
                     self.to_adt_kind(var_data).fields(),
                 )
             })),
-            hir::ItemKind::Trait(_is_auto, unsafety, generics, bounds, items) => ItemKind::Trait(self.alloc(|| {
+            hir::ItemKind::Trait(_is_auto, unsafety, generics, bounds, items) => ItemKind::Trait(self.alloc({
                 TraitItem::new(
                     data,
                     matches!(unsafety, hir::Unsafety::Unsafe),
@@ -121,10 +126,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     self.to_assoc_items(items),
                 )
             })),
-            hir::ItemKind::TraitAlias(_, _) => ItemKind::Unstable(
-                self.alloc(|| UnstableItem::new(data, Some(self.to_symbol_id(rustc_span::sym::trait_alias)))),
-            ),
-            hir::ItemKind::Impl(imp) => ItemKind::Impl(self.alloc(|| {
+            hir::ItemKind::TraitAlias(_, _) => ItemKind::Unstable(self.alloc(UnstableItem::new(
+                data,
+                Some(self.to_symbol_id(rustc_span::sym::trait_alias)),
+            ))),
+            hir::ItemKind::Impl(imp) => ItemKind::Impl(self.alloc({
                 ImplItem::new(
                     data,
                     matches!(imp.unsafety, hir::Unsafety::Unsafe),
@@ -142,7 +148,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     fn to_callable_data_from_fn_sig(&self, fn_sig: &hir::FnSig<'tcx>, is_extern: bool) -> CommonCallableData<'ast> {
-        let params = self.alloc_slice_iter(fn_sig.decl.inputs.iter().map(|input_ty| {
+        let params = self.alloc_slice(fn_sig.decl.inputs.iter().map(|input_ty| {
             Parameter::new(
                 // FIXME: This should actually be a pattern, that can be
                 // retrieved from the body. For now this is kind of blocked
@@ -179,7 +185,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     fn to_fields(&self, fields: &'tcx [hir::FieldDef]) -> &'ast [Field<'ast>] {
-        self.alloc_slice_iter(fields.iter().map(|field| {
+        self.alloc_slice(fields.iter().map(|field| {
             // FIXME update Visibility creation to use the stored local def id inside the
             // field after the next sync. See #55
             let def_id = self.rustc_cx.hir().local_def_id(field.hir_id);
@@ -193,7 +199,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     fn to_external_items(&self, items: &'tcx [hir::ForeignItemRef], abi: Abi) -> &'ast [ExternItemKind<'ast>] {
-        self.alloc_slice_iter(items.iter().map(|item| self.to_external_item(item, abi)))
+        self.alloc_slice(items.iter().map(|item| self.to_external_item(item, abi)))
     }
 
     fn to_external_item(&self, rustc_item: &'tcx hir::ForeignItemRef, abi: Abi) -> ExternItemKind<'ast> {
@@ -205,7 +211,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let foreign_item = self.rustc_cx.hir().foreign_item(rustc_item.id);
         let data = CommonItemData::new(id, self.to_ident(rustc_item.ident));
         let item = match &foreign_item.kind {
-            hir::ForeignItemKind::Fn(fn_sig, idents, generics) => ExternItemKind::Fn(self.alloc(|| {
+            hir::ForeignItemKind::Fn(fn_sig, idents, generics) => ExternItemKind::Fn(self.alloc({
                 FnItem::new(
                     data,
                     self.to_generic_params(generics),
@@ -213,7 +219,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     None,
                 )
             })),
-            hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(self.alloc(|| {
+            hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(self.alloc({
                 StaticItem::new(
                     data,
                     matches!(*rustc_mut, rustc_ast::Mutability::Mut),
@@ -236,7 +242,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         abi: Abi,
     ) -> CommonCallableData<'ast> {
         assert_eq!(fn_decl.inputs.len(), idents.len());
-        let params = self.alloc_slice_iter(idents.iter().zip(fn_decl.inputs.iter()).map(|(ident, ty)| {
+        let params = self.alloc_slice(idents.iter().zip(fn_decl.inputs.iter()).map(|(ident, ty)| {
             Parameter::new(
                 Some(self.to_symbol_id(ident.name)),
                 Some(self.to_ty(ty)),
@@ -261,7 +267,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     fn to_assoc_items(&self, items: &[hir::TraitItemRef]) -> &'ast [AssocItemKind<'ast>] {
-        self.alloc_slice_iter(items.iter().map(|item| self.to_assoc_item(item)))
+        self.alloc_slice(items.iter().map(|item| self.to_assoc_item(item)))
     }
 
     fn to_assoc_item(&self, rustc_item: &hir::TraitItemRef) -> AssocItemKind<'ast> {
@@ -274,10 +280,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let data = CommonItemData::new(id, self.to_ident(rustc_item.ident));
 
         let item = match &trait_item.kind {
-            hir::TraitItemKind::Const(ty, body_id) => AssocItemKind::Const(
-                self.alloc(|| ConstItem::new(data, self.to_ty(*ty), body_id.map(|id| self.to_body_id(id)))),
-            ),
-            hir::TraitItemKind::Fn(fn_sig, trait_fn) => AssocItemKind::Fn(self.alloc(|| {
+            hir::TraitItemKind::Const(ty, body_id) => AssocItemKind::Const(self.alloc(ConstItem::new(
+                data,
+                self.to_ty(*ty),
+                body_id.map(|id| self.to_body_id(id)),
+            ))),
+            hir::TraitItemKind::Fn(fn_sig, trait_fn) => AssocItemKind::Fn(self.alloc({
                 let body = match trait_fn {
                     hir::TraitFn::Provided(body_id) => Some(self.to_body_id(*body_id)),
                     hir::TraitFn::Required(_) => None,
@@ -289,7 +297,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     body,
                 )
             })),
-            hir::TraitItemKind::Type(bounds, ty) => AssocItemKind::TyAlias(self.alloc(|| {
+            hir::TraitItemKind::Type(bounds, ty) => AssocItemKind::TyAlias(self.alloc({
                 TyAliasItem::new(
                     data,
                     self.to_generic_params(trait_item.generics),
@@ -304,7 +312,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     fn to_assoc_items_from_impl(&self, items: &[hir::ImplItemRef]) -> &'ast [AssocItemKind<'ast>] {
-        self.alloc_slice_iter(items.iter().map(|item| self.to_assoc_item_from_impl(item)))
+        self.alloc_slice(items.iter().map(|item| self.to_assoc_item_from_impl(item)))
     }
 
     fn to_assoc_item_from_impl(&self, rustc_item: &hir::ImplItemRef) -> AssocItemKind<'ast> {
@@ -317,10 +325,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let data = CommonItemData::new(id, self.to_ident(rustc_item.ident));
 
         let item = match &impl_item.kind {
-            hir::ImplItemKind::Const(ty, body_id) => AssocItemKind::Const(
-                self.alloc(|| ConstItem::new(data, self.to_ty(*ty), Some(self.to_body_id(*body_id)))),
-            ),
-            hir::ImplItemKind::Fn(fn_sig, body_id) => AssocItemKind::Fn(self.alloc(|| {
+            hir::ImplItemKind::Const(ty, body_id) => {
+                AssocItemKind::Const(self.alloc(ConstItem::new(data, self.to_ty(*ty), Some(self.to_body_id(*body_id)))))
+            },
+            hir::ImplItemKind::Fn(fn_sig, body_id) => AssocItemKind::Fn(self.alloc({
                 FnItem::new(
                     data,
                     self.to_generic_params(impl_item.generics),
@@ -328,7 +336,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     Some(self.to_body_id(*body_id)),
                 )
             })),
-            hir::ImplItemKind::Type(ty) => AssocItemKind::TyAlias(self.alloc(|| {
+            hir::ImplItemKind::Type(ty) => AssocItemKind::TyAlias(self.alloc({
                 TyAliasItem::new(
                     data,
                     self.to_generic_params(impl_item.generics),
@@ -351,7 +359,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             return body;
         }
         let owner = self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id()));
-        let api_body = self.alloc(|| Body::new(owner, self.to_expr(body.value)));
+        let api_body = self.alloc(Body::new(owner, self.to_expr(body.value)));
         self.bodies.borrow_mut().insert(id, api_body);
 
         self.rustc_body.replace(prev_rustc_body_id);

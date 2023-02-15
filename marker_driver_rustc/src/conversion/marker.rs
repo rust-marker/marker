@@ -98,20 +98,17 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
-    fn alloc<F, T>(&self, f: F) -> &'ast T
-    where
-        F: FnOnce() -> T,
-    {
-        self.storage.alloc(f)
+    fn alloc<T>(&self, t: T) -> &'ast T {
+        self.storage.alloc(t)
     }
 
     #[must_use]
-    fn alloc_slice_iter<T, I>(&self, iter: I) -> &'ast [T]
+    fn alloc_slice<T, I>(&self, iter: I) -> &'ast [T]
     where
         I: IntoIterator<Item = T>,
         I::IntoIter: ExactSizeIterator,
     {
-        self.storage.alloc_slice_iter(iter)
+        self.storage.alloc_slice(iter)
     }
 }
 
@@ -122,6 +119,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         rustc_crate_id: hir::def_id::CrateNum,
         rustc_root_mod: &'tcx hir::Mod<'tcx>,
     ) -> &'ast Crate<'ast> {
-        self.alloc(|| Crate::new(self.to_crate_id(rustc_crate_id), self.to_items(rustc_root_mod.item_ids)))
+        self.alloc(Crate::new(
+            self.to_crate_id(rustc_crate_id),
+            self.to_items(rustc_root_mod.item_ids),
+        ))
     }
 }

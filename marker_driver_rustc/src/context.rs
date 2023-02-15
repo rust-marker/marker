@@ -43,7 +43,7 @@ pub struct RustcContext<'ast, 'tcx> {
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     pub fn new(rustc_cx: TyCtxt<'tcx>, lint_store: &'tcx LintStore, storage: &'ast Storage<'ast>) -> &'ast Self {
         // Create context
-        let driver_cx = storage.alloc(|| Self {
+        let driver_cx = storage.alloc(Self {
             rustc_cx,
             lint_store,
             storage,
@@ -53,9 +53,9 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
         });
 
         // Create and link `AstContext`
-        let callbacks_wrapper = storage.alloc(|| DriverContextWrapper::new(driver_cx));
-        let callbacks = storage.alloc(|| callbacks_wrapper.create_driver_callback());
-        let ast_cx = storage.alloc(|| AstContext::new(callbacks));
+        let callbacks_wrapper = storage.alloc(DriverContextWrapper::new(driver_cx));
+        let callbacks = storage.alloc(callbacks_wrapper.create_driver_callback());
+        let ast_cx = storage.alloc(AstContext::new(callbacks));
         driver_cx.ast_cx.set(ast_cx).unwrap();
 
         driver_cx
@@ -95,7 +95,7 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
             SpanOwner::Item(item) => self.rustc_cx.hir().item(self.rustc_converter.to_item_id(*item)).span,
             SpanOwner::SpecificSpan(span_id) => self.rustc_converter.to_span_from_id(*span_id),
         };
-        self.storage.alloc(|| self.marker_converter.to_span(rustc_span))
+        self.storage.alloc(self.marker_converter.to_span(rustc_span))
     }
 
     fn span_snippet(&self, _span: &Span) -> Option<&'ast str> {

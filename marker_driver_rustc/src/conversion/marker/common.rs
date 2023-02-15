@@ -186,7 +186,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     Vec::with_capacity(1)
                 };
                 segments.push(self.to_path_segment(segment));
-                let path = AstPath::new(self.alloc_slice_iter(segments.into_iter()));
+                let path = AstPath::new(self.alloc_slice(segments));
 
                 // Res resolution
                 let res = if segment.res == hir::def::Res::Err {
@@ -327,7 +327,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
     #[must_use]
     pub fn to_path<T>(&self, path: &hir::Path<'tcx, T>) -> AstPath<'ast> {
-        AstPath::new(self.alloc_slice_iter(path.segments.iter().map(|seg| self.to_path_segment(seg))))
+        AstPath::new(self.alloc_slice(path.segments.iter().map(|seg| self.to_path_segment(seg))))
     }
 
     #[must_use]
@@ -367,7 +367,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             rustc_span::FileName::Real(real_name) => match real_name {
                 rustc_span::RealFileName::LocalPath(path)
                 | rustc_span::RealFileName::Remapped { virtual_name: path, .. } => {
-                    SpanSource::File(self.alloc(|| path.clone()))
+                    SpanSource::File(self.alloc(path.clone()))
                 },
             },
             rustc_span::FileName::MacroExpansion(_) => todo!(),

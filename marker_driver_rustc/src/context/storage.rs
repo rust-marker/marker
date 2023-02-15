@@ -24,15 +24,12 @@ impl<'ast> Default for Storage<'ast> {
 
 impl<'ast> Storage<'ast> {
     #[must_use]
-    pub fn alloc<F, T>(&'ast self, f: F) -> &'ast T
-    where
-        F: FnOnce() -> T,
-    {
-        self.buffer.alloc_with(f)
+    pub fn alloc<T>(&'ast self, t: T) -> &'ast T {
+        self.buffer.alloc(t)
     }
 
     #[must_use]
-    pub fn alloc_slice_iter<T, I>(&'ast self, iter: I) -> &'ast [T]
+    pub fn alloc_slice<T, I>(&'ast self, iter: I) -> &'ast [T]
     where
         I: IntoIterator<Item = T>,
         I::IntoIter: ExactSizeIterator,

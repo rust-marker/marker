@@ -6,7 +6,7 @@ use super::MarkerConverterInner;
 impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     pub fn to_stmt(&self, stmt: &hir::Stmt<'tcx>) -> Option<StmtKind<'ast>> {
         match &stmt.kind {
-            hir::StmtKind::Local(local) => Some(StmtKind::Let(self.alloc(|| self.to_let_stmt(local)))),
+            hir::StmtKind::Local(local) => Some(StmtKind::Let(self.alloc(self.to_let_stmt(local)))),
             hir::StmtKind::Item(item) => self.to_item_from_id(*item).map(StmtKind::Item),
             hir::StmtKind::Expr(expr) | hir::StmtKind::Semi(expr) => Some(StmtKind::Expr(self.to_expr(expr))),
         }
