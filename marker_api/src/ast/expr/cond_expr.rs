@@ -1,4 +1,8 @@
-use crate::{ast::pat::PatKind, ffi::FfiOption};
+use crate::{
+    ast::{pat::PatKind, Span, SpanId},
+    context::with_cx,
+    ffi::{FfiOption, FfiSlice},
+};
 
 use super::{CommonExprData, ExprKind};
 
@@ -113,5 +117,113 @@ super::impl_expr_data!(LetExpr<'ast>, Let);
 impl<'ast> LetExpr<'ast> {
     pub fn new(data: CommonExprData<'ast>, pat: PatKind<'ast>, scrutinee: ExprKind<'ast>) -> Self {
         Self { data, pat, scrutinee }
+    }
+}
+
+/// A match expression with a scrutinee and [`MatchArm`]s
+///
+/// ```
+/// # let scrutinee: &[i32] = &[1, 2];
+/// //    vvvvvvvvv The scrutinee of the expression
+/// match scrutinee {
+///     // v Arm 0
+///     [] => println!("Such much empty"),
+///     // v Arm 1
+///     [x] if *x == 1 => println!("found a one"),
+///     // v Arm 2
+///     _ => {
+///        // A block as the arm expression
+///        println!("default branch");
+///     },
+/// }
+/// ```
+#[repr(C)]
+#[derive(Debug)]
+pub struct MatchExpr<'ast> {
+    data: CommonExprData<'ast>,
+    scrutinee: ExprKind<'ast>,
+    arms: FfiSlice<'ast, MatchArm<'ast>>,
+}
+
+impl<'ast> MatchExpr<'ast> {
+    pub fn scrutinee(&self) -> ExprKind {
+        self.scrutinee
+    }
+
+    pub fn arms(&self) -> &[MatchArm<'ast>] {
+        self.arms.get()
+    }
+}
+
+super::impl_expr_data!(MatchExpr<'ast>, Match);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> MatchExpr<'ast> {
+    pub fn new(data: CommonExprData<'ast>, scrutinee: ExprKind<'ast>, arms: &'ast [MatchArm<'ast>]) -> Self {
+        Self {
+            data,
+            scrutinee,
+            arms: arms.into(),
+        }
+    }
+}
+
+/// An arm inside a [`MatchExpr`] with an optional guard.
+///
+/// ```
+/// # let scrutinee: &[i32] = &[1, 2];
+/// match scrutinee {
+/// //  vvvvv A branch with a pattern
+///     [] => println!("Such much empty"),
+///
+/// //  vvv The pattern of the arm
+///     [x] if *x == 1 => println!("found a one"),
+/// //         ^^^^^^^ The guard expression of the arm
+///
+/// //   v A wildcard pattern used as a default branch
+///      _ => {
+///         // A block as the arm expression
+///         println!("default branch");
+///      },
+/// }
+/// ```
+#[repr(C)]
+#[derive(Debug)]
+pub struct MatchArm<'ast> {
+    span: SpanId,
+    pat: PatKind<'ast>,
+    guard: FfiOption<ExprKind<'ast>>,
+    expr: ExprKind<'ast>,
+}
+
+impl<'ast> MatchArm<'ast> {
+    pub fn span(&self) -> &Span<'ast> {
+        with_cx(self, |cx| cx.get_span(self.span))
+    }
+
+    pub fn pat(&self) -> PatKind<'ast> {
+        self.pat
+    }
+
+    pub fn guard(&self) -> Option<ExprKind<'ast>> {
+        self.guard.copy()
+    }
+
+    pub fn expr(&self) -> ExprKind<'ast> {
+        self.expr
+    }
+
+    // FIXME: Add `attrs(&self)` function
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> MatchArm<'ast> {
+    pub fn new(span: SpanId, pat: PatKind<'ast>, guard: Option<ExprKind<'ast>>, expr: ExprKind<'ast>) -> Self {
+        Self {
+            span,
+            pat,
+            guard: guard.into(),
+            expr,
+        }
     }
 }

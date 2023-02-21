@@ -61,6 +61,7 @@ pub enum ExprKind<'ast> {
     Field(&'ast FieldExpr<'ast>),
     If(&'ast IfExpr<'ast>),
     Let(&'ast LetExpr<'ast>),
+    Match(&'ast MatchExpr<'ast>),
     Unstable(&'ast UnstableExpr<'ast>),
 }
 
@@ -162,7 +163,7 @@ macro_rules! impl_expr_kind_fn {
             IntLit, FloatLit, StrLit, CharLit, BoolLit, Block, UnaryOp, Borrow,
             BinaryOp, QuestionMark, As, Path, Call, Method, Array, Tuple, Ctor, Range,
             Index, Field,
-            If, Let,
+            If, Let, Match,
             Unstable
         );
     };
