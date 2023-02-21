@@ -1,8 +1,9 @@
 use marker_api::ast::{
     expr::{
-        ArrayExpr, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, CtorExpr, CtorField, ExprKind,
-        ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, IfExpr, IndexExpr, IntLitExpr, IntSuffix, LetExpr,
-        MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr, StrLitData, StrLitExpr, TupleExpr, UnstableExpr,
+        ArrayExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, CtorExpr,
+        CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, IfExpr, IndexExpr, IntLitExpr,
+        IntSuffix, LetExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr, RefExpr, StrLitData, StrLitExpr,
+        TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
     },
     Ident,
 };
@@ -41,6 +42,20 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let data = CommonExprData::new(id, self.to_span_id(expr.span));
         let expr = match &expr.kind {
             hir::ExprKind::Lit(spanned_lit) => self.to_expr_from_lit_kind(data, &spanned_lit.node),
+            hir::ExprKind::Binary(op, left, right) => ExprKind::BinaryOp(self.alloc(BinaryOpExpr::new(
+                data,
+                self.to_expr(left),
+                self.to_expr(right),
+                self.to_bin_op_kind(op),
+            ))),
+            hir::ExprKind::Unary(op, expr) => {
+                ExprKind::UnaryOp(self.alloc(UnaryOpExpr::new(data, self.to_expr(expr), self.to_unary_op_kind(*op))))
+            },
+            hir::ExprKind::AddrOf(_target, muta, inner) => ExprKind::Ref(self.alloc(RefExpr::new(
+                data,
+                self.to_expr(inner),
+                matches!(muta, hir::Mutability::Mut),
+            ))),
             hir::ExprKind::Block(block, None) => ExprKind::Block(self.alloc(self.to_block_expr(data, block))),
             hir::ExprKind::Call(operand, args) => match &operand.kind {
                 hir::ExprKind::Path(hir::QPath::LangItem(hir::LangItem::RangeInclusiveNew, _, _)) => {
@@ -243,6 +258,37 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             },
             rustc_ast::LitKind::Bool(value) => ExprKind::BoolLit(self.alloc(BoolLitExpr::new(data, *value))),
             rustc_ast::LitKind::Err => unreachable!("would have triggered a rustc error"),
+        }
+    }
+
+    fn to_bin_op_kind(&self, op: &hir::BinOp) -> BinaryOpKind {
+        match op.node {
+            hir::BinOpKind::Add => BinaryOpKind::Add,
+            hir::BinOpKind::Sub => BinaryOpKind::Sub,
+            hir::BinOpKind::Mul => BinaryOpKind::Mul,
+            hir::BinOpKind::Div => BinaryOpKind::Div,
+            hir::BinOpKind::Rem => BinaryOpKind::Rem,
+            hir::BinOpKind::And => BinaryOpKind::And,
+            hir::BinOpKind::Or => BinaryOpKind::Or,
+            hir::BinOpKind::BitXor => BinaryOpKind::BitXor,
+            hir::BinOpKind::BitAnd => BinaryOpKind::BitAnd,
+            hir::BinOpKind::BitOr => BinaryOpKind::BitOr,
+            hir::BinOpKind::Shl => BinaryOpKind::Shl,
+            hir::BinOpKind::Shr => BinaryOpKind::Shr,
+            hir::BinOpKind::Eq => BinaryOpKind::Eq,
+            hir::BinOpKind::Lt => BinaryOpKind::Lesser,
+            hir::BinOpKind::Le => BinaryOpKind::LesserEq,
+            hir::BinOpKind::Ne => BinaryOpKind::NotEq,
+            hir::BinOpKind::Ge => BinaryOpKind::GreaterEq,
+            hir::BinOpKind::Gt => BinaryOpKind::Greater,
+        }
+    }
+
+    fn to_unary_op_kind(&self, op: hir::UnOp) -> UnaryOpKind {
+        match op {
+            hir::UnOp::Neg => UnaryOpKind::Neg,
+            hir::UnOp::Not => UnaryOpKind::Not,
+            hir::UnOp::Deref => UnaryOpKind::Deref,
         }
     }
 
