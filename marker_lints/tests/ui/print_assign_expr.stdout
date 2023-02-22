@@ -1,0 +1,177 @@
+Block(
+    BlockExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        stmts: [
+            Expr(
+                Assign(
+                    AssignExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        assignee: Path(
+                            PathExpr {
+                                data: CommonExprData {
+                                    _lifetime: PhantomData<&()>,
+                                    id: ExprId(..),
+                                    span: SpanId(..),
+                                },
+                                path: AstQPath {
+                                    self_ty: None,
+                                    path_ty: None,
+                                    path: AstPath {
+                                        segments: [
+                                            AstPathSegment {
+                                                ident: Ident {
+                                                    name: "x",
+                                                    span: Span {
+                                                        source: File(
+                                                            "$DIR/print_assign_expr.rs",
+                                                        ),
+                                                        start: 150,
+                                                        end: 151,
+                                                    },
+                                                },
+                                                generics: GenericArgs {
+                                                    args: [],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    target: Var(
+                                        VarId(..),
+                                    ),
+                                },
+                            },
+                        ),
+                        value: Call(
+                            CallExpr {
+                                data: CommonExprData {
+                                    _lifetime: PhantomData<&()>,
+                                    id: ExprId(..),
+                                    span: SpanId(..),
+                                },
+                                operand: Path(
+                                    PathExpr {
+                                        data: CommonExprData {
+                                            _lifetime: PhantomData<&()>,
+                                            id: ExprId(..),
+                                            span: SpanId(..),
+                                        },
+                                        path: AstQPath {
+                                            self_ty: None,
+                                            path_ty: None,
+                                            path: AstPath {
+                                                segments: [
+                                                    AstPathSegment {
+                                                        ident: Ident {
+                                                            name: "bar",
+                                                            span: Span {
+                                                                source: File(
+                                                                    "$DIR/print_assign_expr.rs",
+                                                                ),
+                                                                start: 154,
+                                                                end: 157,
+                                                            },
+                                                        },
+                                                        generics: GenericArgs {
+                                                            args: [],
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                            target: Item(
+                                                ItemId(..),
+                                            ),
+                                        },
+                                    },
+                                ),
+                                args: [],
+                            },
+                        ),
+                        op: None,
+                    },
+                ),
+            ),
+            Expr(
+                Assign(
+                    AssignExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        assignee: Path(
+                            PathExpr {
+                                data: CommonExprData {
+                                    _lifetime: PhantomData<&()>,
+                                    id: ExprId(..),
+                                    span: SpanId(..),
+                                },
+                                path: AstQPath {
+                                    self_ty: None,
+                                    path_ty: None,
+                                    path: AstPath {
+                                        segments: [
+                                            AstPathSegment {
+                                                ident: Ident {
+                                                    name: "x",
+                                                    span: Span {
+                                                        source: File(
+                                                            "$DIR/print_assign_expr.rs",
+                                                        ),
+                                                        start: 169,
+                                                        end: 170,
+                                                    },
+                                                },
+                                                generics: GenericArgs {
+                                                    args: [],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    target: Var(
+                                        VarId(..),
+                                    ),
+                                },
+                            },
+                        ),
+                        value: IntLit(
+                            IntLitExpr {
+                                data: CommonExprData {
+                                    _lifetime: PhantomData<&()>,
+                                    id: ExprId(..),
+                                    span: SpanId(..),
+                                },
+                                value: 1,
+                                suffix: None,
+                            },
+                        ),
+                        op: Some(
+                            Add,
+                        ),
+                    },
+                ),
+            ),
+        ],
+        expr: Some(
+            Tuple(
+                TupleExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    elements: [],
+                },
+            ),
+        ),
+        is_unsafe: false,
+    },
+)
+

@@ -1,9 +1,9 @@
 use marker_api::ast::{
     expr::{
-        ArrayExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, CtorExpr,
-        CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, IfExpr, IndexExpr, IntLitExpr,
-        IntSuffix, LetExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr, RefExpr, StrLitData, StrLitExpr,
-        TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
+        ArrayExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr,
+        CommonExprData, CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, IfExpr,
+        IndexExpr, IntLitExpr, IntSuffix, LetExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr, RefExpr,
+        StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
     },
     Ident,
 };
@@ -56,7 +56,16 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 self.to_expr(inner),
                 matches!(muta, hir::Mutability::Mut),
             ))),
-            hir::ExprKind::Block(block, None) => ExprKind::Block(self.alloc(self.to_block_expr(data, block))),
+            hir::ExprKind::Block(block, None) => {
+                if let [local, ..] = block.stmts
+                    && let hir::StmtKind::Local(local) = local.kind
+                    && let hir::LocalSource::AssignDesugar(_) = local.source
+                {
+                    ExprKind::Assign(self.alloc(self.to_assign_expr_from_desugar(block)))
+                } else {
+                    ExprKind::Block(self.alloc(self.to_block_expr(data, block)))
+                }
+            },
             hir::ExprKind::Call(operand, args) => match &operand.kind {
                 hir::ExprKind::Path(hir::QPath::LangItem(hir::LangItem::RangeInclusiveNew, _, _)) => {
                     ExprKind::Range(self.alloc({
@@ -178,6 +187,15 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ExprKind::Match(scrutinee, arms, hir::MatchSource::Normal) => {
                 ExprKind::Match(self.alloc(MatchExpr::new(data, self.to_expr(scrutinee), self.to_match_arms(arms))))
             },
+            hir::ExprKind::Assign(assignee, value, _span) => {
+                ExprKind::Assign(self.alloc(AssignExpr::new(data, self.to_expr(assignee), self.to_expr(value), None)))
+            },
+            hir::ExprKind::AssignOp(op, assignee, value) => ExprKind::Assign(self.alloc(AssignExpr::new(
+                data,
+                self.to_expr(assignee),
+                self.to_expr(value),
+                Some(self.to_bin_op_kind(op)),
+            ))),
             // `DropTemps` is an rustc internal construct to tweak the drop
             // order during HIR lowering. Marker can for now ignore this and
             // convert the inner expression directly
@@ -313,5 +331,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     fn to_let_expr(&self, lets: &hir::Let<'tcx>) -> ExprKind<'ast> {
         let data = CommonExprData::new(self.to_expr_id(lets.hir_id), self.to_span_id(lets.span));
         ExprKind::Let(self.alloc(LetExpr::new(data, self.to_pat(lets.pat), self.to_expr(lets.init))))
+    }
+
+    fn to_assign_expr_from_desugar(&self, _block: &hir::Block<'_>) -> AssignExpr<'ast> {
+        todo!()
     }
 }

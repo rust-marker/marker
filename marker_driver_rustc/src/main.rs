@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![feature(rustc_private)]
 #![feature(lint_reasons)]
+#![feature(let_chains)]
 #![feature(once_cell)]
 #![warn(rustc::internal)]
 #![warn(clippy::pedantic)]
