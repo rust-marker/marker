@@ -15,7 +15,7 @@ use super::{CommonExprData, ExprKind};
 /// if cond {
 ///     // then expression
 /// } else {
-///     // els expression
+///     // else expression
 /// }
 ///
 /// # let slice: &[i32] = &[1, 2];
@@ -26,7 +26,7 @@ use super::{CommonExprData, ExprKind};
 /// # let num = 5;
 /// if num == 1 {
 ///     // then expression
-/// } else /* `IfLet` as an else expression */ if num == 2 {
+/// } else /* `IfExpr` as an else expression */ if num == 2 {
 ///     // then expression of the else expression
 /// } else {
 ///     // else expression of the else expression
@@ -50,6 +50,10 @@ impl<'ast> IfExpr<'ast> {
         self.then
     }
 
+    /// This returns the `else` expression of this `if` expression, this will
+    /// either be a [`BlockExpr`](super::BlockExpr) or [`IfExpr`].
+    ///
+    /// `els` is an abbreviation for `else`, which is a reserved keyword in Rust.
     pub fn els(&self) -> Option<ExprKind<'ast>> {
         self.els.copy()
     }
@@ -74,8 +78,8 @@ impl<'ast> IfExpr<'ast> {
     }
 }
 
-/// A `let` expression used in conditional statements, to check if a pattern
-/// matches the scrutinee.
+/// A `let` expression used in conditional statements, to check if the value
+/// of the scrutinee matches the pattern.
 ///
 /// ```
 /// # let slice: &[i32] = &[1, 2];

@@ -84,7 +84,7 @@ pub enum ExprPrecedence {
 
     Method = 0x1200_0000,
     Call = 0x1200_0001,
-    // These two are just a guess, as they're not listed in the precedence table
+    // These three are just a guess, as they're not listed in the precedence table
     If = 0x1200_0002,
     Let = 0x1200_0003,
     Match = 0x1200_0004,
