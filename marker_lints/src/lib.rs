@@ -114,7 +114,7 @@ impl LintPass for TestLintPass {
         if let StmtKind::Let(lets) = stmt {
             let PatKind::Ident(ident) = lets.pat() else { return };
             if ident.name().starts_with("_print") {
-                let Some(expr) = lets.init_expr() else { return };
+                let Some(expr) = lets.init() else { return };
 
                 println!("{expr:#?}\n");
             }

@@ -17,8 +17,8 @@ pub struct LetStmt<'ast> {
     span: SpanId,
     pat: PatKind<'ast>,
     ty: FfiOption<TyKind<'ast>>,
-    init_expr: FfiOption<ExprKind<'ast>>,
-    else_expr: FfiOption<ExprKind<'ast>>,
+    init: FfiOption<ExprKind<'ast>>,
+    els: FfiOption<ExprKind<'ast>>,
 }
 
 impl<'ast> LetStmt<'ast> {
@@ -35,12 +35,15 @@ impl<'ast> LetStmt<'ast> {
         self.ty.copy()
     }
 
-    pub fn init_expr(&self) -> Option<ExprKind<'ast>> {
-        self.init_expr.copy()
+    pub fn init(&self) -> Option<ExprKind<'ast>> {
+        self.init.copy()
     }
 
-    pub fn else_expr(&self) -> Option<ExprKind> {
-        self.else_expr.copy()
+    /// This returns the optional `else` expression of the let statement.
+    ///
+    /// `els` is an abbreviation for `else`, which is a reserved keyword in Rust.
+    pub fn els(&self) -> Option<ExprKind> {
+        self.els.copy()
     }
 }
 
@@ -50,15 +53,15 @@ impl<'ast> LetStmt<'ast> {
         span: SpanId,
         pat: PatKind<'ast>,
         ty: Option<TyKind<'ast>>,
-        init_expr: Option<ExprKind<'ast>>,
-        else_expr: Option<ExprKind<'ast>>,
+        init: Option<ExprKind<'ast>>,
+        els: Option<ExprKind<'ast>>,
     ) -> Self {
         Self {
             span,
             pat,
             ty: ty.into(),
-            init_expr: init_expr.into(),
-            else_expr: else_expr.into(),
+            init: init.into(),
+            els: els.into(),
         }
     }
 }

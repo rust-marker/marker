@@ -4,6 +4,7 @@ use std::{fmt::Debug, marker::PhantomData};
 
 mod block_expr;
 mod call_exprs;
+mod cond_expr;
 mod ctor_expr;
 mod lit_expr;
 mod op_exprs;
@@ -12,6 +13,7 @@ mod place_expr;
 mod unstable_expr;
 pub use block_expr::*;
 pub use call_exprs::*;
+pub use cond_expr::*;
 pub use ctor_expr::*;
 pub use lit_expr::*;
 pub use op_exprs::*;
@@ -57,6 +59,9 @@ pub enum ExprKind<'ast> {
     Range(&'ast RangeExpr<'ast>),
     Index(&'ast IndexExpr<'ast>),
     Field(&'ast FieldExpr<'ast>),
+    If(&'ast IfExpr<'ast>),
+    Let(&'ast LetExpr<'ast>),
+    Match(&'ast MatchExpr<'ast>),
     Unstable(&'ast UnstableExpr<'ast>),
 }
 
@@ -79,6 +84,10 @@ pub enum ExprPrecedence {
 
     Method = 0x1200_0000,
     Call = 0x1200_0001,
+    // These three are just a guess, as they're not listed in the precedence table
+    If = 0x1200_0002,
+    Let = 0x1200_0003,
+    Match = 0x1200_0004,
 
     Field = 0x1100_0000,
 
@@ -153,7 +162,9 @@ macro_rules! impl_expr_kind_fn {
         impl_expr_kind_fn!($method() -> $return_ty,
             IntLit, FloatLit, StrLit, CharLit, BoolLit, Block, UnaryOp, Borrow,
             BinaryOp, QuestionMark, As, Path, Call, Method, Array, Tuple, Ctor, Range,
-            Index, Field, Unstable
+            Index, Field,
+            If, Let, Match,
+            Unstable
         );
     };
     ($method:ident () -> $return_ty:ty $(, $kind:ident)+) => {

@@ -1,8 +1,8 @@
 use marker_api::ast::{
     expr::{
         ArrayExpr, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, CtorExpr, CtorField, ExprKind,
-        ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, IndexExpr, IntLitExpr, IntSuffix, MethodExpr, PathExpr,
-        RangeExpr, StrLitData, StrLitExpr, TupleExpr, UnstableExpr,
+        ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, IfExpr, IndexExpr, IntLitExpr, IntSuffix, LetExpr,
+        MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr, StrLitData, StrLitExpr, TupleExpr, UnstableExpr,
     },
     Ident,
 };
@@ -153,6 +153,20 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ExprKind::Field(operand, field) => {
                 ExprKind::Field(self.alloc(FieldExpr::new(data, self.to_expr(operand), self.to_ident(*field))))
             },
+            hir::ExprKind::If(scrutinee, then, els) => ExprKind::If(self.alloc(IfExpr::new(
+                data,
+                self.to_expr(scrutinee),
+                self.to_expr(then),
+                els.map(|els| self.to_expr(els)),
+            ))),
+            hir::ExprKind::Let(lets) => self.to_let_expr(lets),
+            hir::ExprKind::Match(scrutinee, arms, hir::MatchSource::Normal) => {
+                ExprKind::Match(self.alloc(MatchExpr::new(data, self.to_expr(scrutinee), self.to_match_arms(arms))))
+            },
+            // `DropTemps` is an rustc internal construct to tweak the drop
+            // order during HIR lowering. Marker can for now ignore this and
+            // convert the inner expression directly
+            hir::ExprKind::DropTemps(inner) => self.to_expr(inner),
             hir::ExprKind::Err => unreachable!("would have triggered a rustc error"),
             _ => {
                 eprintln!("skipping not implemented expr at: {:?}", expr.span);
@@ -230,5 +244,28 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             rustc_ast::LitKind::Bool(value) => ExprKind::BoolLit(self.alloc(BoolLitExpr::new(data, *value))),
             rustc_ast::LitKind::Err => unreachable!("would have triggered a rustc error"),
         }
+    }
+
+    fn to_match_arms(&self, arms: &[hir::Arm<'tcx>]) -> &'ast [MatchArm<'ast>] {
+        self.alloc_slice(arms.iter().map(|arm| self.to_match_arm(arm)))
+    }
+
+    fn to_match_arm(&self, arm: &hir::Arm<'tcx>) -> MatchArm<'ast> {
+        let guard = match &arm.guard {
+            Some(hir::Guard::If(expr)) => Some(self.to_expr(expr)),
+            Some(hir::Guard::IfLet(lets)) => Some(self.to_let_expr(lets)),
+            None => None,
+        };
+        MatchArm::new(
+            self.to_span_id(arm.span),
+            self.to_pat(arm.pat),
+            guard,
+            self.to_expr(arm.body),
+        )
+    }
+
+    fn to_let_expr(&self, lets: &hir::Let<'tcx>) -> ExprKind<'ast> {
+        let data = CommonExprData::new(self.to_expr_id(lets.hir_id), self.to_span_id(lets.span));
+        ExprKind::Let(self.alloc(LetExpr::new(data, self.to_pat(lets.pat), self.to_expr(lets.init))))
     }
 }
