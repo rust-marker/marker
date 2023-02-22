@@ -49,6 +49,7 @@ pub enum ExprKind<'ast> {
     Ref(&'ast RefExpr<'ast>),
     BinaryOp(&'ast BinaryOpExpr<'ast>),
     QuestionMark(&'ast QuestionMarkExpr<'ast>),
+    Assign(&'ast AssignExpr<'ast>),
     As(&'ast AsExpr<'ast>),
     Path(&'ast PathExpr<'ast>),
     Call(&'ast CallExpr<'ast>),
@@ -79,6 +80,7 @@ pub enum ExprPrecedence {
     Lit = 0x1400_0000,
     Block = 0x1400_0001,
     Ctor = 0x1400_0002,
+    Assign = 0x1400_0003,
 
     Path = 0x1300_0000,
 
@@ -162,7 +164,7 @@ macro_rules! impl_expr_kind_fn {
         impl_expr_kind_fn!($method() -> $return_ty,
             IntLit, FloatLit, StrLit, CharLit, BoolLit,
             Block,
-            UnaryOp, Ref, BinaryOp, QuestionMark, As,
+            UnaryOp, Ref, BinaryOp, QuestionMark, As, Assign,
             Path, Index, Field,
             Call, Method,
             Array, Tuple, Ctor, Range,
