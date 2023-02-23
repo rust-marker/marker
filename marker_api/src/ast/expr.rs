@@ -46,7 +46,7 @@ pub enum ExprKind<'ast> {
     BoolLit(&'ast BoolLitExpr<'ast>),
     Block(&'ast BlockExpr<'ast>),
     UnaryOp(&'ast UnaryOpExpr<'ast>),
-    Borrow(&'ast BorrowExpr<'ast>),
+    Ref(&'ast RefExpr<'ast>),
     BinaryOp(&'ast BinaryOpExpr<'ast>),
     QuestionMark(&'ast QuestionMarkExpr<'ast>),
     As(&'ast AsExpr<'ast>),
@@ -103,7 +103,7 @@ pub enum ExprPrecedence {
     /// The unary `*` operator
     Deref = 0x0E00_0002,
     /// The unary `&` operator
-    Reference = 0x0E00_0003,
+    Ref = 0x0E00_0003,
 
     As = 0x0D00_0000,
 
@@ -160,9 +160,12 @@ pub enum ExprPrecedence {
 macro_rules! impl_expr_kind_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_expr_kind_fn!($method() -> $return_ty,
-            IntLit, FloatLit, StrLit, CharLit, BoolLit, Block, UnaryOp, Borrow,
-            BinaryOp, QuestionMark, As, Path, Call, Method, Array, Tuple, Ctor, Range,
-            Index, Field,
+            IntLit, FloatLit, StrLit, CharLit, BoolLit,
+            Block,
+            UnaryOp, Ref, BinaryOp, QuestionMark, As,
+            Path, Index, Field,
+            Call, Method,
+            Array, Tuple, Ctor, Range,
             If, Let, Match,
             Unstable
         );

@@ -108,14 +108,13 @@ pub enum BinaryOpKind {
 
 #[repr(C)]
 #[derive(Debug)]
-// FIXME, `ReferenceExpr` might be a better name for this. Thoughts?
-pub struct BorrowExpr<'ast> {
+pub struct RefExpr<'ast> {
     data: CommonExprData<'ast>,
     expr: ExprKind<'ast>,
     is_mut: bool,
 }
 
-impl<'ast> BorrowExpr<'ast> {
+impl<'ast> RefExpr<'ast> {
     pub fn expr(&self) -> ExprKind<'ast> {
         self.expr
     }
@@ -126,15 +125,15 @@ impl<'ast> BorrowExpr<'ast> {
 }
 
 super::impl_expr_data!(
-    BorrowExpr<'ast>,
-    Borrow,
+    RefExpr<'ast>,
+    Ref,
     fn precedence(&self) -> ExprPrecedence {
-        ExprPrecedence::Reference
+        ExprPrecedence::Ref
     }
 );
 
 #[cfg(feature = "driver-api")]
-impl<'ast> BorrowExpr<'ast> {
+impl<'ast> RefExpr<'ast> {
     pub fn new(data: CommonExprData<'ast>, expr: ExprKind<'ast>, is_mut: bool) -> Self {
         Self { data, expr, is_mut }
     }
