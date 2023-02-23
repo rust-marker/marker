@@ -108,7 +108,6 @@ pub enum BinaryOpKind {
 
 #[repr(C)]
 #[derive(Debug)]
-// FIXME, `ReferenceExpr` might be a better name for this. Thoughts?
 pub struct RefExpr<'ast> {
     data: CommonExprData<'ast>,
     expr: ExprKind<'ast>,

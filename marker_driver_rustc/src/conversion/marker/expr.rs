@@ -51,7 +51,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ExprKind::Unary(op, expr) => {
                 ExprKind::UnaryOp(self.alloc(UnaryOpExpr::new(data, self.to_expr(expr), self.to_unary_op_kind(*op))))
             },
-            hir::ExprKind::AddrOf(_target, muta, inner) => ExprKind::Ref(self.alloc(RefExpr::new(
+            hir::ExprKind::AddrOf(_kind, muta, inner) => ExprKind::Ref(self.alloc(RefExpr::new(
                 data,
                 self.to_expr(inner),
                 matches!(muta, hir::Mutability::Mut),
