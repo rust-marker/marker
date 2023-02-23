@@ -1,14 +1,31 @@
-use marker_api::ast::pat::{
-    CommonPatData, IdentPat, OrPat, PatKind, RefPat, RestPat, SlicePat, StructFieldPat, StructPat, TuplePat,
-    UnstablePat, WildcardPat,
+use marker_api::ast::{
+    expr::ExprKind,
+    pat::{
+        CommonPatData, IdentPat, OrPat, PatKind, RefPat, RestPat, SlicePat, StructFieldPat, StructPat, TuplePat,
+        UnstablePat, WildcardPat,
+    },
 };
+use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 
 use super::MarkerConverterInner;
 
+thread_local! {
+    static DEFAULT_LHS_MAP: FxHashMap<hir::HirId, ExprKind<'static>> = FxHashMap::default();
+}
+
 impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_pat(&self, pat: &hir::Pat<'tcx>) -> PatKind<'ast> {
+        DEFAULT_LHS_MAP.with(|map| self.to_pat_with_hls(pat, map))
+    }
+
+    #[must_use]
+    pub fn to_pat_with_hls(
+        &self,
+        pat: &hir::Pat<'tcx>,
+        lhs_map: &FxHashMap<hir::HirId, ExprKind<'ast>>,
+    ) -> PatKind<'ast> {
         // Here we don't need to take special care for caching, as marker patterns
         // don't have IDs and can't be requested individually. Instead patterns are
         // stored as part of their parent expressions or items. Not needing to deal
@@ -18,23 +35,30 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         match &pat.kind {
             hir::PatKind::Wild => PatKind::Wildcard(self.alloc(WildcardPat::new(data))),
             hir::PatKind::Binding(hir::BindingAnnotation(by_ref, mutab), id, ident, pat) => {
-                PatKind::Ident(self.alloc({
-                    IdentPat::new(
-                        data,
-                        self.to_symbol_id(ident.name),
-                        self.to_var_id(*id),
-                        matches!(mutab, rustc_ast::Mutability::Mut),
-                        matches!(by_ref, hir::ByRef::Yes),
-                        pat.map(|rustc_pat| self.to_pat(rustc_pat)),
-                    )
-                }))
+                if pat.is_none()
+                    && matches!(mutab, rustc_ast::Mutability::Not)
+                    && let Some(place_expr) = lhs_map.get(id)
+                {
+                    PatKind::Place(*place_expr)
+                } else {
+                    PatKind::Ident(self.alloc({
+                        IdentPat::new(
+                            data,
+                            self.to_symbol_id(ident.name),
+                            self.to_var_id(*id),
+                            matches!(mutab, rustc_ast::Mutability::Mut),
+                            matches!(by_ref, hir::ByRef::Yes),
+                            pat.map(|rustc_pat| self.to_pat_with_hls(rustc_pat, lhs_map)),
+                        )
+                    }))
+                }
             },
             hir::PatKind::Struct(qpath, fields, has_rest) => {
                 let api_fields = self.alloc_slice(fields.iter().map(|field| {
                     StructFieldPat::new(
                         self.to_span_id(field.span),
                         self.to_symbol_id(field.ident.name),
-                        self.to_pat(field.pat),
+                        self.to_pat_with_hls(field.pat, lhs_map),
                     )
                 }));
                 PatKind::Struct(self.alloc(StructPat::new(
@@ -54,7 +78,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     StructFieldPat::new(
                         self.to_span_id(pat.span),
                         self.to_symbol_id_for_num(u32::try_from(index).expect("a index over 2^32 is unexpected")),
-                        self.to_pat(pat),
+                        self.to_pat_with_hls(pat, lhs_map),
                     )
                 }));
                 PatKind::Struct(self.alloc(StructPat::new(
@@ -66,29 +90,30 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             },
             hir::PatKind::Or(pats) => PatKind::Or(self.alloc(OrPat::new(
                 data,
-                self.alloc_slice(pats.iter().map(|rpat| self.to_pat(rpat))),
+                self.alloc_slice(pats.iter().map(|rpat| self.to_pat_with_hls(rpat, lhs_map))),
             ))),
             hir::PatKind::Tuple(pats, dotdot) => {
                 let pats = if let Some(rest_pos) = dotdot.as_opt_usize() {
                     let (start, end) = pats.split_at(rest_pos);
-                    self.chain_pats(start, self.new_rest_pat(), end)
+                    // This is a dummy span, it's dirty, but at least works for the mean time :)
+                    self.chain_pats(start, self.new_rest_pat(rustc_span::DUMMY_SP), end, lhs_map)
                 } else {
-                    self.alloc_slice(pats.iter().map(|pat| self.to_pat(pat)))
+                    self.alloc_slice(pats.iter().map(|pat| self.to_pat_with_hls(pat, lhs_map)))
                 };
                 PatKind::Tuple(self.alloc(TuplePat::new(data, pats)))
             },
             hir::PatKind::Box(_) => PatKind::Unstable(self.alloc(UnstablePat::new(data))),
             hir::PatKind::Ref(pat, muta) => PatKind::Ref(self.alloc(RefPat::new(
                 data,
-                self.to_pat(pat),
+                self.to_pat_with_hls(pat, lhs_map),
                 matches!(muta, hir::Mutability::Mut),
             ))),
             hir::PatKind::Slice(start, wild, end) => {
                 let elements = if let Some(wild) = wild {
-                    self.chain_pats(start, self.to_pat(wild), end)
+                    self.chain_pats(start, self.new_rest_pat(wild.span), end, lhs_map)
                 } else {
                     assert!(end.is_empty());
-                    self.alloc_slice(start.iter().map(|pat| self.to_pat(pat)))
+                    self.alloc_slice(start.iter().map(|pat| self.to_pat_with_hls(pat, lhs_map)))
                 };
                 PatKind::Slice(self.alloc(SlicePat::new(data, elements)))
             },
@@ -105,17 +130,17 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         start: &[hir::Pat<'tcx>],
         ast_wild: PatKind<'ast>,
         end: &[hir::Pat<'tcx>],
+        lhs_map: &FxHashMap<hir::HirId, ExprKind<'ast>>,
     ) -> &'ast [PatKind<'ast>] {
-        let start = start.iter().map(|pat| self.to_pat(pat));
+        let start = start.iter().map(|pat| self.to_pat_with_hls(pat, lhs_map));
         let middle = std::iter::once(ast_wild);
-        let end = end.iter().map(|pat| self.to_pat(pat));
+        let end = end.iter().map(|pat| self.to_pat_with_hls(pat, lhs_map));
         let api_pats: Vec<_> = start.chain(middle).chain(end).collect();
         self.alloc_slice(api_pats)
     }
 
-    fn new_rest_pat(&self) -> PatKind<'ast> {
-        // This is a dummy span, it's dirty, but at least works for the mean time :)
-        let data = CommonPatData::new(self.to_span_id(rustc_span::DUMMY_SP));
+    fn new_rest_pat(&self, span: rustc_span::Span) -> PatKind<'ast> {
+        let data = CommonPatData::new(self.to_span_id(span));
         PatKind::Rest(self.alloc(RestPat::new(data)))
     }
 }
