@@ -4,7 +4,7 @@ use std::{fmt::Debug, marker::PhantomData};
 
 mod block_expr;
 mod call_exprs;
-mod cond_expr;
+mod control_flow_expr;
 mod ctor_expr;
 mod lit_expr;
 mod op_exprs;
@@ -13,7 +13,7 @@ mod place_expr;
 mod unstable_expr;
 pub use block_expr::*;
 pub use call_exprs::*;
-pub use cond_expr::*;
+pub use control_flow_expr::*;
 pub use ctor_expr::*;
 pub use lit_expr::*;
 pub use op_exprs::*;
