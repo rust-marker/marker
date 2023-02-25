@@ -1,4 +1,7 @@
-use crate::ast::ty::TyKind;
+use crate::{
+    ast::{pat::PatKind, ty::TyKind},
+    ffi::FfiOption,
+};
 
 use super::{CommonExprData, ExprKind, ExprPrecedence};
 
@@ -237,5 +240,65 @@ impl<'ast> AsExpr<'ast> {
     }
 }
 
-// FIXME: Add Assign expressions, these will require place expressions and a decision
-// if some cases should be represented as patterns or always as expressions.
+/// An expression assigning a value to an assignee expression.
+///
+/// ```
+///     let mut assignee = 20;
+///
+/// //  vvvvvvvv The assignee expression
+///     assignee = 10;
+/// //             ^^ The value expression
+///
+/// //  vvvvvvvvvvvvv A complex assignee expression
+///     [assignee, _] = [2, 3];
+/// //                ^ ^^^^^^ The value expression
+/// //                |
+/// //                No compound operator
+///
+/// //  vvvvvvvv The assignee expression
+///     assignee += 1;
+/// //           ^  ^ The value expression
+/// //           |
+/// //           Plus as a compound operator
+/// ```
+#[repr(C)]
+#[derive(Debug)]
+pub struct AssignExpr<'ast> {
+    data: CommonExprData<'ast>,
+    assignee: PatKind<'ast>,
+    value: ExprKind<'ast>,
+    op: FfiOption<BinaryOpKind>,
+}
+
+impl<'ast> AssignExpr<'ast> {
+    pub fn assignee(&self) -> PatKind<'ast> {
+        self.assignee
+    }
+
+    pub fn value(&self) -> ExprKind<'ast> {
+        self.value
+    }
+
+    pub fn op(&self) -> Option<BinaryOpKind> {
+        self.op.copy()
+    }
+}
+
+super::impl_expr_data!(AssignExpr<'ast>, Assign);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> AssignExpr<'ast> {
+    pub fn new(
+        data: CommonExprData<'ast>,
+        assignee: PatKind<'ast>,
+        value: ExprKind<'ast>,
+        op: Option<BinaryOpKind>,
+    ) -> Self {
+        Self {
+            data,
+            assignee,
+            value,
+            op: op.into(),
+        }
+    }
+}

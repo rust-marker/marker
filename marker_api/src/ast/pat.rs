@@ -1,4 +1,4 @@
-use super::{Span, SpanId};
+use super::{expr::ExprKind, Span, SpanId};
 
 use std::{fmt::Debug, marker::PhantomData};
 
@@ -40,6 +40,34 @@ pub enum PatKind<'ast> {
     Tuple(&'ast TuplePat<'ast>),
     Slice(&'ast SlicePat<'ast>),
     Or(&'ast OrPat<'ast>),
+    /// Patterns are used as assignees in [`AssignExpr`](super::expr::AssignExpr)
+    /// nodes. Assign expressions can target place expressions like
+    /// variables, [`IndexExpr`](super::expr::IndexExpr)s and
+    /// [`FieldExpr`](super::expr::FieldExpr)s. These expressions would
+    /// be stored as this variant.
+    ///
+    /// ```
+    /// # fn some_fn() -> (i32, i32) { (4, 5) }
+    /// # let mut a = 1;
+    /// # let mut b = (2, 3);
+    /// # let mut c = [4, 5];
+    ///     a = 6;
+    /// //  ^ A path expression targeting the local variable `a`
+    ///
+    ///     b.1 = 7;
+    /// //  ^^^ A field expression accessing field 1 on the local variable `b`
+    ///
+    ///     c[0] = 8;
+    /// //  ^^^^ An index expression on local variable `c`
+    ///
+    ///     (a, b.0) = some_fn();
+    /// //  ^^^^^^^^ Place expressions nested in a tuple pattern
+    /// ```
+    ///
+    /// Place expressions can currently only occur from [`AssignExpr`](super::expr::AssignExpr)s.
+    /// Patterns from [`LetStmts`](super::stmt::LetStmt)s and arguments in
+    /// [`FnItem`](super::item::FnItem) will never contain place expressions.
+    Place(ExprKind<'ast>),
     Unstable(&'ast UnstablePat<'ast>),
 }
 
@@ -51,7 +79,7 @@ macro_rules! impl_pat_data_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_pat_data_fn!(
             $method() -> $return_ty,
-            Ident, Wildcard, Rest, Ref, Struct, Tuple, Slice, Or, Unstable
+            Ident, Wildcard, Rest, Ref, Struct, Tuple, Slice, Or, Place, Unstable
         );
     };
     ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
@@ -64,6 +92,16 @@ macro_rules! impl_pat_data_fn {
 }
 
 use impl_pat_data_fn;
+
+impl<'ast> PatData<'ast> for ExprKind<'ast> {
+    fn span(&self) -> &Span<'ast> {
+        self.span()
+    }
+
+    fn as_pat(&'ast self) -> PatKind<'ast> {
+        PatKind::Place(*self)
+    }
+}
 
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]

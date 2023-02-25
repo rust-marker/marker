@@ -1,0 +1,577 @@
+Block(
+    BlockExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        stmts: [
+            Expr(
+                Assign(
+                    AssignExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        assignee: Place(
+                            Path(
+                                PathExpr {
+                                    data: CommonExprData {
+                                        _lifetime: PhantomData<&()>,
+                                        id: ExprId(..),
+                                        span: SpanId(..),
+                                    },
+                                    path: AstQPath {
+                                        self_ty: None,
+                                        path_ty: None,
+                                        path: AstPath {
+                                            segments: [
+                                                AstPathSegment {
+                                                    ident: Ident {
+                                                        name: "a",
+                                                        span: Span {
+                                                            source: File(
+                                                                "$DIR/print_assign_expr.rs",
+                                                            ),
+                                                            start: 258,
+                                                            end: 259,
+                                                        },
+                                                    },
+                                                    generics: GenericArgs {
+                                                        args: [],
+                                                    },
+                                                },
+                                            ],
+                                        },
+                                        target: Var(
+                                            VarId(..),
+                                        ),
+                                    },
+                                },
+                            ),
+                        ),
+                        value: Call(
+                            CallExpr {
+                                data: CommonExprData {
+                                    _lifetime: PhantomData<&()>,
+                                    id: ExprId(..),
+                                    span: SpanId(..),
+                                },
+                                operand: Path(
+                                    PathExpr {
+                                        data: CommonExprData {
+                                            _lifetime: PhantomData<&()>,
+                                            id: ExprId(..),
+                                            span: SpanId(..),
+                                        },
+                                        path: AstQPath {
+                                            self_ty: None,
+                                            path_ty: None,
+                                            path: AstPath {
+                                                segments: [
+                                                    AstPathSegment {
+                                                        ident: Ident {
+                                                            name: "bar",
+                                                            span: Span {
+                                                                source: File(
+                                                                    "$DIR/print_assign_expr.rs",
+                                                                ),
+                                                                start: 262,
+                                                                end: 265,
+                                                            },
+                                                        },
+                                                        generics: GenericArgs {
+                                                            args: [],
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                            target: Item(
+                                                ItemId(..),
+                                            ),
+                                        },
+                                    },
+                                ),
+                                args: [],
+                            },
+                        ),
+                        op: None,
+                    },
+                ),
+            ),
+            Expr(
+                Assign(
+                    AssignExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        assignee: Place(
+                            Path(
+                                PathExpr {
+                                    data: CommonExprData {
+                                        _lifetime: PhantomData<&()>,
+                                        id: ExprId(..),
+                                        span: SpanId(..),
+                                    },
+                                    path: AstQPath {
+                                        self_ty: None,
+                                        path_ty: None,
+                                        path: AstPath {
+                                            segments: [
+                                                AstPathSegment {
+                                                    ident: Ident {
+                                                        name: "a",
+                                                        span: Span {
+                                                            source: File(
+                                                                "$DIR/print_assign_expr.rs",
+                                                            ),
+                                                            start: 277,
+                                                            end: 278,
+                                                        },
+                                                    },
+                                                    generics: GenericArgs {
+                                                        args: [],
+                                                    },
+                                                },
+                                            ],
+                                        },
+                                        target: Var(
+                                            VarId(..),
+                                        ),
+                                    },
+                                },
+                            ),
+                        ),
+                        value: IntLit(
+                            IntLitExpr {
+                                data: CommonExprData {
+                                    _lifetime: PhantomData<&()>,
+                                    id: ExprId(..),
+                                    span: SpanId(..),
+                                },
+                                value: 1,
+                                suffix: None,
+                            },
+                        ),
+                        op: Some(
+                            Add,
+                        ),
+                    },
+                ),
+            ),
+            Expr(
+                Assign(
+                    AssignExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        assignee: Slice(
+                            SlicePat {
+                                data: CommonPatData {
+                                    _lifetime: PhantomData<&()>,
+                                    span: SpanId(..),
+                                },
+                                elements: [
+                                    Place(
+                                        Path(
+                                            PathExpr {
+                                                data: CommonExprData {
+                                                    _lifetime: PhantomData<&()>,
+                                                    id: ExprId(..),
+                                                    span: SpanId(..),
+                                                },
+                                                path: AstQPath {
+                                                    self_ty: None,
+                                                    path_ty: None,
+                                                    path: AstPath {
+                                                        segments: [
+                                                            AstPathSegment {
+                                                                ident: Ident {
+                                                                    name: "a",
+                                                                    span: Span {
+                                                                        source: File(
+                                                                            "$DIR/print_assign_expr.rs",
+                                                                        ),
+                                                                        start: 294,
+                                                                        end: 295,
+                                                                    },
+                                                                },
+                                                                generics: GenericArgs {
+                                                                    args: [],
+                                                                },
+                                                            },
+                                                        ],
+                                                    },
+                                                    target: Var(
+                                                        VarId(..),
+                                                    ),
+                                                },
+                                            },
+                                        ),
+                                    ),
+                                    Place(
+                                        Path(
+                                            PathExpr {
+                                                data: CommonExprData {
+                                                    _lifetime: PhantomData<&()>,
+                                                    id: ExprId(..),
+                                                    span: SpanId(..),
+                                                },
+                                                path: AstQPath {
+                                                    self_ty: None,
+                                                    path_ty: None,
+                                                    path: AstPath {
+                                                        segments: [
+                                                            AstPathSegment {
+                                                                ident: Ident {
+                                                                    name: "b",
+                                                                    span: Span {
+                                                                        source: File(
+                                                                            "$DIR/print_assign_expr.rs",
+                                                                        ),
+                                                                        start: 297,
+                                                                        end: 298,
+                                                                    },
+                                                                },
+                                                                generics: GenericArgs {
+                                                                    args: [],
+                                                                },
+                                                            },
+                                                        ],
+                                                    },
+                                                    target: Var(
+                                                        VarId(..),
+                                                    ),
+                                                },
+                                            },
+                                        ),
+                                    ),
+                                ],
+                            },
+                        ),
+                        value: Array(
+                            ArrayExpr {
+                                data: CommonExprData {
+                                    _lifetime: PhantomData<&()>,
+                                    id: ExprId(..),
+                                    span: SpanId(..),
+                                },
+                                elements: [
+                                    IntLit(
+                                        IntLitExpr {
+                                            data: CommonExprData {
+                                                _lifetime: PhantomData<&()>,
+                                                id: ExprId(..),
+                                                span: SpanId(..),
+                                            },
+                                            value: 1,
+                                            suffix: None,
+                                        },
+                                    ),
+                                    IntLit(
+                                        IntLitExpr {
+                                            data: CommonExprData {
+                                                _lifetime: PhantomData<&()>,
+                                                id: ExprId(..),
+                                                span: SpanId(..),
+                                            },
+                                            value: 2,
+                                            suffix: None,
+                                        },
+                                    ),
+                                ],
+                                len_expr: None,
+                            },
+                        ),
+                        op: None,
+                    },
+                ),
+            ),
+            Expr(
+                Assign(
+                    AssignExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        assignee: Struct(
+                            StructPat {
+                                data: CommonPatData {
+                                    _lifetime: PhantomData<&()>,
+                                    span: SpanId(..),
+                                },
+                                path: AstPath {
+                                    segments: [
+                                        AstPathSegment {
+                                            ident: Ident {
+                                                name: "S",
+                                                span: Span {
+                                                    source: File(
+                                                        "$DIR/print_assign_expr.rs",
+                                                    ),
+                                                    start: 318,
+                                                    end: 319,
+                                                },
+                                            },
+                                            generics: GenericArgs {
+                                                args: [],
+                                            },
+                                        },
+                                    ],
+                                },
+                                fields: [
+                                    StructFieldPat {
+                                        span: SpanId(..),
+                                        ident: SymbolId(..),
+                                        pat: Slice(
+                                            SlicePat {
+                                                data: CommonPatData {
+                                                    _lifetime: PhantomData<&()>,
+                                                    span: SpanId(..),
+                                                },
+                                                elements: [
+                                                    Wildcard(
+                                                        WildcardPat {
+                                                            data: CommonPatData {
+                                                                _lifetime: PhantomData<&()>,
+                                                                span: SpanId(..),
+                                                            },
+                                                        },
+                                                    ),
+                                                    Place(
+                                                        Path(
+                                                            PathExpr {
+                                                                data: CommonExprData {
+                                                                    _lifetime: PhantomData<&()>,
+                                                                    id: ExprId(..),
+                                                                    span: SpanId(..),
+                                                                },
+                                                                path: AstQPath {
+                                                                    self_ty: None,
+                                                                    path_ty: None,
+                                                                    path: AstPath {
+                                                                        segments: [
+                                                                            AstPathSegment {
+                                                                                ident: Ident {
+                                                                                    name: "a",
+                                                                                    span: Span {
+                                                                                        source: File(
+                                                                                            "$DIR/print_assign_expr.rs",
+                                                                                        ),
+                                                                                        start: 345,
+                                                                                        end: 346,
+                                                                                    },
+                                                                                },
+                                                                                generics: GenericArgs {
+                                                                                    args: [],
+                                                                                },
+                                                                            },
+                                                                        ],
+                                                                    },
+                                                                    target: Var(
+                                                                        VarId(..),
+                                                                    ),
+                                                                },
+                                                            },
+                                                        ),
+                                                    ),
+                                                    Rest(
+                                                        RestPat {
+                                                            data: CommonPatData {
+                                                                _lifetime: PhantomData<&()>,
+                                                                span: SpanId(..),
+                                                            },
+                                                        },
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                    },
+                                    StructFieldPat {
+                                        span: SpanId(..),
+                                        ident: SymbolId(..),
+                                        pat: Tuple(
+                                            TuplePat {
+                                                data: CommonPatData {
+                                                    _lifetime: PhantomData<&()>,
+                                                    span: SpanId(..),
+                                                },
+                                                elements: [
+                                                    Place(
+                                                        Path(
+                                                            PathExpr {
+                                                                data: CommonExprData {
+                                                                    _lifetime: PhantomData<&()>,
+                                                                    id: ExprId(..),
+                                                                    span: SpanId(..),
+                                                                },
+                                                                path: AstQPath {
+                                                                    self_ty: None,
+                                                                    path_ty: None,
+                                                                    path: AstPath {
+                                                                        segments: [
+                                                                            AstPathSegment {
+                                                                                ident: Ident {
+                                                                                    name: "b",
+                                                                                    span: Span {
+                                                                                        source: File(
+                                                                                            "$DIR/print_assign_expr.rs",
+                                                                                        ),
+                                                                                        start: 373,
+                                                                                        end: 374,
+                                                                                    },
+                                                                                },
+                                                                                generics: GenericArgs {
+                                                                                    args: [],
+                                                                                },
+                                                                            },
+                                                                        ],
+                                                                    },
+                                                                    target: Var(
+                                                                        VarId(..),
+                                                                    ),
+                                                                },
+                                                            },
+                                                        ),
+                                                    ),
+                                                    Rest(
+                                                        RestPat {
+                                                            data: CommonPatData {
+                                                                _lifetime: PhantomData<&()>,
+                                                                span: SpanId(..),
+                                                            },
+                                                        },
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                    },
+                                ],
+                                is_non_exhaustive: false,
+                            },
+                        ),
+                        value: Call(
+                            CallExpr {
+                                data: CommonExprData {
+                                    _lifetime: PhantomData<&()>,
+                                    id: ExprId(..),
+                                    span: SpanId(..),
+                                },
+                                operand: Path(
+                                    PathExpr {
+                                        data: CommonExprData {
+                                            _lifetime: PhantomData<&()>,
+                                            id: ExprId(..),
+                                            span: SpanId(..),
+                                        },
+                                        path: AstQPath {
+                                            self_ty: None,
+                                            path_ty: Some(
+                                                Path(
+                                                    PathTy {
+                                                        data: CommonTyData {
+                                                            _lifetime: PhantomData<&()>,
+                                                            span: Some(
+                                                                SpanId(..),
+                                                            ),
+                                                            is_syntactic: true,
+                                                        },
+                                                        path: AstQPath {
+                                                            self_ty: None,
+                                                            path_ty: None,
+                                                            path: AstPath {
+                                                                segments: [
+                                                                    AstPathSegment {
+                                                                        ident: Ident {
+                                                                            name: "S",
+                                                                            span: Span {
+                                                                                source: File(
+                                                                                    "$DIR/print_assign_expr.rs",
+                                                                                ),
+                                                                                start: 393,
+                                                                                end: 394,
+                                                                            },
+                                                                        },
+                                                                        generics: GenericArgs {
+                                                                            args: [],
+                                                                        },
+                                                                    },
+                                                                ],
+                                                            },
+                                                            target: Item(
+                                                                ItemId(..),
+                                                            ),
+                                                        },
+                                                    },
+                                                ),
+                                            ),
+                                            path: AstPath {
+                                                segments: [
+                                                    AstPathSegment {
+                                                        ident: Ident {
+                                                            name: "S",
+                                                            span: Span {
+                                                                source: File(
+                                                                    "$DIR/print_assign_expr.rs",
+                                                                ),
+                                                                start: 393,
+                                                                end: 394,
+                                                            },
+                                                        },
+                                                        generics: GenericArgs {
+                                                            args: [],
+                                                        },
+                                                    },
+                                                    AstPathSegment {
+                                                        ident: Ident {
+                                                            name: "default",
+                                                            span: Span {
+                                                                source: File(
+                                                                    "$DIR/print_assign_expr.rs",
+                                                                ),
+                                                                start: 396,
+                                                                end: 403,
+                                                            },
+                                                        },
+                                                        generics: GenericArgs {
+                                                            args: [],
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                            target: Item(
+                                                ItemId(..),
+                                            ),
+                                        },
+                                    },
+                                ),
+                                args: [],
+                            },
+                        ),
+                        op: None,
+                    },
+                ),
+            ),
+        ],
+        expr: Some(
+            Tuple(
+                TupleExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    elements: [],
+                },
+            ),
+        ),
+        is_unsafe: false,
+    },
+)
+

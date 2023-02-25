@@ -1,12 +1,14 @@
 use marker_api::ast::{
     expr::{
-        ArrayExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr, CommonExprData, CtorExpr,
-        CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, IfExpr, IndexExpr, IntLitExpr,
-        IntSuffix, LetExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr, RefExpr, StrLitData, StrLitExpr,
-        TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
+        ArrayExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr,
+        CommonExprData, CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, IfExpr,
+        IndexExpr, IntLitExpr, IntSuffix, LetExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr, RefExpr,
+        StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
     },
+    pat::PatKind,
     Ident,
 };
+use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 use std::str::FromStr;
 
@@ -56,7 +58,16 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 self.to_expr(inner),
                 matches!(muta, hir::Mutability::Mut),
             ))),
-            hir::ExprKind::Block(block, None) => ExprKind::Block(self.alloc(self.to_block_expr(data, block))),
+            hir::ExprKind::Block(block, None) => {
+                if let [local, ..] = block.stmts
+                    && let hir::StmtKind::Local(local) = local.kind
+                    && let hir::LocalSource::AssignDesugar(_) = local.source
+                {
+                    ExprKind::Assign(self.alloc(self.to_assign_expr_from_desugar(block)))
+                } else {
+                    ExprKind::Block(self.alloc(self.to_block_expr(data, block)))
+                }
+            },
             hir::ExprKind::Call(operand, args) => match &operand.kind {
                 hir::ExprKind::Path(hir::QPath::LangItem(hir::LangItem::RangeInclusiveNew, _, _)) => {
                     ExprKind::Range(self.alloc({
@@ -178,6 +189,20 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ExprKind::Match(scrutinee, arms, hir::MatchSource::Normal) => {
                 ExprKind::Match(self.alloc(MatchExpr::new(data, self.to_expr(scrutinee), self.to_match_arms(arms))))
             },
+            hir::ExprKind::Assign(assignee, value, _span) => {
+                ExprKind::Assign(self.alloc(AssignExpr::new(
+                    data,
+                    PatKind::Place(self.to_expr(assignee)),
+                    self.to_expr(value),
+                    None,
+                )))
+            },
+            hir::ExprKind::AssignOp(op, assignee, value) => ExprKind::Assign(self.alloc(AssignExpr::new(
+                data,
+                PatKind::Place(self.to_expr(assignee)),
+                self.to_expr(value),
+                Some(self.to_bin_op_kind(op)),
+            ))),
             // `DropTemps` is an rustc internal construct to tweak the drop
             // order during HIR lowering. Marker can for now ignore this and
             // convert the inner expression directly
@@ -313,5 +338,57 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     fn to_let_expr(&self, lets: &hir::Let<'tcx>) -> ExprKind<'ast> {
         let data = CommonExprData::new(self.to_expr_id(lets.hir_id), self.to_span_id(lets.span));
         ExprKind::Let(self.alloc(LetExpr::new(data, self.to_pat(lets.pat), self.to_expr(lets.init))))
+    }
+
+    /// Rustc desugars assignments with tuples, arrays and structs in the
+    /// assignee as a block, which consists of a `let` statement, that assigns
+    /// the value expression to temporary variables called `lhs` which are
+    /// then assigned to the appropriate local variables
+    ///
+    /// The "Show HIR" option on the [Playground] is a great resource to
+    /// understand how this desugaring works. Here is a simple example to
+    /// illustrate the current desugar:
+    ///
+    /// ```
+    /// # let mut a = 0;
+    /// # let mut b = 0;
+    /// // This expression
+    /// [a, b] = [1, 2];
+    /// // Is desugared to:
+    /// { let [lhs, lhs] = [1, 2]; a = lhs; b = lhs; };
+    /// // Note that both `lhs` have different IDs
+    /// ```
+    ///
+    /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021
+    fn to_assign_expr_from_desugar(&self, block: &hir::Block<'tcx>) -> AssignExpr<'ast> {
+        let lhs_map: FxHashMap<_, _> = block
+            .stmts
+            .iter()
+            .skip(1)
+            .map(|stmt| {
+                if let hir::StmtKind::Expr(expr) = stmt.kind
+                    && let hir::ExprKind::Assign(assign_expr, value, _span) = expr.kind
+                    && let hir::ExprKind::Path(hir::QPath::Resolved(None, path)) = value.kind
+                    && let hir::def::Res::Local(local_id) = path.res
+                {
+                    (local_id, self.to_expr(assign_expr))
+                } else {
+                    unreachable!("unexpected statement while resugaring {stmt:?}")
+                }
+            })
+            .collect();
+        if let [local, ..] = block.stmts
+            && let hir::StmtKind::Local(local) = local.kind
+            && let hir::LocalSource::AssignDesugar(_) = local.source
+        {
+            AssignExpr::new(
+                CommonExprData::new(self.to_expr_id(local.hir_id), self.to_span_id(local.span)),
+                self.to_pat_with_hls(local.pat, &lhs_map),
+                self.to_expr(local.init.unwrap()),
+                None
+            )
+        } else {
+            unreachable!("assignment expr desugar always has a local as the first statement")
+        }
     }
 }
