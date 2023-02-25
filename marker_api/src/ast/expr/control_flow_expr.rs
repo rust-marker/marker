@@ -1,5 +1,5 @@
 use crate::{
-    ast::{pat::PatKind, Span, SpanId},
+    ast::{pat::PatKind, Span, SpanId, Ident},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
 };
@@ -106,11 +106,11 @@ pub struct LetExpr<'ast> {
 }
 
 impl<'ast> LetExpr<'ast> {
-    pub fn pat(&self) -> PatKind {
+    pub fn pat(&self) -> PatKind<'ast> {
         self.pat
     }
 
-    pub fn scrutinee(&self) -> ExprKind {
+    pub fn scrutinee(&self) -> ExprKind<'ast> {
         self.scrutinee
     }
 }
@@ -150,7 +150,7 @@ pub struct MatchExpr<'ast> {
 }
 
 impl<'ast> MatchExpr<'ast> {
-    pub fn scrutinee(&self) -> ExprKind {
+    pub fn scrutinee(&self) -> ExprKind<'ast> {
         self.scrutinee
     }
 
@@ -228,6 +228,149 @@ impl<'ast> MatchArm<'ast> {
             pat,
             guard: guard.into(),
             expr,
+        }
+    }
+}
+
+/// A return expression with an optional value.
+///
+/// ```
+/// pub fn foo(a: bool) {
+///     if a {
+///         return;
+///     //  ^^^^^^ A return expression without a value
+///     }
+///     // ...
+/// }
+///
+/// pub fn bar(b: bool) -> i32 {
+///     if b {
+///     //  vvvvvvvvvvvvv A return expression with a value
+///         return 0xcafe;
+///     //         ^^^^^^ The value of the return
+///     }
+///
+///     0xbeef
+/// //  ^^^^^^ This is the value of the function body and
+/// //         not a return expression
+/// }
+/// ```
+#[repr(C)]
+#[derive(Debug)]
+pub struct ReturnExpr<'ast> {
+    data: CommonExprData<'ast>,
+    expr: FfiOption<ExprKind<'ast>>,
+}
+
+impl<'ast> ReturnExpr<'ast> {
+    pub fn expr(&self) -> Option<ExprKind<'ast>> {
+        self.expr.copy()
+    }
+}
+
+super::impl_expr_data!(ReturnExpr<'ast>, Return);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> ReturnExpr<'ast> {
+    pub fn new(data: CommonExprData<'ast>, expr: Option<ExprKind<'ast>>) -> Self {
+        Self {
+            data,
+            expr: expr.into(),
+        }
+    }
+}
+
+/// A break expression with an optional label and value.
+///
+/// ```
+/// for i in 0..10 {
+///     if i == 2 {
+///         break;
+///     //  ^^^^^ A break expression targeting the for loop
+///     }
+/// }
+///
+/// let _ = 'label: {
+/// //  vvvvvvvvvvvvvv A break expression with a label and expression
+///     break 'label 4;
+/// //        ^^^^^^ ^ An expression being returned as a value of the broken expression
+/// //           |
+/// //           An optional label, specifying which expression is the target
+/// };
+/// ```
+#[repr(C)]
+#[derive(Debug)]
+pub struct BreakExpr<'ast> {
+    data: CommonExprData<'ast>,
+    label: FfiOption<Ident<'ast>>,
+    expr: FfiOption<ExprKind<'ast>>,
+}
+
+impl<'ast> BreakExpr<'ast> {
+    pub fn label(&self) -> Option<&Ident<'ast>> {
+        self.label.get()
+    }
+
+    pub fn expr(&self) -> Option<ExprKind<'ast>> {
+        self.expr.copy()
+    }
+}
+
+super::impl_expr_data!(BreakExpr<'ast>, Break);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> BreakExpr<'ast> {
+    pub fn new(data: CommonExprData<'ast>, label: Option<Ident<'ast>>, expr: Option<ExprKind<'ast>>) -> Self {
+        Self {
+            data,
+            label: label.into(),
+            expr: expr.into(),
+        }
+    }
+}
+
+/// A continue expression with an optional label.
+///
+/// ```
+/// for i in 0..10 {
+///     if i == 2 {
+///         continue;
+///     //  ^^^^^^^^ A continue expression targeting the for loop
+///     }
+/// }
+///
+/// 'label: for a in 0..100 {
+///     for b in 0..a {
+///         if b == 2 {
+///         //  vvvvvvvvvvvvvvv The continue expression targeting the outer loop
+///             continue 'label;
+///         //           ^^^^^^ The label identifying the target loop
+///         }
+///         // ...
+///     }
+/// }
+/// ```
+#[repr(C)]
+#[derive(Debug)]
+pub struct ContinueExpr<'ast> {
+    data: CommonExprData<'ast>,
+    label: FfiOption<Ident<'ast>>,
+}
+
+impl<'ast> ContinueExpr<'ast> {
+    pub fn label(&self) -> Option<&Ident<'ast>> {
+        self.label.get()
+    }
+}
+
+super::impl_expr_data!(ContinueExpr<'ast>, Continue);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> ContinueExpr<'ast> {
+    pub fn new(data: CommonExprData<'ast>, label: Option<Ident<'ast>>) -> Self {
+        Self {
+            data,
+            label: label.into(),
         }
     }
 }

@@ -23,7 +23,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         let data = CommonExprData::new(id, self.to_span_id(block.span));
-        let expr = ExprKind::Block(self.alloc(self.to_block_expr(data, block)));
+        let expr = ExprKind::Block(self.alloc(self.to_block_expr(data, block, None)));
 
         self.exprs.borrow_mut().insert(id, expr);
         expr
@@ -58,14 +58,14 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 self.to_expr(inner),
                 matches!(muta, hir::Mutability::Mut),
             ))),
-            hir::ExprKind::Block(block, None) => {
+            hir::ExprKind::Block(block, label) => {
                 if let [local, ..] = block.stmts
                     && let hir::StmtKind::Local(local) = local.kind
                     && let hir::LocalSource::AssignDesugar(_) = local.source
                 {
                     ExprKind::Assign(self.alloc(self.to_assign_expr_from_desugar(block)))
                 } else {
-                    ExprKind::Block(self.alloc(self.to_block_expr(data, block)))
+                    ExprKind::Block(self.alloc(self.to_block_expr(data, block, *label)))
                 }
             },
             hir::ExprKind::Call(operand, args) => match &operand.kind {
@@ -223,13 +223,19 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
-    fn to_block_expr(&self, data: CommonExprData<'ast>, block: &hir::Block<'tcx>) -> BlockExpr<'ast> {
+    fn to_block_expr(
+        &self,
+        data: CommonExprData<'ast>,
+        block: &hir::Block<'tcx>,
+        label: Option<rustc_ast::Label>,
+    ) -> BlockExpr<'ast> {
         let stmts: Vec<_> = block.stmts.iter().filter_map(|stmt| self.to_stmt(stmt)).collect();
         let stmts = self.alloc_slice(stmts);
         BlockExpr::new(
             data,
             stmts,
             block.expr.map(|expr| self.to_expr(expr)),
+            label.map(|label| self.to_ident(label.ident)),
             matches!(block.rules, hir::BlockCheckMode::UnsafeBlock(_)),
         )
     }

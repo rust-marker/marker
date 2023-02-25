@@ -571,6 +571,7 @@ Block(
                 },
             ),
         ),
+        label: None,
         is_unsafe: false,
     },
 )
