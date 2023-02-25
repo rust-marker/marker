@@ -341,9 +341,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     /// Rustc desugars assignments with tuples, arrays and structs in the
-    /// assignee as a `let` statements. The pattern than assign the values
-    /// to temporary variables called `lhs` which are then assigned to the
-    /// target value.
+    /// assignee as a block, which consists of a `let` statement, that assigns
+    /// the value expression to temporary variables called `lhs` which are
+    /// then assigned to the appropriate local variables
     ///
     /// The "Show HIR" option on the [Playground] is a great resource to
     /// understand how this desugaring works. Here is a simple example to
@@ -354,8 +354,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     /// # let mut b = 0;
     /// // This expression
     /// [a, b] = [1, 2];
-    /// // Is desugared to, note that both lhs have different IDs
+    /// // Is desugared to:
     /// { let [lhs, lhs] = [1, 2]; a = lhs; b = lhs; };
+    /// // Note that both `lhs` have different IDs
     /// ```
     ///
     /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021
@@ -366,11 +367,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             .skip(1)
             .map(|stmt| {
                 if let hir::StmtKind::Expr(expr) = stmt.kind
-                    && let hir::ExprKind::Assign(ass, value, _span) = expr.kind
+                    && let hir::ExprKind::Assign(assign_expr, value, _span) = expr.kind
                     && let hir::ExprKind::Path(hir::QPath::Resolved(None, path)) = value.kind
                     && let hir::def::Res::Local(local_id) = path.res
                 {
-                    (local_id, self.to_expr(ass))
+                    (local_id, self.to_expr(assign_expr))
                 } else {
                     unreachable!("unexpected statement while resugaring {stmt:?}")
                 }
