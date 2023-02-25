@@ -66,6 +66,9 @@ pub enum ExprKind<'ast> {
     Break(&'ast BreakExpr<'ast>),
     Return(&'ast ReturnExpr<'ast>),
     Continue(&'ast ContinueExpr<'ast>),
+    For(&'ast ForExpr<'ast>),
+    Loop(&'ast LoopExpr<'ast>),
+    While(&'ast WhileExpr<'ast>),
     Unstable(&'ast UnstableExpr<'ast>),
 }
 
@@ -84,6 +87,9 @@ pub enum ExprPrecedence {
     Block = 0x1400_0001,
     Ctor = 0x1400_0002,
     Assign = 0x1400_0003,
+    For = 0x1400_0004,
+    Loop = 0x1400_0005,
+    While = 0x1400_0006,
 
     Path = 0x1300_0000,
 
@@ -172,7 +178,7 @@ macro_rules! impl_expr_kind_fn {
             Path, Index, Field,
             Call, Method,
             Array, Tuple, Ctor, Range,
-            If, Let, Match, Break, Return, Continue,
+            If, Let, Match, Break, Return, Continue, For, Loop, While,
             Unstable
         );
     };

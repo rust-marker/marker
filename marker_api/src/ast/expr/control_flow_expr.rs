@@ -1,5 +1,5 @@
 use crate::{
-    ast::{pat::PatKind, Span, SpanId, Ident},
+    ast::{pat::PatKind, Ident, Span, SpanId},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
 };
@@ -371,6 +371,179 @@ impl<'ast> ContinueExpr<'ast> {
         Self {
             data,
             label: label.into(),
+        }
+    }
+}
+
+/// An unconditional loop expression
+///
+/// ```
+/// # // The `if false` is needed as `cargo test --doc` would not terminate otherwise
+/// # if false {
+///     //      vvvvvv A loop expression
+///     let _ = loop {
+///         break 3;
+///     //  ^^^^^^^ A break expression targeting the loop and returning a value
+///     };
+///
+/// //  vvvvvvvvvvvvvvvvvv An infinite loop
+///     'infinite: loop {};
+/// //  ^^^^^^^^^       ^^ A block expression as the loop body expression
+/// //      |
+/// //      An optional label to be targeted by break and continue expressions
+/// # }
+/// ```
+#[repr(C)]
+#[derive(Debug)]
+pub struct LoopExpr<'ast> {
+    data: CommonExprData<'ast>,
+    label: FfiOption<Ident<'ast>>,
+    body: ExprKind<'ast>,
+}
+
+impl<'ast> LoopExpr<'ast> {
+    pub fn label(&self) -> Option<&Ident<'ast>> {
+        self.label.get()
+    }
+
+    pub fn body(&self) -> ExprKind<'ast> {
+        self.body
+    }
+}
+
+super::impl_expr_data!(LoopExpr<'ast>, Loop);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> LoopExpr<'ast> {
+    pub fn new(data: CommonExprData<'ast>, label: Option<Ident<'ast>>, body: ExprKind<'ast>) -> Self {
+        Self {
+            data,
+            label: label.into(),
+            body,
+        }
+    }
+}
+
+/// A `while` loop expression
+///
+/// ```
+///     # let run = false;
+/// //  vvvvvvvvvvvv The while loop expression
+///     while run {}
+/// //        ^^^ ^^ The loop body
+/// //         |
+/// //         The loop condition
+///
+///     # let maybe: Option<i32> = None;
+/// //  vvvvvv An optional label to be targeted by break and continue expressions
+///     'label: while let Some(_) = maybe {}
+/// //                ^^^^^^^^^^^^^^^^^^^ A condition using pattern matching
+/// ```
+#[repr(C)]
+#[derive(Debug)]
+pub struct WhileExpr<'ast> {
+    data: CommonExprData<'ast>,
+    label: FfiOption<Ident<'ast>>,
+    condition: ExprKind<'ast>,
+    body: ExprKind<'ast>,
+}
+
+impl<'ast> WhileExpr<'ast> {
+    pub fn label(&self) -> Option<&Ident<'ast>> {
+        self.label.get()
+    }
+
+    pub fn condition(&self) -> ExprKind {
+        self.condition
+    }
+
+    pub fn body(&self) -> ExprKind<'ast> {
+        self.body
+    }
+}
+
+super::impl_expr_data!(WhileExpr<'ast>, While);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> WhileExpr<'ast> {
+    pub fn new(
+        data: CommonExprData<'ast>,
+        label: Option<Ident<'ast>>,
+        condition: ExprKind<'ast>,
+        body: ExprKind<'ast>,
+    ) -> Self {
+        Self {
+            data,
+            condition,
+            label: label.into(),
+            body,
+        }
+    }
+}
+
+/// A `for` loop iterating over values.
+///
+/// ```
+/// //  vvvvvvvvvvvvvvvvv The for loop expression
+///     for i in 0..16 {}
+/// //      ^    ^^^^^ A range as the iter expression
+/// //      |
+/// //      A pattern introducing `i` as the iter variable
+///
+///     # let tuple_iter = [(1, 2)];
+/// //  vvvvvv An optional label to be targeted by break and continue expressions
+///     'label: for (a, b) in tuple_iter {}
+/// //              ^^^^^^ A pattern matching the values of the iter expression
+/// ```
+#[repr(C)]
+#[derive(Debug)]
+pub struct ForExpr<'ast> {
+    data: CommonExprData<'ast>,
+    label: FfiOption<Ident<'ast>>,
+    pat: PatKind<'ast>,
+    // FIXME: I can't find a better name for this expression. The `iter()`
+    // function name wouldn't work, as that is reserved by conventions in Rust.
+    // `values` or something similar also doesn't quite fit IMO and the reference
+    // also doesn't provide a good name.
+    iter_expr: ExprKind<'ast>,
+    body: ExprKind<'ast>,
+}
+
+impl<'ast> ForExpr<'ast> {
+    pub fn label(&self) -> Option<&Ident<'ast>> {
+        self.label.get()
+    }
+
+    pub fn pat(&self) -> PatKind<'ast> {
+        self.pat
+    }
+
+    pub fn iter_expr(&self) -> ExprKind {
+        self.iter_expr
+    }
+
+    pub fn body(&self) -> ExprKind<'ast> {
+        self.body
+    }
+}
+
+super::impl_expr_data!(ForExpr<'ast>, For);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> ForExpr<'ast> {
+    pub fn new(
+        data: CommonExprData<'ast>,
+        label: Option<Ident<'ast>>,
+        pat: PatKind<'ast>,
+        iter_expr: ExprKind<'ast>,
+        body: ExprKind<'ast>,
+    ) -> Self {
+        Self {
+            data,
+            label: label.into(),
+            pat,
+            iter_expr,
+            body,
         }
     }
 }
