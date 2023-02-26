@@ -1,5 +1,5 @@
 use crate::{
-    ast::{pat::PatKind, Ident, Span, SpanId},
+    ast::{pat::PatKind, ExprId, Ident, Span, SpanId},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
 };
@@ -303,12 +303,17 @@ impl<'ast> ReturnExpr<'ast> {
 pub struct BreakExpr<'ast> {
     data: CommonExprData<'ast>,
     label: FfiOption<Ident<'ast>>,
+    target_id: ExprId,
     expr: FfiOption<ExprKind<'ast>>,
 }
 
 impl<'ast> BreakExpr<'ast> {
     pub fn label(&self) -> Option<&Ident<'ast>> {
         self.label.get()
+    }
+
+    pub fn target_id(&self) -> ExprId {
+        self.target_id
     }
 
     pub fn expr(&self) -> Option<ExprKind<'ast>> {
@@ -320,10 +325,16 @@ super::impl_expr_data!(BreakExpr<'ast>, Break);
 
 #[cfg(feature = "driver-api")]
 impl<'ast> BreakExpr<'ast> {
-    pub fn new(data: CommonExprData<'ast>, label: Option<Ident<'ast>>, expr: Option<ExprKind<'ast>>) -> Self {
+    pub fn new(
+        data: CommonExprData<'ast>,
+        label: Option<Ident<'ast>>,
+        target_id: ExprId,
+        expr: Option<ExprKind<'ast>>,
+    ) -> Self {
         Self {
             data,
             label: label.into(),
+            target_id,
             expr: expr.into(),
         }
     }
@@ -355,11 +366,16 @@ impl<'ast> BreakExpr<'ast> {
 pub struct ContinueExpr<'ast> {
     data: CommonExprData<'ast>,
     label: FfiOption<Ident<'ast>>,
+    target_id: ExprId,
 }
 
 impl<'ast> ContinueExpr<'ast> {
     pub fn label(&self) -> Option<&Ident<'ast>> {
         self.label.get()
+    }
+
+    pub fn target_id(&self) -> ExprId {
+        self.target_id
     }
 }
 
@@ -367,10 +383,11 @@ super::impl_expr_data!(ContinueExpr<'ast>, Continue);
 
 #[cfg(feature = "driver-api")]
 impl<'ast> ContinueExpr<'ast> {
-    pub fn new(data: CommonExprData<'ast>, label: Option<Ident<'ast>>) -> Self {
+    pub fn new(data: CommonExprData<'ast>, label: Option<Ident<'ast>>, target_id: ExprId) -> Self {
         Self {
             data,
             label: label.into(),
+            target_id,
         }
     }
 }

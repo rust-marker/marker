@@ -1,9 +1,9 @@
 use marker_api::ast::{
     expr::{
-        ArrayExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr,
-        CommonExprData, CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, IfExpr,
-        IndexExpr, IntLitExpr, IntSuffix, LetExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr, RefExpr,
-        StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
+        ArrayExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr, CallExpr, CharLitExpr,
+        CommonExprData, ContinueExpr, CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr,
+        FloatSuffix, IfExpr, IndexExpr, IntLitExpr, IntSuffix, LetExpr, MatchArm, MatchExpr, MethodExpr, PathExpr,
+        RangeExpr, RefExpr, ReturnExpr, StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
     },
     pat::PatKind,
     Ident,
@@ -59,11 +59,19 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 matches!(muta, hir::Mutability::Mut),
             ))),
             hir::ExprKind::Block(block, label) => {
-                if let [local, ..] = block.stmts
-                    && let hir::StmtKind::Local(local) = local.kind
-                    && let hir::LocalSource::AssignDesugar(_) = local.source
-                {
-                    ExprKind::Assign(self.alloc(self.to_assign_expr_from_desugar(block)))
+                let mut e = None;
+                // if let-chains sadly break rustfmt for this method. This should
+                // work well enough in the mean time
+                if let [local, ..] = block.stmts {
+                    if let hir::StmtKind::Local(local) = local.kind {
+                        if let hir::LocalSource::AssignDesugar(_) = local.source {
+                            e = Some(ExprKind::Assign(self.alloc(self.to_assign_expr_from_desugar(block))))
+                        }
+                    }
+                }
+
+                if let Some(e) = e {
+                    e
                 } else {
                     ExprKind::Block(self.alloc(self.to_block_expr(data, block, *label)))
                 }
@@ -189,20 +197,32 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ExprKind::Match(scrutinee, arms, hir::MatchSource::Normal) => {
                 ExprKind::Match(self.alloc(MatchExpr::new(data, self.to_expr(scrutinee), self.to_match_arms(arms))))
             },
-            hir::ExprKind::Assign(assignee, value, _span) => {
-                ExprKind::Assign(self.alloc(AssignExpr::new(
-                    data,
-                    PatKind::Place(self.to_expr(assignee)),
-                    self.to_expr(value),
-                    None,
-                )))
-            },
+            hir::ExprKind::Assign(assignee, value, _span) => ExprKind::Assign(self.alloc(AssignExpr::new(
+                data,
+                PatKind::Place(self.to_expr(assignee)),
+                self.to_expr(value),
+                None,
+            ))),
             hir::ExprKind::AssignOp(op, assignee, value) => ExprKind::Assign(self.alloc(AssignExpr::new(
                 data,
                 PatKind::Place(self.to_expr(assignee)),
                 self.to_expr(value),
                 Some(self.to_bin_op_kind(op)),
             ))),
+            hir::ExprKind::Break(dest, expr) => ExprKind::Break(self.alloc(BreakExpr::new(
+                data,
+                dest.label.map(|label| self.to_ident(label.ident)),
+                self.to_expr_id(dest.target_id.expect("rustc would have errored")),
+                expr.map(|expr| self.to_expr(expr)),
+            ))),
+            hir::ExprKind::Continue(dest) => ExprKind::Continue(self.alloc(ContinueExpr::new(
+                data,
+                dest.label.map(|label| self.to_ident(label.ident)),
+                self.to_expr_id(dest.target_id.expect("rustc would have errored")),
+            ))),
+            hir::ExprKind::Ret(expr) => {
+                ExprKind::Return(self.alloc(ReturnExpr::new(data, expr.map(|expr| self.to_expr(expr)))))
+            },
             // `DropTemps` is an rustc internal construct to tweak the drop
             // order during HIR lowering. Marker can for now ignore this and
             // convert the inner expression directly
