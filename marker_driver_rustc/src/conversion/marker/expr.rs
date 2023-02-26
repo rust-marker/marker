@@ -2,9 +2,9 @@ use marker_api::ast::{
     expr::{
         ArrayExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr, CallExpr, CharLitExpr,
         CommonExprData, ContinueExpr, CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr,
-        FloatSuffix, IfExpr, IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr,
-        PathExpr, RangeExpr, RefExpr, ReturnExpr, StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind,
-        UnstableExpr, WhileExpr,
+        FloatSuffix, ForExpr, IfExpr, IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr,
+        MethodExpr, PathExpr, RangeExpr, RefExpr, ReturnExpr, StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr,
+        UnaryOpKind, UnstableExpr, WhileExpr,
     },
     pat::PatKind,
     Ident,
@@ -66,7 +66,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 if let [local, ..] = block.stmts {
                     if let hir::StmtKind::Local(local) = local.kind {
                         if let hir::LocalSource::AssignDesugar(_) = local.source {
-                            e = Some(ExprKind::Assign(self.alloc(self.to_assign_expr_from_desugar(block))))
+                            e = Some(ExprKind::Assign(self.alloc(self.to_assign_expr_from_desugar(block))));
                         }
                     }
                 }
@@ -195,6 +195,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 els.map(|els| self.to_expr(els)),
             ))),
             hir::ExprKind::Let(lets) => self.to_let_expr(lets),
+            hir::ExprKind::Match(_scrutinee, _arms, hir::MatchSource::ForLoopDesugar) => {
+                ExprKind::For(self.alloc(self.to_for_from_desugar(expr)))
+            },
             hir::ExprKind::Match(scrutinee, arms, hir::MatchSource::Normal) => {
                 ExprKind::Match(self.alloc(MatchExpr::new(data, self.to_expr(scrutinee), self.to_match_arms(arms))))
             },
@@ -236,7 +239,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             // `DropTemps` is an rustc internal construct to tweak the drop
             // order during HIR lowering. Marker can for now ignore this and
             // convert the inner expression directly
-            hir::ExprKind::DropTemps(inner) => self.to_expr(inner),
+            hir::ExprKind::DropTemps(inner) => return self.to_expr(inner),
             hir::ExprKind::Err => unreachable!("would have triggered a rustc error"),
             _ => {
                 eprintln!("skipping not implemented expr at: {:?}", expr.span);
@@ -248,7 +251,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             },
         };
 
-        self.exprs.borrow_mut().insert(id, expr);
+        // Here `expr.id()` has to be used as the key, as some desugar expressions
+        // use a different id, than the one stored in the local variable `id`
+        self.exprs.borrow_mut().insert(expr.id(), expr);
         expr
     }
 
@@ -455,5 +460,35 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         unreachable!("while loop desugar always has the same structure")
+    }
+
+    #[must_use]
+    fn to_for_from_desugar(&self, into_match: &hir::Expr<'tcx>) -> ForExpr<'ast> {
+        if let hir::ExprKind::Match(into_scrutinee, [mut_iter_arm], hir::MatchSource::ForLoopDesugar) = into_match.kind
+            && let hir::ExprKind::Call(_into_iter_path, [iter_expr]) = &into_scrutinee.kind
+            && let loop_expr = mut_iter_arm.body
+            && let hir::ExprKind::Loop(block, label, hir::LoopSource::ForLoop, for_loop_head) = loop_expr.kind
+            && let [stmt] = block.stmts
+            && let hir::StmtKind::Expr(none_some_match) = stmt.kind
+            && let hir::ExprKind::Match(_, [_none, some_arm], hir::MatchSource::ForLoopDesugar) = none_some_match.kind
+            && let hir::PatKind::Struct(_some, [field], false) = &some_arm.pat.kind
+        {
+            let pat = self.to_pat(field.pat);
+            let iter_expr = self.to_expr(iter_expr);
+            let body = self.to_expr(some_arm.body);
+            let data = CommonExprData::new(
+                self.to_expr_id(loop_expr.hir_id),
+                self.to_span_id(for_loop_head.to(some_arm.body.span))
+            );
+            return ForExpr::new(
+                data,
+                label.map(|label| self.to_ident(label.ident)),
+                pat,
+                iter_expr,
+                body
+            );
+        }
+
+        unreachable!("for loop desugar always has the same structure")
     }
 }

@@ -1,0 +1,168 @@
+Block(
+    BlockExpr {
+        data: CommonExprData {
+            _lifetime: PhantomData<&()>,
+            id: ExprId(..),
+            span: SpanId(..),
+        },
+        stmts: [
+            Expr(
+                While(
+                    WhileExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        label: None,
+                        condition: Path(
+                            PathExpr {
+                                data: CommonExprData {
+                                    _lifetime: PhantomData<&()>,
+                                    id: ExprId(..),
+                                    span: SpanId(..),
+                                },
+                                path: AstQPath {
+                                    self_ty: None,
+                                    path_ty: None,
+                                    path: AstPath {
+                                        segments: [
+                                            AstPathSegment {
+                                                ident: Ident {
+                                                    name: "cond",
+                                                    span: Span {
+                                                        source: File(
+                                                            "$DIR/print_loop.rs",
+                                                        ),
+                                                        start: 126,
+                                                        end: 130,
+                                                    },
+                                                },
+                                                generics: GenericArgs {
+                                                    args: [],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    target: Var(
+                                        VarId(..),
+                                    ),
+                                },
+                            },
+                        ),
+                        body: Block(
+                            BlockExpr {
+                                data: CommonExprData {
+                                    _lifetime: PhantomData<&()>,
+                                    id: ExprId(..),
+                                    span: SpanId(..),
+                                },
+                                stmts: [],
+                                expr: None,
+                                label: None,
+                                is_unsafe: false,
+                            },
+                        ),
+                    },
+                ),
+            ),
+            Expr(
+                For(
+                    ForExpr {
+                        data: CommonExprData {
+                            _lifetime: PhantomData<&()>,
+                            id: ExprId(..),
+                            span: SpanId(..),
+                        },
+                        label: None,
+                        pat: Wildcard(
+                            WildcardPat {
+                                data: CommonPatData {
+                                    _lifetime: PhantomData<&()>,
+                                    span: SpanId(..),
+                                },
+                            },
+                        ),
+                        iter_expr: Range(
+                            RangeExpr {
+                                data: CommonExprData {
+                                    _lifetime: PhantomData<&()>,
+                                    id: ExprId(..),
+                                    span: SpanId(..),
+                                },
+                                start: Some(
+                                    IntLit(
+                                        IntLitExpr {
+                                            data: CommonExprData {
+                                                _lifetime: PhantomData<&()>,
+                                                id: ExprId(..),
+                                                span: SpanId(..),
+                                            },
+                                            value: 0,
+                                            suffix: None,
+                                        },
+                                    ),
+                                ),
+                                end: Some(
+                                    IntLit(
+                                        IntLitExpr {
+                                            data: CommonExprData {
+                                                _lifetime: PhantomData<&()>,
+                                                id: ExprId(..),
+                                                span: SpanId(..),
+                                            },
+                                            value: 10,
+                                            suffix: None,
+                                        },
+                                    ),
+                                ),
+                                is_inclusive: false,
+                            },
+                        ),
+                        body: Block(
+                            BlockExpr {
+                                data: CommonExprData {
+                                    _lifetime: PhantomData<&()>,
+                                    id: ExprId(..),
+                                    span: SpanId(..),
+                                },
+                                stmts: [],
+                                expr: None,
+                                label: None,
+                                is_unsafe: false,
+                            },
+                        ),
+                    },
+                ),
+            ),
+        ],
+        expr: Some(
+            Loop(
+                LoopExpr {
+                    data: CommonExprData {
+                        _lifetime: PhantomData<&()>,
+                        id: ExprId(..),
+                        span: SpanId(..),
+                    },
+                    label: None,
+                    body: Block(
+                        BlockExpr {
+                            data: CommonExprData {
+                                _lifetime: PhantomData<&()>,
+                                id: ExprId(..),
+                                span: SpanId(..),
+                            },
+                            stmts: [],
+                            expr: None,
+                            label: None,
+                            is_unsafe: false,
+                        },
+                    ),
+                },
+            ),
+        ),
+        label: None,
+        is_unsafe: false,
+    },
+)
+
