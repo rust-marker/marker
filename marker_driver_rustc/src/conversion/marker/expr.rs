@@ -406,7 +406,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     /// // Note that both `lhs` have different IDs
     /// ```
     ///
-    /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021
+    /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=aea16a442e31ca5e7bed1040e8960d4e
     #[must_use]
     fn to_assign_expr_from_desugar(&self, block: &hir::Block<'tcx>) -> AssignExpr<'ast> {
         let lhs_map: FxHashMap<_, _> = block
@@ -440,6 +440,20 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
     }
 
+    /// The "Show HIR" option on the [Playground] is a great resource to
+    /// understand how this desugaring works. Here is a simple example to
+    /// illustrate the current desugar:
+    ///
+    /// ```
+    /// # let mut a = 0;
+    /// # let cond = false;
+    /// // This expression
+    /// while cond { a += 1; }
+    /// // Is desugared to:
+    /// loop { if cond { a += 1; } else { break; } };
+    /// ```
+    ///
+    /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=b642324278a27a71e80720f24b29d7ee
     #[must_use]
     fn to_while_loop_from_desugar(&self, loop_expr: &hir::Expr<'tcx>) -> WhileExpr<'ast> {
         if let hir::ExprKind::Loop(block, label, hir::LoopSource::While, while_loop_head) = loop_expr.kind {
@@ -462,6 +476,27 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         unreachable!("while loop desugar always has the same structure")
     }
 
+    /// The "Show HIR" option on the [Playground] is a great resource to
+    /// understand how this desugaring works. Here is a simple example to
+    /// illustrate the current desugar:
+    ///
+    /// ```
+    /// # let range = 0..10;
+    /// // This expression
+    /// for _ in range { /* body */ }
+    /// // Is desugared to:
+    /// match IntoIterator::into_iter(range) {
+    ///     mut iter =>
+    ///         loop {
+    ///             match Iterator::next(&mut iter) {
+    ///                 None => break,
+    ///                 Some(_) => { /* body */ }
+    ///             }
+    ///         },
+    /// };
+    /// ```
+    ///
+    /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=9f11727fd0d9124ca1434936b745d495
     #[must_use]
     fn to_for_from_desugar(&self, into_match: &hir::Expr<'tcx>) -> ForExpr<'ast> {
         if let hir::ExprKind::Match(into_scrutinee, [mut_iter_arm], hir::MatchSource::ForLoopDesugar) = into_match.kind
