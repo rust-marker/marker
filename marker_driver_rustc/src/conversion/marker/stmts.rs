@@ -8,6 +8,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         match &stmt.kind {
             hir::StmtKind::Local(local) => match local.source {
                 hir::LocalSource::Normal => Some(StmtKind::Let(self.alloc(LetStmt::new(
+                    self.to_let_stmt_id(local.hir_id),
                     self.to_span_id(local.span),
                     self.to_pat(local.pat),
                     local.ty.map(|ty| self.to_ty(ty)),

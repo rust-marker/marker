@@ -11,6 +11,12 @@ pub struct TyDefIdLayout {
 }
 
 #[repr(C)]
+pub struct DefIdLayout {
+    pub krate: u32,
+    pub index: u32,
+}
+
+#[repr(C)]
 pub struct ItemIdLayout {
     pub krate: u32,
     pub index: u32,
@@ -33,7 +39,14 @@ pub struct DefIdInfo {
     pub krate: u32,
 }
 
+#[repr(C)]
 pub struct ExprIdLayout {
+    pub owner: u32,
+    pub index: u32,
+}
+
+#[repr(C)]
+pub struct HirIdLayout {
     pub owner: u32,
     pub index: u32,
 }

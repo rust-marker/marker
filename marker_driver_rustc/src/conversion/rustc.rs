@@ -9,7 +9,6 @@ use rustc_hash::FxHashMap;
 use crate::context::storage::Storage;
 
 pub struct RustcConverter<'ast, 'tcx> {
-    #[expect(dead_code, reason = "definitely needed later on")]
     rustc_cx: rustc_middle::ty::TyCtxt<'tcx>,
     storage: &'ast Storage<'ast>,
     lints: RefCell<FxHashMap<&'static Lint, &'static rustc_lint::Lint>>,

@@ -14,10 +14,13 @@ mod ty;
 use std::cell::RefCell;
 
 use crate::context::storage::Storage;
-use marker_api::ast::{
-    expr::ExprKind,
-    item::{Body, ItemKind},
-    BodyId, Crate, ExprId, ItemId, Span, SymbolId,
+use marker_api::{
+    ast::{
+        expr::ExprKind,
+        item::{Body, ItemKind},
+        BodyId, Crate, ExprId, ItemId, Span, SymbolId,
+    },
+    lint::Level,
 };
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
@@ -39,6 +42,7 @@ impl<'ast, 'tcx> MarkerConverter<'ast, 'tcx> {
         }
     }
 
+    forward_to_inner!(pub fn to_lint_level(&self, level: rustc_lint::Level) -> Level);
     forward_to_inner!(pub fn to_item(&self, rustc_item: &'tcx hir::Item<'tcx>) -> Option<ItemKind<'ast>>);
     forward_to_inner!(pub fn to_body(&self, body: &hir::Body<'tcx>) -> &'ast Body<'ast>);
     forward_to_inner!(pub fn to_span(&self, rustc_span: rustc_span::Span) -> Span<'ast>);

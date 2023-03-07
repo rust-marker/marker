@@ -2,14 +2,15 @@ use std::mem::{size_of, transmute};
 
 use marker_api::ast::ty::TyKind;
 use marker_api::ast::{
-    Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, CrateId, ExprId, GenericId, Ident, ItemId, Span,
-    SpanId, SpanSource, SymbolId, TraitRef, TyDefId, VarId, VariantId,
+    Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, CrateId, ExprId, FieldId, GenericId, Ident, ItemId,
+    LetStmtId, Span, SpanId, SpanSource, SymbolId, TraitRef, TyDefId, VarId, VariantId,
 };
+use marker_api::lint::Level;
 use rustc_hir as hir;
 use rustc_middle as mid;
 
 use crate::conversion::common::{
-    BodyIdLayout, ExprIdLayout, GenericIdLayout, ItemIdLayout, SpanSourceInfo, TyDefIdLayout, VarIdLayout,
+    BodyIdLayout, ExprIdLayout, GenericIdLayout, HirIdLayout, ItemIdLayout, SpanSourceInfo, TyDefIdLayout, VarIdLayout,
 };
 use crate::transmute_id;
 
@@ -114,6 +115,15 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
+    pub fn to_field_id(&self, rustc_id: hir::HirId) -> FieldId {
+        transmute_id!(
+            HirIdLayout as FieldId = HirIdLayout {
+                owner: rustc_id.owner.def_id.local_def_index.as_u32(),
+                index: rustc_id.local_id.as_u32(),
+            }
+        )
+    }
+    #[must_use]
     pub fn to_body_id(&self, rustc_id: hir::BodyId) -> BodyId {
         transmute_id!(
             BodyIdLayout as BodyId = BodyIdLayout {
@@ -142,10 +152,31 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             }
         )
     }
+
+    #[must_use]
+    pub fn to_let_stmt_id(&self, rustc_id: hir::HirId) -> LetStmtId {
+        transmute_id!(
+            HirIdLayout as LetStmtId = HirIdLayout {
+                owner: rustc_id.owner.def_id.local_def_index.as_u32(),
+                index: rustc_id.local_id.as_u32(),
+            }
+        )
+    }
 }
 
 // Other magical cool things
 impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
+    #[must_use]
+    pub fn to_lint_level(&self, level: rustc_lint::Level) -> Level {
+        match level {
+            rustc_lint::Level::Allow => Level::Allow,
+            rustc_lint::Level::Warn => Level::Warn,
+            rustc_lint::Level::Deny => Level::Deny,
+            rustc_lint::Level::Forbid => Level::Forbid,
+            _ => unreachable!(),
+        }
+    }
+
     #[must_use]
     pub fn to_ident(&self, ident: rustc_span::symbol::Ident) -> Ident<'ast> {
         Ident::new(self.to_symbol_id(ident.name), self.to_span_id(ident.span))
