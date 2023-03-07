@@ -120,17 +120,6 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         );
     }
 
-    fn emit_lint(&'ast self, api_lint: &'static Lint, msg: &str, api_span: &Span<'ast>) {
-        let rustc_lint = self.rustc_converter.to_lint(api_lint);
-        self.rustc_cx.struct_span_lint_hir(
-            rustc_lint,
-            rustc_hir::CRATE_HIR_ID,
-            self.rustc_converter.to_span(api_span),
-            msg,
-            |diag| diag,
-        );
-    }
-
     fn item(&'ast self, api_id: ItemId) -> Option<ItemKind<'ast>> {
         let rustc_id = self.rustc_converter.to_item_id(api_id);
         let rust_item = self.rustc_cx.hir().item(rustc_id);

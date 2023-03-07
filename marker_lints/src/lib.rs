@@ -145,7 +145,7 @@ impl LintPass for TestLintPass {
                 // the tests.
                 // I only want to enable this after the PR has been approved, as it
                 // adds a lot of superficial changes (+3810|-3498) which would
-                // complicate the review. 
+                // complicate the review.
                 //
                 // cx.emit_lint(TEST_LINT, stmt.id(), "print test", stmt.span(), |diag| {
                 //     diag.note(format!("{expr:#?}"))

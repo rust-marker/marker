@@ -133,21 +133,6 @@ impl<'ast> AstContext<'ast> {
         self.driver.call_emit_diagnostic(diag);
     }
 
-    /// This function emits a lint at the current node with the given
-    /// message and span.
-    ///
-    /// For rustc the text output will look roughly to this:
-    /// ```text
-    /// error: ducks can't talk
-    ///  --> $DIR/file.rs:17:5
-    ///    |
-    /// 17 |     println!("The duck said: 'Hello, World!'");
-    ///    |
-    /// ```
-    pub fn emit_lint_old(&self, lint: &'static Lint, msg: &str, span: &Span<'ast>) {
-        self.driver.call_emit_lint(lint, msg, span);
-    }
-
     /// This returns the [`ItemKind`] belonging to the given [`ItemId`]. It can
     /// return `None` in special cases depending on the used driver.
     ///
@@ -210,7 +195,6 @@ struct DriverCallbacks<'ast> {
     pub emit_diag: for<'a> extern "C" fn(&'ast (), &'a Diagnostic<'a, 'ast>),
 
     // Public utility
-    pub emit_lint: for<'a> extern "C" fn(&'ast (), &'static Lint, ffi::FfiStr<'a>, &Span<'ast>),
     pub item: extern "C" fn(&'ast (), id: ItemId) -> ffi::FfiOption<ItemKind<'ast>>,
     pub body: extern "C" fn(&'ast (), id: BodyId) -> &'ast Body<'ast>,
 
@@ -230,9 +214,6 @@ impl<'ast> DriverCallbacks<'ast> {
         (self.emit_diag)(self.driver_context, diag);
     }
 
-    fn call_emit_lint(&self, lint: &'static Lint, msg: &str, span: &Span<'ast>) {
-        (self.emit_lint)(self.driver_context, lint, msg.into(), span);
-    }
     fn call_item(&self, id: ItemId) -> Option<ItemKind<'ast>> {
         (self.item)(self.driver_context, id).copy()
     }

@@ -155,11 +155,7 @@ impl<'ast> DiagnosticBuilder<'ast> {
     }
 
     pub(crate) fn emit<'builder>(&'builder self, cx: &AstContext<'ast>) {
-        let parts: Vec<_> = self
-            .parts
-            .iter()
-            .map(DiagnosticPart::to_ffi_part)
-            .collect();
+        let parts: Vec<_> = self.parts.iter().map(DiagnosticPart::to_ffi_part).collect();
         let diag = Diagnostic {
             lint: self.lint,
             msg: self.msg.as_str().into(),

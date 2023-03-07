@@ -1,4 +1,7 @@
-#![allow(clippy::needless_lifetimes, reason = "the lifetimes are destroyed by unsafe, but help with readability")]
+#![allow(
+    clippy::needless_lifetimes,
+    reason = "the lifetimes are destroyed by unsafe, but help with readability"
+)]
 
 use marker_api::{
     ast::{
@@ -39,7 +42,6 @@ impl<'ast> DriverContextWrapper<'ast> {
             driver_context: unsafe { &*(self as *const DriverContextWrapper).cast::<()>() },
             lint_level_at,
             emit_diag,
-            emit_lint,
             item,
             body,
             get_span,
@@ -72,11 +74,6 @@ extern "C" fn body<'ast>(data: &(), id: BodyId) -> &'ast Body<'ast> {
     wrapper.driver_cx.body(id)
 }
 
-extern "C" fn emit_lint(data: &(), lint: &'static Lint, msg: ffi::FfiStr, span: &Span<'_>) {
-    let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
-    wrapper.driver_cx.emit_lint(lint, (&msg).into(), span);
-}
-
 extern "C" fn get_span<'ast>(data: &(), owner: &SpanOwner) -> &'ast Span<'ast> {
     let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
     wrapper.driver_cx.get_span(owner)
@@ -103,7 +100,6 @@ pub trait DriverContext<'ast> {
 
     fn item(&'ast self, api_id: ItemId) -> Option<ItemKind<'ast>>;
     fn body(&'ast self, api_id: BodyId) -> &'ast Body<'ast>;
-    fn emit_lint(&'ast self, lint: &'static Lint, msg: &str, span: &Span<'ast>);
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast>;
     fn span_snippet(&'ast self, span: &Span) -> Option<&'ast str>;
     fn symbol_str(&'ast self, api_id: SymbolId) -> &'ast str;
