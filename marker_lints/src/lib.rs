@@ -12,6 +12,7 @@ use marker_api::{
         Span,
     },
     context::AstContext,
+    diagnostic::{Applicability, EmissionNode},
     lint::Lint,
     LintPass,
 };
@@ -24,9 +25,14 @@ marker_api::lint::declare_lint!(TEST_LINT, Warn, "test lint warning");
 // to test them, think `check_struct` instead of `check_item`
 marker_api::lint::declare_lint!(FOO_ITEMS, Warn, "non-descriptive item names");
 
-fn emit_foo_lint<'ast, S: Into<String>>(cx: &'ast AstContext<'ast>, description: S, span: &'ast Span) {
+fn emit_foo_lint<'ast, S: Into<String>>(
+    cx: &'ast AstContext<'ast>,
+    node: impl Into<EmissionNode>,
+    description: S,
+    span: &Span<'ast>,
+) {
     let msg = description.into() + " named `foo`, consider using a more meaningful name";
-    cx.emit_lint(FOO_ITEMS, &msg, span);
+    cx.emit_lint(FOO_ITEMS, node, msg, span, |_| {});
 }
 
 #[derive(Default)]
@@ -41,25 +47,43 @@ impl LintPass for TestLintPass {
         if let Some(name) = item.ident() {
             let name = name.name();
             if name.starts_with("PRINT_TYPE") {
-                cx.emit_lint(TEST_LINT, "Printing type for", item.ty().span().unwrap());
+                cx.emit_lint(
+                    TEST_LINT,
+                    item.id(),
+                    "Printing type for",
+                    item.ty().span().unwrap(),
+                    |_| {},
+                );
                 eprintln!("{:#?}\n\n", item.ty());
             } else if name.starts_with("FIND_ITEM") {
-                cx.emit_lint(TEST_LINT, "hey there is a static item here", item.span());
+                cx.emit_lint(
+                    TEST_LINT,
+                    item.id(),
+                    "hey there is a static item here",
+                    item.span(),
+                    |diag| {
+                        diag.note("a note");
+                        diag.help("a help");
+                        diag.span_note("a spanned note", item.span());
+                        diag.span_help("a spanned help", item.span());
+                        diag.span_suggestion("try", item.span(), "duck", Applicability::Unspecified)
+                    },
+                )
             } else if name == "FOO" {
-                emit_foo_lint(cx, "a static item", item.span());
+                emit_foo_lint(cx, item.id(), "a static item", item.span());
             }
         }
     }
 
     fn check_const_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast ConstItem<'ast>) {
         if matches!(item.ident(), Some(name) if name == "FOO") {
-            emit_foo_lint(cx, "a constant item", item.span());
+            emit_foo_lint(cx, item.id(), "a constant item", item.span());
         }
     }
 
     fn check_extern_crate<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast ExternCrateItem<'ast>) {
         if matches!(item.ident(), Some(name) if name == "foo") {
-            emit_foo_lint(cx, "an `extern` crate", item.span());
+            emit_foo_lint(cx, item.id(), "an `extern` crate", item.span());
         }
     }
 
@@ -68,47 +92,47 @@ impl LintPass for TestLintPass {
             return;
         }
         if matches!(item.ident(), Some(name) if name == "foo") {
-            emit_foo_lint(cx, "a `use` binding", item.span());
+            emit_foo_lint(cx, item.id(), "a `use` binding", item.span());
         }
     }
 
     fn check_field<'ast>(&mut self, cx: &'ast AstContext<'ast>, field: &'ast Field<'ast>) {
         if field.ident() == "foo" {
-            emit_foo_lint(cx, "a field", field.span());
+            emit_foo_lint(cx, field.id(), "a field", field.span());
         }
     }
 
     fn check_variant<'ast>(&mut self, cx: &'ast AstContext<'ast>, variant: &'ast EnumVariant<'ast>) {
         if variant.ident() == "Foo" {
-            emit_foo_lint(cx, "an enum variant", variant.span());
+            emit_foo_lint(cx, variant.id(), "an enum variant", variant.span());
         }
     }
 
     fn check_mod<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast ModItem<'ast>) {
         if matches!(item.ident(), Some(name) if name == "foo") {
-            emit_foo_lint(cx, "a module", item.span());
+            emit_foo_lint(cx, item.id(), "a module", item.span());
         }
     }
 
     fn check_enum<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast EnumItem<'ast>) {
         if matches!(item.ident(), Some(name) if name == "Foo") {
-            emit_foo_lint(cx, "an enum", item.span());
+            emit_foo_lint(cx, item.id(), "an enum", item.span());
         }
     }
 
     fn check_struct<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StructItem<'ast>) {
         if matches!(item.ident(), Some(name) if name == "Foo") {
-            emit_foo_lint(cx, "a struct", item.span());
+            emit_foo_lint(cx, item.id(), "a struct", item.span());
         }
     }
 
     fn check_fn<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast FnItem<'ast>) {
         if matches!(item.ident(), Some(name) if name == "foo") {
-            emit_foo_lint(cx, "a function", item.span());
+            emit_foo_lint(cx, item.id(), "a function", item.span());
         }
     }
 
-    fn check_stmt<'ast>(&mut self, _cx: &'ast AstContext<'ast>, stmt: StmtKind<'ast>) {
+    fn check_stmt<'ast>(&mut self, cx: &'ast AstContext<'ast>, stmt: StmtKind<'ast>) {
         // I didn't realize that `let_chains` are still unstable. This makes the
         // code significantly less readable -.-
         if let StmtKind::Let(lets) = stmt {
@@ -117,6 +141,15 @@ impl LintPass for TestLintPass {
                 let Some(expr) = lets.init() else { return };
 
                 println!("{expr:#?}\n");
+                // FIXME: This will include the span of the printed expression in
+                // the tests.
+                // I only want to enable this after the PR has been approved, as it
+                // adds a lot of superficial changes (+3810|-3498) which would
+                // complicate the review. 
+                //
+                // cx.emit_lint(TEST_LINT, stmt.id(), "print test", stmt.span(), |diag| {
+                //     diag.note(format!("{expr:#?}"))
+                // })
             }
         }
     }

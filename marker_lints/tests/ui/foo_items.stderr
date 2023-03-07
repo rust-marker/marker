@@ -20,12 +20,6 @@ warning: a struct named `foo`, consider using a more meaningful name
 8 | |     }
   | |_____^
 
-warning: a field named `foo`, consider using a more meaningful name
- --> $DIR/foo_items.rs:7:9
-  |
-7 |         foo: i32,
-  |         ^^^^^^^^
-
 warning: a module named `foo`, consider using a more meaningful name
   --> $DIR/foo_items.rs:11:1
    |
@@ -64,5 +58,5 @@ warning: an enum variant named `foo`, consider using a more meaningful name
 17 |         Foo,
    |         ^^^
 
-warning: 9 warnings emitted
+warning: 8 warnings emitted
 

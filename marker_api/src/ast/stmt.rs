@@ -1,6 +1,6 @@
 use crate::{context::with_cx, ffi::FfiOption};
 
-use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::TyKind, LetStmtId, Span, SpanId, StmtId};
+use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::TyKind, LetStmtId, Span, SpanId, StmtId, StmtIdInner};
 
 #[repr(C)]
 #[non_exhaustive]
@@ -9,6 +9,24 @@ pub enum StmtKind<'ast> {
     Item(ItemKind<'ast>),
     Let(&'ast LetStmt<'ast>),
     Expr(ExprKind<'ast>),
+}
+
+impl<'ast> StmtKind<'ast> {
+    pub fn id(&self) -> StmtId {
+        match self {
+            StmtKind::Item(node) => StmtId::ast_new(StmtIdInner::Item(node.id())),
+            StmtKind::Let(node) => node.id(),
+            StmtKind::Expr(node) => StmtId::ast_new(StmtIdInner::Expr(node.id())),
+        }
+    }
+
+    pub fn span(&self) -> &Span<'ast> {
+        match self {
+            StmtKind::Item(node) => node.span(),
+            StmtKind::Let(node) => node.span(),
+            StmtKind::Expr(node) => node.span(),
+        }
+    }
 }
 
 #[repr(C)]
@@ -24,7 +42,7 @@ pub struct LetStmt<'ast> {
 
 impl<'ast> LetStmt<'ast> {
     pub fn id(&self) -> StmtId {
-        StmtId::ast_new(super::StmtIdInner::LetStmt(self.id))
+        StmtId::ast_new(StmtIdInner::LetStmt(self.id))
     }
 
     pub fn span(&self) -> &Span<'ast> {
