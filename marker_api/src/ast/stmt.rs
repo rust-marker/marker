@@ -1,6 +1,6 @@
 use crate::{context::with_cx, ffi::FfiOption};
 
-use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::TyKind, Span, SpanId};
+use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::TyKind, LetStmtId, Span, SpanId, StmtId};
 
 #[repr(C)]
 #[non_exhaustive]
@@ -14,6 +14,7 @@ pub enum StmtKind<'ast> {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct LetStmt<'ast> {
+    id: LetStmtId,
     span: SpanId,
     pat: PatKind<'ast>,
     ty: FfiOption<TyKind<'ast>>,
@@ -22,6 +23,10 @@ pub struct LetStmt<'ast> {
 }
 
 impl<'ast> LetStmt<'ast> {
+    pub fn id(&self) -> StmtId {
+        StmtId::ast_new(super::StmtIdInner::LetStmt(self.id))
+    }
+
     pub fn span(&self) -> &Span<'ast> {
         with_cx(self, |cx| cx.get_span(self.span))
     }
@@ -50,6 +55,7 @@ impl<'ast> LetStmt<'ast> {
 #[cfg(feature = "driver-api")]
 impl<'ast> LetStmt<'ast> {
     pub fn new(
+        id: LetStmtId,
         span: SpanId,
         pat: PatKind<'ast>,
         ty: Option<TyKind<'ast>>,
@@ -57,6 +63,7 @@ impl<'ast> LetStmt<'ast> {
         els: Option<ExprKind<'ast>>,
     ) -> Self {
         Self {
+            id,
             span,
             pat,
             ty: ty.into(),

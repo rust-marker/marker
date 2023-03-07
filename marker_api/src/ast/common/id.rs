@@ -55,6 +55,11 @@ new_id! {
 }
 
 new_id! {
+    ///  This ID uniquely identifies a field inside a struct during linting.
+    pub FieldId: u64
+}
+
+new_id! {
     /// This ID uniquely identifies a user defined type during linting.
     pub TyDefId: u64
 }
@@ -110,4 +115,35 @@ new_id! {
     /// use. Lint crates should always get [`String`] or `&str`.
     #[cfg_attr(feature = "driver-api", visibility::make(pub))]
     pub(crate) SymbolId: u32
+}
+
+new_id! {
+    /// This ID uniquely identifies a statement during linting.
+    pub StmtId: StmtIdInner
+}
+
+impl StmtId {
+    /// This is an extra constructor for api internal use. The `new_id` macro
+    /// only generates methods for drivers.
+    pub(crate) fn ast_new(data: StmtIdInner) -> Self {
+        Self { data }
+    }
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "driver-api", visibility::make(pub))]
+pub(crate) enum StmtIdInner {
+    Expr(ExprId),
+    Item(ItemId),
+    LetStmt(LetStmtId),
+}
+
+new_id! {
+    /// **Unstable**
+    ///
+    /// This id is used to identify a `let` statement. It's intended to be used
+    /// inside [`StmtIdInner`]
+    #[cfg_attr(feature = "driver-api", visibility::make(pub))]
+    pub(crate) LetStmtId: u64
 }

@@ -1,8 +1,8 @@
 use std::{marker::PhantomData, path::PathBuf};
 
-use crate::context::with_cx;
+use crate::{context::with_cx, diagnostic::Applicability};
 
-use super::{Applicability, AstPath, ItemId, SpanId, SymbolId};
+use super::{AstPath, ItemId, SpanId, SymbolId};
 
 #[repr(C)]
 #[doc(hidden)]

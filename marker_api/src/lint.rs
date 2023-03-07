@@ -28,7 +28,7 @@ pub struct Lint {
     /// Description of the lint or the issue it detects.
     ///
     /// e.g., "imports that are never used"
-    pub explaination: &'static str,
+    pub explanation: &'static str,
 
     /// The level of macro reporting.
     ///
@@ -52,38 +52,10 @@ pub enum MacroReport {
     All,
 }
 
-/// Indicates the confidence in the correctness of a suggestion.
-///
-/// All suggestions are marked with an `Applicability`. Tools use the applicability of a
-/// suggestion to determine whether it should be automatically applied or if the user
-/// should be consulted before applying the suggestion.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-#[non_exhaustive]
-pub enum Applicability {
-    /// The suggestion is definitely what the user intended, or maintains the exact
-    /// meaning of the code. This suggestion should be automatically applied.
-    ///
-    /// In case of multiple `MachineApplicable` suggestions (whether as part of
-    /// the same `multipart_suggestion` or not), all of them should be
-    /// automatically applied.
-    MachineApplicable,
-
-    /// The suggestion may be what the user intended, but it is uncertain. The suggestion
-    /// should result in valid Rust code if it is applied.
-    MaybeIncorrect,
-
-    /// The suggestion contains placeholders like `(...)` or `{ /* fields */ }`. The
-    /// suggestion cannot be applied automatically because it will not result in
-    /// valid Rust code. The user will need to fill in the placeholders.
-    HasPlaceholders,
-
-    /// The applicability of the suggestion is unknown.
-    Unspecified,
-}
-
 /// Setting for how to handle a lint.
-#[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Debug, Hash)]
+#[repr(C)]
 #[non_exhaustive]
+#[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Debug, Hash)]
 pub enum Level {
     /// The lint is allowed. A created diagnostic will not be emitted to the user by default.
     /// This level can be overridden. It's useful for rather strict lints.
@@ -112,17 +84,17 @@ pub enum Level {
 
 #[macro_export]
 macro_rules! declare_lint {
-    ($(#[$attr:meta])* $NAME: ident, $LEVEL: ident, $EXPLAINATION: literal $(,)?) => {
-        $crate::lint::declare_lint!{$(#[$attr])* $NAME, $LEVEL, $EXPLAINATION, $crate::lint::MacroReport::No }
+    ($(#[$attr:meta])* $NAME: ident, $LEVEL: ident, $EXPLANATION: literal $(,)?) => {
+        $crate::lint::declare_lint!{$(#[$attr])* $NAME, $LEVEL, $EXPLANATION, $crate::lint::MacroReport::No }
     };
     ($(#[$attr:meta])* $NAME: ident, $LEVEL: ident,
-        $EXPLAINATION: literal, $REPORT_IN_MACRO: expr $(,)?
+        $EXPLANATION: literal, $REPORT_IN_MACRO: expr $(,)?
     ) => {
         $(#[$attr])*
         pub static $NAME: &$crate::lint::Lint = &$crate::lint::Lint {
             name: concat!("marker::", stringify!($NAME)),
             default_level: $crate::lint::Level::$LEVEL,
-            explaination: $EXPLAINATION,
+            explanation: $EXPLANATION,
             report_in_macro: $REPORT_IN_MACRO,
         };
     };
