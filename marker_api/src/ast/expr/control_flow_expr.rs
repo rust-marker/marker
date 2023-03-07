@@ -247,7 +247,7 @@ impl<'ast> MatchArm<'ast> {
 ///     if b {
 ///     //  vvvvvvvvvvvvv A return expression with a value
 ///         return 0xcafe;
-///     //         ^^^^^^ The value of the return
+///     //         ^^^^^^ The value of the return expression
 ///     }
 ///
 ///     0xbeef
@@ -280,7 +280,7 @@ impl<'ast> ReturnExpr<'ast> {
     }
 }
 
-/// A break expression with an optional label and value.
+/// A break expression with an optional label and an optional value.
 ///
 /// ```
 /// for i in 0..10 {
@@ -291,11 +291,11 @@ impl<'ast> ReturnExpr<'ast> {
 /// }
 ///
 /// let _ = 'label: {
-/// //  vvvvvvvvvvvvvv A break expression with a label and expression
+/// //  vvvvvvvvvvvvvv A break expression with a label and a value
 ///     break 'label 4;
-/// //        ^^^^^^ ^ An expression being returned as a value of the broken expression
+/// //        ^^^^^^ ^ An integer literal being returned as a value of the target
 /// //           |
-/// //           An optional label, specifying which expression is the target
+/// //           An optional label, specifying which labeled expression is the target
 /// };
 /// ```
 #[repr(C)]
@@ -503,14 +503,14 @@ impl<'ast> WhileExpr<'ast> {
 /// ```
 /// //  vvvvvvvvvvvvvvvvv The for loop expression
 ///     for i in 0..16 {}
-/// //      ^    ^^^^^ A range as the iter expression
+/// //      ^    ^^^^^ A range as the iterable
 /// //      |
 /// //      A pattern introducing `i` as the iter variable
 ///
 ///     # let tuple_iter = [(1, 2)];
 /// //  vvvvvv An optional label to be targeted by break and continue expressions
 ///     'label: for (a, b) in tuple_iter {}
-/// //              ^^^^^^ A pattern matching the values of the iter expression
+/// //              ^^^^^^ A pattern matching the values of the iterable
 /// ```
 #[repr(C)]
 #[derive(Debug)]
@@ -518,11 +518,7 @@ pub struct ForExpr<'ast> {
     data: CommonExprData<'ast>,
     label: FfiOption<Ident<'ast>>,
     pat: PatKind<'ast>,
-    // FIXME: I can't find a better name for this expression. The `iter()`
-    // function name wouldn't work, as that is reserved by conventions in Rust.
-    // `values` or something similar also doesn't quite fit IMO and the reference
-    // also doesn't provide a good name.
-    iter_expr: ExprKind<'ast>,
+    iterable: ExprKind<'ast>,
     body: ExprKind<'ast>,
 }
 
@@ -535,8 +531,8 @@ impl<'ast> ForExpr<'ast> {
         self.pat
     }
 
-    pub fn iter_expr(&self) -> ExprKind {
-        self.iter_expr
+    pub fn iterable(&self) -> ExprKind {
+        self.iterable
     }
 
     pub fn body(&self) -> ExprKind<'ast> {
@@ -552,14 +548,14 @@ impl<'ast> ForExpr<'ast> {
         data: CommonExprData<'ast>,
         label: Option<Ident<'ast>>,
         pat: PatKind<'ast>,
-        iter_expr: ExprKind<'ast>,
+        iterable: ExprKind<'ast>,
         body: ExprKind<'ast>,
     ) -> Self {
         Self {
             data,
             label: label.into(),
             pat,
-            iter_expr,
+            iterable,
             body,
         }
     }

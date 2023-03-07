@@ -5,7 +5,7 @@ use crate::{
 
 use super::{CommonExprData, ExprKind};
 
-/// A block expression, is one of the most fundamental expressions in Rust. It
+/// A block expression is one of the most fundamental expressions in Rust. It
 /// is used by items and expressions to group statements together and express
 /// scopes.
 ///
@@ -20,7 +20,7 @@ use super::{CommonExprData, ExprKind};
 /// //        by the missing semicolon at the end.
 /// };
 ///
-/// //      vvvvvv A block expression with an optional label.
+/// //      vvvvvv An optional label to be targeted by break expressions
 /// let _ = 'label: {
 ///     12
 /// };
