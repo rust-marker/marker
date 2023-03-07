@@ -16,6 +16,7 @@ pub struct DiagnosticBuilder<'ast> {
     parts: Vec<DiagnosticPart<String, Span<'ast>>>,
 }
 
+#[allow(clippy::needless_pass_by_value)] // `&impl String` doesn't work
 impl<'ast> DiagnosticBuilder<'ast> {
     pub(crate) fn new(lint: &'static Lint, node: EmissionNode, msg: String, span: Span<'ast>) -> Self {
         Self {
@@ -157,7 +158,7 @@ impl<'ast> DiagnosticBuilder<'ast> {
         let parts: Vec<_> = self
             .parts
             .iter()
-            .map(|builder_part| builder_part.to_ffi_part())
+            .map(DiagnosticPart::to_ffi_part)
             .collect();
         let diag = Diagnostic {
             lint: self.lint,
@@ -166,7 +167,7 @@ impl<'ast> DiagnosticBuilder<'ast> {
             span: &self.span,
             parts: parts.as_slice().into(),
         };
-        cx.emit_diagnostic(&diag)
+        cx.emit_diagnostic(&diag);
     }
 }
 

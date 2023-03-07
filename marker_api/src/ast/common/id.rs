@@ -133,6 +133,7 @@ impl StmtId {
 #[repr(C)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
+#[allow(clippy::exhaustive_enums)] // Only driver public
 pub(crate) enum StmtIdInner {
     Expr(ExprId),
     Item(ItemId),

@@ -110,6 +110,7 @@ impl<'ast> AstContext<'ast> {
         self.driver.call_lint_level_at(lint, node.into())
     }
 
+    #[allow(clippy::needless_pass_by_value)] // `&impl ToSting`
     pub fn emit_lint<F>(
         &self,
         lint: &'static Lint,
@@ -124,12 +125,12 @@ impl<'ast> AstContext<'ast> {
         if self.lint_level_at(lint, node) != Level::Allow {
             let mut builder = DiagnosticBuilder::new(lint, node, msg.to_string(), span.clone());
             decorate(&mut builder);
-            builder.emit(self)
+            builder.emit(self);
         }
     }
 
     pub(crate) fn emit_diagnostic<'a>(&self, diag: &'a Diagnostic<'a, 'ast>) {
-        self.driver.call_emit_diagnostic(diag)
+        self.driver.call_emit_diagnostic(diag);
     }
 
     /// This function emits a lint at the current node with the given
@@ -226,7 +227,7 @@ impl<'ast> DriverCallbacks<'ast> {
     }
 
     fn call_emit_diagnostic<'a>(&self, diag: &'a Diagnostic<'a, 'ast>) {
-        (self.emit_diag)(self.driver_context, diag)
+        (self.emit_diag)(self.driver_context, diag);
     }
 
     fn call_emit_lint(&self, lint: &'static Lint, msg: &str, span: &Span<'ast>) {

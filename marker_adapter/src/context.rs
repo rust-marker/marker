@@ -1,3 +1,5 @@
+#![allow(clippy::needless_lifetimes, reason = "the lifetimes are destroyed by unsafe, but help with readability")]
+
 use marker_api::{
     ast::{
         item::{Body, ItemKind},
@@ -56,7 +58,7 @@ extern "C" fn lint_level_at(data: &(), lint: &'static Lint, node: EmissionNode) 
 
 extern "C" fn emit_diag<'a, 'ast>(data: &(), diag: &Diagnostic<'a, 'ast>) {
     let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
-    wrapper.driver_cx.emit_diag(diag)
+    wrapper.driver_cx.emit_diag(diag);
 }
 
 #[allow(improper_ctypes_definitions, reason = "fp because `ItemKind` is non-exhaustive")]

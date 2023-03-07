@@ -66,9 +66,9 @@ impl LintPass for TestLintPass {
                         diag.help("a help");
                         diag.span_note("a spanned note", item.span());
                         diag.span_help("a spanned help", item.span());
-                        diag.span_suggestion("try", item.span(), "duck", Applicability::Unspecified)
+                        diag.span_suggestion("try", item.span(), "duck", Applicability::Unspecified);
                     },
-                )
+                );
             } else if name == "FOO" {
                 emit_foo_lint(cx, item.id(), "a static item", item.span());
             }
@@ -132,7 +132,7 @@ impl LintPass for TestLintPass {
         }
     }
 
-    fn check_stmt<'ast>(&mut self, cx: &'ast AstContext<'ast>, stmt: StmtKind<'ast>) {
+    fn check_stmt<'ast>(&mut self, _cx: &'ast AstContext<'ast>, stmt: StmtKind<'ast>) {
         // I didn't realize that `let_chains` are still unstable. This makes the
         // code significantly less readable -.-
         if let StmtKind::Let(lets) = stmt {
