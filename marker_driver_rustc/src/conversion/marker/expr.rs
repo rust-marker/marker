@@ -1,9 +1,10 @@
 use marker_api::ast::{
     expr::{
-        ArrayExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, CallExpr, CharLitExpr,
-        CommonExprData, CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, IfExpr,
-        IndexExpr, IntLitExpr, IntSuffix, LetExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr, RefExpr,
-        StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
+        ArrayExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr, CallExpr, CharLitExpr,
+        CommonExprData, ContinueExpr, CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr,
+        FloatSuffix, ForExpr, IfExpr, IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr,
+        MethodExpr, PathExpr, RangeExpr, RefExpr, ReturnExpr, StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr,
+        UnaryOpKind, UnstableExpr, WhileExpr,
     },
     pat::PatKind,
     Ident,
@@ -23,7 +24,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         let data = CommonExprData::new(id, self.to_span_id(block.span));
-        let expr = ExprKind::Block(self.alloc(self.to_block_expr(data, block)));
+        let expr = ExprKind::Block(self.alloc(self.to_block_expr(data, block, None)));
 
         self.exprs.borrow_mut().insert(id, expr);
         expr
@@ -58,14 +59,22 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 self.to_expr(inner),
                 matches!(muta, hir::Mutability::Mut),
             ))),
-            hir::ExprKind::Block(block, None) => {
-                if let [local, ..] = block.stmts
-                    && let hir::StmtKind::Local(local) = local.kind
-                    && let hir::LocalSource::AssignDesugar(_) = local.source
-                {
-                    ExprKind::Assign(self.alloc(self.to_assign_expr_from_desugar(block)))
+            hir::ExprKind::Block(block, label) => {
+                let mut e = None;
+                // if let-chains sadly break rustfmt for this method. This should
+                // work well enough in the mean time
+                if let [local, ..] = block.stmts {
+                    if let hir::StmtKind::Local(local) = local.kind {
+                        if let hir::LocalSource::AssignDesugar(_) = local.source {
+                            e = Some(ExprKind::Assign(self.alloc(self.to_assign_expr_from_desugar(block))));
+                        }
+                    }
+                }
+
+                if let Some(e) = e {
+                    e
                 } else {
-                    ExprKind::Block(self.alloc(self.to_block_expr(data, block)))
+                    ExprKind::Block(self.alloc(self.to_block_expr(data, block, *label)))
                 }
             },
             hir::ExprKind::Call(operand, args) => match &operand.kind {
@@ -186,27 +195,51 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 els.map(|els| self.to_expr(els)),
             ))),
             hir::ExprKind::Let(lets) => self.to_let_expr(lets),
+            hir::ExprKind::Match(_scrutinee, _arms, hir::MatchSource::ForLoopDesugar) => {
+                ExprKind::For(self.alloc(self.to_for_from_desugar(expr)))
+            },
             hir::ExprKind::Match(scrutinee, arms, hir::MatchSource::Normal) => {
                 ExprKind::Match(self.alloc(MatchExpr::new(data, self.to_expr(scrutinee), self.to_match_arms(arms))))
             },
-            hir::ExprKind::Assign(assignee, value, _span) => {
-                ExprKind::Assign(self.alloc(AssignExpr::new(
-                    data,
-                    PatKind::Place(self.to_expr(assignee)),
-                    self.to_expr(value),
-                    None,
-                )))
-            },
+            hir::ExprKind::Assign(assignee, value, _span) => ExprKind::Assign(self.alloc(AssignExpr::new(
+                data,
+                PatKind::Place(self.to_expr(assignee)),
+                self.to_expr(value),
+                None,
+            ))),
             hir::ExprKind::AssignOp(op, assignee, value) => ExprKind::Assign(self.alloc(AssignExpr::new(
                 data,
                 PatKind::Place(self.to_expr(assignee)),
                 self.to_expr(value),
                 Some(self.to_bin_op_kind(op)),
             ))),
+            hir::ExprKind::Break(dest, expr) => ExprKind::Break(self.alloc(BreakExpr::new(
+                data,
+                dest.label.map(|label| self.to_ident(label.ident)),
+                self.to_expr_id(dest.target_id.expect("rustc would have errored")),
+                expr.map(|expr| self.to_expr(expr)),
+            ))),
+            hir::ExprKind::Continue(dest) => ExprKind::Continue(self.alloc(ContinueExpr::new(
+                data,
+                dest.label.map(|label| self.to_ident(label.ident)),
+                self.to_expr_id(dest.target_id.expect("rustc would have errored")),
+            ))),
+            hir::ExprKind::Ret(expr) => {
+                ExprKind::Return(self.alloc(ReturnExpr::new(data, expr.map(|expr| self.to_expr(expr)))))
+            },
+            hir::ExprKind::Loop(block, label, source, _span) => match source {
+                hir::LoopSource::Loop => ExprKind::Loop(self.alloc(LoopExpr::new(
+                    data,
+                    label.map(|label| self.to_ident(label.ident)),
+                    self.to_expr_from_block(block),
+                ))),
+                hir::LoopSource::While => ExprKind::While(self.alloc(self.to_while_loop_from_desugar(expr))),
+                hir::LoopSource::ForLoop => unreachable!("is desugared at a higher node level"),
+            },
             // `DropTemps` is an rustc internal construct to tweak the drop
             // order during HIR lowering. Marker can for now ignore this and
             // convert the inner expression directly
-            hir::ExprKind::DropTemps(inner) => self.to_expr(inner),
+            hir::ExprKind::DropTemps(inner) => return self.to_expr(inner),
             hir::ExprKind::Err => unreachable!("would have triggered a rustc error"),
             _ => {
                 eprintln!("skipping not implemented expr at: {:?}", expr.span);
@@ -218,22 +251,31 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             },
         };
 
-        self.exprs.borrow_mut().insert(id, expr);
+        // Here `expr.id()` has to be used as the key, as some desugar expressions
+        // use a different id, than the one stored in the local variable `id`
+        self.exprs.borrow_mut().insert(expr.id(), expr);
         expr
     }
 
     #[must_use]
-    fn to_block_expr(&self, data: CommonExprData<'ast>, block: &hir::Block<'tcx>) -> BlockExpr<'ast> {
+    fn to_block_expr(
+        &self,
+        data: CommonExprData<'ast>,
+        block: &hir::Block<'tcx>,
+        label: Option<rustc_ast::Label>,
+    ) -> BlockExpr<'ast> {
         let stmts: Vec<_> = block.stmts.iter().filter_map(|stmt| self.to_stmt(stmt)).collect();
         let stmts = self.alloc_slice(stmts);
         BlockExpr::new(
             data,
             stmts,
             block.expr.map(|expr| self.to_expr(expr)),
+            label.map(|label| self.to_ident(label.ident)),
             matches!(block.rules, hir::BlockCheckMode::UnsafeBlock(_)),
         )
     }
 
+    #[must_use]
     fn to_expr_from_lit_kind(&self, data: CommonExprData<'ast>, lit_kind: &rustc_ast::LitKind) -> ExprKind<'ast> {
         match &lit_kind {
             rustc_ast::LitKind::Str(sym, kind) => ExprKind::StrLit(self.alloc({
@@ -286,6 +328,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
     }
 
+    #[must_use]
     fn to_bin_op_kind(&self, op: &hir::BinOp) -> BinaryOpKind {
         match op.node {
             hir::BinOpKind::Add => BinaryOpKind::Add,
@@ -309,6 +352,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
     }
 
+    #[must_use]
     fn to_unary_op_kind(&self, op: hir::UnOp) -> UnaryOpKind {
         match op {
             hir::UnOp::Neg => UnaryOpKind::Neg,
@@ -317,10 +361,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
     }
 
+    #[must_use]
     fn to_match_arms(&self, arms: &[hir::Arm<'tcx>]) -> &'ast [MatchArm<'ast>] {
         self.alloc_slice(arms.iter().map(|arm| self.to_match_arm(arm)))
     }
 
+    #[must_use]
     fn to_match_arm(&self, arm: &hir::Arm<'tcx>) -> MatchArm<'ast> {
         let guard = match &arm.guard {
             Some(hir::Guard::If(expr)) => Some(self.to_expr(expr)),
@@ -335,6 +381,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         )
     }
 
+    #[must_use]
     fn to_let_expr(&self, lets: &hir::Let<'tcx>) -> ExprKind<'ast> {
         let data = CommonExprData::new(self.to_expr_id(lets.hir_id), self.to_span_id(lets.span));
         ExprKind::Let(self.alloc(LetExpr::new(data, self.to_pat(lets.pat), self.to_expr(lets.init))))
@@ -359,7 +406,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     /// // Note that both `lhs` have different IDs
     /// ```
     ///
-    /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021
+    /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=aea16a442e31ca5e7bed1040e8960d4e
+    #[must_use]
     fn to_assign_expr_from_desugar(&self, block: &hir::Block<'tcx>) -> AssignExpr<'ast> {
         let lhs_map: FxHashMap<_, _> = block
             .stmts
@@ -390,5 +438,92 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         } else {
             unreachable!("assignment expr desugar always has a local as the first statement")
         }
+    }
+
+    /// The "Show HIR" option on the [Playground] is a great resource to
+    /// understand how this desugaring works. Here is a simple example to
+    /// illustrate the current desugar:
+    ///
+    /// ```
+    /// # let mut a = 0;
+    /// # let cond = false;
+    /// // This expression
+    /// while cond { a += 1; }
+    /// // Is desugared to:
+    /// loop { if cond { a += 1; } else { break; } };
+    /// ```
+    ///
+    /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=b642324278a27a71e80720f24b29d7ee
+    #[must_use]
+    fn to_while_loop_from_desugar(&self, loop_expr: &hir::Expr<'tcx>) -> WhileExpr<'ast> {
+        if let hir::ExprKind::Loop(block, label, hir::LoopSource::While, while_loop_head) = loop_expr.kind {
+            if let Some(expr) = block.expr {
+                if let hir::ExprKind::If(cond, then, Some(_)) = expr.kind {
+                    let data = CommonExprData::new(
+                        self.to_expr_id(loop_expr.hir_id),
+                        self.to_span_id(while_loop_head.to(then.span)),
+                    );
+                    return WhileExpr::new(
+                        data,
+                        label.map(|label| self.to_ident(label.ident)),
+                        self.to_expr(cond),
+                        self.to_expr(then),
+                    );
+                }
+            }
+        }
+
+        unreachable!("while loop desugar always has the same structure")
+    }
+
+    /// The "Show HIR" option on the [Playground] is a great resource to
+    /// understand how this desugaring works. Here is a simple example to
+    /// illustrate the current desugar:
+    ///
+    /// ```
+    /// # let range = 0..10;
+    /// // This expression
+    /// for _ in range { /* body */ }
+    /// // Is desugared to:
+    /// match IntoIterator::into_iter(range) {
+    ///     mut iter =>
+    ///         loop {
+    ///             match Iterator::next(&mut iter) {
+    ///                 None => break,
+    ///                 Some(_) => { /* body */ }
+    ///             }
+    ///         },
+    /// };
+    /// ```
+    ///
+    /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=9f11727fd0d9124ca1434936b745d495
+    #[must_use]
+    fn to_for_from_desugar(&self, into_match: &hir::Expr<'tcx>) -> ForExpr<'ast> {
+        if let hir::ExprKind::Match(into_scrutinee, [mut_iter_arm], hir::MatchSource::ForLoopDesugar) = into_match.kind
+            && let hir::ExprKind::Call(_into_iter_path, [iter_expr]) = &into_scrutinee.kind
+            && let loop_expr = mut_iter_arm.body
+            && let hir::ExprKind::Loop(block, label, hir::LoopSource::ForLoop, for_loop_head) = loop_expr.kind
+            && let [stmt] = block.stmts
+            && let hir::StmtKind::Expr(none_some_match) = stmt.kind
+            && let hir::ExprKind::Match(_, [_none, some_arm], hir::MatchSource::ForLoopDesugar) = none_some_match.kind
+            && let hir::PatKind::Struct(_some, [field], false) = &some_arm.pat.kind
+        {
+            let pat = self.to_pat(field.pat);
+            let iter_expr = self.to_expr(iter_expr);
+            let body = self.to_expr(some_arm.body);
+            let data = CommonExprData::new(
+                self.to_expr_id(loop_expr.hir_id),
+                self.to_span_id(for_loop_head.to(some_arm.body.span))
+            );
+            return ForExpr::new(
+                data,
+                label.map(|label| self.to_ident(label.ident)),
+                pat,
+                iter_expr,
+                body
+            );
+        }
+
+        unreachable!("for loop desugar always has the same structure")
     }
 }

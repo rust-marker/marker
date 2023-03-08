@@ -115,6 +115,7 @@ Block(
                 },
             ),
         ),
+        label: None,
         is_unsafe: false,
     },
 )
@@ -140,6 +141,7 @@ Block(
                 },
             ),
         ),
+        label: None,
         is_unsafe: true,
     },
 )

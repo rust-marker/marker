@@ -4,7 +4,7 @@ use std::{fmt::Debug, marker::PhantomData};
 
 mod block_expr;
 mod call_exprs;
-mod cond_expr;
+mod control_flow_expr;
 mod ctor_expr;
 mod lit_expr;
 mod op_exprs;
@@ -13,7 +13,7 @@ mod place_expr;
 mod unstable_expr;
 pub use block_expr::*;
 pub use call_exprs::*;
-pub use cond_expr::*;
+pub use control_flow_expr::*;
 pub use ctor_expr::*;
 pub use lit_expr::*;
 pub use op_exprs::*;
@@ -63,6 +63,12 @@ pub enum ExprKind<'ast> {
     If(&'ast IfExpr<'ast>),
     Let(&'ast LetExpr<'ast>),
     Match(&'ast MatchExpr<'ast>),
+    Break(&'ast BreakExpr<'ast>),
+    Return(&'ast ReturnExpr<'ast>),
+    Continue(&'ast ContinueExpr<'ast>),
+    For(&'ast ForExpr<'ast>),
+    Loop(&'ast LoopExpr<'ast>),
+    While(&'ast WhileExpr<'ast>),
     Unstable(&'ast UnstableExpr<'ast>),
 }
 
@@ -81,6 +87,9 @@ pub enum ExprPrecedence {
     Block = 0x1400_0001,
     Ctor = 0x1400_0002,
     Assign = 0x1400_0003,
+    For = 0x1400_0004,
+    Loop = 0x1400_0005,
+    While = 0x1400_0006,
 
     Path = 0x1300_0000,
 
@@ -154,6 +163,7 @@ pub enum ExprPrecedence {
     Closure = 0x0100_0000,
     Break = 0x0100_0001,
     Return = 0x0100_0002,
+    Continue = 0x0100_0003,
     /// The precedence originates from an unstable source. The stored value provides
     /// the current precedence of this expression. This might change in the future
     Unstable(i32),
@@ -168,7 +178,7 @@ macro_rules! impl_expr_kind_fn {
             Path, Index, Field,
             Call, Method,
             Array, Tuple, Ctor, Range,
-            If, Let, Match,
+            If, Let, Match, Break, Return, Continue, For, Loop, While,
             Unstable
         );
     };
