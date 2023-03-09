@@ -240,7 +240,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             // order during HIR lowering. Marker can for now ignore this and
             // convert the inner expression directly
             hir::ExprKind::DropTemps(inner) => return self.to_expr(inner),
-            hir::ExprKind::Err => unreachable!("would have triggered a rustc error"),
+            hir::ExprKind::Err(..) => unreachable!("would have triggered a rustc error"),
             _ => {
                 eprintln!("skipping not implemented expr at: {:?}", expr.span);
                 ExprKind::Unstable(

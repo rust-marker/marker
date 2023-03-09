@@ -7,7 +7,6 @@ use marker_api::ast::{
 };
 use rustc_hir as hir;
 use rustc_middle as mid;
-use rustc_middle::ty::DefIdTree;
 
 use crate::conversion::common::{
     BodyIdLayout, ExprIdLayout, GenericIdLayout, ItemIdLayout, SpanSourceInfo, TyDefIdLayout, VarIdLayout,

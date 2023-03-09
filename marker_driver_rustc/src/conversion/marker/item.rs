@@ -188,9 +188,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         self.alloc_slice(fields.iter().map(|field| {
             // FIXME update Visibility creation to use the stored local def id inside the
             // field after the next sync. See #55
-            let def_id = self.rustc_cx.hir().local_def_id(field.hir_id);
             Field::new(
-                Visibility::new(self.to_item_id(def_id)),
+                Visibility::new(self.to_item_id(field.def_id)),
                 self.to_symbol_id(field.ident.name),
                 self.to_ty(field.ty),
                 self.to_span_id(field.span),
