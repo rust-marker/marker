@@ -121,8 +121,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     hir::ParamName::Plain(ident) => self.to_symbol_id(ident.name),
                     _ => return None,
                 };
-                let def_id = self.rustc_cx.hir().local_def_id(rustc_param.hir_id);
-                let id = self.to_generic_id(def_id.to_def_id());
+                let id = self.to_generic_id(rustc_param.def_id);
                 let span = self.to_span_id(rustc_param.span);
                 match rustc_param.kind {
                     hir::GenericParamKind::Lifetime {

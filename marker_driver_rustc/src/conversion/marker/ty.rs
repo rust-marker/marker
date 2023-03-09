@@ -64,7 +64,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             },
             hir::TyKind::Path(qpath) => self.to_syn_ty_from_qpath(data, qpath, rustc_ty),
             // Continue ty conversion
-            hir::TyKind::Err => unreachable!("would have triggered a rustc error"),
+            hir::TyKind::Err(..) => unreachable!("would have triggered a rustc error"),
             hir::TyKind::Typeof(_) => unreachable!("docs state: 'Unused for now.'"),
             hir::TyKind::OpaqueDef(id, _, _) => {
                 // `impl Trait` in rustc are implemented as Items with the kind `OpaqueTy`

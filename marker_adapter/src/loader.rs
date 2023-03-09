@@ -189,6 +189,7 @@ macro_rules! gen_LoadedLintCrate {
 
             // safe wrapper to external functions
             $(
+                #[allow(clippy::extra_unused_lifetimes)]
                 fn $fn_name<'ast>(&self $(, $arg_name: $arg_ty)*) -> $ret_ty {
                     unsafe {
                         (self.$fn_name)($($arg_name,)*)
