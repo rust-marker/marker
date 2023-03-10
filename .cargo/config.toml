@@ -1,5 +1,5 @@
 [alias]
-dogfood = "run --features dev-build --bin cargo-marker"
+dogfood = "run --features dev-build --bin cargo-marker -- --forward-rust-flags"
 uitest = "test --test compile_test"
 
 [profile.dev]

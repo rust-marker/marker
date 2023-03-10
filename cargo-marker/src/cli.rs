@@ -1,4 +1,4 @@
-use clap::{builder::ValueParser, Arg, ArgAction, Command};
+use clap::{builder::ValueParser, Arg, ArgAction, ArgMatches, Command};
 
 use crate::VERSION;
 
@@ -9,6 +9,25 @@ const AFTER_HELP_MSG: &str = r#"CARGO ARGS
 EXAMPLES:
     * `cargo marker -l ./marker_lints`
 "#;
+
+#[allow(clippy::struct_excessive_bools)]
+pub struct Flags {
+    pub verbose: bool,
+    pub test_build: bool,
+    pub dev_build: bool,
+    pub forward_rust_flags: bool,
+}
+
+impl Flags {
+    pub fn from_args(args: &ArgMatches) -> Self {
+        Self {
+            verbose: args.get_flag("verbose"),
+            test_build: args.get_flag("test-setup"),
+            dev_build: cfg!(feature = "dev-build"),
+            forward_rust_flags: args.get_flag("forward-rust-flags"),
+        }
+    }
+}
 
 pub fn get_clap_config() -> Command {
     Command::new(VERSION)
@@ -31,6 +50,12 @@ pub fn get_clap_config() -> Command {
                 .long("test-setup")
                 .action(ArgAction::SetTrue)
                 .help("This flag will compile the lint crate and print all relevant environment values"),
+        )
+        .arg(
+            Arg::new("forward-rust-flags")
+                .long("forward-rust-flags")
+                .action(ArgAction::SetTrue)
+                .help("Forwards the current `RUSTFLAGS` value during driver and lint compilation"),
         )
         .subcommand(setup_command())
         .subcommand(check_command())

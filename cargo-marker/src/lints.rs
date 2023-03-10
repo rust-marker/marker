@@ -4,7 +4,7 @@ use std::{
     process::Command,
 };
 
-use crate::ExitStatus;
+use crate::{cli::Flags, ExitStatus};
 
 pub struct LintCrateSpec<'a> {
     /// Optional package name (this is always UTF-8, as opposed to `dir`), exists if supplied from
@@ -42,23 +42,30 @@ impl<'a> LintCrateSpec<'a> {
 
     /// Creates a debug build for this crate. The path of the build library
     /// will be returned, if the operation was successful.
-    pub fn build(&self, target_dir: &Path, verbose: bool) -> Result<PathBuf, ExitStatus> {
-        build_local_lint_crate(self, target_dir, verbose)
+    pub fn build(&self, target_dir: &Path, flags: &Flags) -> Result<PathBuf, ExitStatus> {
+        build_local_lint_crate(self, target_dir, flags)
     }
 }
 
 /// This creates a debug build for a local crate. The path of the build library
 /// will be returned, if the operation was successful.
-fn build_local_lint_crate(krate: &LintCrateSpec<'_>, target_dir: &Path, verbose: bool) -> Result<PathBuf, ExitStatus> {
+fn build_local_lint_crate(krate: &LintCrateSpec<'_>, target_dir: &Path, flags: &Flags) -> Result<PathBuf, ExitStatus> {
     if !krate.dir.exists() {
         eprintln!("The given lint can't be found, searched at: `{}`", krate.dir.display());
         return Err(ExitStatus::LintCrateNotFound);
     }
 
+    let mut rustc_flags = if flags.forward_rust_flags {
+        std::env::var("RUSTFLAGS").unwrap_or_default()
+    } else {
+        String::new()
+    };
+    rustc_flags += " --cap-lints=allow";
+
     // Compile the lint crate
     let mut cmd = Command::new("cargo");
     cmd.arg("build");
-    if verbose {
+    if flags.verbose {
         cmd.arg("--verbose");
     }
     if let Some(name) = krate.package_name {
@@ -69,7 +76,7 @@ fn build_local_lint_crate(krate: &LintCrateSpec<'_>, target_dir: &Path, verbose:
         .current_dir(std::fs::canonicalize(krate.dir).unwrap())
         .args(["--lib", "--target-dir"])
         .arg(target_dir.as_os_str())
-        .env("RUSTFLAGS", "--cap-lints=allow")
+        .env("RUSTFLAGS", rustc_flags)
         .spawn()
         .expect("could not run cargo")
         .wait()

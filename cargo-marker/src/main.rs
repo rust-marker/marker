@@ -15,7 +15,7 @@ use std::{
     process::exit,
 };
 
-use cli::get_clap_config;
+use cli::{get_clap_config, Flags};
 use config::Config;
 use driver::{get_driver_path, run_driver};
 use lints::LintCrateSpec;
@@ -109,12 +109,10 @@ fn main() -> Result<(), ExitStatus> {
             .take_while(|s| s != CARGO_ARGS_SEPARATOR),
     );
 
-    let verbose = matches.get_flag("verbose");
-    let test_build = matches.get_flag("test-setup");
-    let dev_build = cfg!(feature = "dev-build");
+    let flags = Flags::from_args(&matches);
 
     if matches.get_flag("version") {
-        print_version(verbose);
+        print_version(flags.verbose);
         return Ok(());
     }
 
@@ -127,32 +125,17 @@ fn main() -> Result<(), ExitStatus> {
     };
 
     match matches.subcommand() {
-        Some(("setup", _args)) => driver::install_driver(verbose, dev_build),
-        Some(("check", args)) => run_check(
-            &choose_lint_crates(args, config.as_ref())?,
-            verbose,
-            dev_build,
-            test_build,
-        ),
-        None => run_check(
-            &choose_lint_crates(&matches, config.as_ref())?,
-            verbose,
-            dev_build,
-            test_build,
-        ),
+        Some(("setup", _args)) => driver::install_driver(&flags),
+        Some(("check", args)) => run_check(&choose_lint_crates(args, config.as_ref())?, &flags),
+        None => run_check(&choose_lint_crates(&matches, config.as_ref())?, &flags),
         _ => unreachable!(),
     }
 }
 
-fn run_check(
-    crate_entries: &[LintCrateSpec],
-    verbose: bool,
-    dev_build: bool,
-    test_build: bool,
-) -> Result<(), ExitStatus> {
+fn run_check(crate_entries: &[LintCrateSpec], flags: &Flags) -> Result<(), ExitStatus> {
     // If this is a dev build, we want to recompile the driver before checking
-    if dev_build {
-        driver::install_driver(verbose, dev_build)?;
+    if flags.dev_build {
+        driver::install_driver(flags)?;
     }
 
     if crate_entries.is_empty() {
@@ -171,7 +154,7 @@ fn run_check(
     println!("Compiling Lints:");
     let target_dir = Path::new(&*MARKER_LINT_DIR);
     for krate in crate_entries {
-        let crate_file = krate.build(target_dir, verbose)?;
+        let crate_file = krate.build(target_dir, flags)?;
         lint_crates.push(crate_file.as_os_str().to_os_string());
     }
 
@@ -180,12 +163,12 @@ fn run_check(
         (OsString::from("RUSTC_WORKSPACE_WRAPPER"), get_driver_path().as_os_str().to_os_string()),
         (OsString::from("MARKER_LINT_CRATES"), lint_crates.join(OsStr::new(";")))
     ];
-    if test_build {
+    if flags.test_build {
         print_env(env).unwrap();
         Ok(())
     } else {
         let cargo_args = std::env::args().skip_while(|c| c != CARGO_ARGS_SEPARATOR).skip(1);
-        run_driver(env, cargo_args, verbose)
+        run_driver(env, cargo_args, flags.verbose)
     }
 }
 
