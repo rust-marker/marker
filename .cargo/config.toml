@@ -1,3 +1,6 @@
 [alias]
 dogfood = "run --features dev-build --bin cargo-marker"
 uitest = "test --test compile_test"
+
+[profile.dev]
+split-debuginfo = "unpacked"
