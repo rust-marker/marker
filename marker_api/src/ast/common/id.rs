@@ -55,7 +55,7 @@ new_id! {
 }
 
 new_id! {
-    ///  This ID uniquely identifies a field inside a struct during linting.
+    /// This ID uniquely identifies a field inside a struct during linting.
     pub FieldId: u64
 }
 

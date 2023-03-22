@@ -110,7 +110,7 @@ impl<'ast> AstContext<'ast> {
         self.driver.call_lint_level_at(lint, node.into())
     }
 
-    #[allow(clippy::needless_pass_by_value)] // `&impl ToSting`
+    #[allow(clippy::needless_pass_by_value)] // `&impl ToString`
     pub fn emit_lint<F>(
         &self,
         lint: &'static Lint,

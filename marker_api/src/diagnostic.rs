@@ -16,7 +16,7 @@ pub struct DiagnosticBuilder<'ast> {
     parts: Vec<DiagnosticPart<String, Span<'ast>>>,
 }
 
-#[allow(clippy::needless_pass_by_value)] // `&impl String` doesn't work
+#[allow(clippy::needless_pass_by_value)] // `&impl ToString` doesn't work
 impl<'ast> DiagnosticBuilder<'ast> {
     pub(crate) fn new(lint: &'static Lint, node: EmissionNode, msg: String, span: Span<'ast>) -> Self {
         Self {
@@ -193,8 +193,6 @@ macro_rules! impl_into_emission_node_for {
         }
     };
 }
-
-use impl_into_emission_node_for;
 
 impl_into_emission_node_for!(Expr, ExprId);
 impl_into_emission_node_for!(Item, ItemId);
