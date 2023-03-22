@@ -32,12 +32,9 @@ macro_rules! impl_into_def_id_for {
     };
 }
 
-use impl_into_def_id_for;
-
 impl_into_def_id_for!(GenericId, GenericIdLayout);
 impl_into_def_id_for!(ItemId, ItemIdLayout);
 impl_into_def_id_for!(TyDefId, TyDefIdLayout);
-impl_into_def_id_for!(FieldId, DefIdLayout);
 impl_into_def_id_for!(VariantId, DefIdLayout);
 
 pub struct HirIdInfo {
@@ -62,6 +59,7 @@ macro_rules! impl_into_hir_id_for {
 impl_into_hir_id_for!(ExprId, ExprIdLayout);
 impl_into_hir_id_for!(VarId, VarIdLayout);
 impl_into_hir_id_for!(LetStmtId, HirIdLayout);
+impl_into_hir_id_for!(FieldId, HirIdLayout);
 
 #[derive(Debug, Clone, Copy)]
 pub struct SpanSourceInfo {
@@ -144,7 +142,7 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
                 StmtIdInner::Item(id) => self.to_def_id(id),
                 StmtIdInner::LetStmt(id) => return Some(self.to_hir_id(id)),
             },
-            EmissionNode::Field(id) => self.to_def_id(id),
+            EmissionNode::Field(id) => return Some(self.to_hir_id(id)),
             EmissionNode::Variant(id) => self.to_def_id(id),
             _ => todo!(),
         };
