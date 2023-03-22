@@ -10,19 +10,16 @@ use marker_api::{
 };
 use rustc_hir as hir;
 
-use crate::conversion::common::{
-    BodyIdLayout, DefIdInfo, DefIdLayout, ExprIdLayout, GenericIdLayout, HirIdLayout, ItemIdLayout, TyDefIdLayout,
-    VarIdLayout,
-};
+use crate::conversion::common::{BodyIdLayout, DefIdInfo, DefIdLayout, HirIdLayout};
 use crate::transmute_id;
 
 use super::RustcConverter;
 
 macro_rules! impl_into_def_id_for {
-    ($id:ty, $layout:ty) => {
+    ($id:ty) => {
         impl From<$id> for DefIdInfo {
             fn from(value: $id) -> Self {
-                let layout = transmute_id!($id as $layout = value);
+                let layout = transmute_id!($id as DefIdLayout = value);
                 DefIdInfo {
                     index: layout.index,
                     krate: layout.krate,
@@ -32,10 +29,10 @@ macro_rules! impl_into_def_id_for {
     };
 }
 
-impl_into_def_id_for!(GenericId, GenericIdLayout);
-impl_into_def_id_for!(ItemId, ItemIdLayout);
-impl_into_def_id_for!(TyDefId, TyDefIdLayout);
-impl_into_def_id_for!(VariantId, DefIdLayout);
+impl_into_def_id_for!(GenericId);
+impl_into_def_id_for!(ItemId);
+impl_into_def_id_for!(TyDefId);
+impl_into_def_id_for!(VariantId);
 
 pub struct HirIdInfo {
     pub owner: u32,
@@ -43,10 +40,10 @@ pub struct HirIdInfo {
 }
 
 macro_rules! impl_into_hir_id_for {
-    ($id:ty, $layout:ty) => {
+    ($id:ty) => {
         impl From<$id> for HirIdInfo {
             fn from(value: $id) -> Self {
-                let layout = transmute_id!($id as $layout = value);
+                let layout = transmute_id!($id as HirIdLayout = value);
                 HirIdInfo {
                     owner: layout.owner,
                     index: layout.index,
@@ -56,10 +53,10 @@ macro_rules! impl_into_hir_id_for {
     };
 }
 
-impl_into_hir_id_for!(ExprId, ExprIdLayout);
-impl_into_hir_id_for!(VarId, VarIdLayout);
-impl_into_hir_id_for!(LetStmtId, HirIdLayout);
-impl_into_hir_id_for!(FieldId, HirIdLayout);
+impl_into_hir_id_for!(ExprId);
+impl_into_hir_id_for!(VarId);
+impl_into_hir_id_for!(LetStmtId);
+impl_into_hir_id_for!(FieldId);
 
 #[derive(Debug, Clone, Copy)]
 pub struct SpanSourceInfo {
@@ -76,7 +73,7 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
 
     #[must_use]
     pub fn to_item_id(&self, api_id: ItemId) -> hir::ItemId {
-        let layout = transmute_id!(ItemId as ItemIdLayout = api_id);
+        let layout = transmute_id!(ItemId as DefIdLayout = api_id);
         hir::ItemId {
             owner_id: hir::OwnerId {
                 def_id: hir::def_id::LocalDefId {
