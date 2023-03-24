@@ -1,6 +1,6 @@
 use crate::{context::with_cx, ffi::FfiOption};
 
-use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::TyKind, Span, SpanId};
+use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::TyKind, LetStmtId, Span, SpanId, StmtId, StmtIdInner};
 
 #[repr(C)]
 #[non_exhaustive]
@@ -11,9 +11,28 @@ pub enum StmtKind<'ast> {
     Expr(ExprKind<'ast>),
 }
 
+impl<'ast> StmtKind<'ast> {
+    pub fn id(&self) -> StmtId {
+        match self {
+            StmtKind::Item(node) => StmtId::ast_new(StmtIdInner::Item(node.id())),
+            StmtKind::Let(node) => node.id(),
+            StmtKind::Expr(node) => StmtId::ast_new(StmtIdInner::Expr(node.id())),
+        }
+    }
+
+    pub fn span(&self) -> &Span<'ast> {
+        match self {
+            StmtKind::Item(node) => node.span(),
+            StmtKind::Let(node) => node.span(),
+            StmtKind::Expr(node) => node.span(),
+        }
+    }
+}
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct LetStmt<'ast> {
+    id: LetStmtId,
     span: SpanId,
     pat: PatKind<'ast>,
     ty: FfiOption<TyKind<'ast>>,
@@ -22,6 +41,10 @@ pub struct LetStmt<'ast> {
 }
 
 impl<'ast> LetStmt<'ast> {
+    pub fn id(&self) -> StmtId {
+        StmtId::ast_new(StmtIdInner::LetStmt(self.id))
+    }
+
     pub fn span(&self) -> &Span<'ast> {
         with_cx(self, |cx| cx.get_span(self.span))
     }
@@ -50,6 +73,7 @@ impl<'ast> LetStmt<'ast> {
 #[cfg(feature = "driver-api")]
 impl<'ast> LetStmt<'ast> {
     pub fn new(
+        id: LetStmtId,
         span: SpanId,
         pat: PatKind<'ast>,
         ty: Option<TyKind<'ast>>,
@@ -57,6 +81,7 @@ impl<'ast> LetStmt<'ast> {
         els: Option<ExprKind<'ast>>,
     ) -> Self {
         Self {
+            id,
             span,
             pat,
             ty: ty.into(),

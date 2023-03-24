@@ -189,6 +189,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             // FIXME update Visibility creation to use the stored local def id inside the
             // field after the next sync. See #55
             Field::new(
+                self.to_field_id(field.hir_id),
                 Visibility::new(self.to_item_id(field.def_id)),
                 self.to_symbol_id(field.ident.name),
                 self.to_ty(field.ty),

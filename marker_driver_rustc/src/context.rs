@@ -7,7 +7,8 @@ use marker_api::{
         BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId,
     },
     context::AstContext,
-    lint::Lint,
+    diagnostic::{Diagnostic, EmissionNode},
+    lint::{Level, Lint},
 };
 use rustc_lint::LintStore;
 use rustc_middle::ty::TyCtxt;
@@ -68,14 +69,54 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
 }
 
 impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
-    fn emit_lint(&'ast self, api_lint: &'static Lint, msg: &str, api_span: &Span<'ast>) {
-        let rustc_lint = self.rustc_converter.to_lint(api_lint);
+    fn lint_level_at(&'ast self, api_lint: &'static Lint, node: EmissionNode) -> Level {
+        if let Some(id) = self.rustc_converter.try_to_hir_id_from_emission_node(node) {
+            let lint = self.rustc_converter.to_lint(api_lint);
+            let level = self.rustc_cx.lint_level_at_node(lint, id).0;
+            self.marker_converter.to_lint_level(level)
+        } else {
+            Level::Allow
+        }
+    }
+
+    fn emit_diag(&'ast self, diag: &Diagnostic<'_, 'ast>) {
+        let Some(id) = self.rustc_converter.try_to_hir_id_from_emission_node(diag.node) else {
+            return;
+        };
+        let lint = self.rustc_converter.to_lint(diag.lint);
         self.rustc_cx.struct_span_lint_hir(
-            rustc_lint,
-            rustc_hir::CRATE_HIR_ID,
-            self.rustc_converter.to_span(api_span),
-            msg,
-            |diag| diag,
+            lint,
+            id,
+            self.rustc_converter.to_span(diag.span),
+            diag.msg(),
+            |builder| {
+                for part in diag.parts.get() {
+                    match part {
+                        marker_api::diagnostic::DiagnosticPart::Help { msg } => {
+                            builder.help(msg.get());
+                        },
+                        marker_api::diagnostic::DiagnosticPart::HelpSpan { msg, span } => {
+                            builder.span_help(self.rustc_converter.to_span(span), msg.get());
+                        },
+                        marker_api::diagnostic::DiagnosticPart::Note { msg } => {
+                            builder.note(msg.get());
+                        },
+                        marker_api::diagnostic::DiagnosticPart::NoteSpan { msg, span } => {
+                            builder.span_note(self.rustc_converter.to_span(span), msg.get());
+                        },
+                        marker_api::diagnostic::DiagnosticPart::Suggestion { msg, span, sugg, app } => {
+                            builder.span_suggestion(
+                                self.rustc_converter.to_span(span),
+                                msg.get(),
+                                sugg.get(),
+                                self.rustc_converter.to_applicability(*app),
+                            );
+                        },
+                        _ => todo!(),
+                    }
+                }
+                builder
+            },
         );
     }
 

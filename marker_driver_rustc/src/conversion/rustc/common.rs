@@ -1,12 +1,19 @@
 use std::mem::{size_of, transmute};
 
 use marker_api::{
-    ast::{BodyId, CrateId, GenericId, ItemId, Span, SpanId, SymbolId, TyDefId},
+    ast::{
+        BodyId, CrateId, ExprId, FieldId, GenericId, ItemId, LetStmtId, Span, SpanId, StmtIdInner, SymbolId, TyDefId,
+        VarId, VariantId,
+    },
+    diagnostic::{Applicability, EmissionNode},
     lint::Level,
 };
 use rustc_hir as hir;
 
-use crate::conversion::common::{BodyIdLayout, DefIdInfo, GenericIdLayout, ItemIdLayout, TyDefIdLayout};
+use crate::conversion::common::{
+    BodyIdLayout, DefIdInfo, DefIdLayout, ExprIdLayout, GenericIdLayout, HirIdLayout, ItemIdLayout, TyDefIdLayout,
+    VarIdLayout,
+};
 use crate::transmute_id;
 
 use super::RustcConverter;
@@ -25,11 +32,34 @@ macro_rules! impl_into_def_id_for {
     };
 }
 
-use impl_into_def_id_for;
-
 impl_into_def_id_for!(GenericId, GenericIdLayout);
 impl_into_def_id_for!(ItemId, ItemIdLayout);
 impl_into_def_id_for!(TyDefId, TyDefIdLayout);
+impl_into_def_id_for!(VariantId, DefIdLayout);
+
+pub struct HirIdInfo {
+    pub owner: u32,
+    pub index: u32,
+}
+
+macro_rules! impl_into_hir_id_for {
+    ($id:ty, $layout:ty) => {
+        impl From<$id> for HirIdInfo {
+            fn from(value: $id) -> Self {
+                let layout = transmute_id!($id as $layout = value);
+                HirIdInfo {
+                    owner: layout.owner,
+                    index: layout.index,
+                }
+            }
+        }
+    };
+}
+
+impl_into_hir_id_for!(ExprId, ExprIdLayout);
+impl_into_hir_id_for!(VarId, VarIdLayout);
+impl_into_hir_id_for!(LetStmtId, HirIdLayout);
+impl_into_hir_id_for!(FieldId, HirIdLayout);
 
 #[derive(Debug, Clone, Copy)]
 pub struct SpanSourceInfo {
@@ -94,11 +124,44 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
     }
 
     #[must_use]
-    pub fn to_def_id(api_id: impl Into<DefIdInfo>) -> hir::def_id::DefId {
+    pub fn to_def_id(&self, api_id: impl Into<DefIdInfo>) -> hir::def_id::DefId {
         let info: DefIdInfo = api_id.into();
         hir::def_id::DefId {
             index: hir::def_id::DefIndex::from_u32(info.index),
             krate: hir::def_id::CrateNum::from_u32(info.krate),
+        }
+    }
+
+    #[must_use]
+    pub fn try_to_hir_id_from_emission_node(&self, node: EmissionNode) -> Option<hir::HirId> {
+        let def_id = match node {
+            EmissionNode::Expr(id) => return Some(self.to_hir_id(id)),
+            EmissionNode::Item(id) => self.to_def_id(id),
+            EmissionNode::Stmt(stmt_id) => match stmt_id.data() {
+                StmtIdInner::Expr(id) => return Some(self.to_hir_id(id)),
+                StmtIdInner::Item(id) => self.to_def_id(id),
+                StmtIdInner::LetStmt(id) => return Some(self.to_hir_id(id)),
+            },
+            EmissionNode::Field(id) => return Some(self.to_hir_id(id)),
+            EmissionNode::Variant(id) => self.to_def_id(id),
+            _ => todo!(),
+        };
+
+        def_id
+            .as_local()
+            .map(|id| self.rustc_cx.hir().local_def_id_to_hir_id(id))
+    }
+
+    #[must_use]
+    pub fn to_hir_id(&self, api_id: impl Into<HirIdInfo>) -> hir::HirId {
+        let info: HirIdInfo = api_id.into();
+        hir::HirId {
+            owner: hir::OwnerId {
+                def_id: hir::def_id::LocalDefId {
+                    local_def_index: hir::def_id::DefIndex::from_u32(info.owner),
+                },
+            },
+            local_id: hir::hir_id::ItemLocalId::from_u32(info.index),
         }
     }
 
@@ -110,6 +173,16 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
             Level::Deny => rustc_lint::Level::Deny,
             Level::Forbid => rustc_lint::Level::Forbid,
             _ => unreachable!(),
+        }
+    }
+
+    pub(crate) fn to_applicability(&self, app: Applicability) -> rustc_errors::Applicability {
+        match app {
+            Applicability::MachineApplicable => rustc_errors::Applicability::MachineApplicable,
+            Applicability::MaybeIncorrect => rustc_errors::Applicability::MaybeIncorrect,
+            Applicability::HasPlaceholders => rustc_errors::Applicability::HasPlaceholders,
+            Applicability::Unspecified => rustc_errors::Applicability::Unspecified,
+            _ => todo!(),
         }
     }
 

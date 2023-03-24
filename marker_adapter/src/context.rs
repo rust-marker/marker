@@ -1,11 +1,17 @@
+#![allow(
+    clippy::needless_lifetimes,
+    reason = "the lifetimes are destroyed by unsafe, but help with readability"
+)]
+
 use marker_api::{
     ast::{
         item::{Body, ItemKind},
         BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId,
     },
     context::DriverCallbacks,
+    diagnostic::{Diagnostic, EmissionNode},
     ffi::{self, FfiOption},
-    lint::Lint,
+    lint::{Level, Lint},
 };
 
 /// ### Safety
@@ -34,7 +40,8 @@ impl<'ast> DriverContextWrapper<'ast> {
     pub fn create_driver_callback(&'ast self) -> DriverCallbacks<'ast> {
         DriverCallbacks {
             driver_context: unsafe { &*(self as *const DriverContextWrapper).cast::<()>() },
-            emit_lint,
+            lint_level_at,
+            emit_diag,
             item,
             body,
             get_span,
@@ -43,6 +50,17 @@ impl<'ast> DriverContextWrapper<'ast> {
             resolve_method_target,
         }
     }
+}
+
+#[allow(improper_ctypes_definitions, reason = "fp because `EmissionNode` are non-exhaustive")]
+extern "C" fn lint_level_at(data: &(), lint: &'static Lint, node: EmissionNode) -> Level {
+    let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
+    wrapper.driver_cx.lint_level_at(lint, node)
+}
+
+extern "C" fn emit_diag<'a, 'ast>(data: &(), diag: &Diagnostic<'a, 'ast>) {
+    let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
+    wrapper.driver_cx.emit_diag(diag);
 }
 
 #[allow(improper_ctypes_definitions, reason = "fp because `ItemKind` is non-exhaustive")]
@@ -56,22 +74,17 @@ extern "C" fn body<'ast>(data: &(), id: BodyId) -> &'ast Body<'ast> {
     wrapper.driver_cx.body(id)
 }
 
-extern "C" fn emit_lint(data: &(), lint: &'static Lint, msg: ffi::Str, span: &Span<'_>) {
-    let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
-    wrapper.driver_cx.emit_lint(lint, (&msg).into(), span);
-}
-
 extern "C" fn get_span<'ast>(data: &(), owner: &SpanOwner) -> &'ast Span<'ast> {
     let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
     wrapper.driver_cx.get_span(owner)
 }
 
-extern "C" fn span_snippet<'ast>(data: &(), span: &Span) -> ffi::FfiOption<ffi::Str<'ast>> {
+extern "C" fn span_snippet<'ast>(data: &(), span: &Span) -> ffi::FfiOption<ffi::FfiStr<'ast>> {
     let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
     wrapper.driver_cx.span_snippet(span).map(Into::into).into()
 }
 
-extern "C" fn symbol_str<'ast>(data: &(), sym: SymbolId) -> ffi::Str<'ast> {
+extern "C" fn symbol_str<'ast>(data: &(), sym: SymbolId) -> ffi::FfiStr<'ast> {
     let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
     wrapper.driver_cx.symbol_str(sym).into()
 }
@@ -82,9 +95,11 @@ extern "C" fn resolve_method_target(data: &(), id: ExprId) -> ItemId {
 }
 
 pub trait DriverContext<'ast> {
+    fn lint_level_at(&'ast self, lint: &'static Lint, node: EmissionNode) -> Level;
+    fn emit_diag(&'ast self, diag: &Diagnostic<'_, 'ast>);
+
     fn item(&'ast self, api_id: ItemId) -> Option<ItemKind<'ast>>;
     fn body(&'ast self, api_id: BodyId) -> &'ast Body<'ast>;
-    fn emit_lint(&'ast self, lint: &'static Lint, msg: &str, span: &Span<'ast>);
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast>;
     fn span_snippet(&'ast self, span: &Span) -> Option<&'ast str>;
     fn symbol_str(&'ast self, api_id: SymbolId) -> &'ast str;

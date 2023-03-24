@@ -224,6 +224,12 @@ macro_rules! impl_item_data {
                 todo!()
             }
         }
+
+        impl<'ast> From<&'ast $self_name<'ast>> for crate::ast::item::ItemKind<'ast> {
+            fn from(value: &'ast $self_name<'ast>) -> Self {
+                $crate::ast::item::ItemKind::$enum_name(value)
+            }
+        }
     };
 }
 

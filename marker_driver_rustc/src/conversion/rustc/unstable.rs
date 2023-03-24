@@ -15,7 +15,7 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
             Box::leak(Box::new(rustc_lint::Lint {
                 name: api_lint.name,
                 default_level: self.to_lint_level(api_lint.default_level),
-                desc: api_lint.explaination,
+                desc: api_lint.explanation,
                 edition_lint_opts: None,
                 report_in_external_macro,
                 future_incompatible: None,

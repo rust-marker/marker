@@ -14,13 +14,13 @@ use std::{marker::PhantomData, slice};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct Str<'a> {
+pub struct FfiStr<'a> {
     _lifetime: PhantomData<&'a ()>,
     data: *const u8,
     len: usize,
 }
 
-impl<'a> From<&'a str> for Str<'a> {
+impl<'a> From<&'a str> for FfiStr<'a> {
     fn from(source: &'a str) -> Self {
         Self {
             _lifetime: PhantomData,
@@ -30,7 +30,13 @@ impl<'a> From<&'a str> for Str<'a> {
     }
 }
 
-impl<'a> Str<'a> {
+impl<'a> From<&'a String> for FfiStr<'a> {
+    fn from(source: &'a String) -> Self {
+        source.as_str().into()
+    }
+}
+
+impl<'a> FfiStr<'a> {
     pub fn get(&self) -> &'a str {
         unsafe {
             let data = slice::from_raw_parts(self.data, self.len);
@@ -39,8 +45,8 @@ impl<'a> Str<'a> {
     }
 }
 
-impl<'a> From<&Str<'a>> for &'a str {
-    fn from(src: &Str<'a>) -> Self {
+impl<'a> From<&FfiStr<'a>> for &'a str {
+    fn from(src: &FfiStr<'a>) -> Self {
         unsafe {
             let data = slice::from_raw_parts(src.data, src.len);
 
@@ -49,10 +55,16 @@ impl<'a> From<&Str<'a>> for &'a str {
     }
 }
 
-impl<'a> ToString for Str<'a> {
+impl<'a> ToString for FfiStr<'a> {
     fn to_string(&self) -> String {
         let base: &str = self.into();
         base.to_string()
+    }
+}
+
+impl std::fmt::Debug for FfiStr<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.get())
     }
 }
 

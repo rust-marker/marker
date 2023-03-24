@@ -5,8 +5,9 @@ use crate::{
         item::{Body, ItemKind},
         BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId,
     },
+    diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
-    lint::Lint,
+    lint::{Level, Lint},
 };
 
 thread_local! {
@@ -105,19 +106,31 @@ impl<'ast> AstContext<'ast> {
 }
 
 impl<'ast> AstContext<'ast> {
-    /// This function emits a lint at the current node with the given
-    /// message and span.
-    ///
-    /// For rustc the text output will look roughly to this:
-    /// ```text
-    /// error: ducks can't talk
-    ///  --> $DIR/file.rs:17:5
-    ///    |
-    /// 17 |     println!("The duck said: 'Hello, World!'");
-    ///    |
-    /// ```
-    pub fn emit_lint(&self, lint: &'static Lint, msg: &str, span: &Span<'ast>) {
-        self.driver.call_emit_lint(lint, msg, span);
+    pub fn lint_level_at(&self, lint: &'static Lint, node: impl Into<EmissionNode>) -> Level {
+        self.driver.call_lint_level_at(lint, node.into())
+    }
+
+    #[allow(clippy::needless_pass_by_value)] // `&impl ToString`
+    pub fn emit_lint<F>(
+        &self,
+        lint: &'static Lint,
+        node: impl Into<EmissionNode>,
+        msg: impl ToString,
+        span: &Span<'ast>,
+        decorate: F,
+    ) where
+        F: FnOnce(&mut DiagnosticBuilder<'ast>),
+    {
+        let node = node.into();
+        if self.lint_level_at(lint, node) != Level::Allow {
+            let mut builder = DiagnosticBuilder::new(lint, node, msg.to_string(), span.clone());
+            decorate(&mut builder);
+            builder.emit(self);
+        }
+    }
+
+    pub(crate) fn emit_diagnostic<'a>(&self, diag: &'a Diagnostic<'a, 'ast>) {
+        self.driver.call_emit_diagnostic(diag);
     }
 
     /// This returns the [`ItemKind`] belonging to the given [`ItemId`]. It can
@@ -177,22 +190,30 @@ struct DriverCallbacks<'ast> {
     /// get its own context.
     pub driver_context: &'ast (),
 
+    // Lint emission and information
+    pub lint_level_at: extern "C" fn(&'ast (), &'static Lint, EmissionNode) -> Level,
+    pub emit_diag: for<'a> extern "C" fn(&'ast (), &'a Diagnostic<'a, 'ast>),
+
     // Public utility
-    pub emit_lint: for<'a> extern "C" fn(&'ast (), &'static Lint, ffi::Str<'a>, &Span<'ast>),
     pub item: extern "C" fn(&'ast (), id: ItemId) -> ffi::FfiOption<ItemKind<'ast>>,
     pub body: extern "C" fn(&'ast (), id: BodyId) -> &'ast Body<'ast>,
 
     // Internal utility
     pub get_span: extern "C" fn(&'ast (), &SpanOwner) -> &'ast Span<'ast>,
-    pub span_snippet: extern "C" fn(&'ast (), &Span) -> ffi::FfiOption<ffi::Str<'ast>>,
-    pub symbol_str: extern "C" fn(&'ast (), SymbolId) -> ffi::Str<'ast>,
+    pub span_snippet: extern "C" fn(&'ast (), &Span) -> ffi::FfiOption<ffi::FfiStr<'ast>>,
+    pub symbol_str: extern "C" fn(&'ast (), SymbolId) -> ffi::FfiStr<'ast>,
     pub resolve_method_target: extern "C" fn(&'ast (), ExprId) -> ItemId,
 }
 
 impl<'ast> DriverCallbacks<'ast> {
-    fn call_emit_lint(&self, lint: &'static Lint, msg: &str, span: &Span<'ast>) {
-        (self.emit_lint)(self.driver_context, lint, msg.into(), span);
+    fn call_lint_level_at(&self, lint: &'static Lint, node: EmissionNode) -> Level {
+        (self.lint_level_at)(self.driver_context, lint, node)
     }
+
+    fn call_emit_diagnostic<'a>(&self, diag: &'a Diagnostic<'a, 'ast>) {
+        (self.emit_diag)(self.driver_context, diag);
+    }
+
     fn call_item(&self, id: ItemId) -> Option<ItemKind<'ast>> {
         (self.item)(self.driver_context, id).copy()
     }
@@ -200,7 +221,7 @@ impl<'ast> DriverCallbacks<'ast> {
         (self.get_span)(self.driver_context, span_owner)
     }
     fn call_span_snippet(&self, span: &Span) -> Option<String> {
-        let result: Option<ffi::Str> = (self.span_snippet)(self.driver_context, span).into();
+        let result: Option<ffi::FfiStr> = (self.span_snippet)(self.driver_context, span).into();
         result.map(|x| x.to_string())
     }
     fn call_symbol_str(&self, sym: SymbolId) -> &'ast str {
