@@ -9,49 +9,42 @@ use marker_api::lint::Level;
 use rustc_hir as hir;
 use rustc_middle as mid;
 
-use crate::conversion::common::{
-    BodyIdLayout, ExprIdLayout, GenericIdLayout, HirIdLayout, ItemIdLayout, SpanSourceInfo, TyDefIdLayout, VarIdLayout,
-};
+use crate::conversion::common::{BodyIdLayout, DefIdLayout, HirIdLayout, SpanSourceInfo};
 use crate::transmute_id;
 
 use super::MarkerConverterInner;
 
-impl From<hir::def_id::LocalDefId> for GenericIdLayout {
+impl From<hir::def_id::LocalDefId> for DefIdLayout {
     fn from(value: hir::def_id::LocalDefId) -> Self {
         value.to_def_id().into()
     }
 }
-impl From<hir::def_id::DefId> for GenericIdLayout {
-    fn from(rustc_id: hir::def_id::DefId) -> Self {
-        GenericIdLayout {
-            krate: rustc_id.krate.as_u32(),
-            index: rustc_id.index.as_u32(),
-        }
-    }
-}
-
-impl From<hir::ItemId> for ItemIdLayout {
+impl From<hir::ItemId> for DefIdLayout {
     fn from(value: hir::ItemId) -> Self {
         // My understanding is, that the `owner_id` is the `DefId` of this item.
         // We'll see if this holds true, when marker crashes and burns ^^
         value.owner_id.def_id.into()
     }
 }
-impl From<hir::def_id::LocalDefId> for ItemIdLayout {
-    fn from(value: hir::def_id::LocalDefId) -> Self {
-        value.to_def_id().into()
-    }
-}
-impl From<hir::OwnerId> for ItemIdLayout {
+impl From<hir::OwnerId> for DefIdLayout {
     fn from(value: hir::OwnerId) -> Self {
         value.to_def_id().into()
     }
 }
-impl From<hir::def_id::DefId> for ItemIdLayout {
-    fn from(rustc_id: hir::def_id::DefId) -> Self {
-        ItemIdLayout {
-            krate: rustc_id.krate.as_u32(),
-            index: rustc_id.index.as_u32(),
+impl From<hir::def_id::DefId> for DefIdLayout {
+    fn from(value: hir::def_id::DefId) -> Self {
+        DefIdLayout {
+            krate: value.krate.as_u32(),
+            index: value.index.as_u32(),
+        }
+    }
+}
+
+impl From<hir::HirId> for HirIdLayout {
+    fn from(value: hir::HirId) -> Self {
+        HirIdLayout {
+            owner: value.owner.def_id.local_def_index.as_u32(),
+            index: value.local_id.as_u32(),
         }
     }
 }
@@ -91,37 +84,27 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
-    pub fn to_generic_id(&self, id: impl Into<GenericIdLayout>) -> GenericId {
-        transmute_id!(GenericIdLayout as GenericId = id.into())
+    pub fn to_generic_id(&self, id: impl Into<DefIdLayout>) -> GenericId {
+        transmute_id!(DefIdLayout as GenericId = id.into())
     }
 
     #[must_use]
     #[expect(dead_code, reason = "will be used later")]
-    pub fn to_ty_def_id(&self, rustc_id: hir::def_id::DefId) -> TyDefId {
-        transmute_id!(
-            TyDefIdLayout as TyDefId = TyDefIdLayout {
-                krate: rustc_id.krate.as_u32(),
-                index: rustc_id.index.as_u32(),
-            }
-        )
+    pub fn to_ty_def_id(&self, id: impl Into<DefIdLayout>) -> TyDefId {
+        transmute_id!(DefIdLayout as TyDefId = id.into())
     }
 
-    pub fn to_item_id(&self, id: impl Into<ItemIdLayout>) -> ItemId {
-        transmute_id!(ItemIdLayout as ItemId = id.into())
+    pub fn to_item_id(&self, id: impl Into<DefIdLayout>) -> ItemId {
+        transmute_id!(DefIdLayout as ItemId = id.into())
     }
 
-    pub fn to_variant_id(&self, id: impl Into<ItemIdLayout>) -> VariantId {
-        transmute_id!(ItemIdLayout as VariantId = id.into())
+    pub fn to_variant_id(&self, id: impl Into<DefIdLayout>) -> VariantId {
+        transmute_id!(DefIdLayout as VariantId = id.into())
     }
 
     #[must_use]
-    pub fn to_field_id(&self, rustc_id: hir::HirId) -> FieldId {
-        transmute_id!(
-            HirIdLayout as FieldId = HirIdLayout {
-                owner: rustc_id.owner.def_id.local_def_index.as_u32(),
-                index: rustc_id.local_id.as_u32(),
-            }
-        )
+    pub fn to_field_id(&self, id: impl Into<HirIdLayout>) -> FieldId {
+        transmute_id!(HirIdLayout as FieldId = id.into())
     }
     #[must_use]
     pub fn to_body_id(&self, rustc_id: hir::BodyId) -> BodyId {
@@ -134,33 +117,18 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
-    pub fn to_var_id(&self, rustc_id: hir::HirId) -> VarId {
-        transmute_id!(
-            VarIdLayout as VarId = VarIdLayout {
-                owner: rustc_id.owner.def_id.local_def_index.as_u32(),
-                index: rustc_id.local_id.as_u32(),
-            }
-        )
+    pub fn to_var_id(&self, id: impl Into<HirIdLayout>) -> VarId {
+        transmute_id!(HirIdLayout as VarId = id.into())
     }
 
     #[must_use]
-    pub fn to_expr_id(&self, rustc_id: hir::HirId) -> ExprId {
-        transmute_id!(
-            ExprIdLayout as ExprId = ExprIdLayout {
-                owner: rustc_id.owner.def_id.local_def_index.as_u32(),
-                index: rustc_id.local_id.as_u32(),
-            }
-        )
+    pub fn to_expr_id(&self, id: impl Into<HirIdLayout>) -> ExprId {
+        transmute_id!(HirIdLayout as ExprId = id.into())
     }
 
     #[must_use]
-    pub fn to_let_stmt_id(&self, rustc_id: hir::HirId) -> LetStmtId {
-        transmute_id!(
-            HirIdLayout as LetStmtId = HirIdLayout {
-                owner: rustc_id.owner.def_id.local_def_index.as_u32(),
-                index: rustc_id.local_id.as_u32(),
-            }
-        )
+    pub fn to_let_stmt_id(&self, id: impl Into<HirIdLayout>) -> LetStmtId {
+        transmute_id!(HirIdLayout as LetStmtId = id.into())
     }
 }
 

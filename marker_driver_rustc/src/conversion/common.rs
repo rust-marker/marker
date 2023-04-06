@@ -1,23 +1,5 @@
 #[repr(C)]
-pub struct GenericIdLayout {
-    pub krate: u32,
-    pub index: u32,
-}
-
-#[repr(C)]
-pub struct TyDefIdLayout {
-    pub krate: u32,
-    pub index: u32,
-}
-
-#[repr(C)]
 pub struct DefIdLayout {
-    pub krate: u32,
-    pub index: u32,
-}
-
-#[repr(C)]
-pub struct ItemIdLayout {
     pub krate: u32,
     pub index: u32,
 }
@@ -40,12 +22,6 @@ pub struct DefIdInfo {
 }
 
 #[repr(C)]
-pub struct ExprIdLayout {
-    pub owner: u32,
-    pub index: u32,
-}
-
-#[repr(C)]
 pub struct HirIdLayout {
     pub owner: u32,
     pub index: u32,
@@ -55,12 +31,6 @@ pub struct HirIdLayout {
 pub struct SpanSourceInfo {
     pub rustc_span_cx: rustc_span::hygiene::SyntaxContext,
     pub rustc_start_offset: usize,
-}
-
-#[repr(C)]
-pub struct VarIdLayout {
-    pub owner: u32,
-    pub index: u32,
 }
 
 #[macro_export]

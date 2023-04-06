@@ -16,7 +16,7 @@ use std::{ffi::OsString, path::PathBuf, process::Command};
 
 use once_cell::sync::Lazy;
 
-use crate::ExitStatus;
+use crate::{cli::Flags, ExitStatus};
 
 /// This is the driver version and toolchain, that is used by the setup command
 /// to install the driver.
@@ -41,7 +41,7 @@ pub fn print_driver_version() {
 }
 
 /// This tries to install the rustc driver specified in [`DEFAULT_DRIVER_INFO`].
-pub fn install_driver(verbose: bool, dev_build: bool) -> Result<(), ExitStatus> {
+pub fn install_driver(flags: &Flags) -> Result<(), ExitStatus> {
     // The toolchain, driver version and api version should ideally be configurable.
     // However, that will require more prototyping and has a low priority rn.
     // See #60
@@ -50,10 +50,10 @@ pub fn install_driver(verbose: bool, dev_build: bool) -> Result<(), ExitStatus> 
     let toolchain = &DEFAULT_DRIVER_INFO.toolchain;
     check_toolchain(toolchain)?;
 
-    build_driver(toolchain, &DEFAULT_DRIVER_INFO.version, verbose, dev_build)?;
+    build_driver(toolchain, &DEFAULT_DRIVER_INFO.version, flags)?;
 
     // We don't want to advice the user, to install the driver again.
-    check_driver(verbose, false)
+    check_driver(flags.verbose, false)
 }
 
 /// This function checks if the specified toolchain is installed. This requires
@@ -73,8 +73,8 @@ fn check_toolchain(toolchain: &str) -> Result<(), ExitStatus> {
 
 /// This tries to compile the driver. If successful the driver binary will
 /// be places next to the executable of `cargo-linter`.
-fn build_driver(toolchain: &str, version: &str, verbose: bool, dev_build: bool) -> Result<(), ExitStatus> {
-    if dev_build {
+fn build_driver(toolchain: &str, version: &str, flags: &Flags) -> Result<(), ExitStatus> {
+    if flags.dev_build {
         println!("Compiling rustc driver");
     } else {
         println!("Compiling rustc driver v{version} with {toolchain}");
@@ -83,15 +83,21 @@ fn build_driver(toolchain: &str, version: &str, verbose: bool, dev_build: bool) 
     // Build driver
     let mut cmd = Command::new("cargo");
 
-    if !dev_build {
+    if !flags.dev_build {
         cmd.arg(&format!("+{toolchain}"));
     }
 
-    if verbose {
+    if flags.verbose {
         cmd.arg("--verbose");
     }
 
-    if dev_build {
+    let mut rustc_flags = if flags.forward_rust_flags {
+        std::env::var("RUSTFLAGS").unwrap_or_default()
+    } else {
+        String::new()
+    };
+
+    if flags.dev_build {
         cmd.args(["build", "--bin", "marker_driver_rustc"]);
     } else {
         // FIXME: This currently installs the binary in Cargo's default location.
@@ -105,8 +111,11 @@ fn build_driver(toolchain: &str, version: &str, verbose: bool, dev_build: bool) 
         //
         // See #60
         cmd.args(["install", "marker_rustc_driver", "--version", version]);
+        rustc_flags += " --cap-lints=allow";
     }
+    cmd.env("RUSTFLAGS", rustc_flags);
 
+    // `RUSTFLAGS` is never set for driver compilation, we might want to
     let status = cmd
         .spawn()
         .expect("unable to start cargo install for the driver")
