@@ -1,8 +1,8 @@
 use marker_api::ast::{
     expr::ExprKind,
     pat::{
-        CommonPatData, IdentPat, OrPat, PatKind, RefPat, RestPat, SlicePat, StructFieldPat, StructPat, TuplePat,
-        UnstablePat, WildcardPat,
+        CommonPatData, IdentPat, OrPat, PatKind, PathPat, RangePat, RefPat, RestPat, SlicePat, StructFieldPat,
+        StructPat, TuplePat, UnstablePat, WildcardPat,
     },
 };
 use rustc_hash::FxHashMap;
@@ -35,11 +35,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         match &pat.kind {
             hir::PatKind::Wild => PatKind::Wildcard(self.alloc(WildcardPat::new(data))),
             hir::PatKind::Binding(hir::BindingAnnotation(by_ref, mutab), id, ident, pat) => {
-                if pat.is_none()
-                    && matches!(mutab, rustc_ast::Mutability::Not)
-                    && let Some(place_expr) = lhs_map.get(id)
-                {
-                    PatKind::Place(*place_expr)
+                let lhs = lhs_map.get(id);
+                #[allow(clippy::unnecessary_unwrap, reason = "if let sadly breaks rustfmt")]
+                if pat.is_none() && matches!(mutab, rustc_ast::Mutability::Not) && lhs.is_some() {
+                    PatKind::Place(*lhs.unwrap())
                 } else {
                     PatKind::Ident(self.alloc({
                         IdentPat::new(
@@ -117,11 +116,18 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 };
                 PatKind::Slice(self.alloc(SlicePat::new(data, elements)))
             },
-            // These haven't been implemented yet, as they require expressions.
-            // The pattern creation is tracked in #50
-            hir::PatKind::Path(_) => todo!("{pat:#?}"),
-            hir::PatKind::Lit(_) => todo!("{pat:#?}"),
-            hir::PatKind::Range(_, _, _) => todo!("{pat:#?}"),
+            hir::PatKind::Path(path) => PatKind::Path(self.alloc(PathPat::new(data, self.to_qpath_from_pat(path)))),
+            hir::PatKind::Lit(lit) => {
+                let expr = self.to_expr(lit);
+                let lit_expr = expr.try_into().expect("this should be a literal expression");
+                PatKind::Lit(lit_expr)
+            },
+            hir::PatKind::Range(start, end, kind) => PatKind::Range(self.alloc(RangePat::new(
+                data,
+                start.map(|expr| self.to_expr(expr)),
+                end.map(|expr| self.to_expr(expr)),
+                matches!(kind, hir::RangeEnd::Included),
+            ))),
         }
     }
 

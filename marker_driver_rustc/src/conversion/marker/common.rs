@@ -210,6 +210,21 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         self.to_qpath(qpath, || Some(self.resolve_qpath_in_body(qpath, expr.hir_id)))
     }
 
+    pub fn to_qpath_from_pat(&self, qpath: &hir::QPath<'tcx>) -> AstQPath<'ast> {
+        // The normal path resolution requires the specification of a function to
+        // resolve paths, which have not been resolved by rustc. The way of
+        // resolving the path depends on the context that the path occurs in.
+        // Patterns can occur in item signatures and bodies, which means that the
+        // target would need to be resolved in different ways depending on the
+        // context. From what I can tell, paths inside patters are always resolved.
+        // Therefore, it should be safe, to not provide a resolve method.
+        //
+        // (Famous last words :D)
+        self.to_qpath(qpath, || {
+            unreachable!("paths in patterns should always be resolved in rustc")
+        })
+    }
+
     pub fn to_qpath_from_ty(&self, qpath: &hir::QPath<'tcx>, rustc_ty: &hir::Ty<'_>) -> AstQPath<'ast> {
         fn res_resolution_parent<'tcx>(
             rustc_cx: rustc_middle::ty::TyCtxt<'tcx>,
