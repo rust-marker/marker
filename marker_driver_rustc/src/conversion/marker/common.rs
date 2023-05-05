@@ -225,7 +225,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
         self.to_qpath(qpath, || match res_resolution_parent(self.rustc_cx, rustc_ty.hir_id) {
             hir::Node::Expr(_) | hir::Node::Stmt(_) => Some(self.resolve_qpath_in_body(qpath, rustc_ty.hir_id)),
-            hir::Node::Item(item) => self.resolve_qpath_in_item(qpath, item.owner_id.to_def_id(), rustc_ty),
+            hir::Node::Item(item) => self.resolve_qpath_in_item(qpath, item.owner_id.def_id, rustc_ty),
             hir::Node::TypeBinding(_) => None,
             _ => unreachable!("types will always have a statement, expression or item as their parent"),
         })
@@ -249,7 +249,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     fn resolve_qpath_in_item(
         &self,
         qpath: &hir::QPath<'tcx>,
-        item_id: hir::def_id::DefId,
+        item_id: hir::def_id::LocalDefId,
         rustc_ty: &hir::Ty<'_>,
     ) -> Option<hir::def::Res> {
         match qpath {
