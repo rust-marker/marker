@@ -1,5 +1,6 @@
 use std::mem::{size_of, transmute};
 
+use marker_api::ast::generic::GenericArgs;
 use marker_api::ast::ty::TyKind;
 use marker_api::ast::{
     Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, CrateId, ExprId, FieldId, GenericId, Ident, ItemId,
@@ -202,7 +203,28 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
                 AstQPath::new(None, Some(marker_ty), path, res)
             },
-            hir::QPath::LangItem(_, _, _) => todo!(),
+            // I recommend reading the comment of `Self::lang_item_map` for context
+            hir::QPath::LangItem(item, span, _) => {
+                let id = self
+                    .rustc_cx
+                    .lang_items()
+                    .get(*item)
+                    .expect("if the lang item is used, it also has to be in the map");
+                AstQPath::new(
+                    None,
+                    None,
+                    AstPath::new(self.alloc_slice([AstPathSegment::new(
+                        Ident::new(
+                            *self.lang_item_map.borrow().get(item).unwrap_or_else(|| {
+                                panic!("`&MarkerConverterInner::lang_item_map` doesn't contain `{item:?}`")
+                            }),
+                            self.to_span_id(*span),
+                        ),
+                        GenericArgs::new(&[]),
+                    )])),
+                    AstPathTarget::Item(self.to_item_id(id)),
+                )
+            },
         }
     }
 
