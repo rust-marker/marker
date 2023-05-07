@@ -2,24 +2,27 @@ use std::{
     collections::HashMap,
     fs::File,
     io::{self, Read},
+    path::PathBuf,
 };
 
+use cargo_fetch::{GitReference, PackageSource};
 use serde::Deserialize;
 
 use toml_edit::easy::{from_str, Value};
 
-use crate::{lints::LintCrateSpec, ExitStatus};
+use crate::{
+    lints::{LintCrateSpec, PackageName},
+    ExitStatus,
+};
 
 const CARGO_TOML: &str = "Cargo.toml";
 
 #[derive(Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
 pub struct Config {
     lints: HashMap<String, LintDependency>,
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
 #[serde(untagged)]
 pub enum LintDependency {
     /// Version string like: `lint = "0.0.1"`
@@ -30,25 +33,50 @@ pub enum LintDependency {
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
+#[serde(rename_all = "lowercase")]
+pub enum GitRef {
+    Rev(String),
+    Tag(String),
+    Branch(String),
+}
+
+impl From<GitRef> for GitReference {
+    fn from(value: GitRef) -> Self {
+        match value {
+            GitRef::Rev(rev) => GitReference::Revision(rev),
+            GitRef::Tag(tag) => GitReference::Tag(tag),
+            GitRef::Branch(branch) => GitReference::Branch(branch),
+        }
+    }
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+pub enum Source {
+    // TODO: Registries are not supported yet, see https://github.com/rust-marker/marker/issues/87
+    Registry {
+        version: String,
+        registry: Option<String>,
+    },
+    Git {
+        git: String,
+        #[serde(flatten)]
+        git_ref: Option<GitRef>,
+    },
+    Path {
+        path: String,
+    },
+}
+
+#[derive(Deserialize, Debug)]
 pub struct LintDependencyEntry {
-    path: Option<String>,
+    #[serde(flatten)]
+    source: Source,
     package: Option<String>,
-    // TODO: Everything below is not yet supported
-    // Registry fetching:
-    version: Option<String>,
-    registry: Option<String>,
-    // Git source fetching:
-    git: Option<String>,
-    rev: Option<String>,
-    branch: Option<String>,
-    // Features:
+    // TODO: Features are not supported yet, see https://github.com/rust-marker/marker/issues/81
     #[serde(rename = "default-features")]
     default_features: Option<bool>,
     features: Option<Vec<String>>,
-    optional: Option<bool>,
-    // TODO: do we want lint configuration here too?
-    // configuration: Option<Value>
 }
 
 #[derive(Debug)]
@@ -78,16 +106,6 @@ impl ConfigFetchError {
             },
         };
         ExitStatus::BadConfiguration
-    }
-}
-
-macro_rules! unsupported_fields {
-    ($name:expr, $dep:expr => [$($i:ident),+]) => {
-        $(
-            if let Some(ref $i) = $dep.$i {
-                eprintln!(concat!("warning: {} ({:?}): marker doesn't yet support `", stringify!($i), "` field"), $name, $i);
-            }
-        )+
     }
 }
 
@@ -123,37 +141,65 @@ impl Config {
         Ok(marker_config)
     }
 
-    pub fn collect_crates(&self) -> Result<Vec<LintCrateSpec>, ExitStatus> {
-        self.lints
-            .iter()
-            .map(|(name, dep)| match dep {
-                LintDependency::Simple(v) => {
-                    eprintln!("{name} ({v}): marker doesn't yet support registries");
-                    Err(ExitStatus::InvalidValue)
-                },
-                LintDependency::Full(dep) => {
-                    unsupported_fields!(
-                        name, dep => [
-                            version,
-                            registry,
-                            git,
-                            rev,
-                            branch,
-                            default_features,
-                            features,
-                            optional
-                        ]
-                    );
-                    if let Some(ref path) = dep.path {
-                        if let Some(ref package) = dep.package {
-                            return Ok(LintCrateSpec::new(Some(package), path.as_ref()));
-                        }
-                        return Ok(LintCrateSpec::new(Some(name), path.as_ref()));
-                    }
-                    eprintln!("No `path` field found for lint crate {name}");
-                    Err(ExitStatus::BadConfiguration)
-                },
-            })
-            .collect()
+    pub fn collect_crates(self) -> Result<Vec<LintCrateSpec>, ExitStatus> {
+        self.lints.into_iter().map(dep_to_spec).collect()
+    }
+}
+
+macro_rules! unsupported_fields {
+    ($name:expr, $dep:expr => [$($i:ident),+]) => {
+        $(
+            if let Some(ref $i) = $dep.$i {
+                eprintln!(concat!("warning: {} ({:?}): marker doesn't yet support `", stringify!($i), "` field"), $name, $i);
+            }
+        )+
+    }
+}
+
+fn dep_to_spec((name, dep): (String, LintDependency)) -> Result<LintCrateSpec, ExitStatus> {
+    let dep = match dep {
+        LintDependency::Simple(ver) => {
+            eprintln!("{name} ({ver}): marker does not yet support registries");
+            return Err(ExitStatus::InvalidValue);
+        },
+        LintDependency::Full(dep) => dep,
+    };
+
+    unsupported_fields!(
+        name, dep => [
+            default_features,
+            features
+        ]
+    );
+
+    let pkg_name = if let Some(package) = dep.package {
+        PackageName::Renamed {
+            orig: package,
+            new: name.clone(),
+        }
+    } else {
+        PackageName::Named(name.clone())
+    };
+
+    match dep.source {
+        Source::Registry { version, .. } => {
+            eprintln!("{name} ({version}): marker does not yet support registries");
+            Err(ExitStatus::BadConfiguration)
+        },
+        Source::Git { git, git_ref } => {
+            let src = PackageSource::git(&git, git_ref.map(Into::into)).map_err(|e| {
+                eprintln!("{name}: {git} is not a valid git repository url ({e})");
+                ExitStatus::InvalidValue
+            })?;
+            Ok(LintCrateSpec::new(pkg_name, None, src))
+        },
+        Source::Path { path } => {
+            let path: PathBuf = path.into();
+            let src = PackageSource::path(path.clone()).map_err(|e| {
+                eprintln!("{name}: {} is not a valid lint crate path ({e})", path.display());
+                ExitStatus::LintCrateNotFound
+            })?;
+            Ok(LintCrateSpec::new(pkg_name, None, src))
+        },
     }
 }

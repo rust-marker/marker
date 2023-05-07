@@ -15,10 +15,11 @@ use std::{
     process::exit,
 };
 
+use cargo_fetch::PackageSource;
 use cli::{get_clap_config, Flags};
 use config::Config;
 use driver::{get_driver_path, run_driver};
-use lints::LintCrateSpec;
+use lints::{LintCrateSpec, PackageName};
 use once_cell::sync::Lazy;
 
 use crate::driver::print_driver_version;
@@ -51,6 +52,8 @@ pub enum ExitStatus {
     LintCrateNotFound = 501,
     /// The lint crate has been build, but the resulting binary could not be found.
     LintCrateLibNotFound = 502,
+    /// Failed to fetch the lint crate
+    LintCrateFetchFailed = 550,
     /// General "bad config" error
     BadConfiguration = 600,
     /// No lint crates were specified -> nothing to do
@@ -84,12 +87,22 @@ fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
         .to_string()
 }
 
-fn choose_lint_crates<'a>(
-    args: &'a clap::ArgMatches,
-    config: Option<&'a Config>,
-) -> Result<Vec<LintCrateSpec<'a>>, ExitStatus> {
+fn choose_lint_crates(args: &clap::ArgMatches, config: Option<Config>) -> Result<Vec<LintCrateSpec>, ExitStatus> {
     match args.get_many::<OsString>("lints") {
-        Some(v) => Ok(v.map(|v| LintCrateSpec::new(None, v.as_ref())).collect()),
+        Some(v) => v
+            .map(|s| {
+                let p = Path::new(s);
+                let src = PackageSource::path(p).map_err(|e| {
+                    eprintln!("{}: {e}", p.display());
+                    ExitStatus::LintCrateNotFound
+                })?;
+                Ok(LintCrateSpec::new(
+                    PackageName::Named(p.file_name().unwrap_or_default().to_string_lossy().to_string()),
+                    None,
+                    src,
+                ))
+            })
+            .collect::<Result<_, _>>(),
         None => {
             if let Some(config) = config {
                 config.collect_crates()
@@ -126,13 +139,13 @@ fn main() -> Result<(), ExitStatus> {
 
     match matches.subcommand() {
         Some(("setup", _args)) => driver::install_driver(&flags),
-        Some(("check", args)) => run_check(&choose_lint_crates(args, config.as_ref())?, &flags),
-        None => run_check(&choose_lint_crates(&matches, config.as_ref())?, &flags),
+        Some(("check", args)) => run_check(choose_lint_crates(args, config)?, &flags),
+        None => run_check(choose_lint_crates(&matches, config)?, &flags),
         _ => unreachable!(),
     }
 }
 
-fn run_check(crate_entries: &[LintCrateSpec], flags: &Flags) -> Result<(), ExitStatus> {
+fn run_check(crate_entries: Vec<LintCrateSpec>, flags: &Flags) -> Result<(), ExitStatus> {
     // If this is a dev build, we want to recompile the driver before checking
     if flags.dev_build {
         driver::install_driver(flags)?;
@@ -143,20 +156,14 @@ fn run_check(crate_entries: &[LintCrateSpec], flags: &Flags) -> Result<(), ExitS
         return Err(ExitStatus::NoLints);
     }
 
-    if !crate_entries.iter().all(LintCrateSpec::is_valid) {
-        eprintln!("The absolute paths of lint crates are not allowed to contain a `;`");
-        return Err(ExitStatus::InvalidValue);
-    }
-
-    let mut lint_crates = Vec::with_capacity(crate_entries.len());
-
     println!();
     println!("Compiling Lints:");
     let target_dir = Path::new(&*MARKER_LINT_DIR);
-    for krate in crate_entries {
-        let crate_file = krate.build(target_dir, flags)?;
-        lint_crates.push(crate_file.as_os_str().to_os_string());
-    }
+
+    let lint_crates: Vec<OsString> = LintCrateSpec::build_many(crate_entries, target_dir, flags)?
+        .into_iter()
+        .map(OsString::from)
+        .collect();
 
     #[rustfmt::skip]
     let env = vec![
