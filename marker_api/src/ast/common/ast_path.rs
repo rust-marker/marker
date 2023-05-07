@@ -220,8 +220,9 @@ pub enum AstPathTarget {
     Var(VarId),
     /// The path target is a generic type, identified by the [`GenericId`].
     Generic(GenericId),
-    /// The target wasn't resolved, but should be available in the future.
-    Wip,
+    /// The target can't be resolved in the current context. This can happen
+    /// for paths in generic bounds.
+    Unresolved,
 }
 
 #[repr(C)]
