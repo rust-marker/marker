@@ -3,8 +3,8 @@ use marker_api::ast::{
         ArrayExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr, CallExpr, CaptureKind,
         CharLitExpr, ClosureExpr, CommonExprData, ContinueExpr, CtorExpr, CtorField, ExprKind, ExprPrecedence,
         FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr, IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr,
-        MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr, RefExpr, ReturnExpr, StrLitData, StrLitExpr, TupleExpr,
-        UnaryOpExpr, UnaryOpKind, UnstableExpr, WhileExpr,
+        MatchArm, MatchExpr, MethodExpr, PathExpr, QuestionMarkExpr, RangeExpr, RefExpr, ReturnExpr, StrLitData,
+        StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr, WhileExpr,
     },
     pat::PatKind,
     CommonCallableData, Ident, Parameter,
@@ -201,6 +201,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ExprKind::Match(scrutinee, arms, hir::MatchSource::Normal) => {
                 ExprKind::Match(self.alloc(MatchExpr::new(data, self.to_expr(scrutinee), self.to_match_arms(arms))))
             },
+            hir::ExprKind::Match(scrutinee, [_early_return, _continue], hir::MatchSource::TryDesugar) => {
+                ExprKind::QuestionMark(self.alloc(QuestionMarkExpr::new(data, self.to_expr(scrutinee))))
+            },
             hir::ExprKind::Assign(assignee, value, _span) => ExprKind::Assign(self.alloc(AssignExpr::new(
                 data,
                 PatKind::Place(self.to_expr(assignee)),
@@ -243,6 +246,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ExprKind::DropTemps(inner) => return self.to_expr(inner),
             hir::ExprKind::Err(..) => unreachable!("would have triggered a rustc error"),
             _ => {
+                println!("{expr:#?}");
                 eprintln!("skipping not implemented expr at: {:?}", expr.span);
                 ExprKind::Unstable(
                     self.alloc({
