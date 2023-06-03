@@ -1,25 +1,32 @@
-use super::{expr::ExprKind, Span, SpanId};
+use super::{
+    expr::{ExprKind, LitExprKind},
+    Span, SpanId,
+};
 
 use std::{fmt::Debug, marker::PhantomData};
 
 mod ident_pat;
-pub use ident_pat::*;
-mod wildcard_pat;
-pub use wildcard_pat::*;
-mod rest_pat;
-pub use rest_pat::*;
-mod ref_pat;
-pub use ref_pat::*;
-mod struct_pat;
-pub use struct_pat::*;
-mod tuple_pat;
-pub use tuple_pat::*;
-mod slice_pat;
-pub use slice_pat::*;
 mod or_pat;
-pub use or_pat::*;
+mod path_pat;
+mod range_pat;
+mod ref_pat;
+mod rest_pat;
+mod slice_pat;
+mod struct_pat;
+mod tuple_pat;
 mod unstable_pat;
+mod wildcard_pat;
+pub use ident_pat::*;
+pub use or_pat::*;
+pub use path_pat::*;
+pub use range_pat::*;
+pub use ref_pat::*;
+pub use rest_pat::*;
+pub use slice_pat::*;
+pub use struct_pat::*;
+pub use tuple_pat::*;
 pub use unstable_pat::*;
+pub use wildcard_pat::*;
 
 pub trait PatData<'ast>: Debug {
     /// Returns the span of this pattern.
@@ -64,10 +71,17 @@ pub enum PatKind<'ast> {
     /// //  ^^^^^^^^ Place expressions nested in a tuple pattern
     /// ```
     ///
-    /// Place expressions can currently only occur from [`AssignExpr`](super::expr::AssignExpr)s.
-    /// Patterns from [`LetStmts`](super::stmt::LetStmt)s and arguments in
+    /// Place expressions can currently only occur as targets in
+    /// [`AssignExpr`](super::expr::AssignExpr)s. Patterns from
+    /// [`LetStmts`](super::stmt::LetStmt)s and arguments in
     /// [`FnItem`](super::item::FnItem) will never contain place expressions.
+    /// Static paths identifying [`ConstItem`](super::item::ConstItem)s or
+    /// [`EnumItem`](super::item::EnumItem) variants are expressed with the
+    /// [`PatKind::Path`] variant.
     Place(ExprKind<'ast>),
+    Lit(LitExprKind<'ast>),
+    Path(&'ast PathPat<'ast>),
+    Range(&'ast RangePat<'ast>),
     Unstable(&'ast UnstablePat<'ast>),
 }
 
@@ -79,7 +93,7 @@ macro_rules! impl_pat_data_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_pat_data_fn!(
             $method() -> $return_ty,
-            Ident, Wildcard, Rest, Ref, Struct, Tuple, Slice, Or, Place, Unstable
+            Ident, Wildcard, Rest, Ref, Struct, Tuple, Slice, Or, Place, Lit, Range, Path, Unstable
         );
     };
     ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {

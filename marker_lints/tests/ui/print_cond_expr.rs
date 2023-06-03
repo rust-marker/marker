@@ -34,6 +34,13 @@ fn matches(scrutinee: &[i32]) {
             3
         },
     };
+
+    let opt = Some(1);
+    let _print_match_with_path = match opt {
+        Some(1) => (),
+        Some(x) => (),
+        None => (),
+    };
 }
 
 fn check(_: &i32) -> bool {

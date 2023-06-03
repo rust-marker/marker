@@ -73,10 +73,55 @@ pub enum ExprKind<'ast> {
 }
 
 impl<'ast> ExprKind<'ast> {
-    impl_expr_kind_fn!(span() -> &Span<'ast>);
-    impl_expr_kind_fn!(id() -> ExprId);
-    impl_expr_kind_fn!(ty() -> TyKind<'ast>);
-    impl_expr_kind_fn!(precedence() -> ExprPrecedence);
+    impl_expr_kind_fn!(ExprKind: span() -> &Span<'ast>);
+    impl_expr_kind_fn!(ExprKind: id() -> ExprId);
+    impl_expr_kind_fn!(ExprKind: ty() -> TyKind<'ast>);
+    impl_expr_kind_fn!(ExprKind: precedence() -> ExprPrecedence);
+}
+
+#[repr(C)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone)]
+pub enum LitExprKind<'ast> {
+    Int(&'ast IntLitExpr<'ast>),
+    Float(&'ast FloatLitExpr<'ast>),
+    Str(&'ast StrLitExpr<'ast>),
+    Char(&'ast CharLitExpr<'ast>),
+    Bool(&'ast BoolLitExpr<'ast>),
+}
+
+impl<'ast> LitExprKind<'ast> {
+    impl_expr_kind_fn!(LitExprKind: span() -> &Span<'ast>);
+    impl_expr_kind_fn!(LitExprKind: id() -> ExprId);
+    impl_expr_kind_fn!(LitExprKind: ty() -> TyKind<'ast>);
+    impl_expr_kind_fn!(LitExprKind: precedence() -> ExprPrecedence);
+}
+
+impl<'ast> From<LitExprKind<'ast>> for ExprKind<'ast> {
+    fn from(value: LitExprKind<'ast>) -> Self {
+        match value {
+            LitExprKind::Int(expr) => ExprKind::IntLit(expr),
+            LitExprKind::Float(expr) => ExprKind::FloatLit(expr),
+            LitExprKind::Str(expr) => ExprKind::StrLit(expr),
+            LitExprKind::Char(expr) => ExprKind::CharLit(expr),
+            LitExprKind::Bool(expr) => ExprKind::BoolLit(expr),
+        }
+    }
+}
+
+impl<'ast> TryFrom<ExprKind<'ast>> for LitExprKind<'ast> {
+    type Error = ();
+
+    fn try_from(value: ExprKind<'ast>) -> Result<Self, Self::Error> {
+        match value {
+            ExprKind::IntLit(expr) => Ok(LitExprKind::Int(expr)),
+            ExprKind::FloatLit(expr) => Ok(LitExprKind::Float(expr)),
+            ExprKind::StrLit(expr) => Ok(LitExprKind::Str(expr)),
+            ExprKind::CharLit(expr) => Ok(LitExprKind::Char(expr)),
+            ExprKind::BoolLit(expr) => Ok(LitExprKind::Bool(expr)),
+            _ => Err(()),
+        }
+    }
 }
 
 #[repr(u32)]
@@ -170,8 +215,8 @@ pub enum ExprPrecedence {
 }
 
 macro_rules! impl_expr_kind_fn {
-    ($method:ident () -> $return_ty:ty) => {
-        impl_expr_kind_fn!($method() -> $return_ty,
+    (ExprKind: $method:ident () -> $return_ty:ty) => {
+        impl_expr_kind_fn!((ExprKind) $method() -> $return_ty,
             IntLit, FloatLit, StrLit, CharLit, BoolLit,
             Block,
             UnaryOp, Ref, BinaryOp, QuestionMark, As, Assign,
@@ -182,10 +227,15 @@ macro_rules! impl_expr_kind_fn {
             Unstable
         );
     };
-    ($method:ident () -> $return_ty:ty $(, $kind:ident)+) => {
+    (LitExprKind: $method:ident () -> $return_ty:ty) => {
+        impl_expr_kind_fn!((LitExprKind) $method() -> $return_ty,
+            Int, Float, Str, Char, Bool
+        );
+    };
+    (($self:ident) $method:ident () -> $return_ty:ty $(, $kind:ident)+) => {
         pub fn $method(&self) -> $return_ty {
             match self {
-                $(ExprKind::$kind(data) => data.$method(),)*
+                $($self::$kind(data) => data.$method(),)*
             }
         }
     };

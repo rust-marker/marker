@@ -1,5 +1,6 @@
 use std::mem::{size_of, transmute};
 
+use marker_api::ast::generic::GenericArgs;
 use marker_api::ast::ty::TyKind;
 use marker_api::ast::{
     Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, CrateId, ExprId, FieldId, GenericId, Ident, ItemId,
@@ -202,12 +203,48 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
                 AstQPath::new(None, Some(marker_ty), path, res)
             },
-            hir::QPath::LangItem(_, _, _) => todo!(),
+            // I recommend reading the comment of `Self::lang_item_map` for context
+            hir::QPath::LangItem(item, span, _) => {
+                let id = self
+                    .rustc_cx
+                    .lang_items()
+                    .get(*item)
+                    .expect("if the lang item is used, it also has to be in the map");
+                AstQPath::new(
+                    None,
+                    None,
+                    AstPath::new(self.alloc_slice([AstPathSegment::new(
+                        Ident::new(
+                            *self.lang_item_map.borrow().get(item).unwrap_or_else(|| {
+                                panic!("`&MarkerConverterInner::lang_item_map` doesn't contain `{item:?}`")
+                            }),
+                            self.to_span_id(*span),
+                        ),
+                        GenericArgs::new(&[]),
+                    )])),
+                    AstPathTarget::Item(self.to_item_id(id)),
+                )
+            },
         }
     }
 
     pub fn to_qpath_from_expr(&self, qpath: &hir::QPath<'tcx>, expr: &hir::Expr<'_>) -> AstQPath<'ast> {
         self.to_qpath(qpath, || Some(self.resolve_qpath_in_body(qpath, expr.hir_id)))
+    }
+
+    pub fn to_qpath_from_pat(&self, qpath: &hir::QPath<'tcx>) -> AstQPath<'ast> {
+        // The normal path resolution requires the specification of a function to
+        // resolve paths, which have not been resolved by rustc. The way of
+        // resolving the path depends on the context that the path occurs in.
+        // Patterns can occur in item signatures and bodies, which means that the
+        // target would need to be resolved in different ways depending on the
+        // context. From what I can tell, paths inside patters are always resolved.
+        // Therefore, it should be safe, to not provide a resolve method.
+        //
+        // (Famous last words :D)
+        self.to_qpath(qpath, || {
+            unreachable!("paths in patterns should always be resolved in rustc")
+        })
     }
 
     pub fn to_qpath_from_ty(&self, qpath: &hir::QPath<'tcx>, rustc_ty: &hir::Ty<'_>) -> AstQPath<'ast> {
