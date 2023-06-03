@@ -1,5 +1,9 @@
 // normalize-stderr-windows: "tests/ui/" -> "$$DIR/"
 
+fn as_casts() {
+    let _print_cast = 16 as u32;
+}
+
 fn main() {
     let mut value = 20;
     let _print_alg_ops = 1 + 2 * -3;

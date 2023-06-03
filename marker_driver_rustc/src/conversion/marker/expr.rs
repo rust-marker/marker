@@ -1,10 +1,10 @@
 use marker_api::ast::{
     expr::{
-        ArrayExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr, CallExpr, CaptureKind,
-        CharLitExpr, ClosureExpr, CommonExprData, ContinueExpr, CtorExpr, CtorField, ExprKind, ExprPrecedence,
-        FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr, IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr,
-        MatchArm, MatchExpr, MethodExpr, PathExpr, QuestionMarkExpr, RangeExpr, RefExpr, ReturnExpr, StrLitData,
-        StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr, WhileExpr,
+        ArrayExpr, AsExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr, CallExpr,
+        CaptureKind, CharLitExpr, ClosureExpr, CommonExprData, ContinueExpr, CtorExpr, CtorField, ExprKind,
+        ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr, IndexExpr, IntLitExpr, IntSuffix,
+        LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, QuestionMarkExpr, RangeExpr, RefExpr, ReturnExpr,
+        StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr, WhileExpr,
     },
     pat::PatKind,
     CommonCallableData, Ident, Parameter,
@@ -240,13 +240,15 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 hir::LoopSource::ForLoop => unreachable!("is desugared at a higher node level"),
             },
             hir::ExprKind::Closure(closure) => ExprKind::Closure(self.alloc(self.to_closure_expr(data, closure))),
+            hir::ExprKind::Cast(expr, ty) => {
+                ExprKind::As(self.alloc(AsExpr::new(data, self.to_expr(expr), self.to_ty(*ty))))
+            },
             // `DropTemps` is an rustc internal construct to tweak the drop
             // order during HIR lowering. Marker can for now ignore this and
             // convert the inner expression directly
             hir::ExprKind::DropTemps(inner) => return self.to_expr(inner),
             hir::ExprKind::Err(..) => unreachable!("would have triggered a rustc error"),
             _ => {
-                println!("{expr:#?}");
                 eprintln!("skipping not implemented expr at: {:?}", expr.span);
                 ExprKind::Unstable(
                     self.alloc({
