@@ -40,7 +40,7 @@ use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command};
 
-const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-04-20";
+const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-06-01";
 
 struct DefaultCallbacks;
 impl rustc_driver::Callbacks for DefaultCallbacks {}

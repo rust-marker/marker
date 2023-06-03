@@ -88,27 +88,27 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
             lint,
             id,
             self.rustc_converter.to_span(diag.span),
-            diag.msg(),
+            diag.msg().to_string(),
             |builder| {
                 for part in diag.parts.get() {
                     match part {
                         marker_api::diagnostic::DiagnosticPart::Help { msg } => {
-                            builder.help(msg.get());
+                            builder.help(msg.get().to_string());
                         },
                         marker_api::diagnostic::DiagnosticPart::HelpSpan { msg, span } => {
-                            builder.span_help(self.rustc_converter.to_span(span), msg.get());
+                            builder.span_help(self.rustc_converter.to_span(span), msg.get().to_string());
                         },
                         marker_api::diagnostic::DiagnosticPart::Note { msg } => {
-                            builder.note(msg.get());
+                            builder.note(msg.get().to_string());
                         },
                         marker_api::diagnostic::DiagnosticPart::NoteSpan { msg, span } => {
-                            builder.span_note(self.rustc_converter.to_span(span), msg.get());
+                            builder.span_note(self.rustc_converter.to_span(span), msg.get().to_string());
                         },
                         marker_api::diagnostic::DiagnosticPart::Suggestion { msg, span, sugg, app } => {
                             builder.span_suggestion(
                                 self.rustc_converter.to_span(span),
-                                msg.get(),
-                                sugg.get(),
+                                msg.get().to_string(),
+                                sugg.get().to_string(),
                                 self.rustc_converter.to_applicability(*app),
                             );
                         },

@@ -292,6 +292,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     StrLitData::Bytes(self.alloc_slice(bytes.iter().copied()).into()),
                 )
             })),
+            // Still unstable see: https://github.com/rust-lang/rust/issues/105723
+            rustc_ast::LitKind::CStr(_, _) => {
+                ExprKind::Unstable(self.alloc(UnstableExpr::new(data, ExprPrecedence::Lit)))
+            },
             rustc_ast::LitKind::Byte(value) => {
                 ExprKind::IntLit(self.alloc(IntLitExpr::new(data, u128::from(*value), None)))
             },

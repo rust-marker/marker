@@ -21,7 +21,7 @@ use crate::{cli::Flags, ExitStatus};
 /// This is the driver version and toolchain, that is used by the setup command
 /// to install the driver.
 static DEFAULT_DRIVER_INFO: Lazy<RustcDriverInfo> = Lazy::new(|| RustcDriverInfo {
-    toolchain: "nightly-2023-04-20".to_string(),
+    toolchain: "nightly-2023-06-01".to_string(),
     version: "0.1.0".to_string(),
     api_version: "0.1.0".to_string(),
 });
