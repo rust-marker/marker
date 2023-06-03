@@ -7,6 +7,7 @@ members = [
     # This is needed for rust-analyzer, uitests and other tools
     "marker_lints",
 ]
+resolver = "2"
 
 [workspace.metadata.marker.lints]
 marker_lints = { path = "marker_lints" }
