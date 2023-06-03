@@ -1,13 +1,13 @@
 use marker_api::ast::{
     expr::{
-        ArrayExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr, CallExpr, CharLitExpr,
-        CommonExprData, ContinueExpr, CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr,
-        FloatSuffix, ForExpr, IfExpr, IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr,
-        MethodExpr, PathExpr, RangeExpr, RefExpr, ReturnExpr, StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr,
-        UnaryOpKind, UnstableExpr, WhileExpr,
+        ArrayExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr, CallExpr, CaptureKind,
+        CharLitExpr, ClosureExpr, CommonExprData, ContinueExpr, CtorExpr, CtorField, ExprKind, ExprPrecedence,
+        FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr, IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr,
+        MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr, RefExpr, ReturnExpr, StrLitData, StrLitExpr, TupleExpr,
+        UnaryOpExpr, UnaryOpKind, UnstableExpr, WhileExpr,
     },
     pat::PatKind,
-    Ident,
+    CommonCallableData, Ident, Parameter,
 };
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
@@ -236,6 +236,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 hir::LoopSource::While => ExprKind::While(self.alloc(self.to_while_loop_from_desugar(expr))),
                 hir::LoopSource::ForLoop => unreachable!("is desugared at a higher node level"),
             },
+            hir::ExprKind::Closure(closure) => ExprKind::Closure(self.alloc(self.to_closure_expr(data, closure))),
             // `DropTemps` is an rustc internal construct to tweak the drop
             // order during HIR lowering. Marker can for now ignore this and
             // convert the inner expression directly
@@ -383,6 +384,46 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             guard,
             self.to_expr(arm.body),
         )
+    }
+
+    fn to_closure_expr(&self, data: CommonExprData<'ast>, closure: &hir::Closure<'tcx>) -> ClosureExpr<'ast> {
+        let fn_decl = closure.fn_decl;
+
+        let params = self.alloc_slice(fn_decl.inputs.iter().map(|ty| {
+            // FIXME: The name should be a pattern retrieved from the body, but
+            // that requires adjustments in `Parameter`.
+            Parameter::new(None, Some(self.to_ty(ty)), None)
+        }));
+        let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_decl.output {
+            Some(self.to_ty(rust_ty))
+        } else {
+            None
+        };
+
+        let call = CommonCallableData::new(
+            false,
+            false,
+            false,
+            false,
+            marker_api::ast::Abi::Default,
+            false,
+            params,
+            return_ty,
+        );
+
+        ClosureExpr::new(
+            data,
+            call,
+            self.to_capture_kind(closure.capture_clause),
+            self.to_body_id(closure.body),
+        )
+    }
+
+    fn to_capture_kind(&self, capture: hir::CaptureBy) -> CaptureKind {
+        match capture {
+            rustc_ast::CaptureBy::Value => CaptureKind::Move,
+            rustc_ast::CaptureBy::Ref => CaptureKind::Default,
+        }
     }
 
     #[must_use]

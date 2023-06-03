@@ -1,5 +1,5 @@
 use crate::{
-    ast::{stmt::StmtKind, BodyId, CommonCallableData, Ident, impl_callable_data_trait},
+    ast::{impl_callable_data_trait, stmt::StmtKind, BodyId, CommonCallableData, Ident},
     ffi::{FfiOption, FfiSlice},
 };
 
@@ -101,9 +101,9 @@ impl<'ast> BlockExpr<'ast> {
 #[derive(Debug)]
 pub struct ClosureExpr<'ast> {
     data: CommonExprData<'ast>,
-    capture_kind: CaptureKind,
     callable_data: CommonCallableData<'ast>,
-    body: FfiOption<BodyId>,
+    capture_kind: CaptureKind,
+    body: BodyId,
 }
 
 impl<'ast> ClosureExpr<'ast> {
@@ -111,8 +111,8 @@ impl<'ast> ClosureExpr<'ast> {
         self.capture_kind
     }
 
-    pub fn body(&self) -> Option<BodyId> {
-        self.body.copy()
+    pub fn body(&self) -> BodyId {
+        self.body
     }
 }
 
@@ -124,15 +124,15 @@ impl_callable_data_trait!(ClosureExpr<'ast>);
 impl<'ast> ClosureExpr<'ast> {
     pub fn new(
         data: CommonExprData<'ast>,
-        capture_kind: CaptureKind,
         callable_data: CommonCallableData<'ast>,
-        body: Option<BodyId>,
+        capture_kind: CaptureKind,
+        body: BodyId,
     ) -> Self {
         Self {
             data,
-            capture_kind,
             callable_data,
-            body: body.into(),
+            capture_kind,
+            body,
         }
     }
 }
