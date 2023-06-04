@@ -132,7 +132,7 @@ impl LintPass for TestLintPass {
         }
     }
 
-    fn check_stmt<'ast>(&mut self, _cx: &'ast AstContext<'ast>, stmt: StmtKind<'ast>) {
+    fn check_stmt<'ast>(&mut self, cx: &'ast AstContext<'ast>, stmt: StmtKind<'ast>) {
         // I didn't realize that `let_chains` are still unstable. This makes the
         // code significantly less readable -.-
         if let StmtKind::Let(lets) = stmt {
@@ -140,16 +140,9 @@ impl LintPass for TestLintPass {
             if ident.name().starts_with("_print") {
                 let Some(expr) = lets.init() else { return };
 
-                println!("{expr:#?}\n");
-                // FIXME: This will include the span of the printed expression in
-                // the tests.
-                // I only want to enable this after the PR has been approved, as it
-                // adds a lot of superficial changes (+3810|-3498) which would
-                // complicate the review.
-                //
-                // cx.emit_lint(TEST_LINT, stmt.id(), "print test", stmt.span(), |diag| {
-                //     diag.note(format!("{expr:#?}"))
-                // })
+                cx.emit_lint(TEST_LINT, stmt.id(), "print test", stmt.span(), |diag| {
+                    diag.note(format!("{expr:#?}"));
+                });
             }
         }
     }
