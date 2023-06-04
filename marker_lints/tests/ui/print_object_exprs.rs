@@ -1,4 +1,4 @@
-// normalize-stdout-windows: "tests/ui/" -> "$$DIR/"
+// normalize-stderr-windows: "tests/ui/" -> "$$DIR/"
 
 #[derive(Debug, Default)]
 pub struct Example {
