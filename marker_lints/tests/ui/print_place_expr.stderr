@@ -1,0 +1,187 @@
+warning: print test
+  --> $DIR/print_place_expr.rs:13:5
+   |
+13 |     let _print_struct_field = object.a;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Field(
+               FieldExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   operand: Path(
+                       PathExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           path: AstQPath {
+                               self_ty: None,
+                               path_ty: None,
+                               path: AstPath {
+                                   segments: [
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "object",
+                                               span: Span {
+                                                   source: File(
+                                                       "$DIR/print_place_expr.rs",
+                                                   ),
+                                                   start: 246,
+                                                   end: 252,
+                                               },
+                                           },
+                                           generics: GenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                   ],
+                               },
+                               target: Var(
+                                   VarId(..),
+                               ),
+                           },
+                       },
+                   ),
+                   field: Ident {
+                       name: "a",
+                       span: Span {
+                           source: File(
+                               "$DIR/print_place_expr.rs",
+                           ),
+                           start: 253,
+                           end: 254,
+                       },
+                   },
+               },
+           )
+   = note: `#[warn(marker::test_lint)]` on by default
+
+warning: print test
+  --> $DIR/print_place_expr.rs:14:5
+   |
+14 |     let _print_tuple_field = tuple.0;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Field(
+               FieldExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   operand: Path(
+                       PathExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           path: AstQPath {
+                               self_ty: None,
+                               path_ty: None,
+                               path: AstPath {
+                                   segments: [
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "tuple",
+                                               span: Span {
+                                                   source: File(
+                                                       "$DIR/print_place_expr.rs",
+                                                   ),
+                                                   start: 285,
+                                                   end: 290,
+                                               },
+                                           },
+                                           generics: GenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                   ],
+                               },
+                               target: Var(
+                                   VarId(..),
+                               ),
+                           },
+                       },
+                   ),
+                   field: Ident {
+                       name: "0",
+                       span: Span {
+                           source: File(
+                               "$DIR/print_place_expr.rs",
+                           ),
+                           start: 291,
+                           end: 292,
+                       },
+                   },
+               },
+           )
+
+warning: print test
+  --> $DIR/print_place_expr.rs:15:5
+   |
+15 |     let _print_array_index = array[0];
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Index(
+               IndexExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   operand: Path(
+                       PathExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           path: AstQPath {
+                               self_ty: None,
+                               path_ty: None,
+                               path: AstPath {
+                                   segments: [
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "array",
+                                               span: Span {
+                                                   source: File(
+                                                       "$DIR/print_place_expr.rs",
+                                                   ),
+                                                   start: 323,
+                                                   end: 328,
+                                               },
+                                           },
+                                           generics: GenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                   ],
+                               },
+                               target: Var(
+                                   VarId(..),
+                               ),
+                           },
+                       },
+                   ),
+                   index: IntLit(
+                       IntLitExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           value: 0,
+                           suffix: None,
+                       },
+                   ),
+               },
+           )
+
+warning: 3 warnings emitted
+

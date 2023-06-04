@@ -1,4 +1,4 @@
-// normalize-stdout-windows: "tests/ui/" -> "$$DIR/"
+// normalize-stderr-windows: "tests/ui/" -> "$$DIR/"
 
 fn main() {
     let _print_str = r#"Hello"#;
