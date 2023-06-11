@@ -62,6 +62,7 @@ pub enum SemTyParamBound<'ast> {
     TraitBound(&'ast SemTraitBound<'ast>),
 }
 
+/// A semantic trait bound used by [`SemTraitTy`](`crate::ast::ty::SemTraitObjTy`)
 #[repr(C)]
 #[derive(Debug)]
 pub struct SemTraitBound<'ast> {
@@ -78,10 +79,12 @@ impl<'ast> SemTraitBound<'ast> {
         self.is_relaxed
     }
 
+    /// The [`TyDefId`] of the bound trait.
     pub fn trait_id(&self) -> TyDefId {
         self.trait_id
     }
 
+    /// The [`SemGenericArgs`] used by the bound trait.
     pub fn trait_generic_args(&self) -> &SemGenericArgs<'ast> {
         &self.trait_generic_args
     }

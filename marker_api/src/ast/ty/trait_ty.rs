@@ -1,5 +1,8 @@
 use crate::{ast::generic::SemTyParamBound, ffi::FfiSlice};
 
+/// The semantic representation of a [trait object].
+///
+/// [trait object]: https://doc.rust-lang.org/reference/types/trait-object.html
 #[repr(C)]
 #[derive(Debug)]
 pub struct SemTraitObjTy<'ast> {

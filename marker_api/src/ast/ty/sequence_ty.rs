@@ -2,6 +2,7 @@ use crate::ffi::FfiSlice;
 
 use super::SemTy;
 
+/// The semantic representation of a tuple type like [`()`](prim@tuple) or [`(T, U)`](prim@tuple)
 #[repr(C)]
 pub struct SemTupleTy<'ast> {
     types: FfiSlice<'ast, SemTy<'ast>>,
@@ -32,6 +33,7 @@ impl<'ast> std::fmt::Debug for SemTupleTy<'ast> {
     }
 }
 
+/// The semantic representation of a variable length slice like [`[T]`](prim@slice)
 #[repr(C)]
 pub struct SemSliceTy<'ast> {
     inner_ty: SemTy<'ast>,
@@ -56,6 +58,7 @@ impl<'ast> std::fmt::Debug for SemSliceTy<'ast> {
     }
 }
 
+/// The semantic representation of an array with a known size like: [`[T; N]`](prim@array)
 #[repr(C)]
 pub struct SemArrayTy<'ast> {
     inner_ty: SemTy<'ast>,

@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 
 use super::{NumKind, TextKind};
 
+/// The semantic representation of the [`bool`] type.
 #[repr(C)]
 pub struct SemBoolTy<'ast> {
     _lt: PhantomData<&'ast ()>,
@@ -20,6 +21,7 @@ impl<'ast> std::fmt::Debug for SemBoolTy<'ast> {
     }
 }
 
+/// The semantic representation of a numeric type like [`u32`], [`i32`], [`f64`].
 #[repr(C)]
 #[derive(PartialEq, Eq, Hash)]
 pub struct SemNumTy<'ast> {
@@ -65,6 +67,7 @@ impl<'ast> std::fmt::Debug for SemNumTy<'ast> {
     }
 }
 
+/// The semantic representation of a textual type like [`char`] or [`str`].
 #[repr(C)]
 pub struct SemTextTy<'ast> {
     _ast: PhantomData<&'ast ()>,
@@ -101,6 +104,7 @@ impl<'ast> std::fmt::Debug for SemTextTy<'ast> {
     }
 }
 
+/// The semantic representation of the never type [`!`](prim@never).
 #[repr(C)]
 pub struct SemNeverTy<'ast> {
     _lt: PhantomData<&'ast ()>,

@@ -5,6 +5,8 @@ use crate::{
 
 use super::SemTy;
 
+/// The semantic representation of a reference like [`&T`](prim@reference)
+/// or [`&mut T`](prim@reference)
 #[repr(C)]
 #[derive(Debug)]
 pub struct SemRefTy<'ast> {
@@ -22,10 +24,12 @@ impl<'ast> SemRefTy<'ast> {
         self.lifetime.get()
     }
 
+    /// This returns the [`Mutability`] of the referenced type.
     pub fn mutability(&self) -> Mutability {
         self.mutability
     }
 
+    /// This returns the inner [`SemTy`]
     pub fn inner_ty(&self) -> &SemTy<'ast> {
         &self.inner_ty
     }
@@ -42,6 +46,8 @@ impl<'ast> SemRefTy<'ast> {
     }
 }
 
+/// The semantic representation of a raw pointer like [`*const T`](prim@pointer)
+/// or [`*mut T`](prim@pointer)
 #[repr(C)]
 #[derive(Debug)]
 pub struct SemRawPtrTy<'ast> {

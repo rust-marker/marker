@@ -223,19 +223,13 @@ impl<'ast> SemLifetime<'ast> {
     }
 }
 
-/// A generic bound in form `<identifier=type>`. For example, `Item=i32` would be
-/// the generic binding here:
+/// A semantic generic bound in the form `<identifier=type>`. For example,
+/// `Item=i32` would be the generic binding here:
 ///
 /// ```ignore
 /// let _baz: &dyn Iterator<Item=i32> = todo!();
 /// //                      ^^^^^^^^
 /// ```
-///
-/// The corresponding instance would provide the name (`Item`), the defined type
-/// (`i32`) and potentially the [`Span`] if this bound originates from source code.
-///
-/// See [paths in expressions](https://doc.rust-lang.org/reference/paths.html#paths-in-expressions)
-/// for more information.
 #[repr(C)]
 #[derive(Debug)]
 pub struct SemTyBindingArg<'ast> {

@@ -92,7 +92,7 @@ pub enum GenericArgKind<'ast> {
     // FIXME: Add GenericArgsConst
 }
 
-/// This represents the generic arguments for an item.
+/// This represents the semantic generic arguments for a type.
 ///
 /// ```
 /// # use std::fmt::Debug;
@@ -134,7 +134,7 @@ impl<'ast> SemGenericArgs<'ast> {
     }
 }
 
-/// A singular generic argument.
+/// A singular semantic generic argument.
 ///
 /// See: <https://doc.rust-lang.org/stable/reference/paths.html>
 #[repr(C)]
