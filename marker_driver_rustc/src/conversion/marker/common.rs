@@ -8,7 +8,6 @@ use marker_api::ast::{
 };
 use marker_api::lint::Level;
 use rustc_hir as hir;
-use rustc_middle as mid;
 
 use crate::conversion::common::{BodyIdLayout, DefIdLayout, HirIdLayout, SpanSourceInfo};
 use crate::transmute_id;
@@ -195,7 +194,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                         // FIXME: The current method doesn't work to resolve
                         // complicated trait bounds. Returning WIP is the best
                         // workaround rn
-                        AstPathTarget::Wip
+                        AstPathTarget::Unresolved
                     }
                 } else {
                     self.to_path_target(&segment.res)
@@ -285,25 +284,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
     fn resolve_qpath_in_item(
         &self,
-        qpath: &hir::QPath<'tcx>,
-        item_id: hir::def_id::LocalDefId,
-        rustc_ty: &hir::Ty<'_>,
+        _qpath: &hir::QPath<'tcx>,
+        _item_id: hir::def_id::LocalDefId,
+        _rustc_ty: &hir::Ty<'_>,
     ) -> Option<hir::def::Res> {
-        match qpath {
-            hir::QPath::TypeRelative(_, _) => {
-                let item_cx = rustc_hir_analysis::collect::ItemCtxt::new(self.rustc_cx, item_id);
-                let mid_ty = item_cx.to_ty(rustc_ty);
-                if let mid::ty::Alias(_, mid::ty::AliasTy { def_id, .. }) = *mid_ty.kind() {
-                    // Here we know that this is an associated type, as normal type
-                    // aliases are stored as `hir::QPath::Resolved`. Since this is
-                    // type relative, it has to be an associated type.
-                    Some(hir::def::Res::Def(hir::def::DefKind::AssocTy, def_id))
-                } else {
-                    None
-                }
-            },
-            _ => unreachable!("other `QPath` variants don't need to be manually resolved at the item level"),
-        }
+        None
     }
 
     fn to_path_target(&self, res: &hir::def::Res) -> AstPathTarget {

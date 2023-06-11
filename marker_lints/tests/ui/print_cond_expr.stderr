@@ -974,5 +974,199 @@ warning: print test
                },
            )
 
-warning: 5 warnings emitted
+warning: print test
+  --> $DIR/print_cond_expr.rs:49:9
+   |
+49 |         let _print_option_match = x?;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: QuestionMark(
+               QuestionMarkExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   expr: Call(
+                       CallExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           operand: Path(
+                               PathExpr {
+                                   data: CommonExprData {
+                                       _lifetime: PhantomData<&()>,
+                                       id: ExprId(..),
+                                       span: SpanId(..),
+                                   },
+                                   path: AstQPath {
+                                       self_ty: None,
+                                       path_ty: None,
+                                       path: AstPath {
+                                           segments: [
+                                               AstPathSegment {
+                                                   ident: Ident {
+                                                       name: "Try::branch",
+                                                       span: Span {
+                                                           source: File(
+                                                               "$DIR/print_cond_expr.rs",
+                                                           ),
+                                                           start: 1024,
+                                                           end: 1026,
+                                                       },
+                                                   },
+                                                   generics: GenericArgs {
+                                                       args: [],
+                                                   },
+                                               },
+                                           ],
+                                       },
+                                       target: Item(
+                                           ItemId(..),
+                                       ),
+                                   },
+                               },
+                           ),
+                           args: [
+                               Path(
+                                   PathExpr {
+                                       data: CommonExprData {
+                                           _lifetime: PhantomData<&()>,
+                                           id: ExprId(..),
+                                           span: SpanId(..),
+                                       },
+                                       path: AstQPath {
+                                           self_ty: None,
+                                           path_ty: None,
+                                           path: AstPath {
+                                               segments: [
+                                                   AstPathSegment {
+                                                       ident: Ident {
+                                                           name: "x",
+                                                           span: Span {
+                                                               source: File(
+                                                                   "$DIR/print_cond_expr.rs",
+                                                               ),
+                                                               start: 1024,
+                                                               end: 1025,
+                                                           },
+                                                       },
+                                                       generics: GenericArgs {
+                                                           args: [],
+                                                       },
+                                                   },
+                                               ],
+                                           },
+                                           target: Var(
+                                               VarId(..),
+                                           ),
+                                       },
+                                   },
+                               ),
+                           ],
+                       },
+                   ),
+               },
+           )
+
+warning: print test
+  --> $DIR/print_cond_expr.rs:55:9
+   |
+55 |         let _print_option_match = x?;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: QuestionMark(
+               QuestionMarkExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   expr: Call(
+                       CallExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           operand: Path(
+                               PathExpr {
+                                   data: CommonExprData {
+                                       _lifetime: PhantomData<&()>,
+                                       id: ExprId(..),
+                                       span: SpanId(..),
+                                   },
+                                   path: AstQPath {
+                                       self_ty: None,
+                                       path_ty: None,
+                                       path: AstPath {
+                                           segments: [
+                                               AstPathSegment {
+                                                   ident: Ident {
+                                                       name: "Try::branch",
+                                                       span: Span {
+                                                           source: File(
+                                                               "$DIR/print_cond_expr.rs",
+                                                           ),
+                                                           start: 1168,
+                                                           end: 1170,
+                                                       },
+                                                   },
+                                                   generics: GenericArgs {
+                                                       args: [],
+                                                   },
+                                               },
+                                           ],
+                                       },
+                                       target: Item(
+                                           ItemId(..),
+                                       ),
+                                   },
+                               },
+                           ),
+                           args: [
+                               Path(
+                                   PathExpr {
+                                       data: CommonExprData {
+                                           _lifetime: PhantomData<&()>,
+                                           id: ExprId(..),
+                                           span: SpanId(..),
+                                       },
+                                       path: AstQPath {
+                                           self_ty: None,
+                                           path_ty: None,
+                                           path: AstPath {
+                                               segments: [
+                                                   AstPathSegment {
+                                                       ident: Ident {
+                                                           name: "x",
+                                                           span: Span {
+                                                               source: File(
+                                                                   "$DIR/print_cond_expr.rs",
+                                                               ),
+                                                               start: 1168,
+                                                               end: 1169,
+                                                           },
+                                                       },
+                                                       generics: GenericArgs {
+                                                           args: [],
+                                                       },
+                                                   },
+                                               ],
+                                           },
+                                           target: Var(
+                                               VarId(..),
+                                           ),
+                                       },
+                                   },
+                               ),
+                           ],
+                       },
+                   ),
+               },
+           )
+
+warning: 7 warnings emitted
 

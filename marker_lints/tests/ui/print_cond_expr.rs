@@ -43,10 +43,22 @@ fn matches(scrutinee: &[i32]) {
     };
 }
 
+mod question_mark {
+    fn kanske_option() -> Option<i32> {
+        let x = Some(1);
+        let _print_option_match = x?;
+        None
+    }
+
+    fn kanske_result() -> Result<i32, i32> {
+        let x: Result<i32, i32> = Ok(1);
+        let _print_option_match = x?;
+        Err(4)
+    }
+}
+
 fn check(_: &i32) -> bool {
     true
 }
 
-fn main() {
-    ifs();
-}
+fn main() {}

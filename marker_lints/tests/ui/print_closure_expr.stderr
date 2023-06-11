@@ -1,0 +1,108 @@
+warning: print test
+ --> $DIR/print_closure_expr.rs:6:5
+  |
+6 | /     let _print_simple_closure = || {
+7 | |         1 + 1;
+8 | |     };
+  | |______^
+  |
+  = note: Closure(
+              ClosureExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  callable_data: CommonCallableData {
+                      is_const: false,
+                      is_async: false,
+                      is_unsafe: false,
+                      is_extern: false,
+                      abi: Default,
+                      has_self: false,
+                      params: [],
+                      return_ty: None,
+                  },
+                  capture_kind: Default,
+                  body: BodyId(..),
+              },
+          )
+  = note: `#[warn(marker::test_lint)]` on by default
+
+warning: print test
+ --> $DIR/print_closure_expr.rs:9:5
+  |
+9 |     let _print_with_args = |x: u32, y: u32| x + y;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Closure(
+              ClosureExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  callable_data: CommonCallableData {
+                      is_const: false,
+                      is_async: false,
+                      is_unsafe: false,
+                      is_extern: false,
+                      abi: Default,
+                      has_self: false,
+                      params: [
+                          Parameter {
+                              name: None,
+                              ty: Some(
+                                  Num(
+                                      u32,
+                                  ),
+                              ),
+                              span: None,
+                          },
+                          Parameter {
+                              name: None,
+                              ty: Some(
+                                  Num(
+                                      u32,
+                                  ),
+                              ),
+                              span: None,
+                          },
+                      ],
+                      return_ty: None,
+                  },
+                  capture_kind: Default,
+                  body: BodyId(..),
+              },
+          )
+
+warning: print test
+  --> $DIR/print_closure_expr.rs:10:5
+   |
+10 |     let _print_move = move || a;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Closure(
+               ClosureExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   callable_data: CommonCallableData {
+                       is_const: false,
+                       is_async: false,
+                       is_unsafe: false,
+                       is_extern: false,
+                       abi: Default,
+                       has_self: false,
+                       params: [],
+                       return_ty: None,
+                   },
+                   capture_kind: Move,
+                   body: BodyId(..),
+               },
+           )
+
+warning: 3 warnings emitted
+

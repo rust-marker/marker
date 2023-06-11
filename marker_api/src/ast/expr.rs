@@ -45,6 +45,7 @@ pub enum ExprKind<'ast> {
     CharLit(&'ast CharLitExpr<'ast>),
     BoolLit(&'ast BoolLitExpr<'ast>),
     Block(&'ast BlockExpr<'ast>),
+    Closure(&'ast ClosureExpr<'ast>),
     UnaryOp(&'ast UnaryOpExpr<'ast>),
     Ref(&'ast RefExpr<'ast>),
     BinaryOp(&'ast BinaryOpExpr<'ast>),
@@ -218,7 +219,7 @@ macro_rules! impl_expr_kind_fn {
     (ExprKind: $method:ident () -> $return_ty:ty) => {
         impl_expr_kind_fn!((ExprKind) $method() -> $return_ty,
             IntLit, FloatLit, StrLit, CharLit, BoolLit,
-            Block,
+            Block, Closure,
             UnaryOp, Ref, BinaryOp, QuestionMark, As, Assign,
             Path, Index, Field,
             Call, Method,

@@ -1,5 +1,5 @@
 use crate::{
-    ast::{stmt::StmtKind, Ident},
+    ast::{impl_callable_data_trait, stmt::StmtKind, BodyId, CommonCallableData, Ident},
     ffi::{FfiOption, FfiSlice},
 };
 
@@ -81,4 +81,66 @@ impl<'ast> BlockExpr<'ast> {
             is_unsafe,
         }
     }
+}
+
+/// A closure expression
+///
+/// ```
+/// //          vvvvvvvvvvvvvvvvvvvvvvvvvvvvv A Closure expression
+/// let print = |name| println!("Hey {name}");
+/// //           ^^^^  ^^^^^^^^^^^^^^^^^^^^^ The body of the closure
+/// //           |
+/// //           A named argument
+///
+/// //          vvvv The `move` keyword specifying the capture kind of the closure
+/// let msger = move || {
+///     print("Marker")
+/// };
+/// ```
+#[repr(C)]
+#[derive(Debug)]
+pub struct ClosureExpr<'ast> {
+    data: CommonExprData<'ast>,
+    callable_data: CommonCallableData<'ast>,
+    capture_kind: CaptureKind,
+    body: BodyId,
+}
+
+impl<'ast> ClosureExpr<'ast> {
+    pub fn capture_kind(&self) -> CaptureKind {
+        self.capture_kind
+    }
+
+    pub fn body(&self) -> BodyId {
+        self.body
+    }
+}
+
+super::impl_expr_data!(ClosureExpr<'ast>, Closure);
+
+impl_callable_data_trait!(ClosureExpr<'ast>);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> ClosureExpr<'ast> {
+    pub fn new(
+        data: CommonExprData<'ast>,
+        callable_data: CommonCallableData<'ast>,
+        capture_kind: CaptureKind,
+        body: BodyId,
+    ) -> Self {
+        Self {
+            data,
+            callable_data,
+            capture_kind,
+            body,
+        }
+    }
+}
+
+#[repr(C)]
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy)]
+pub enum CaptureKind {
+    Default,
+    Move,
 }
