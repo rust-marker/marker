@@ -4,7 +4,7 @@ use crate::ast::{generic::SemGenericArgs, GenericId, ItemId, TyDefId};
 
 /// The semantic representation of an abstract data type. This can be an
 /// [`Enum`], [`Struct`], or [`Union`].
-/// 
+///
 /// [`Struct`]: https://doc.rust-lang.org/reference/types/struct.html
 /// [`Enum`]: https://doc.rust-lang.org/reference/types/enum.html
 /// [`Union`]: https://doc.rust-lang.org/reference/types/union.html
@@ -69,7 +69,7 @@ impl<'ast> SemGenericTy<'ast> {
 }
 
 /// The semantic representation of a type alias.
-/// 
+///
 /// Aliases in semantic type representations are usually resolved directly. This
 /// kind, is primarily used for instances, where the concrete aliased type is not yet
 /// known.

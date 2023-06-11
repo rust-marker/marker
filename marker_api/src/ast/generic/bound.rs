@@ -1,5 +1,5 @@
 use crate::ast::{
-    generic::{SemGenericArgs, SemLifetime},
+    generic::SemGenericArgs,
     {Span, SpanId, TraitRef, TyDefId},
 };
 use crate::context::with_cx;
@@ -52,14 +52,6 @@ impl<'ast> TraitBound<'ast> {
             span,
         }
     }
-}
-
-#[repr(C)]
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum SemTyParamBound<'ast> {
-    Lifetime(&'ast SemLifetime<'ast>),
-    TraitBound(&'ast SemTraitBound<'ast>),
 }
 
 /// A semantic trait bound used by [`SemTraitTy`](`crate::ast::ty::SemTraitObjTy`)

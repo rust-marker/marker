@@ -1,4 +1,4 @@
-use crate::{ast::generic::SemTyParamBound, ffi::FfiSlice};
+use crate::{ast::generic::SemTraitBound, ffi::FfiSlice};
 
 /// The semantic representation of a [trait object].
 ///
@@ -6,18 +6,18 @@ use crate::{ast::generic::SemTyParamBound, ffi::FfiSlice};
 #[repr(C)]
 #[derive(Debug)]
 pub struct SemTraitObjTy<'ast> {
-    bound: FfiSlice<'ast, SemTyParamBound<'ast>>,
+    bound: FfiSlice<'ast, SemTraitBound<'ast>>,
 }
 
 impl<'ast> SemTraitObjTy<'ast> {
-    pub fn bounds(&self) -> &[SemTyParamBound<'ast>] {
+    pub fn bounds(&self) -> &[SemTraitBound<'ast>] {
         self.bound.get()
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> SemTraitObjTy<'ast> {
-    pub fn new(bound: &'ast [SemTyParamBound<'ast>]) -> Self {
+    pub fn new(bound: &'ast [SemTraitBound<'ast>]) -> Self {
         Self { bound: bound.into() }
     }
 }

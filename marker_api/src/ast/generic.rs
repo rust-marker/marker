@@ -142,18 +142,6 @@ impl<'ast> SemGenericArgs<'ast> {
 #[derive(Debug)]
 #[cfg_attr(feature = "driver-api", derive(Clone))]
 pub enum SemGenericArgKind<'ast> {
-    /// A lifetime as a generic argument, like this:
-    ///
-    /// ```
-    /// # use std::marker::PhantomData;
-    /// # #[derive(Default)]
-    /// # pub struct HasLifetime<'a> {
-    /// #     _data: PhantomData<&'a ()>,
-    /// # }
-    /// let _foo: HasLifetime<'static> = HasLifetime::default();
-    /// //                    ^^^^^^^
-    /// ```
-    Lifetime(&'ast SemLifetime<'ast>),
     /// A type as a generic argument, like this:
     ///
     /// ```

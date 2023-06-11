@@ -86,18 +86,16 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 self.to_mutability(ty_and_mut.mutbl),
                 self.to_sem_ty(ty_and_mut.ty),
             ))),
-            mid::ty::TyKind::Ref(lifetime, inner, muta) => SemTyKind::Ref(self.alloc(SemRefTy::new(
-                self.to_sem_lifetime(*lifetime),
-                self.to_mutability(*muta),
-                self.to_sem_ty(*inner),
-            ))),
+            mid::ty::TyKind::Ref(_lifetime, inner, muta) => {
+                SemTyKind::Ref(self.alloc(SemRefTy::new(self.to_mutability(*muta), self.to_sem_ty(*inner))))
+            },
             mid::ty::TyKind::FnDef(_, _) => todo!(),
             mid::ty::TyKind::FnPtr(_) => todo!(),
-            mid::ty::TyKind::Dynamic(binders, region, kind) => {
+            mid::ty::TyKind::Dynamic(binders, _region, kind) => {
                 if !matches!(kind, mid::ty::DynKind::Dyn) {
                     unimplemented!("the docs are not totally clear, when `DynStar` is used, her it is: {rustc_ty:#?}")
                 }
-                SemTyKind::TraitObj(self.alloc(SemTraitObjTy::new(self.to_sem_generic_bounds(binders, *region))))
+                SemTyKind::TraitObj(self.alloc(SemTraitObjTy::new(self.to_sem_trait_bounds(binders))))
             },
             mid::ty::TyKind::Closure(_, _) => todo!(),
             mid::ty::TyKind::Generator(_, _, _) => todo!(),

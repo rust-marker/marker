@@ -1,29 +1,21 @@
-use crate::{
-    ast::{generic::SemLifetime, Mutability},
-    ffi::FfiOption,
-};
+use crate::ast::Mutability;
 
 use super::SemTy;
 
 /// The semantic representation of a reference like [`&T`](prim@reference)
 /// or [`&mut T`](prim@reference)
+///
+/// Note that the semantic representation doesn't contain lifetime information.
+/// Marker currently doesn't support the analysis of lifetimes. Removing them
+/// from the type also simplifies type comparisons.
 #[repr(C)]
 #[derive(Debug)]
 pub struct SemRefTy<'ast> {
-    lifetime: FfiOption<SemLifetime<'ast>>,
     mutability: Mutability,
     inner_ty: SemTy<'ast>,
 }
 
 impl<'ast> SemRefTy<'ast> {
-    pub fn has_lifetime(&self) -> bool {
-        self.lifetime.get().is_some()
-    }
-
-    pub fn lifetime(&self) -> Option<&SemLifetime<'ast>> {
-        self.lifetime.get()
-    }
-
     /// This returns the [`Mutability`] of the referenced type.
     pub fn mutability(&self) -> Mutability {
         self.mutability
@@ -37,12 +29,8 @@ impl<'ast> SemRefTy<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> SemRefTy<'ast> {
-    pub fn new(lifetime: Option<SemLifetime<'ast>>, mutability: Mutability, inner_ty: SemTy<'ast>) -> Self {
-        Self {
-            lifetime: lifetime.into(),
-            mutability,
-            inner_ty,
-        }
+    pub fn new(mutability: Mutability, inner_ty: SemTy<'ast>) -> Self {
+        Self { mutability, inner_ty }
     }
 }
 

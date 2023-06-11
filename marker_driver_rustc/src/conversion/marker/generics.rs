@@ -1,7 +1,7 @@
 use marker_api::ast::generic::{
     BindingGenericArg, GenericArgKind, GenericArgs, GenericParamKind, GenericParams, Lifetime, LifetimeClause,
-    LifetimeKind, LifetimeParam, SemGenericArgKind, SemGenericArgs, SemLifetime, SemTraitBound, SemTyBindingArg,
-    SemTyParamBound, TraitBound, TyClause, TyParam, TyParamBound, WhereClauseKind,
+    LifetimeKind, LifetimeParam, SemGenericArgKind, SemGenericArgs, SemTraitBound, SemTyBindingArg, TraitBound,
+    TyClause, TyParam, TyParamBound, WhereClauseKind,
 };
 use rustc_hir as hir;
 use rustc_middle as mid;
@@ -22,39 +22,16 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     fn to_sem_generic_arg_kind(&self, arg: mid::ty::GenericArg<'tcx>) -> Option<SemGenericArgKind<'ast>> {
         match &arg.unpack() {
-            mid::ty::GenericArgKind::Lifetime(region) => self
-                .to_sem_lifetime(*region)
-                .map(|l| SemGenericArgKind::Lifetime(self.alloc(l))),
+            mid::ty::GenericArgKind::Lifetime(_) => None,
             mid::ty::GenericArgKind::Type(ty) => Some(SemGenericArgKind::Ty(self.alloc(self.to_sem_ty(*ty)))),
             mid::ty::GenericArgKind::Const(_) => todo!(),
         }
     }
 
-    #[must_use]
-    pub fn to_sem_lifetime(&self, region: mid::ty::Region<'tcx>) -> Option<SemLifetime<'ast>> {
-        let kind = match region.kind() {
-            // A normal lifetimes, defined as a generic on an item
-            mid::ty::RegionKind::ReEarlyBound(early) => {
-                LifetimeKind::Label(self.to_symbol_id(early.name), self.to_generic_id(early.def_id))
-            },
-            // A late bound for this type, defined by `for<'a> $ty`
-            mid::ty::RegionKind::ReLateBound(_, _) => todo!(),
-            mid::ty::RegionKind::ReStatic => LifetimeKind::Static,
-            mid::ty::RegionKind::ReVar(_)           // For inference, can therefore be ignored
-            | mid::ty::RegionKind::RePlaceholder(_) // For inference, can therefore be ignored
-            | mid::ty::RegionKind::ReErased         // For MIR stuff and code gen, can be ignored
-            | mid::ty::RegionKind::ReFree(_) => return None,
-            mid::ty::RegionKind::ReError(_) => unreachable!("exclusively used for diagnostics, can be ignored"),
-        };
-
-        Some(SemLifetime::new(kind))
-    }
-
-    pub fn to_sem_generic_bounds(
+    pub fn to_sem_trait_bounds(
         &self,
         bounds: &mid::ty::List<mid::ty::PolyExistentialPredicate<'tcx>>,
-        region: mid::ty::Region<'tcx>,
-    ) -> &'ast [SemTyParamBound<'ast>] {
+    ) -> &'ast [SemTraitBound<'ast>] {
         let mut marker_bounds = vec![];
 
         // Understanding this representation, was a journey of at least 1.5 liters
@@ -87,29 +64,19 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     mid::ty::TermKind::Const(_) => todo!(),
                 });
 
-            marker_bounds.push(SemTyParamBound::TraitBound(self.alloc(SemTraitBound::new(
+            marker_bounds.push(SemTraitBound::new(
                 false,
                 self.to_ty_def_id(main.def_id),
                 SemGenericArgs::new(self.alloc_slice(generics)),
-            ))));
+            ));
         }
 
         bounds
             .auto_traits()
             .map(|auto_trait_id| {
-                SemTyParamBound::TraitBound(self.alloc(SemTraitBound::new(
-                    false,
-                    self.to_ty_def_id(auto_trait_id),
-                    self.to_sem_generic_args(&[]),
-                )))
+                SemTraitBound::new(false, self.to_ty_def_id(auto_trait_id), self.to_sem_generic_args(&[]))
             })
             .collect_into(&mut marker_bounds);
-
-        // FIXME: Some lifetimes, like `'static` might be erased at this point.
-        // This should be fine for now, but it might be worth revisiting in the future.
-        if let Some(lt) = self.to_sem_lifetime(region) {
-            marker_bounds.push(SemTyParamBound::Lifetime(self.alloc(lt)));
-        }
 
         self.alloc_slice(marker_bounds)
     }

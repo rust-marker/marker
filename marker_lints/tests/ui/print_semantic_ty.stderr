@@ -211,7 +211,6 @@ warning: print type test
    = note: SemTy {
                kind: Ref(
                    SemRefTy {
-                       lifetime: None,
                        mutability: Unmut,
                        inner_ty: SemTy {
                            kind: Slice(
@@ -247,7 +246,6 @@ warning: print type test
                                                SemTy {
                                                    kind: Ref(
                                                        SemRefTy {
-                                                           lifetime: None,
                                                            mutability: Unmut,
                                                            inner_ty: SemTy {
                                                                kind: Text(
@@ -369,15 +367,13 @@ warning: print type test
                                                                kind: TraitObj(
                                                                    SemTraitObjTy {
                                                                        bound: [
-                                                                           TraitBound(
-                                                                               SemTraitBound {
-                                                                                   is_relaxed: false,
-                                                                                   trait_id: TyDefId(..),
-                                                                                   trait_generic_args: SemGenericArgs {
-                                                                                       args: [],
-                                                                                   },
+                                                                           SemTraitBound {
+                                                                               is_relaxed: false,
+                                                                               trait_id: TyDefId(..),
+                                                                               trait_generic_args: SemGenericArgs {
+                                                                                   args: [],
                                                                                },
-                                                                           ),
+                                                                           },
                                                                        ],
                                                                    },
                                                                ),
@@ -431,26 +427,24 @@ warning: print type test
                                                                kind: TraitObj(
                                                                    SemTraitObjTy {
                                                                        bound: [
-                                                                           TraitBound(
-                                                                               SemTraitBound {
-                                                                                   is_relaxed: false,
-                                                                                   trait_id: TyDefId(..),
-                                                                                   trait_generic_args: SemGenericArgs {
-                                                                                       args: [
-                                                                                           TyBinding(
-                                                                                               SemTyBindingArg {
-                                                                                                   binding_target: ItemId(..),
-                                                                                                   ty: SemTy {
-                                                                                                       kind: Num(
-                                                                                                           i32,
-                                                                                                       ),
-                                                                                                   },
+                                                                           SemTraitBound {
+                                                                               is_relaxed: false,
+                                                                               trait_id: TyDefId(..),
+                                                                               trait_generic_args: SemGenericArgs {
+                                                                                   args: [
+                                                                                       TyBinding(
+                                                                                           SemTyBindingArg {
+                                                                                               binding_target: ItemId(..),
+                                                                                               ty: SemTy {
+                                                                                                   kind: Num(
+                                                                                                       i32,
+                                                                                                   ),
                                                                                                },
-                                                                                           ),
-                                                                                       ],
-                                                                                   },
+                                                                                           },
+                                                                                       ),
+                                                                                   ],
                                                                                },
-                                                                           ),
+                                                                           },
                                                                        ],
                                                                    },
                                                                ),
