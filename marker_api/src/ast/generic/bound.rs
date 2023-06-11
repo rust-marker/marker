@@ -1,4 +1,7 @@
-use crate::ast::{Span, SpanId, TraitRef};
+use crate::ast::{
+    generic::{SemGenericArgs, SemLifetime},
+    {Span, SpanId, TraitRef, TyDefId},
+};
 use crate::context::with_cx;
 
 use super::Lifetime;
@@ -22,17 +25,6 @@ pub struct TraitBound<'ast> {
     span: SpanId,
 }
 
-#[cfg(feature = "driver-api")]
-impl<'ast> TraitBound<'ast> {
-    pub fn new(is_relaxed: bool, trait_ref: TraitRef<'ast>, span: SpanId) -> Self {
-        Self {
-            is_relaxed,
-            trait_ref,
-            span,
-        }
-    }
-}
-
 impl<'ast> TraitBound<'ast> {
     pub fn trait_ref(&self) -> &TraitRef<'ast> {
         &self.trait_ref
@@ -48,5 +40,60 @@ impl<'ast> TraitBound<'ast> {
 
     pub fn span(&self) -> &Span<'ast> {
         with_cx(self, |cx| cx.get_span(self.span))
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> TraitBound<'ast> {
+    pub fn new(is_relaxed: bool, trait_ref: TraitRef<'ast>, span: SpanId) -> Self {
+        Self {
+            is_relaxed,
+            trait_ref,
+            span,
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum SemTyParamBound<'ast> {
+    Lifetime(&'ast SemLifetime<'ast>),
+    TraitBound(&'ast SemTraitBound<'ast>),
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct SemTraitBound<'ast> {
+    /// This is used for relaxed type bounds like `?Size`. This is probably not
+    /// the best representation. Rustc uses a `TraitBoundModifier` enum which
+    /// is interesting, but would only have two states right now.
+    is_relaxed: bool,
+    trait_id: TyDefId,
+    trait_generic_args: SemGenericArgs<'ast>,
+}
+
+impl<'ast> SemTraitBound<'ast> {
+    pub fn is_relaxed(&self) -> bool {
+        self.is_relaxed
+    }
+
+    pub fn trait_id(&self) -> TyDefId {
+        self.trait_id
+    }
+
+    pub fn trait_generic_args(&self) -> &SemGenericArgs<'ast> {
+        &self.trait_generic_args
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SemTraitBound<'ast> {
+    pub fn new(is_relaxed: bool, trait_id: TyDefId, trait_generic_args: SemGenericArgs<'ast>) -> Self {
+        Self {
+            is_relaxed,
+            trait_id,
+            trait_generic_args,
+        }
     }
 }

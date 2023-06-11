@@ -1,7 +1,10 @@
 use std::marker::PhantomData;
 
 use crate::{
-    ast::{ty::TyKind, GenericId, Span, SpanId, SymbolId},
+    ast::{
+        ty::{SemTy, TyKind},
+        GenericId, ItemId, Span, SpanId, SymbolId,
+    },
     context::with_cx,
     ffi::FfiOption,
 };
@@ -151,5 +154,117 @@ impl<'ast> BindingGenericArg<'ast> {
             ident,
             ty,
         }
+    }
+}
+
+/// A lifetime used as a generic argument or on a reference like this:
+///
+/// ```
+/// # use core::marker::PhantomData;
+/// # #[derive(Default)]
+/// # struct Item<'a> {
+/// #     _data: PhantomData<&'a ()>,
+/// # }
+///
+/// # fn example<'a>() {
+/// let _item: Item<'_> = Item::default();
+/// //              ^^
+/// let _item: Item<'a> = Item::default();
+/// //              ^^
+/// let _item: &'static str = "Hello world";
+/// //          ^^^^^^^
+/// # }
+/// ```
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct SemLifetime<'ast> {
+    _lifetime: PhantomData<&'ast ()>,
+    kind: LifetimeKind,
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SemLifetime<'ast> {
+    pub fn new(kind: LifetimeKind) -> Self {
+        Self {
+            _lifetime: PhantomData,
+            kind,
+        }
+    }
+}
+
+impl<'ast> SemLifetime<'ast> {
+    /// This returns the [`GenericId`] of this lifetime, if it's labeled, or [`None`]
+    /// otherwise. `'static` will also return [`None`]
+    pub fn id(&self) -> Option<GenericId> {
+        match self.kind {
+            LifetimeKind::Label(_, id) => Some(id),
+            _ => None,
+        }
+    }
+
+    /// Note that the `'static` lifetime is not a label and will therefore return [`None`]
+    pub fn label(&self) -> Option<&str> {
+        match self.kind {
+            LifetimeKind::Label(sym, _) => Some(with_cx(self, |cx| cx.symbol_str(sym))),
+            _ => None,
+        }
+    }
+
+    pub fn has_label(&self) -> bool {
+        matches!(self.kind, LifetimeKind::Label(..))
+    }
+
+    pub fn is_static(&self) -> bool {
+        matches!(self.kind, LifetimeKind::Static)
+    }
+
+    pub fn is_infer(&self) -> bool {
+        matches!(self.kind, LifetimeKind::Infer)
+    }
+}
+
+/// A generic bound in form `<identifier=type>`. For example, `Item=i32` would be
+/// the generic binding here:
+///
+/// ```ignore
+/// let _baz: &dyn Iterator<Item=i32> = todo!();
+/// //                      ^^^^^^^^
+/// ```
+///
+/// The corresponding instance would provide the name (`Item`), the defined type
+/// (`i32`) and potentially the [`Span`] if this bound originates from source code.
+///
+/// See [paths in expressions](https://doc.rust-lang.org/reference/paths.html#paths-in-expressions)
+/// for more information.
+#[repr(C)]
+#[derive(Debug)]
+pub struct SemTyBindingArg<'ast> {
+    binding_target: ItemId,
+    ty: SemTy<'ast>,
+}
+
+impl<'ast> SemTyBindingArg<'ast> {
+    /// This returns the `ItemId` of the binding target.
+    pub fn binding_target(&self) -> ItemId {
+        self.binding_target
+    }
+
+    /// The type that the binding is set to. For example:
+    ///
+    /// ```ignore
+    /// let _baz: &dyn Iterator<Item=i32> = todo!();
+    /// //                           ^^^
+    /// ```
+    ///
+    /// Would return `i32` as the type.
+    pub fn ty(&self) -> &SemTy<'ast> {
+        &self.ty
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SemTyBindingArg<'ast> {
+    pub fn new(binding_target: ItemId, ty: SemTy<'ast>) -> Self {
+        Self { binding_target, ty }
     }
 }
