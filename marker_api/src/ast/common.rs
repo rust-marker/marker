@@ -55,3 +55,18 @@ impl<'ast> TraitRef<'ast> {
         &self.generics
     }
 }
+
+#[repr(C)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum Mutability {
+    Mut,
+    Unmut,
+}
+
+impl Mutability {
+    #[must_use]
+    pub fn is_mut(&self) -> bool {
+        matches!(self, Self::Mut)
+    }
+}
