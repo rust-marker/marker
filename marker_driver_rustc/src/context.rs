@@ -132,7 +132,8 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
     }
 
     fn expr_ty(&'ast self, expr: ExprId) -> &'ast marker_api::ast::ty::SemTy<'ast> {
-        todo!()
+        let hir_id = self.rustc_converter.to_hir_id(expr);
+        self.marker_converter.expr_ty(hir_id)
     }
 
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast> {

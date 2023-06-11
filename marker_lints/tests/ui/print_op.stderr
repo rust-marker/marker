@@ -22,7 +22,7 @@ warning: print test
                           suffix: None,
                       },
                   ),
-                  ty: Num(
+                  cast_ty: Num(
                       u32,
                   ),
               },
