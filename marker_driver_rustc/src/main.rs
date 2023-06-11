@@ -2,6 +2,7 @@
 #![feature(rustc_private)]
 #![feature(lint_reasons)]
 #![feature(let_chains)]
+#![feature(iter_collect_into)]
 #![warn(rustc::internal)]
 #![warn(clippy::pedantic)]
 #![allow(clippy::missing_panics_doc)]

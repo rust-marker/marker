@@ -6,6 +6,7 @@
 use marker_api::{
     ast::{
         item::{Body, ItemKind},
+        ty::SemTy,
         BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId,
     },
     context::DriverCallbacks,
@@ -44,6 +45,7 @@ impl<'ast> DriverContextWrapper<'ast> {
             emit_diag,
             item,
             body,
+            expr_ty,
             get_span,
             span_snippet,
             symbol_str,
@@ -74,6 +76,12 @@ extern "C" fn body<'ast>(data: &(), id: BodyId) -> &'ast Body<'ast> {
     wrapper.driver_cx.body(id)
 }
 
+#[allow(improper_ctypes_definitions, reason = "fp because `TyKind` is non-exhaustive")]
+extern "C" fn expr_ty<'ast>(data: &(), expr: ExprId) -> &SemTy<'ast> {
+    let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
+    wrapper.driver_cx.expr_ty(expr)
+}
+
 extern "C" fn get_span<'ast>(data: &(), owner: &SpanOwner) -> &'ast Span<'ast> {
     let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
     wrapper.driver_cx.get_span(owner)
@@ -100,6 +108,7 @@ pub trait DriverContext<'ast> {
 
     fn item(&'ast self, api_id: ItemId) -> Option<ItemKind<'ast>>;
     fn body(&'ast self, api_id: BodyId) -> &'ast Body<'ast>;
+    fn expr_ty(&'ast self, expr: ExprId) -> &'ast SemTy<'ast>;
     fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast>;
     fn span_snippet(&'ast self, span: &Span) -> Option<&'ast str>;
     fn symbol_str(&'ast self, api_id: SymbolId) -> &'ast str;
