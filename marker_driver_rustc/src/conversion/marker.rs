@@ -18,6 +18,7 @@ use marker_api::{
     ast::{
         expr::ExprKind,
         item::{Body, ItemKind},
+        ty::SemTy,
         BodyId, Crate, ExprId, ItemId, Span, SymbolId,
     },
     lint::Level,
@@ -40,6 +41,34 @@ impl<'ast, 'tcx> MarkerConverter<'ast, 'tcx> {
         Self {
             inner: MarkerConverterInner::new(rustc_cx, storage),
         }
+    }
+
+    fn with_body<F, R>(&self, hir_id: hir::HirId, with: F) -> R
+    where
+        F: FnOnce(&MarkerConverterInner<'ast, 'tcx>) -> R,
+    {
+        let map = self.inner.rustc_cx.hir();
+        let owner = map.enclosing_body_owner(hir_id);
+        let body_id = map.body_owned_by(owner);
+
+        // When this is called, the body information should always be `None`
+        // we therefore don't need to remember and reset it.
+        let old_body = self.inner.rustc_body.replace(Some(body_id));
+        debug_assert_eq!(old_body, None);
+        self.inner.fill_rustc_ty_check();
+
+        let res = with(&self.inner);
+        self.inner.rustc_body.replace(None);
+        self.inner.rustc_ty_check.replace(None);
+
+        res
+    }
+
+    pub fn expr_ty(&self, id: hir::HirId) -> &SemTy<'ast> {
+        self.with_body(id, |inner| {
+            let ty = inner.rustc_ty_check().node_type(id);
+            inner.alloc(inner.to_sem_ty(ty))
+        })
     }
 
     forward_to_inner!(pub fn to_lint_level(&self, level: rustc_lint::Level) -> Level);
@@ -140,6 +169,20 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         ];
 
         self.lang_item_map.borrow_mut().extend(list);
+    }
+
+    pub fn fill_rustc_ty_check(&self) {
+        let id = self
+            .rustc_body
+            .borrow()
+            .expect("ty check can only be filled inside bodies");
+        self.rustc_ty_check.replace(Some(self.rustc_cx.typeck_body(id)));
+    }
+
+    pub fn rustc_ty_check(&self) -> &rustc_middle::ty::TypeckResults<'tcx> {
+        self.rustc_ty_check
+            .borrow()
+            .expect("MarkerConverterInner.rustc_ty_check is unexpectedly empty")
     }
 
     #[must_use]

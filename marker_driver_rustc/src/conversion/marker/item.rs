@@ -351,17 +351,22 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     pub fn to_body(&self, body: &hir::Body<'tcx>) -> &'ast Body<'ast> {
-        let prev_rustc_body_id = self.rustc_body.replace(Some(body.id()));
-        let prev_rustc_ty_check = self.rustc_ty_check.take();
-
+        // Caching check first
         let id = self.to_body_id(body.id());
         if let Some(&body) = self.bodies.borrow().get(&id) {
             return body;
         }
+
+        // Body-Translation-Stack push
+        let prev_rustc_body_id = self.rustc_body.replace(Some(body.id()));
+        let prev_rustc_ty_check = self.rustc_ty_check.take();
+        self.fill_rustc_ty_check();
+
         let owner = self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id()));
         let api_body = self.alloc(Body::new(owner, self.to_expr(body.value)));
         self.bodies.borrow_mut().insert(id, api_body);
 
+        // Body-Translation-Stack pop
         self.rustc_body.replace(prev_rustc_body_id);
         self.rustc_ty_check.replace(prev_rustc_ty_check);
         api_body
