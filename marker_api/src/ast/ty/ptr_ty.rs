@@ -1,4 +1,7 @@
-use crate::ast::Mutability;
+use crate::{
+    ast::{Abi, Mutability, Safety},
+    ffi::FfiSlice,
+};
 
 use super::SemTy;
 
@@ -57,5 +60,46 @@ impl<'ast> SemRawPtrTy<'ast> {
 impl<'ast> SemRawPtrTy<'ast> {
     pub fn new(mutability: Mutability, inner_ty: SemTy<'ast>) -> Self {
         Self { mutability, inner_ty }
+    }
+}
+
+/// The semantic representation of a function pointer, like
+/// [`fn(u32) -> i32`](<https://doc.rust-lang.org/stable/std/keyword.fn.html>)
+#[repr(C)]
+#[derive(Debug)]
+pub struct SemFnPtrTy<'ast> {
+    safety: Safety,
+    abi: Abi,
+    params: FfiSlice<'ast, SemTy<'ast>>,
+    return_ty: SemTy<'ast>,
+}
+
+impl<'ast> SemFnPtrTy<'ast> {
+    pub fn safety(&self) -> Safety {
+        self.safety
+    }
+
+    pub fn abi(&self) -> Abi {
+        self.abi
+    }
+
+    pub fn params(&self) -> &[SemTy<'ast>] {
+        self.params.get()
+    }
+
+    pub fn return_ty(&self) -> &SemTy<'ast> {
+        &self.return_ty
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SemFnPtrTy<'ast> {
+    pub fn new(safety: Safety, abi: Abi, params: &'ast [SemTy<'ast>], return_ty: SemTy<'ast>) -> Self {
+        Self {
+            safety,
+            abi,
+            params: params.into(),
+            return_ty,
+        }
     }
 }

@@ -6,12 +6,14 @@ use super::{Span, SpanId};
 
 // Primitive types
 mod bool_ty;
+mod fn_ty;
 mod prim_ty;
 mod ptr_ty;
 mod sequence_ty;
 mod trait_ty;
 mod user_ty;
 pub use bool_ty::*;
+pub use fn_ty::*;
 pub use prim_ty::*;
 pub use ptr_ty::*;
 pub use sequence_ty::*;
@@ -317,12 +319,21 @@ pub enum SemTyKind<'ast> {
     /// A variable length slice like [`[T]`](prim@slice)
     Slice(&'ast SemSliceTy<'ast>),
     // ================================
+    // Function types
+    // ================================
+    /// A [function item type](https://doc.rust-lang.org/reference/types/function-item.html)
+    /// identifying a specific function and potentualy additional generics.
+    FnTy(&'ast SemFnTy<'ast>),
+    // ================================
     // Pointer types
     // ================================
     /// A reference like [`&T`](prim@reference) or [`&mut T`](prim@reference)
     Ref(&'ast SemRefTy<'ast>),
     /// A raw pointer like [`*const T`](prim@pointer) or [`*mut T`](prim@pointer)
     RawPtr(&'ast SemRawPtrTy<'ast>),
+    /// The semantic representation of a function pointer, like
+    /// [`fn(u32) -> i32`](<https://doc.rust-lang.org/stable/std/keyword.fn.html>)
+    FnPtr(&'ast SemFnPtrTy<'ast>),
     // ================================
     // Trait types
     // ================================
