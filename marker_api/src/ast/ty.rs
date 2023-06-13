@@ -31,8 +31,6 @@ pub use array_ty::*;
 mod slice_ty;
 pub use slice_ty::*;
 // Function types
-mod fn_ty;
-pub use fn_ty::*;
 mod closure_ty;
 pub use closure_ty::*;
 // Pointer types
@@ -116,7 +114,6 @@ pub enum TyKind<'ast> {
     // ================================
     // Function types
     // ================================
-    Fn(&'ast FnTy<'ast>),
     Closure(&'ast ClosureTy<'ast>),
     // ================================
     // Pointer types
@@ -173,7 +170,7 @@ impl<'ast> TyKind<'ast> {
     /// Returns `true` if this is a function type.
     #[must_use]
     pub fn is_fn(&self) -> bool {
-        matches!(self, Self::Fn(..) | Self::Closure(..))
+        matches!(self, Self::FnPtr(..) | Self::Closure(..))
     }
 
     /// Returns `true` if this is a pointer type.
@@ -210,7 +207,7 @@ impl<'ast> TyKind<'ast> {
 macro_rules! impl_ty_data_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_ty_data_fn!($method() -> $return_ty,
-        Bool, Num, Text, Never, Tuple, Array, Slice, Fn, Closure, Ref,
+        Bool, Num, Text, Never, Tuple, Array, Slice, Closure, Ref,
         RawPtr, FnPtr, TraitObj, ImplTrait, Inferred, Path);
     };
     ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {

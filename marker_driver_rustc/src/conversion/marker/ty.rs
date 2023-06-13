@@ -1,7 +1,7 @@
 use marker_api::ast::{
     ty::{
-        ArrayTy, BoolTy, CommonTyData, FnTy, ImplTraitTy, InferredTy, NeverTy, NumKind, NumTy, PathTy, RawPtrTy, RefTy,
-        SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemGenericTy, SemNeverTy, SemNumTy, SemRawPtrTy, SemRefTy,
+        ArrayTy, BoolTy, CommonTyData, FnPtrTy, ImplTraitTy, InferredTy, NeverTy, NumKind, NumTy, PathTy, RawPtrTy,
+        RefTy, SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemGenericTy, SemNeverTy, SemNumTy, SemRawPtrTy, SemRefTy,
         SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy, SemTy, SemTyKind, SliceTy, TextKind, TextTy, TraitObjTy,
         TupleTy, TyKind,
     },
@@ -90,7 +90,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 SemTyKind::Ref(self.alloc(SemRefTy::new(self.to_mutability(*muta), self.to_sem_ty(*inner))))
             },
             mid::ty::TyKind::FnDef(_, _) => todo!(),
-            mid::ty::TyKind::FnPtr(_) => todo!(),
+            mid::ty::TyKind::FnPtr(fn_info) => todo!("{:#?}", fn_info),
             mid::ty::TyKind::Dynamic(binders, _region, kind) => {
                 if !matches!(kind, mid::ty::DynKind::Dyn) {
                     unimplemented!("the docs are not totally clear, when `DynStar` is used, her it is: {rustc_ty:#?}")
@@ -159,7 +159,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     self.to_syn_ty(mut_ty.ty),
                 )
             })),
-            hir::TyKind::BareFn(rust_fn) => TyKind::Fn(self.alloc(self.to_syn_fn_ty(data, rust_fn))),
+            hir::TyKind::BareFn(rust_fn) => TyKind::FnPtr(self.alloc(self.to_syn_fn_prt_ty(data, rust_fn))),
             hir::TyKind::Never => TyKind::Never(self.alloc(NeverTy::new(data))),
             hir::TyKind::Tup(rustc_tys) => {
                 let api_tys = self.alloc_slice(rustc_tys.iter().map(|rustc_ty| self.to_syn_ty(rustc_ty)));
@@ -188,7 +188,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
-    pub fn to_syn_fn_ty(&self, data: CommonTyData<'ast>, rust_fn: &hir::BareFnTy<'tcx>) -> FnTy<'ast> {
+    pub fn to_syn_fn_prt_ty(&self, data: CommonTyData<'ast>, rust_fn: &hir::BareFnTy<'tcx>) -> FnPtrTy<'ast> {
         assert_eq!(rust_fn.param_names.len(), rust_fn.decl.inputs.len());
         let params = rust_fn
             .decl
@@ -208,7 +208,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         } else {
             None
         };
-        FnTy::new(
+        FnPtrTy::new(
             data,
             CommonCallableData::new(
                 false,
