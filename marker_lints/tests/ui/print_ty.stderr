@@ -8,12 +8,9 @@ warning: Printing type for
 
 Path(
     PathTy {
-        data: CommonTyData {
+        data: CommonSynTyData {
             _lifetime: PhantomData<&()>,
-            span: Some(
-                SpanId(..),
-            ),
-            is_syntactic: true,
+            span: SpanId(..),
         },
         path: AstQPath {
             self_ty: None,
@@ -78,12 +75,9 @@ warning: Printing type for
 
 Path(
     PathTy {
-        data: CommonTyData {
+        data: CommonSynTyData {
             _lifetime: PhantomData<&()>,
-            span: Some(
-                SpanId(..),
-            ),
-            is_syntactic: true,
+            span: SpanId(..),
         },
         path: AstQPath {
             self_ty: None,
@@ -148,12 +142,9 @@ warning: Printing type for
 
 Path(
     PathTy {
-        data: CommonTyData {
+        data: CommonSynTyData {
             _lifetime: PhantomData<&()>,
-            span: Some(
-                SpanId(..),
-            ),
-            is_syntactic: true,
+            span: SpanId(..),
         },
         path: AstQPath {
             self_ty: None,
@@ -212,12 +203,9 @@ warning: Printing type for
 
 Path(
     PathTy {
-        data: CommonTyData {
+        data: CommonSynTyData {
             _lifetime: PhantomData<&()>,
-            span: Some(
-                SpanId(..),
-            ),
-            is_syntactic: true,
+            span: SpanId(..),
         },
         path: AstQPath {
             self_ty: None,
@@ -240,12 +228,9 @@ Path(
                                 Ty(
                                     Path(
                                         PathTy {
-                                            data: CommonTyData {
+                                            data: CommonSynTyData {
                                                 _lifetime: PhantomData<&()>,
-                                                span: Some(
-                                                    SpanId(..),
-                                                ),
-                                                is_syntactic: true,
+                                                span: SpanId(..),
                                             },
                                             path: AstQPath {
                                                 self_ty: None,
@@ -270,12 +255,9 @@ Path(
                                                                             (
                                                                                 Ref(
                                                                                     RefTy {
-                                                                                        data: CommonTyData {
+                                                                                        data: CommonSynTyData {
                                                                                             _lifetime: PhantomData<&()>,
-                                                                                            span: Some(
-                                                                                                SpanId(..),
-                                                                                            ),
-                                                                                            is_syntactic: true,
+                                                                                            span: SpanId(..),
                                                                                         },
                                                                                         lifetime: Some(
                                                                                             Lifetime {
@@ -339,12 +321,9 @@ warning: Printing type for
 
 Path(
     PathTy {
-        data: CommonTyData {
+        data: CommonSynTyData {
             _lifetime: PhantomData<&()>,
-            span: Some(
-                SpanId(..),
-            ),
-            is_syntactic: true,
+            span: SpanId(..),
         },
         path: AstQPath {
             self_ty: None,
@@ -367,12 +346,9 @@ Path(
                                 Ty(
                                     Path(
                                         PathTy {
-                                            data: CommonTyData {
+                                            data: CommonSynTyData {
                                                 _lifetime: PhantomData<&()>,
-                                                span: Some(
-                                                    SpanId(..),
-                                                ),
-                                                is_syntactic: true,
+                                                span: SpanId(..),
                                             },
                                             path: AstQPath {
                                                 self_ty: None,
@@ -397,12 +373,9 @@ Path(
                                                                             (
                                                                                 Ref(
                                                                                     RefTy {
-                                                                                        data: CommonTyData {
+                                                                                        data: CommonSynTyData {
                                                                                             _lifetime: PhantomData<&()>,
-                                                                                            span: Some(
-                                                                                                SpanId(..),
-                                                                                            ),
-                                                                                            is_syntactic: true,
+                                                                                            span: SpanId(..),
                                                                                         },
                                                                                         lifetime: Some(
                                                                                             Lifetime {
@@ -421,12 +394,9 @@ Path(
                                                                                 ),
                                                                                 RawPtr(
                                                                                     RawPtrTy {
-                                                                                        data: CommonTyData {
+                                                                                        data: CommonSynTyData {
                                                                                             _lifetime: PhantomData<&()>,
-                                                                                            span: Some(
-                                                                                                SpanId(..),
-                                                                                            ),
-                                                                                            is_syntactic: true,
+                                                                                            span: SpanId(..),
                                                                                         },
                                                                                         is_mut: false,
                                                                                         inner_ty: Num(
@@ -436,12 +406,9 @@ Path(
                                                                                 ),
                                                                                 RawPtr(
                                                                                     RawPtrTy {
-                                                                                        data: CommonTyData {
+                                                                                        data: CommonSynTyData {
                                                                                             _lifetime: PhantomData<&()>,
-                                                                                            span: Some(
-                                                                                                SpanId(..),
-                                                                                            ),
-                                                                                            is_syntactic: true,
+                                                                                            span: SpanId(..),
                                                                                         },
                                                                                         is_mut: true,
                                                                                         inner_ty: Num(
@@ -492,12 +459,9 @@ warning: Printing type for
 
 Path(
     PathTy {
-        data: CommonTyData {
+        data: CommonSynTyData {
             _lifetime: PhantomData<&()>,
-            span: Some(
-                SpanId(..),
-            ),
-            is_syntactic: true,
+            span: SpanId(..),
         },
         path: AstQPath {
             self_ty: None,
@@ -520,12 +484,9 @@ Path(
                                 Ty(
                                     Path(
                                         PathTy {
-                                            data: CommonTyData {
+                                            data: CommonSynTyData {
                                                 _lifetime: PhantomData<&()>,
-                                                span: Some(
-                                                    SpanId(..),
-                                                ),
-                                                is_syntactic: true,
+                                                span: SpanId(..),
                                             },
                                             path: AstQPath {
                                                 self_ty: None,
@@ -550,12 +511,9 @@ Path(
                                                                             (
                                                                                 Path(
                                                                                     PathTy {
-                                                                                        data: CommonTyData {
+                                                                                        data: CommonSynTyData {
                                                                                             _lifetime: PhantomData<&()>,
-                                                                                            span: Some(
-                                                                                                SpanId(..),
-                                                                                            ),
-                                                                                            is_syntactic: true,
+                                                                                            span: SpanId(..),
                                                                                         },
                                                                                         path: AstQPath {
                                                                                             self_ty: None,
@@ -587,12 +545,9 @@ Path(
                                                                                 ),
                                                                                 Path(
                                                                                     PathTy {
-                                                                                        data: CommonTyData {
+                                                                                        data: CommonSynTyData {
                                                                                             _lifetime: PhantomData<&()>,
-                                                                                            span: Some(
-                                                                                                SpanId(..),
-                                                                                            ),
-                                                                                            is_syntactic: true,
+                                                                                            span: SpanId(..),
                                                                                         },
                                                                                         path: AstQPath {
                                                                                             self_ty: None,
@@ -624,12 +579,9 @@ Path(
                                                                                 ),
                                                                                 Path(
                                                                                     PathTy {
-                                                                                        data: CommonTyData {
+                                                                                        data: CommonSynTyData {
                                                                                             _lifetime: PhantomData<&()>,
-                                                                                            span: Some(
-                                                                                                SpanId(..),
-                                                                                            ),
-                                                                                            is_syntactic: true,
+                                                                                            span: SpanId(..),
                                                                                         },
                                                                                         path: AstQPath {
                                                                                             self_ty: None,
@@ -652,12 +604,9 @@ Path(
                                                                                                                 Ty(
                                                                                                                     Path(
                                                                                                                         PathTy {
-                                                                                                                            data: CommonTyData {
+                                                                                                                            data: CommonSynTyData {
                                                                                                                                 _lifetime: PhantomData<&()>,
-                                                                                                                                span: Some(
-                                                                                                                                    SpanId(..),
-                                                                                                                                ),
-                                                                                                                                is_syntactic: true,
+                                                                                                                                span: SpanId(..),
                                                                                                                             },
                                                                                                                             path: AstQPath {
                                                                                                                                 self_ty: None,
@@ -701,12 +650,9 @@ Path(
                                                                                 ),
                                                                                 Path(
                                                                                     PathTy {
-                                                                                        data: CommonTyData {
+                                                                                        data: CommonSynTyData {
                                                                                             _lifetime: PhantomData<&()>,
-                                                                                            span: Some(
-                                                                                                SpanId(..),
-                                                                                            ),
-                                                                                            is_syntactic: true,
+                                                                                            span: SpanId(..),
                                                                                         },
                                                                                         path: AstQPath {
                                                                                             self_ty: None,
@@ -729,12 +675,9 @@ Path(
                                                                                                                 Ty(
                                                                                                                     Path(
                                                                                                                         PathTy {
-                                                                                                                            data: CommonTyData {
+                                                                                                                            data: CommonSynTyData {
                                                                                                                                 _lifetime: PhantomData<&()>,
-                                                                                                                                span: Some(
-                                                                                                                                    SpanId(..),
-                                                                                                                                ),
-                                                                                                                                is_syntactic: true,
+                                                                                                                                span: SpanId(..),
                                                                                                                             },
                                                                                                                             path: AstQPath {
                                                                                                                                 self_ty: None,
@@ -778,12 +721,9 @@ Path(
                                                                                 ),
                                                                                 Path(
                                                                                     PathTy {
-                                                                                        data: CommonTyData {
+                                                                                        data: CommonSynTyData {
                                                                                             _lifetime: PhantomData<&()>,
-                                                                                            span: Some(
-                                                                                                SpanId(..),
-                                                                                            ),
-                                                                                            is_syntactic: true,
+                                                                                            span: SpanId(..),
                                                                                         },
                                                                                         path: AstQPath {
                                                                                             self_ty: None,
@@ -806,12 +746,9 @@ Path(
                                                                                                                 Ty(
                                                                                                                     TraitObj(
                                                                                                                         TraitObjTy {
-                                                                                                                            data: CommonTyData {
+                                                                                                                            data: CommonSynTyData {
                                                                                                                                 _lifetime: PhantomData<&()>,
-                                                                                                                                span: Some(
-                                                                                                                                    SpanId(..),
-                                                                                                                                ),
-                                                                                                                                is_syntactic: true,
+                                                                                                                                span: SpanId(..),
                                                                                                                             },
                                                                                                                             trait_bound: [
                                                                                                                                 TraitBound(
@@ -843,12 +780,9 @@ Path(
                                                                                 ),
                                                                                 Path(
                                                                                     PathTy {
-                                                                                        data: CommonTyData {
+                                                                                        data: CommonSynTyData {
                                                                                             _lifetime: PhantomData<&()>,
-                                                                                            span: Some(
-                                                                                                SpanId(..),
-                                                                                            ),
-                                                                                            is_syntactic: true,
+                                                                                            span: SpanId(..),
                                                                                         },
                                                                                         path: AstQPath {
                                                                                             self_ty: None,
@@ -871,12 +805,9 @@ Path(
                                                                                                                 Ty(
                                                                                                                     TraitObj(
                                                                                                                         TraitObjTy {
-                                                                                                                            data: CommonTyData {
+                                                                                                                            data: CommonSynTyData {
                                                                                                                                 _lifetime: PhantomData<&()>,
-                                                                                                                                span: Some(
-                                                                                                                                    SpanId(..),
-                                                                                                                                ),
-                                                                                                                                is_syntactic: true,
+                                                                                                                                span: SpanId(..),
                                                                                                                             },
                                                                                                                             trait_bound: [
                                                                                                                                 TraitBound(
