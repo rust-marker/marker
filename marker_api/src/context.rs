@@ -3,6 +3,7 @@ use std::{cell::RefCell, mem::transmute};
 use crate::{
     ast::{
         item::{Body, ItemKind},
+        ty::SemTy,
         BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId,
     },
     diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
@@ -148,6 +149,10 @@ impl<'ast> AstContext<'ast> {
 }
 
 impl<'ast> AstContext<'ast> {
+    pub(crate) fn expr_ty(&self, expr: ExprId) -> &SemTy<'ast> {
+        self.driver.call_expr_ty(expr)
+    }
+
     pub(crate) fn span_snipped(&self, span: &Span) -> Option<String> {
         self.driver.call_span_snippet(span)
     }
@@ -199,6 +204,7 @@ struct DriverCallbacks<'ast> {
     pub body: extern "C" fn(&'ast (), id: BodyId) -> &'ast Body<'ast>,
 
     // Internal utility
+    pub expr_ty: extern "C" fn(&'ast (), ExprId) -> &'ast SemTy<'ast>,
     pub get_span: extern "C" fn(&'ast (), &SpanOwner) -> &'ast Span<'ast>,
     pub span_snippet: extern "C" fn(&'ast (), &Span) -> ffi::FfiOption<ffi::FfiStr<'ast>>,
     pub symbol_str: extern "C" fn(&'ast (), SymbolId) -> ffi::FfiStr<'ast>,
@@ -216,6 +222,9 @@ impl<'ast> DriverCallbacks<'ast> {
 
     fn call_item(&self, id: ItemId) -> Option<ItemKind<'ast>> {
         (self.item)(self.driver_context, id).copy()
+    }
+    fn call_expr_ty(&self, expr: ExprId) -> &SemTy<'ast> {
+        (self.expr_ty)(self.driver_context, expr)
     }
     fn call_get_span(&self, span_owner: &SpanOwner) -> &'ast Span<'ast> {
         (self.get_span)(self.driver_context, span_owner)

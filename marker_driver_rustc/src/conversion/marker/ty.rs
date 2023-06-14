@@ -1,11 +1,14 @@
 use marker_api::ast::{
     ty::{
         ArrayTy, BoolTy, CommonTyData, FnTy, ImplTraitTy, InferredTy, NeverTy, NumKind, NumTy, PathTy, RawPtrTy, RefTy,
-        SliceTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind,
+        SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemGenericTy, SemNeverTy, SemNumTy, SemRawPtrTy, SemRefTy,
+        SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy, SemTy, SemTyKind, SliceTy, TextKind, TextTy, TraitObjTy,
+        TupleTy, TyKind,
     },
     CommonCallableData, Parameter,
 };
 use rustc_hir as hir;
+use rustc_middle as mid;
 
 use super::MarkerConverterInner;
 
@@ -26,6 +29,106 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         match source {
             TySource::Syn(syn_ty) => self.to_syn_ty(syn_ty),
         }
+    }
+}
+
+impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
+    #[must_use]
+    pub fn to_sem_ty(&self, rustc_ty: mid::ty::Ty<'tcx>) -> SemTy<'ast> {
+        // Semantic types could be cached, the question is if they should and at
+        // which level.
+        let kind = match &rustc_ty.kind() {
+            mid::ty::TyKind::Bool => SemTyKind::Bool(self.alloc(SemBoolTy::new())),
+            mid::ty::TyKind::Char => SemTyKind::Text(self.alloc(SemTextTy::new(TextKind::Char))),
+            mid::ty::TyKind::Int(int_ty) => {
+                let num_ty = match int_ty {
+                    mid::ty::IntTy::Isize => NumKind::Isize,
+                    mid::ty::IntTy::I8 => NumKind::I8,
+                    mid::ty::IntTy::I16 => NumKind::I16,
+                    mid::ty::IntTy::I32 => NumKind::I32,
+                    mid::ty::IntTy::I64 => NumKind::I64,
+                    mid::ty::IntTy::I128 => NumKind::I128,
+                };
+                SemTyKind::Num(self.alloc(SemNumTy::new(num_ty)))
+            },
+            mid::ty::TyKind::Uint(uint_ty) => {
+                let num_ty = match uint_ty {
+                    mid::ty::UintTy::Usize => NumKind::Usize,
+                    mid::ty::UintTy::U8 => NumKind::U8,
+                    mid::ty::UintTy::U16 => NumKind::U16,
+                    mid::ty::UintTy::U32 => NumKind::U32,
+                    mid::ty::UintTy::U64 => NumKind::U64,
+                    mid::ty::UintTy::U128 => NumKind::U128,
+                };
+                SemTyKind::Num(self.alloc(SemNumTy::new(num_ty)))
+            },
+            mid::ty::TyKind::Float(float_ty) => {
+                let num_ty = match float_ty {
+                    mid::ty::FloatTy::F32 => NumKind::F32,
+                    mid::ty::FloatTy::F64 => NumKind::F64,
+                };
+                SemTyKind::Num(self.alloc(SemNumTy::new(num_ty)))
+            },
+            mid::ty::TyKind::Str => SemTyKind::Text(self.alloc(SemTextTy::new(TextKind::Str))),
+            mid::ty::TyKind::Adt(def, generics) => SemTyKind::Adt(self.alloc(SemAdtTy::new(
+                self.to_ty_def_id(def.did()),
+                self.to_sem_generic_args(generics),
+            ))),
+            mid::ty::TyKind::Foreign(_) => todo!(),
+            mid::ty::TyKind::Array(inner, _len) => {
+                SemTyKind::Array(self.alloc(SemArrayTy::new(self.to_sem_ty(*inner))))
+            },
+            mid::ty::TyKind::Slice(inner) => SemTyKind::Slice(self.alloc(SemSliceTy::new(self.to_sem_ty(*inner)))),
+            mid::ty::TyKind::Tuple(ty_lst) => SemTyKind::Tuple(self.alloc(SemTupleTy::new(
+                self.alloc_slice(ty_lst.iter().map(|ty| self.to_sem_ty(ty))),
+            ))),
+            mid::ty::TyKind::RawPtr(ty_and_mut) => SemTyKind::RawPtr(self.alloc(SemRawPtrTy::new(
+                self.to_mutability(ty_and_mut.mutbl),
+                self.to_sem_ty(ty_and_mut.ty),
+            ))),
+            mid::ty::TyKind::Ref(_lifetime, inner, muta) => {
+                SemTyKind::Ref(self.alloc(SemRefTy::new(self.to_mutability(*muta), self.to_sem_ty(*inner))))
+            },
+            mid::ty::TyKind::FnDef(_, _) => todo!(),
+            mid::ty::TyKind::FnPtr(_) => todo!(),
+            mid::ty::TyKind::Dynamic(binders, _region, kind) => {
+                if !matches!(kind, mid::ty::DynKind::Dyn) {
+                    unimplemented!("the docs are not totally clear, when `DynStar` is used, her it is: {rustc_ty:#?}")
+                }
+                SemTyKind::TraitObj(self.alloc(SemTraitObjTy::new(self.to_sem_trait_bounds(binders))))
+            },
+            mid::ty::TyKind::Closure(_, _) => todo!(),
+            mid::ty::TyKind::Generator(_, _, _) => todo!(),
+            mid::ty::TyKind::GeneratorWitness(_) => todo!(),
+            mid::ty::TyKind::GeneratorWitnessMIR(_, _) => todo!(),
+            mid::ty::TyKind::Never => SemTyKind::Never(self.alloc(SemNeverTy::new())),
+            mid::ty::TyKind::Alias(mid::ty::AliasKind::Inherent, info) => {
+                SemTyKind::Alias(self.alloc(SemAliasTy::new(self.to_item_id(info.def_id))))
+            },
+            mid::ty::TyKind::Alias(kind, info) => todo!("{kind:#?}\n\n{info:#?}"),
+            mid::ty::TyKind::Param(param) => {
+                let body_id = self
+                    .rustc_body
+                    .borrow()
+                    .expect("semantic `TyKind::Param` is only valid inside bodies");
+                // This is a local id, this makes sense, since rustc only accesses
+                // expressions and therefore semantic types of the current crate.
+                // This should be fine...
+                let owner = self.rustc_cx.hir().body_owner_def_id(body_id);
+                let generic_info = self
+                    .rustc_cx
+                    .generics_of(owner.to_def_id())
+                    .type_param(param, self.rustc_cx);
+                SemTyKind::Generic(self.alloc(SemGenericTy::new(self.to_generic_id(generic_info.def_id))))
+            },
+            mid::ty::TyKind::Bound(_, _) => todo!(),
+            mid::ty::TyKind::Placeholder(_) | mid::ty::TyKind::Infer(_) => {
+                unreachable!("used by rustc during typechecking, should not exist afterwards")
+            },
+            mid::ty::TyKind::Error(_) => unreachable!("would have triggered a rustc error"),
+        };
+
+        SemTy::new(kind)
     }
 }
 

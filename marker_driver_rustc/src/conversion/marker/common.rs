@@ -4,7 +4,7 @@ use marker_api::ast::generic::GenericArgs;
 use marker_api::ast::ty::TyKind;
 use marker_api::ast::{
     Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, CrateId, ExprId, FieldId, GenericId, Ident, ItemId,
-    LetStmtId, Span, SpanId, SpanSource, SymbolId, TraitRef, TyDefId, VarId, VariantId,
+    LetStmtId, Mutability, Span, SpanId, SpanSource, SymbolId, TraitRef, TyDefId, VarId, VariantId,
 };
 use marker_api::lint::Level;
 use rustc_hir as hir;
@@ -89,7 +89,6 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
-    #[expect(dead_code, reason = "will be used later")]
     pub fn to_ty_def_id(&self, id: impl Into<DefIdLayout>) -> TyDefId {
         transmute_id!(DefIdLayout as TyDefId = id.into())
     }
@@ -156,6 +155,13 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             rustc_target::spec::abi::Abi::Rust => Abi::Default,
             rustc_target::spec::abi::Abi::C { .. } => Abi::C,
             _ => Abi::Other,
+        }
+    }
+
+    pub fn to_mutability(&self, mutability: rustc_ast::Mutability) -> Mutability {
+        match mutability {
+            rustc_ast::Mutability::Not => Mutability::Unmut,
+            rustc_ast::Mutability::Mut => Mutability::Mut,
         }
     }
 
@@ -270,16 +276,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     /// This function resolves the [`hir::QPath`] target based on the type
     /// context of the current body. It can only be called inside bodies.
     fn resolve_qpath_in_body(&self, qpath: &hir::QPath<'tcx>, hir_id: hir::HirId) -> hir::def::Res {
-        self.rustc_ty_check
-            .borrow_mut()
-            .get_or_insert_with(|| {
-                let id = self
-                    .rustc_body
-                    .borrow()
-                    .expect("expressions are only translated inside bodies");
-                self.rustc_cx.typeck_body(id)
-            })
-            .qpath_res(qpath, hir_id)
+        self.rustc_ty_check().qpath_res(qpath, hir_id)
     }
 
     fn resolve_qpath_in_item(

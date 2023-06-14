@@ -1,12 +1,86 @@
 use marker_api::ast::generic::{
     BindingGenericArg, GenericArgKind, GenericArgs, GenericParamKind, GenericParams, Lifetime, LifetimeClause,
-    LifetimeKind, LifetimeParam, TraitBound, TyClause, TyParam, TyParamBound, WhereClauseKind,
+    LifetimeKind, LifetimeParam, SemGenericArgKind, SemGenericArgs, SemTraitBound, SemTyBindingArg, TraitBound,
+    TyClause, TyParam, TyParamBound, WhereClauseKind,
 };
 use rustc_hir as hir;
+use rustc_middle as mid;
 
 use super::MarkerConverterInner;
 
 impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
+    #[must_use]
+    pub fn to_sem_generic_args(&self, args: &[mid::ty::GenericArg<'tcx>]) -> SemGenericArgs<'ast> {
+        let args: Vec<_> = args
+            .iter()
+            .filter_map(|arg| self.to_sem_generic_arg_kind(*arg))
+            .collect();
+
+        SemGenericArgs::new(self.alloc_slice(args))
+    }
+
+    #[must_use]
+    fn to_sem_generic_arg_kind(&self, arg: mid::ty::GenericArg<'tcx>) -> Option<SemGenericArgKind<'ast>> {
+        match &arg.unpack() {
+            mid::ty::GenericArgKind::Lifetime(_) => None,
+            mid::ty::GenericArgKind::Type(ty) => Some(SemGenericArgKind::Ty(self.alloc(self.to_sem_ty(*ty)))),
+            mid::ty::GenericArgKind::Const(_) => todo!(),
+        }
+    }
+
+    pub fn to_sem_trait_bounds(
+        &self,
+        bounds: &mid::ty::List<mid::ty::PolyExistentialPredicate<'tcx>>,
+    ) -> &'ast [SemTraitBound<'ast>] {
+        let mut marker_bounds = vec![];
+
+        // Understanding this representation, was a journey of at least 1.5 liters
+        // of tea, way too many print statements and complaining to a friend of mine.
+        //
+        // Here is the basic breakdown:
+        // * Due to [`E0225`] these bounds are currently restricted to one *main* trait. Any other traits
+        //   have to be auto traits.
+        // * Simple generic args, like the `u32` in `Trait<u32>`, are stored in the `substs` of the trait.
+        // * Named type parameters, like `Item = u32` in `dyn Iterator<Item = u32>`, are stored as
+        //   `ExistentialPredicate::Projection` in the list of bindings. These parameters now need to be
+        //   *reattached* to the `SemGenericArgs` of the *main* trait, to work with markers representation.
+        //
+        // [`E0225`]: https://doc.rust-lang.org/stable/error_codes/E0225.html
+        if let Some(main) = bounds.principal() {
+            let main = main.skip_binder();
+
+            let mut generics: Vec<_> = main
+                .substs
+                .iter()
+                .filter_map(|arg| self.to_sem_generic_arg_kind(arg))
+                .collect();
+
+            bounds
+                .projection_bounds()
+                .for_each(|binding| match binding.skip_binder().term.unpack() {
+                    mid::ty::TermKind::Ty(ty) => generics.push(SemGenericArgKind::TyBinding(self.alloc(
+                        SemTyBindingArg::new(self.to_item_id(binding.item_def_id()), self.to_sem_ty(ty)),
+                    ))),
+                    mid::ty::TermKind::Const(_) => todo!(),
+                });
+
+            marker_bounds.push(SemTraitBound::new(
+                false,
+                self.to_ty_def_id(main.def_id),
+                SemGenericArgs::new(self.alloc_slice(generics)),
+            ));
+        }
+
+        bounds
+            .auto_traits()
+            .map(|auto_trait_id| {
+                SemTraitBound::new(false, self.to_ty_def_id(auto_trait_id), self.to_sem_generic_args(&[]))
+            })
+            .collect_into(&mut marker_bounds);
+
+        self.alloc_slice(marker_bounds)
+    }
+
     #[must_use]
     pub fn to_lifetime(&self, rust_lt: &hir::Lifetime) -> Option<Lifetime<'ast>> {
         let kind = match rust_lt.res {

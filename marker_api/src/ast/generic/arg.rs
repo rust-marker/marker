@@ -1,7 +1,10 @@
 use std::marker::PhantomData;
 
 use crate::{
-    ast::{ty::TyKind, GenericId, Span, SpanId, SymbolId},
+    ast::{
+        ty::{SemTy, TyKind},
+        GenericId, ItemId, Span, SpanId, SymbolId,
+    },
     context::with_cx,
     ffi::FfiOption,
 };
@@ -151,5 +154,45 @@ impl<'ast> BindingGenericArg<'ast> {
             ident,
             ty,
         }
+    }
+}
+
+/// A semantic generic bound in the form `<identifier=type>`. For example,
+/// `Item=i32` would be the generic binding here:
+///
+/// ```ignore
+/// let _baz: &dyn Iterator<Item=i32> = todo!();
+/// //                      ^^^^^^^^
+/// ```
+#[repr(C)]
+#[derive(Debug)]
+pub struct SemTyBindingArg<'ast> {
+    binding_target: ItemId,
+    ty: SemTy<'ast>,
+}
+
+impl<'ast> SemTyBindingArg<'ast> {
+    /// This returns the `ItemId` of the binding target.
+    pub fn binding_target(&self) -> ItemId {
+        self.binding_target
+    }
+
+    /// The type that the binding is set to. For example:
+    ///
+    /// ```ignore
+    /// let _baz: &dyn Iterator<Item=i32> = todo!();
+    /// //                           ^^^
+    /// ```
+    ///
+    /// Would return `i32` as the type.
+    pub fn ty(&self) -> &SemTy<'ast> {
+        &self.ty
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SemTyBindingArg<'ast> {
+    pub fn new(binding_target: ItemId, ty: SemTy<'ast>) -> Self {
+        Self { binding_target, ty }
     }
 }

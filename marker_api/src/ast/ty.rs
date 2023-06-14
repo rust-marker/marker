@@ -6,7 +6,17 @@ use super::{Span, SpanId};
 
 // Primitive types
 mod bool_ty;
+mod prim_ty;
+mod ptr_ty;
+mod sequence_ty;
+mod trait_ty;
+mod user_ty;
 pub use bool_ty::*;
+pub use prim_ty::*;
+pub use ptr_ty::*;
+pub use sequence_ty::*;
+pub use trait_ty::*;
+pub use user_ty::*;
 mod text_ty;
 pub use text_ty::*;
 mod num_ty;
@@ -56,6 +66,10 @@ pub trait TyData<'ast> {
     // FIXME: I feel like `is_syntactic` and `is_semantic` are not the best
     // names to distinguish between the two sources, but I can't think of
     // something better, rn.
+    // After starting with semantic types, I think it would actually make sense
+    // to distinguish the two types (semantic/syntactic) again. A big factor for
+    // this is, that it'll make tooling a lot better and interfaces more expressive.
+    // I'll think a bit more about this change, before committing to it.
 
     /// Returns `true`, if this type instance originates from a written type.
     /// These types can have a [`Span`] attached to them.
@@ -136,7 +150,7 @@ pub enum TyKind<'ast> {
     /// See: <https://doc.rust-lang.org/stable/reference/types/impl-trait.html>
     ImplTrait(&'ast ImplTraitTy<'ast>),
     // ================================
-    // Syntactic type
+    // Syntactic types
     // ================================
     /// An inferred type
     Inferred(&'ast InferredTy<'ast>),
@@ -228,14 +242,6 @@ impl<'ast> CommonTyData<'ast> {
             is_syntactic: true,
         }
     }
-
-    pub fn new_semantic() -> Self {
-        Self {
-            _lifetime: PhantomData,
-            span: FfiOption::None,
-            is_syntactic: false,
-        }
-    }
 }
 
 macro_rules! impl_ty_data {
@@ -268,3 +274,72 @@ macro_rules! impl_ty_data {
     };
 }
 use impl_ty_data;
+
+/// The semantic representation of a type
+#[repr(C)]
+#[derive(Debug)]
+pub struct SemTy<'ast> {
+    kind: SemTyKind<'ast>,
+}
+
+impl<'ast> SemTy<'ast> {
+    pub fn kind(&self) -> SemTyKind<'ast> {
+        self.kind
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SemTy<'ast> {
+    pub fn new(kind: SemTyKind<'ast>) -> Self {
+        Self { kind }
+    }
+}
+
+#[repr(C)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone)]
+pub enum SemTyKind<'ast> {
+    // ================================
+    // Primitive types
+    // ================================
+    /// The `bool` type
+    Bool(&'ast SemBoolTy<'ast>),
+    /// A numeric type like [`u32`], [`i32`], [`f64`]
+    Num(&'ast SemNumTy<'ast>),
+    /// A textual type like [`char`] or [`str`]
+    Text(&'ast SemTextTy<'ast>),
+    /// The never type [`!`](prim@never)
+    Never(&'ast SemNeverTy<'ast>),
+    // ================================
+    // Sequence types
+    // ================================
+    /// A tuple type like [`()`](prim@tuple), [`(T, U)`](prim@tuple)
+    Tuple(&'ast SemTupleTy<'ast>),
+    /// An array with a known size like: [`[T; N]`](prim@array)
+    Array(&'ast SemArrayTy<'ast>),
+    /// A variable length slice like [`[T]`](prim@slice)
+    Slice(&'ast SemSliceTy<'ast>),
+    // ================================
+    // Pointer types
+    // ================================
+    /// A reference like [`&T`](prim@reference) or [`&mut T`](prim@reference)
+    Ref(&'ast SemRefTy<'ast>),
+    /// A raw pointer like [`*const T`](prim@pointer) or [`*mut T`](prim@pointer)
+    RawPtr(&'ast SemRawPtrTy<'ast>),
+    // ================================
+    // Trait types
+    // ================================
+    /// A trait object like [`dyn Trait`](<https://doc.rust-lang.org/stable/std/keyword.dyn.html>)
+    TraitObj(&'ast SemTraitObjTy<'ast>),
+    // ================================
+    // User defined types
+    // ================================
+    /// A user defined data type, identified by an [`TyDefId`](super::TyDefId)
+    Adt(&'ast SemAdtTy<'ast>),
+    /// A generic type defined by a generic parameter
+    Generic(&'ast SemGenericTy<'ast>),
+    /// A type alias. Note that simple type aliases will already be replaced in
+    /// semantic types. This kind is mainly used for type aliases, where the concrete
+    /// type is not yet known, for example in traits.
+    Alias(&'ast SemAliasTy<'ast>),
+}

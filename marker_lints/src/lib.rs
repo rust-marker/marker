@@ -137,11 +137,14 @@ impl LintPass for TestLintPass {
         // code significantly less readable -.-
         if let StmtKind::Let(lets) = stmt {
             let PatKind::Ident(ident) = lets.pat() else { return };
+            let Some(expr) = lets.init() else { return };
             if ident.name().starts_with("_print") {
-                let Some(expr) = lets.init() else { return };
-
                 cx.emit_lint(TEST_LINT, stmt.id(), "print test", stmt.span(), |diag| {
                     diag.note(format!("{expr:#?}"));
+                });
+            } else if ident.name().starts_with("_ty") {
+                cx.emit_lint(TEST_LINT, stmt.id(), "print type test", stmt.span(), |diag| {
+                    diag.note(format!("{:#?}", expr.ty()));
                 });
             }
         }
