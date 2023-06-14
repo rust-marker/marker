@@ -307,6 +307,9 @@ pub enum SemTyKind<'ast> {
     /// A [function item type](https://doc.rust-lang.org/reference/types/function-item.html)
     /// identifying a specific function and potentualy additional generics.
     FnTy(&'ast SemFnTy<'ast>),
+    /// The semantic representation of a
+    /// [closure type](https://doc.rust-lang.org/reference/types/closure.html).
+    ClosureTy(&'ast SemClosureTy<'ast>),
     // ================================
     // Pointer types
     // ================================

@@ -1,9 +1,9 @@
 use marker_api::ast::{
     ty::{
         ArrayTy, BoolTy, CommonTyData, FnPtrTy, ImplTraitTy, InferredTy, NeverTy, NumKind, NumTy, PathTy, RawPtrTy,
-        RefTy, SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemFnPtrTy, SemFnTy, SemGenericTy, SemNeverTy, SemNumTy,
-        SemRawPtrTy, SemRefTy, SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy, SemTyKind, SemUnstableTy, SliceTy,
-        TextKind, TextTy, TraitObjTy, TupleTy, TyKind,
+        RefTy, SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemClosureTy, SemFnPtrTy, SemFnTy, SemGenericTy,
+        SemNeverTy, SemNumTy, SemRawPtrTy, SemRefTy, SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy, SemTyKind,
+        SemUnstableTy, SliceTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind,
     },
     CommonCallableData, Parameter,
 };
@@ -113,7 +113,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 }
                 SemTyKind::TraitObj(self.alloc(SemTraitObjTy::new(self.to_sem_trait_bounds(binders))))
             },
-            mid::ty::TyKind::Closure(_, _) => todo!(),
+            mid::ty::TyKind::Closure(id, generics) => SemTyKind::ClosureTy(self.alloc(SemClosureTy::new(
+                self.to_ty_def_id(*id),
+                self.to_sem_generic_args(generics),
+            ))),
             mid::ty::TyKind::Generator(_, _, _)
             | mid::ty::TyKind::GeneratorWitness(_)
             | mid::ty::TyKind::GeneratorWitnessMIR(_, _) => SemTyKind::Unstable(self.alloc(SemUnstableTy::new())),
