@@ -2,8 +2,8 @@ use marker_api::ast::{
     ty::{
         ArrayTy, BoolTy, CommonTyData, FnPtrTy, ImplTraitTy, InferredTy, NeverTy, NumKind, NumTy, PathTy, RawPtrTy,
         RefTy, SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemFnPtrTy, SemFnTy, SemGenericTy, SemNeverTy, SemNumTy,
-        SemRawPtrTy, SemRefTy, SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy, SemTy, SemTyKind, SemUnstableTy,
-        SliceTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind,
+        SemRawPtrTy, SemRefTy, SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy, SemTyKind, SemUnstableTy, SliceTy,
+        TextKind, TextTy, TraitObjTy, TupleTy, TyKind,
     },
     CommonCallableData, Parameter,
 };
@@ -34,10 +34,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
 impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
-    pub fn to_sem_ty(&self, rustc_ty: mid::ty::Ty<'tcx>) -> SemTy<'ast> {
+    pub fn to_sem_ty(&self, rustc_ty: mid::ty::Ty<'tcx>) -> SemTyKind<'ast> {
         // Semantic types could be cached, the question is if they should and at
         // which level.
-        let kind = match &rustc_ty.kind() {
+        match &rustc_ty.kind() {
             mid::ty::TyKind::Bool => SemTyKind::Bool(self.alloc(SemBoolTy::new())),
             mid::ty::TyKind::Char => SemTyKind::Text(self.alloc(SemTextTy::new(TextKind::Char))),
             mid::ty::TyKind::Int(int_ty) => {
@@ -144,9 +144,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 unreachable!("used by rustc during typechecking, should not exist afterwards")
             },
             mid::ty::TyKind::Error(_) => unreachable!("would have triggered a rustc error"),
-        };
-
-        SemTy::new(kind)
+        }
     }
 }
 

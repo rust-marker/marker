@@ -278,25 +278,6 @@ use impl_ty_data;
 
 /// The semantic representation of a type
 #[repr(C)]
-#[derive(Debug)]
-pub struct SemTy<'ast> {
-    kind: SemTyKind<'ast>,
-}
-
-impl<'ast> SemTy<'ast> {
-    pub fn kind(&self) -> SemTyKind<'ast> {
-        self.kind
-    }
-}
-
-#[cfg(feature = "driver-api")]
-impl<'ast> SemTy<'ast> {
-    pub fn new(kind: SemTyKind<'ast>) -> Self {
-        Self { kind }
-    }
-}
-
-#[repr(C)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
 pub enum SemTyKind<'ast> {

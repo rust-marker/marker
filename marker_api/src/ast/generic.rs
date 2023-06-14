@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use super::ty::{SemTy, TyKind};
+use super::ty::{SemTyKind, TyKind};
 use crate::ffi::FfiSlice;
 
 mod arg;
@@ -148,7 +148,7 @@ pub enum SemGenericArgKind<'ast> {
     /// let _bar: Vec<String> = vec!();
     /// //            ^^^^^^
     /// ```
-    Ty(&'ast SemTy<'ast>),
+    Ty(SemTyKind<'ast>),
     /// A type binding as a generic argument, like this:
     ///
     /// ```ignore

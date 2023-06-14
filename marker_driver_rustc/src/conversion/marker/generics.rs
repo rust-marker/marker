@@ -23,7 +23,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     fn to_sem_generic_arg_kind(&self, arg: mid::ty::GenericArg<'tcx>) -> Option<SemGenericArgKind<'ast>> {
         match &arg.unpack() {
             mid::ty::GenericArgKind::Lifetime(_) => None,
-            mid::ty::GenericArgKind::Type(ty) => Some(SemGenericArgKind::Ty(self.alloc(self.to_sem_ty(*ty)))),
+            mid::ty::GenericArgKind::Type(ty) => Some(SemGenericArgKind::Ty(self.to_sem_ty(*ty))),
             mid::ty::GenericArgKind::Const(_) => todo!(),
         }
     }
