@@ -1,5 +1,7 @@
 use std::marker::PhantomData;
 
+use super::CommonSynTyData;
+
 /// The placeholder type, signalling that the semantic type is still unstable
 /// and therefor not represented as part of the API.
 #[repr(C)]
@@ -14,3 +16,18 @@ impl<'ast> SemUnstableTy<'ast> {
         Self { _lt: PhantomData }
     }
 }
+
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct SynInferredTy<'ast> {
+    data: CommonSynTyData<'ast>,
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SynInferredTy<'ast> {
+    pub fn new(data: CommonSynTyData<'ast>) -> Self {
+        Self { data }
+    }
+}
+
+super::impl_ty_data!(SynInferredTy<'ast>, Inferred);

@@ -1,9 +1,10 @@
 use marker_api::ast::{
     ty::{
-        ArrayTy, BoolTy, CommonSynTyData, FnPtrTy, ImplTraitTy, InferredTy, NeverTy, NumKind, NumTy, PathTy, RawPtrTy,
-        RefTy, SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemClosureTy, SemFnPtrTy, SemFnTy, SemGenericTy,
-        SemNeverTy, SemNumTy, SemRawPtrTy, SemRefTy, SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy, SemTyKind,
-        SemUnstableTy, SliceTy, SynTyKind, TextKind, TextTy, TraitObjTy, TupleTy,
+        CommonSynTyData, NumKind, SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemClosureTy, SemFnPtrTy, SemFnTy,
+        SemGenericTy, SemNeverTy, SemNumTy, SemRawPtrTy, SemRefTy, SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy,
+        SemTyKind, SemUnstableTy, SynArrayTy, SynBoolTy, SynFnPtrTy, SynImplTraitTy, SynInferredTy, SynNeverTy,
+        SynNumTy, SynPathTy, SynRawPtrTy, SynRefTy, SynSliceTy, SynTextTy, SynTraitObjTy, SynTupleTy, SynTyKind,
+        TextKind,
     },
     CommonCallableData, Parameter,
 };
@@ -161,19 +162,21 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         // they can't be requested individually over the API. Instead, they're
         // always stored as part of a parent node.
         match &rustc_ty.kind {
-            hir::TyKind::Slice(inner_ty) => SynTyKind::Slice(self.alloc(SliceTy::new(data, self.to_syn_ty(inner_ty)))),
+            hir::TyKind::Slice(inner_ty) => {
+                SynTyKind::Slice(self.alloc(SynSliceTy::new(data, self.to_syn_ty(inner_ty))))
+            },
             hir::TyKind::Array(inner_ty, _) => {
-                SynTyKind::Array(self.alloc(ArrayTy::new(data, self.to_syn_ty(inner_ty))))
+                SynTyKind::Array(self.alloc(SynArrayTy::new(data, self.to_syn_ty(inner_ty))))
             },
             hir::TyKind::Ptr(mut_ty) => SynTyKind::RawPtr(self.alloc({
-                RawPtrTy::new(
+                SynRawPtrTy::new(
                     data,
                     matches!(mut_ty.mutbl, rustc_ast::Mutability::Mut),
                     self.to_syn_ty(mut_ty.ty),
                 )
             })),
             hir::TyKind::Ref(rust_lt, mut_ty) => SynTyKind::Ref(self.alloc({
-                RefTy::new(
+                SynRefTy::new(
                     data,
                     self.to_lifetime(rust_lt),
                     matches!(mut_ty.mutbl, rustc_ast::Mutability::Mut),
@@ -181,10 +184,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 )
             })),
             hir::TyKind::BareFn(rust_fn) => SynTyKind::FnPtr(self.alloc(self.to_syn_fn_prt_ty(data, rust_fn))),
-            hir::TyKind::Never => SynTyKind::Never(self.alloc(NeverTy::new(data))),
+            hir::TyKind::Never => SynTyKind::Never(self.alloc(SynNeverTy::new(data))),
             hir::TyKind::Tup(rustc_tys) => {
                 let api_tys = self.alloc_slice(rustc_tys.iter().map(|rustc_ty| self.to_syn_ty(rustc_ty)));
-                SynTyKind::Tuple(self.alloc(TupleTy::new(data, api_tys)))
+                SynTyKind::Tuple(self.alloc(SynTupleTy::new(data, api_tys)))
             },
             hir::TyKind::Path(qpath) => self.to_syn_ty_from_qpath(data, qpath, rustc_ty),
             // Continue ty conversion
@@ -198,17 +201,17 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 };
                 let rust_bound = self.to_ty_param_bound(opty.bounds);
                 // FIXME: Generics are a bit weird with opaque types
-                SynTyKind::ImplTrait(self.alloc(ImplTraitTy::new(data, rust_bound)))
+                SynTyKind::ImplTrait(self.alloc(SynImplTraitTy::new(data, rust_bound)))
             },
             hir::TyKind::TraitObject(rust_bounds, rust_lt, _syntax) => SynTyKind::TraitObj(self.alloc(
-                TraitObjTy::new(data, self.to_ty_param_bound_from_hir(rust_bounds, rust_lt)),
+                SynTraitObjTy::new(data, self.to_ty_param_bound_from_hir(rust_bounds, rust_lt)),
             )),
-            hir::TyKind::Infer => SynTyKind::Inferred(self.alloc(InferredTy::new(data))),
+            hir::TyKind::Infer => SynTyKind::Inferred(self.alloc(SynInferredTy::new(data))),
         }
     }
 
     #[must_use]
-    pub fn to_syn_fn_prt_ty(&self, data: CommonSynTyData<'ast>, rust_fn: &hir::BareFnTy<'tcx>) -> FnPtrTy<'ast> {
+    pub fn to_syn_fn_prt_ty(&self, data: CommonSynTyData<'ast>, rust_fn: &hir::BareFnTy<'tcx>) -> SynFnPtrTy<'ast> {
         assert_eq!(rust_fn.param_names.len(), rust_fn.decl.inputs.len());
         let params = rust_fn
             .decl
@@ -228,7 +231,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         } else {
             None
         };
-        FnPtrTy::new(
+        SynFnPtrTy::new(
             data,
             CommonCallableData::new(
                 false,
@@ -267,7 +270,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 )
                 | hir::def::Res::SelfTyParam { .. }
                 | hir::def::Res::SelfTyAlias { .. } => {
-                    SynTyKind::Path(self.alloc(PathTy::new(data, self.to_qpath_from_ty(qpath, rustc_ty))))
+                    SynTyKind::Path(self.alloc(SynPathTy::new(data, self.to_qpath_from_ty(qpath, rustc_ty))))
                 },
                 hir::def::Res::PrimTy(prim_ty) => self.to_syn_ty_from_prim_ty(data, prim_ty),
                 hir::def::Res::Def(_, _)
@@ -278,7 +281,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 hir::def::Res::Err => unreachable!("would have triggered a rustc error"),
             },
             hir::QPath::TypeRelative(_, _) | hir::QPath::LangItem(_, _, _) => {
-                SynTyKind::Path(self.alloc(PathTy::new(data, self.to_qpath_from_ty(qpath, rustc_ty))))
+                SynTyKind::Path(self.alloc(SynPathTy::new(data, self.to_qpath_from_ty(qpath, rustc_ty))))
             },
         }
     }
@@ -305,12 +308,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 rustc_ast::FloatTy::F32 => NumKind::F32,
                 rustc_ast::FloatTy::F64 => NumKind::F64,
             },
-            hir::PrimTy::Str => return SynTyKind::Text(self.alloc(TextTy::new(data, TextKind::Str))),
-            hir::PrimTy::Bool => return SynTyKind::Bool(self.alloc(BoolTy::new(data))),
+            hir::PrimTy::Str => return SynTyKind::Text(self.alloc(SynTextTy::new(data, TextKind::Str))),
+            hir::PrimTy::Bool => return SynTyKind::Bool(self.alloc(SynBoolTy::new(data))),
             hir::PrimTy::Char => {
-                return SynTyKind::Text(self.alloc(TextTy::new(data, TextKind::Char)));
+                return SynTyKind::Text(self.alloc(SynTextTy::new(data, TextKind::Char)));
             },
         };
-        SynTyKind::Num(self.alloc(NumTy::new(data, num_kind)))
+        SynTyKind::Num(self.alloc(SynNumTy::new(data, num_kind)))
     }
 }
