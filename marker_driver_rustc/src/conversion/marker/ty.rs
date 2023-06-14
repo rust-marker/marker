@@ -2,8 +2,8 @@ use marker_api::ast::{
     ty::{
         ArrayTy, BoolTy, CommonTyData, FnPtrTy, ImplTraitTy, InferredTy, NeverTy, NumKind, NumTy, PathTy, RawPtrTy,
         RefTy, SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemFnPtrTy, SemFnTy, SemGenericTy, SemNeverTy, SemNumTy,
-        SemRawPtrTy, SemRefTy, SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy, SemTy, SemTyKind, SliceTy, TextKind,
-        TextTy, TraitObjTy, TupleTy, TyKind,
+        SemRawPtrTy, SemRefTy, SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy, SemTy, SemTyKind, SemUnstableTy,
+        SliceTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind,
     },
     CommonCallableData, Parameter,
 };
@@ -114,9 +114,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 SemTyKind::TraitObj(self.alloc(SemTraitObjTy::new(self.to_sem_trait_bounds(binders))))
             },
             mid::ty::TyKind::Closure(_, _) => todo!(),
-            mid::ty::TyKind::Generator(_, _, _) => todo!(),
-            mid::ty::TyKind::GeneratorWitness(_) => todo!(),
-            mid::ty::TyKind::GeneratorWitnessMIR(_, _) => todo!(),
+            mid::ty::TyKind::Generator(_, _, _)
+            | mid::ty::TyKind::GeneratorWitness(_)
+            | mid::ty::TyKind::GeneratorWitnessMIR(_, _) => SemTyKind::Unstable(self.alloc(SemUnstableTy::new())),
             mid::ty::TyKind::Never => SemTyKind::Never(self.alloc(SemNeverTy::new())),
             mid::ty::TyKind::Alias(mid::ty::AliasKind::Inherent, info) => {
                 SemTyKind::Alias(self.alloc(SemAliasTy::new(self.to_item_id(info.def_id))))
@@ -137,7 +137,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     .type_param(param, self.rustc_cx);
                 SemTyKind::Generic(self.alloc(SemGenericTy::new(self.to_generic_id(generic_info.def_id))))
             },
-            mid::ty::TyKind::Bound(_, _) => todo!(),
+            mid::ty::TyKind::Bound(_, _) => {
+                unreachable!("used by rustc for higher ranked types, which are not represented in marker")
+            },
             mid::ty::TyKind::Placeholder(_) | mid::ty::TyKind::Infer(_) => {
                 unreachable!("used by rustc during typechecking, should not exist afterwards")
             },

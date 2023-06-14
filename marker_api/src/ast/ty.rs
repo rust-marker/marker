@@ -7,6 +7,7 @@ use super::{Span, SpanId};
 // Primitive types
 mod bool_ty;
 mod fn_ty;
+mod other_ty;
 mod prim_ty;
 mod ptr_ty;
 mod sequence_ty;
@@ -14,6 +15,7 @@ mod trait_ty;
 mod user_ty;
 pub use bool_ty::*;
 pub use fn_ty::*;
+pub use other_ty::*;
 pub use prim_ty::*;
 pub use ptr_ty::*;
 pub use sequence_ty::*;
@@ -350,4 +352,10 @@ pub enum SemTyKind<'ast> {
     /// semantic types. This kind is mainly used for type aliases, where the concrete
     /// type is not yet known, for example in traits.
     Alias(&'ast SemAliasTy<'ast>),
+    // ================================
+    // Other types
+    // ================================
+    /// The placeholder type, signalling that the semantic type is still unstable
+    /// and therefor not represented as part of the API.
+    Unstable(&'ast SemUnstableTy<'ast>),
 }
