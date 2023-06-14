@@ -1,9 +1,9 @@
 use marker_api::ast::{
     ty::{
         ArrayTy, BoolTy, CommonTyData, FnPtrTy, ImplTraitTy, InferredTy, NeverTy, NumKind, NumTy, PathTy, RawPtrTy,
-        RefTy, SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemGenericTy, SemNeverTy, SemNumTy, SemRawPtrTy, SemRefTy,
-        SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy, SemTy, SemTyKind, SliceTy, TextKind, TextTy, TraitObjTy,
-        TupleTy, TyKind,
+        RefTy, SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemFnPtrTy, SemFnTy, SemGenericTy, SemNeverTy, SemNumTy,
+        SemRawPtrTy, SemRefTy, SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy, SemTy, SemTyKind, SliceTy, TextKind,
+        TextTy, TraitObjTy, TupleTy, TyKind,
     },
     CommonCallableData, Parameter,
 };
@@ -89,8 +89,24 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             mid::ty::TyKind::Ref(_lifetime, inner, muta) => {
                 SemTyKind::Ref(self.alloc(SemRefTy::new(self.to_mutability(*muta), self.to_sem_ty(*inner))))
             },
-            mid::ty::TyKind::FnDef(_, _) => todo!(),
-            mid::ty::TyKind::FnPtr(fn_info) => todo!("{:#?}", fn_info),
+            mid::ty::TyKind::FnDef(fn_id, generic_args) => SemTyKind::FnTy(self.alloc(SemFnTy::new(
+                self.to_item_id(*fn_id),
+                self.to_sem_generic_args(generic_args),
+            ))),
+            mid::ty::TyKind::FnPtr(fn_info) => SemTyKind::FnPtr(
+                self.alloc(SemFnPtrTy::new(
+                    self.to_safety(fn_info.unsafety()),
+                    self.to_abi(fn_info.abi()),
+                    self.alloc_slice(
+                        fn_info
+                            .inputs()
+                            .skip_binder()
+                            .iter()
+                            .map(|input| self.to_sem_ty(*input)),
+                    ),
+                    self.to_sem_ty(fn_info.output().skip_binder()),
+                )),
+            ),
             mid::ty::TyKind::Dynamic(binders, _region, kind) => {
                 if !matches!(kind, mid::ty::DynKind::Dyn) {
                     unimplemented!("the docs are not totally clear, when `DynStar` is used, her it is: {rustc_ty:#?}")

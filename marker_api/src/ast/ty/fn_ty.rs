@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use crate::ast::{generic::SemGenericArgs, ItemId};
 
 /// A [function item type](https://doc.rust-lang.org/reference/types/function-item.html)
