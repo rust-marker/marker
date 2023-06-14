@@ -1,17 +1,17 @@
 use std::iter;
 
-use super::{CommonTyData, TyKind};
+use super::{CommonSynTyData, SynTyKind};
 
 #[repr(C)]
 #[derive(PartialEq, Eq, Hash)]
 pub struct SliceTy<'ast> {
-    data: CommonTyData<'ast>,
-    inner_ty: TyKind<'ast>,
+    data: CommonSynTyData<'ast>,
+    inner_ty: SynTyKind<'ast>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> SliceTy<'ast> {
-    pub fn new(data: CommonTyData<'ast>, inner_ty: TyKind<'ast>) -> Self {
+    pub fn new(data: CommonSynTyData<'ast>, inner_ty: SynTyKind<'ast>) -> Self {
         Self { data, inner_ty }
     }
 }
@@ -19,7 +19,7 @@ impl<'ast> SliceTy<'ast> {
 super::impl_ty_data!(SliceTy<'ast>, Slice);
 
 impl<'ast> SliceTy<'ast> {
-    pub fn inner_ty(&self) -> TyKind<'ast> {
+    pub fn inner_ty(&self) -> SynTyKind<'ast> {
         self.inner_ty
     }
 }

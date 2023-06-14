@@ -1,7 +1,7 @@
 use std::mem::{size_of, transmute};
 
 use marker_api::ast::generic::GenericArgs;
-use marker_api::ast::ty::TyKind;
+use marker_api::ast::ty::SynTyKind;
 use marker_api::ast::{
     Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, CrateId, ExprId, FieldId, GenericId, Ident, ItemId,
     LetStmtId, Mutability, Safety, Span, SpanId, SpanSource, SymbolId, TraitRef, TyDefId, VarId, VariantId,
@@ -192,7 +192,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::QPath::TypeRelative(rustc_ty, segment) => {
                 // Segment and type conversion
                 let marker_ty = self.to_ty(*rustc_ty);
-                let mut segments = if let TyKind::Path(ty_path) = marker_ty {
+                let mut segments = if let SynTyKind::Path(ty_path) = marker_ty {
                     ty_path.path().segments().to_vec()
                 } else {
                     Vec::with_capacity(1)

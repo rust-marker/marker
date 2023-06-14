@@ -1,5 +1,5 @@
 use crate::{
-    ast::{pat::PatKind, ty::TyKind},
+    ast::{pat::PatKind, ty::SynTyKind},
     ffi::FfiOption,
 };
 
@@ -218,7 +218,7 @@ pub enum UnaryOpKind {
 pub struct AsExpr<'ast> {
     data: CommonExprData<'ast>,
     expr: ExprKind<'ast>,
-    cast_ty: TyKind<'ast>,
+    cast_ty: SynTyKind<'ast>,
 }
 
 impl<'ast> AsExpr<'ast> {
@@ -226,7 +226,7 @@ impl<'ast> AsExpr<'ast> {
         self.expr
     }
 
-    pub fn cast_ty(&self) -> TyKind<'ast> {
+    pub fn cast_ty(&self) -> SynTyKind<'ast> {
         self.cast_ty
     }
 }
@@ -235,7 +235,7 @@ super::impl_expr_data!(AsExpr<'ast>, As);
 
 #[cfg(feature = "driver-api")]
 impl<'ast> AsExpr<'ast> {
-    pub fn new(data: CommonExprData<'ast>, expr: ExprKind<'ast>, cast_ty: TyKind<'ast>) -> Self {
+    pub fn new(data: CommonExprData<'ast>, expr: ExprKind<'ast>, cast_ty: SynTyKind<'ast>) -> Self {
         Self { data, expr, cast_ty }
     }
 }

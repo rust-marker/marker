@@ -1,14 +1,14 @@
-use super::CommonTyData;
+use super::CommonSynTyData;
 
 #[repr(C)]
 #[derive(PartialEq, Eq, Hash)]
 pub struct BoolTy<'ast> {
-    data: CommonTyData<'ast>,
+    data: CommonSynTyData<'ast>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> BoolTy<'ast> {
-    pub fn new(data: CommonTyData<'ast>) -> Self {
+    pub fn new(data: CommonSynTyData<'ast>) -> Self {
         Self { data }
     }
 }

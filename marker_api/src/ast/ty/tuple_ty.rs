@@ -1,17 +1,17 @@
 use crate::ffi::FfiSlice;
 
-use super::{CommonTyData, TyKind};
+use super::{CommonSynTyData, SynTyKind};
 
 #[repr(C)]
 #[derive(PartialEq, Eq, Hash)]
 pub struct TupleTy<'ast> {
-    data: CommonTyData<'ast>,
-    types: FfiSlice<'ast, TyKind<'ast>>,
+    data: CommonSynTyData<'ast>,
+    types: FfiSlice<'ast, SynTyKind<'ast>>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TupleTy<'ast> {
-    pub fn new(data: CommonTyData<'ast>, types: &'ast [TyKind<'ast>]) -> Self {
+    pub fn new(data: CommonSynTyData<'ast>, types: &'ast [SynTyKind<'ast>]) -> Self {
         Self {
             data,
             types: types.into(),
@@ -22,7 +22,7 @@ impl<'ast> TupleTy<'ast> {
 super::impl_ty_data!(TupleTy<'ast>, Tuple);
 
 impl<'ast> TupleTy<'ast> {
-    pub fn types(&self) -> &[TyKind<'ast>] {
+    pub fn types(&self) -> &[SynTyKind<'ast>] {
         self.types.as_slice()
     }
 }

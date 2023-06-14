@@ -47,13 +47,7 @@ impl LintPass for TestLintPass {
         if let Some(name) = item.ident() {
             let name = name.name();
             if name.starts_with("PRINT_TYPE") {
-                cx.emit_lint(
-                    TEST_LINT,
-                    item.id(),
-                    "Printing type for",
-                    item.ty().span().unwrap(),
-                    |_| {},
-                );
+                cx.emit_lint(TEST_LINT, item.id(), "Printing type for", item.ty().span(), |_| {});
                 eprintln!("{:#?}\n\n", item.ty());
             } else if name.starts_with("FIND_ITEM") {
                 cx.emit_lint(

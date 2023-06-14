@@ -1,17 +1,17 @@
 use crate::{ast::generic::TyParamBound, ffi::FfiSlice};
 
-use super::CommonTyData;
+use super::CommonSynTyData;
 
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct TraitObjTy<'ast> {
-    data: CommonTyData<'ast>,
+    data: CommonSynTyData<'ast>,
     trait_bound: FfiSlice<'ast, TyParamBound<'ast>>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TraitObjTy<'ast> {
-    pub fn new(data: CommonTyData<'ast>, trait_bound: &'ast [TyParamBound<'ast>]) -> Self {
+    pub fn new(data: CommonSynTyData<'ast>, trait_bound: &'ast [TyParamBound<'ast>]) -> Self {
         Self {
             data,
             trait_bound: trait_bound.into(),

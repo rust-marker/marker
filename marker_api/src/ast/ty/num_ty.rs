@@ -1,15 +1,15 @@
-use super::CommonTyData;
+use super::CommonSynTyData;
 
 #[repr(C)]
 #[derive(PartialEq, Eq, Hash)]
 pub struct NumTy<'ast> {
-    data: CommonTyData<'ast>,
+    data: CommonSynTyData<'ast>,
     numeric_kind: NumKind,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> NumTy<'ast> {
-    pub fn new(data: CommonTyData<'ast>, numeric_kind: NumKind) -> Self {
+    pub fn new(data: CommonSynTyData<'ast>, numeric_kind: NumKind) -> Self {
         Self { data, numeric_kind }
     }
 }

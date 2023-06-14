@@ -1,6 +1,8 @@
 use crate::{context::with_cx, ffi::FfiOption};
 
-use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::TyKind, LetStmtId, Span, SpanId, StmtId, StmtIdInner};
+use super::{
+    expr::ExprKind, item::ItemKind, pat::PatKind, ty::SynTyKind, LetStmtId, Span, SpanId, StmtId, StmtIdInner,
+};
 
 #[repr(C)]
 #[non_exhaustive]
@@ -35,7 +37,7 @@ pub struct LetStmt<'ast> {
     id: LetStmtId,
     span: SpanId,
     pat: PatKind<'ast>,
-    ty: FfiOption<TyKind<'ast>>,
+    ty: FfiOption<SynTyKind<'ast>>,
     init: FfiOption<ExprKind<'ast>>,
     els: FfiOption<ExprKind<'ast>>,
 }
@@ -54,7 +56,7 @@ impl<'ast> LetStmt<'ast> {
     }
 
     /// Returns the syntactic type, if it has been specified.
-    pub fn ty(&self) -> Option<TyKind<'ast>> {
+    pub fn ty(&self) -> Option<SynTyKind<'ast>> {
         self.ty.copy()
     }
 
@@ -76,7 +78,7 @@ impl<'ast> LetStmt<'ast> {
         id: LetStmtId,
         span: SpanId,
         pat: PatKind<'ast>,
-        ty: Option<TyKind<'ast>>,
+        ty: Option<SynTyKind<'ast>>,
         init: Option<ExprKind<'ast>>,
         els: Option<ExprKind<'ast>>,
     ) -> Self {

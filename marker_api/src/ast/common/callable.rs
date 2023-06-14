@@ -1,5 +1,5 @@
 use crate::{
-    ast::ty::TyKind,
+    ast::ty::SynTyKind,
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
 };
@@ -49,7 +49,7 @@ pub trait CallableData<'ast> {
     fn params(&self) -> &[Parameter<'ast>];
 
     /// Returns the return type, if specified.
-    fn return_ty(&self) -> Option<&TyKind<'ast>>;
+    fn return_ty(&self) -> Option<&SynTyKind<'ast>>;
 }
 
 #[repr(C)]
@@ -57,13 +57,13 @@ pub trait CallableData<'ast> {
 pub struct Parameter<'ast> {
     // FIXME: This shouldn't be a name but a pattern...
     name: FfiOption<SymbolId>,
-    ty: FfiOption<TyKind<'ast>>,
+    ty: FfiOption<SynTyKind<'ast>>,
     span: FfiOption<SpanId>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Parameter<'ast> {
-    pub fn new(name: Option<SymbolId>, ty: Option<TyKind<'ast>>, span: Option<SpanId>) -> Self {
+    pub fn new(name: Option<SymbolId>, ty: Option<SynTyKind<'ast>>, span: Option<SpanId>) -> Self {
         Self {
             name: name.into(),
             ty: ty.into(),
@@ -79,7 +79,7 @@ impl<'ast> Parameter<'ast> {
         self.name.get().map(|sym| with_cx(self, |cx| cx.symbol_str(*sym)))
     }
 
-    pub fn ty(&self) -> Option<TyKind<'ast>> {
+    pub fn ty(&self) -> Option<SynTyKind<'ast>> {
         self.ty.copy()
     }
 
@@ -102,7 +102,7 @@ pub(crate) struct CommonCallableData<'ast> {
     pub(crate) abi: Abi,
     pub(crate) has_self: bool,
     pub(crate) params: FfiSlice<'ast, Parameter<'ast>>,
-    pub(crate) return_ty: FfiOption<TyKind<'ast>>,
+    pub(crate) return_ty: FfiOption<SynTyKind<'ast>>,
 }
 
 #[cfg(feature = "driver-api")]
@@ -116,7 +116,7 @@ impl<'ast> CommonCallableData<'ast> {
         abi: Abi,
         has_self: bool,
         params: &'ast [Parameter<'ast>],
-        return_ty: Option<TyKind<'ast>>,
+        return_ty: Option<SynTyKind<'ast>>,
     ) -> Self {
         Self {
             is_const,
@@ -157,7 +157,7 @@ macro_rules! impl_callable_data_trait {
             fn params(&self) -> &[$crate::ast::common::Parameter<'ast>] {
                 self.callable_data.params.get()
             }
-            fn return_ty(&self) -> Option<&$crate::ast::ty::TyKind<'ast>> {
+            fn return_ty(&self) -> Option<&$crate::ast::ty::SynTyKind<'ast>> {
                 self.callable_data.return_ty.get()
             }
         }

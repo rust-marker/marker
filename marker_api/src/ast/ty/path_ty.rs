@@ -1,6 +1,6 @@
 use crate::ast::AstQPath;
 
-use super::CommonTyData;
+use super::CommonSynTyData;
 
 /// A type identified via a [`AstQPath`]. The kind and definition can be
 /// accessed via the ID returned by [`AstQPath::resolve()`].
@@ -14,7 +14,7 @@ use super::CommonTyData;
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct PathTy<'ast> {
-    data: CommonTyData<'ast>,
+    data: CommonSynTyData<'ast>,
     path: AstQPath<'ast>,
 }
 
@@ -28,7 +28,7 @@ super::impl_ty_data!(PathTy<'ast>, Path);
 
 #[cfg(feature = "driver-api")]
 impl<'ast> PathTy<'ast> {
-    pub fn new(data: CommonTyData<'ast>, path: AstQPath<'ast>) -> Self {
+    pub fn new(data: CommonSynTyData<'ast>, path: AstQPath<'ast>) -> Self {
         Self { data, path }
     }
 }

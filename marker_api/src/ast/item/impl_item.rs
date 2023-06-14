@@ -1,5 +1,5 @@
 use crate::ast::generic::GenericParams;
-use crate::ast::ty::TyKind;
+use crate::ast::ty::SynTyKind;
 use crate::ast::TraitRef;
 use crate::ffi::{FfiOption, FfiSlice};
 
@@ -38,7 +38,7 @@ pub struct ImplItem<'ast> {
     is_negated: bool,
     trait_ref: FfiOption<TraitRef<'ast>>,
     generics: GenericParams<'ast>,
-    ty: TyKind<'ast>,
+    ty: SynTyKind<'ast>,
     items: FfiSlice<'ast, AssocItemKind<'ast>>,
 }
 
@@ -69,7 +69,7 @@ impl<'ast> ImplItem<'ast> {
         self.items.get()
     }
 
-    pub fn ty(&self) -> TyKind {
+    pub fn ty(&self) -> SynTyKind {
         self.ty
     }
 }
@@ -82,7 +82,7 @@ impl<'ast> ImplItem<'ast> {
         is_negated: bool,
         trait_ref: Option<TraitRef<'ast>>,
         generics: GenericParams<'ast>,
-        ty: TyKind<'ast>,
+        ty: SynTyKind<'ast>,
         items: &'ast [AssocItemKind<'ast>],
     ) -> Self {
         Self {

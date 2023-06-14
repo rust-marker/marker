@@ -1,23 +1,23 @@
 use crate::{ast::generic::Lifetime, ffi::FfiOption};
 
-use super::{CommonTyData, TyKind};
+use super::{CommonSynTyData, SynTyKind};
 
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct RefTy<'ast> {
-    data: CommonTyData<'ast>,
+    data: CommonSynTyData<'ast>,
     lifetime: FfiOption<Lifetime<'ast>>,
     is_mut: bool,
-    inner_ty: TyKind<'ast>,
+    inner_ty: SynTyKind<'ast>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> RefTy<'ast> {
     pub fn new(
-        data: CommonTyData<'ast>,
+        data: CommonSynTyData<'ast>,
         lifetime: Option<Lifetime<'ast>>,
         is_mut: bool,
-        inner_ty: TyKind<'ast>,
+        inner_ty: SynTyKind<'ast>,
     ) -> Self {
         Self {
             data,
@@ -39,7 +39,7 @@ impl<'ast> RefTy<'ast> {
         self.is_mut
     }
 
-    pub fn inner_ty(&self) -> TyKind<'ast> {
+    pub fn inner_ty(&self) -> SynTyKind<'ast> {
         self.inner_ty
     }
 }

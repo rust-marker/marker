@@ -7,7 +7,7 @@
 
 use super::{GenericId, Ident, ItemId, VarId, VariantId};
 use crate::{
-    ast::{generic::GenericArgs, ty::TyKind},
+    ast::{generic::GenericArgs, ty::SynTyKind},
     ffi::{FfiOption, FfiSlice},
 };
 
@@ -58,8 +58,8 @@ use crate::{
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct AstQPath<'ast> {
-    self_ty: FfiOption<TyKind<'ast>>,
-    path_ty: FfiOption<TyKind<'ast>>,
+    self_ty: FfiOption<SynTyKind<'ast>>,
+    path_ty: FfiOption<SynTyKind<'ast>>,
     path: AstPath<'ast>,
     target: AstPathTarget,
 }
@@ -77,7 +77,7 @@ impl<'ast> AstQPath<'ast> {
     ///
     /// The [`AstQPath`] description contains more details, when this might
     /// be necessary.
-    pub fn self_ty(&self) -> Option<TyKind<'ast>> {
+    pub fn self_ty(&self) -> Option<SynTyKind<'ast>> {
         self.self_ty.copy()
     }
 
@@ -90,7 +90,7 @@ impl<'ast> AstQPath<'ast> {
     /// ```
     ///
     /// The optional `Self` type can be accessed via [`self_ty`](AstQPath::self_ty()).
-    pub fn path_ty(&self) -> Option<TyKind<'ast>> {
+    pub fn path_ty(&self) -> Option<SynTyKind<'ast>> {
         self.path_ty.copy()
     }
 
@@ -167,10 +167,10 @@ impl<'a, 'ast> TryFrom<&'a AstQPath<'ast>> for &'a AstPath<'ast> {
     type Error = ();
 
     fn try_from(value: &'a AstQPath<'ast>) -> Result<Self, Self::Error> {
-        fn is_segment_representable(ty: Option<TyKind<'_>>) -> bool {
+        fn is_segment_representable(ty: Option<SynTyKind<'_>>) -> bool {
             if let Some(ty) = ty {
                 ty.is_primitive_ty()
-                    || matches!(ty, TyKind::Path(path_ty) if is_segment_representable(path_ty.path().path_ty()))
+                    || matches!(ty, SynTyKind::Path(path_ty) if is_segment_representable(path_ty.path().path_ty()))
             } else {
                 true
             }
@@ -186,8 +186,8 @@ impl<'a, 'ast> TryFrom<&'a AstQPath<'ast>> for &'a AstPath<'ast> {
 #[cfg(feature = "driver-api")]
 impl<'ast> AstQPath<'ast> {
     pub fn new(
-        self_ty: Option<TyKind<'ast>>,
-        path_ty: Option<TyKind<'ast>>,
+        self_ty: Option<SynTyKind<'ast>>,
+        path_ty: Option<SynTyKind<'ast>>,
         path: AstPath<'ast>,
         target: AstPathTarget,
     ) -> Self {

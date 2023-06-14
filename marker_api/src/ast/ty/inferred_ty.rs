@@ -1,14 +1,14 @@
-use super::CommonTyData;
+use super::CommonSynTyData;
 
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct InferredTy<'ast> {
-    data: CommonTyData<'ast>,
+    data: CommonSynTyData<'ast>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> InferredTy<'ast> {
-    pub fn new(data: CommonTyData<'ast>) -> Self {
+    pub fn new(data: CommonSynTyData<'ast>) -> Self {
         Self { data }
     }
 }
