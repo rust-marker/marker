@@ -19,7 +19,10 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^
    |
    = note: Num(
-               u32,
+               SemNumTy {
+                   _ast: PhantomData<&()>,
+                   numeric_kind: U32,
+               },
            )
 
 warning: print type test
@@ -35,26 +38,46 @@ warning: print type test
                        args: [
                            Ty(
                                Tuple(
-                                   (
-                                       Num(
-                                           u8,
-                                       ),
-                                       Num(
-                                           u16,
-                                       ),
-                                       Num(
-                                           u32,
-                                       ),
-                                       Num(
-                                           u64,
-                                       ),
-                                       Num(
-                                           u128,
-                                       ),
-                                       Num(
-                                           usize,
-                                       ),
-                                   ),
+                                   SemTupleTy {
+                                       types: [
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: U8,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: U16,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: U32,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: U64,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: U128,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: Usize,
+                                               },
+                                           ),
+                                       ],
+                                   },
                                ),
                            ),
                        ],
@@ -75,26 +98,46 @@ warning: print type test
                        args: [
                            Ty(
                                Tuple(
-                                   (
-                                       Num(
-                                           i8,
-                                       ),
-                                       Num(
-                                           i16,
-                                       ),
-                                       Num(
-                                           i32,
-                                       ),
-                                       Num(
-                                           i64,
-                                       ),
-                                       Num(
-                                           i128,
-                                       ),
-                                       Num(
-                                           isize,
-                                       ),
-                                   ),
+                                   SemTupleTy {
+                                       types: [
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: I8,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: I16,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: I32,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: I64,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: I128,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: Isize,
+                                               },
+                                           ),
+                                       ],
+                                   },
                                ),
                            ),
                        ],
@@ -115,20 +158,30 @@ warning: print type test
                        args: [
                            Ty(
                                Tuple(
-                                   (
-                                       Text(
-                                           char,
-                                       ),
-                                       Bool(
-                                           bool,
-                                       ),
-                                       Num(
-                                           f32,
-                                       ),
-                                       Num(
-                                           f64,
-                                       ),
-                                   ),
+                                   SemTupleTy {
+                                       types: [
+                                           Text(
+                                               Char,
+                                           ),
+                                           Bool(
+                                               SemBoolTy {
+                                                   _lt: PhantomData<&()>,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: F32,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: F64,
+                                               },
+                                           ),
+                                       ],
+                                   },
                                ),
                            ),
                        ],
@@ -143,11 +196,14 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Array(
-               [
-                   Num(
-                       u32,
+               SemArrayTy {
+                   inner_ty: Num(
+                       SemNumTy {
+                           _ast: PhantomData<&()>,
+                           numeric_kind: U32,
+                       },
                    ),
-               ],
+               },
            )
 
 warning: print type test
@@ -162,7 +218,10 @@ warning: print type test
                    inner_ty: Slice(
                        [
                            Num(
-                               u32,
+                               SemNumTy {
+                                   _ast: PhantomData<&()>,
+                                   numeric_kind: U32,
+                               },
                            ),
                        ],
                    ),
@@ -182,32 +241,40 @@ warning: print type test
                        args: [
                            Ty(
                                Tuple(
-                                   (
-                                       Ref(
-                                           SemRefTy {
-                                               mutability: Unmut,
-                                               inner_ty: Text(
-                                                   str,
-                                               ),
-                                           },
-                                       ),
-                                       RawPtr(
-                                           SemRawPtrTy {
-                                               mutability: Unmut,
-                                               inner_ty: Num(
-                                                   i32,
-                                               ),
-                                           },
-                                       ),
-                                       RawPtr(
-                                           SemRawPtrTy {
-                                               mutability: Mut,
-                                               inner_ty: Num(
-                                                   i32,
-                                               ),
-                                           },
-                                       ),
-                                   ),
+                                   SemTupleTy {
+                                       types: [
+                                           Ref(
+                                               SemRefTy {
+                                                   mutability: Unmut,
+                                                   inner_ty: Text(
+                                                       Str,
+                                                   ),
+                                               },
+                                           ),
+                                           RawPtr(
+                                               SemRawPtrTy {
+                                                   mutability: Unmut,
+                                                   inner_ty: Num(
+                                                       SemNumTy {
+                                                           _ast: PhantomData<&()>,
+                                                           numeric_kind: I32,
+                                                       },
+                                                   ),
+                                               },
+                                           ),
+                                           RawPtr(
+                                               SemRawPtrTy {
+                                                   mutability: Mut,
+                                                   inner_ty: Num(
+                                                       SemNumTy {
+                                                           _ast: PhantomData<&()>,
+                                                           numeric_kind: I32,
+                                                       },
+                                                   ),
+                                               },
+                                           ),
+                                       ],
+                                   },
                                ),
                            ),
                        ],
@@ -243,7 +310,10 @@ warning: print type test
                        args: [
                            Ty(
                                Num(
-                                   i16,
+                                   SemNumTy {
+                                       _ast: PhantomData<&()>,
+                                       numeric_kind: I16,
+                                   },
                                ),
                            ),
                            Ty(
@@ -253,27 +323,36 @@ warning: print type test
                                        abi: Other,
                                        params: [
                                            Tuple(
-                                               ,
+                                               SemTupleTy {
+                                                   types: [],
+                                               },
                                            ),
                                        ],
                                        return_ty: Tuple(
-                                           ,
+                                           SemTupleTy {
+                                               types: [],
+                                           },
                                        ),
                                    },
                                ),
                            ),
                            Ty(
                                Tuple(
-                                   (
-                                       Ref(
-                                           SemRefTy {
-                                               mutability: Mut,
-                                               inner_ty: Num(
-                                                   i32,
-                                               ),
-                                           },
-                                       ),
-                                   ),
+                                   SemTupleTy {
+                                       types: [
+                                           Ref(
+                                               SemRefTy {
+                                                   mutability: Mut,
+                                                   inner_ty: Num(
+                                                       SemNumTy {
+                                                           _ast: PhantomData<&()>,
+                                                           numeric_kind: I32,
+                                                       },
+                                                   ),
+                                               },
+                                           ),
+                                       ],
+                                   },
                                ),
                            ),
                        ],
@@ -293,11 +372,17 @@ warning: print type test
                    abi: Default,
                    params: [
                        Num(
-                           u32,
+                           SemNumTy {
+                               _ast: PhantomData<&()>,
+                               numeric_kind: U32,
+                           },
                        ),
                    ],
                    return_ty: Num(
-                       f32,
+                       SemNumTy {
+                           _ast: PhantomData<&()>,
+                           numeric_kind: F32,
+                       },
                    ),
                },
            )
@@ -315,7 +400,10 @@ warning: print type test
                        args: [
                            Ty(
                                Num(
-                                   u32,
+                                   SemNumTy {
+                                       _ast: PhantomData<&()>,
+                                       numeric_kind: U32,
+                                   },
                                ),
                            ),
                            Ty(
@@ -430,7 +518,10 @@ warning: print type test
                                                                                SemTyBindingArg {
                                                                                    binding_target: ItemId(..),
                                                                                    ty: Num(
-                                                                                       i32,
+                                                                                       SemNumTy {
+                                                                                           _ast: PhantomData<&()>,
+                                                                                           numeric_kind: I32,
+                                                                                       },
                                                                                    ),
                                                                                },
                                                                            ),

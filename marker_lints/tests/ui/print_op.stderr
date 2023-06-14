@@ -23,7 +23,13 @@ warning: print test
                       },
                   ),
                   cast_ty: Num(
-                      u32,
+                      SynNumTy {
+                          data: CommonSynTyData {
+                              _lifetime: PhantomData<&()>,
+                              span: SpanId(..),
+                          },
+                          numeric_kind: U32,
+                      },
                   ),
               },
           )

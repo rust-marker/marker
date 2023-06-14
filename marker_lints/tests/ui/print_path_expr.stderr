@@ -87,7 +87,7 @@ warning: print test
                                self_ty: None,
                                path_ty: Some(
                                    Path(
-                                       PathTy {
+                                       SynPathTy {
                                            data: CommonSynTyData {
                                                _lifetime: PhantomData<&()>,
                                                span: SpanId(..),
@@ -112,7 +112,13 @@ warning: print test
                                                                args: [
                                                                    Ty(
                                                                        Num(
-                                                                           u32,
+                                                                           SynNumTy {
+                                                                               data: CommonSynTyData {
+                                                                                   _lifetime: PhantomData<&()>,
+                                                                                   span: SpanId(..),
+                                                                               },
+                                                                               numeric_kind: U32,
+                                                                           },
                                                                        ),
                                                                    ),
                                                                ],
@@ -144,7 +150,13 @@ warning: print test
                                                args: [
                                                    Ty(
                                                        Num(
-                                                           u32,
+                                                           SynNumTy {
+                                                               data: CommonSynTyData {
+                                                                   _lifetime: PhantomData<&()>,
+                                                                   span: SpanId(..),
+                                                               },
+                                                               numeric_kind: U32,
+                                                           },
                                                        ),
                                                    ),
                                                ],
@@ -201,7 +213,7 @@ warning: print test
                                self_ty: None,
                                path_ty: Some(
                                    Path(
-                                       PathTy {
+                                       SynPathTy {
                                            data: CommonSynTyData {
                                                _lifetime: PhantomData<&()>,
                                                span: SpanId(..),
@@ -209,7 +221,7 @@ warning: print test
                                            path: AstQPath {
                                                self_ty: Some(
                                                    Path(
-                                                       PathTy {
+                                                       SynPathTy {
                                                            data: CommonSynTyData {
                                                                _lifetime: PhantomData<&()>,
                                                                span: SpanId(..),
@@ -367,7 +379,7 @@ warning: print test
                            path: AstQPath {
                                self_ty: Some(
                                    Path(
-                                       PathTy {
+                                       SynPathTy {
                                            data: CommonSynTyData {
                                                _lifetime: PhantomData<&()>,
                                                span: SpanId(..),
@@ -375,7 +387,7 @@ warning: print test
                                            path: AstQPath {
                                                self_ty: Some(
                                                    Path(
-                                                       PathTy {
+                                                       SynPathTy {
                                                            data: CommonSynTyData {
                                                                _lifetime: PhantomData<&()>,
                                                                span: SpanId(..),

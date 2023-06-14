@@ -486,7 +486,7 @@ warning: print test
                                                        self_ty: None,
                                                        path_ty: Some(
                                                            Path(
-                                                               PathTy {
+                                                               SynPathTy {
                                                                    data: CommonSynTyData {
                                                                        _lifetime: PhantomData<&()>,
                                                                        span: SpanId(..),

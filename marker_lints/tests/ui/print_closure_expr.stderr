@@ -54,7 +54,13 @@ warning: print test
                               name: None,
                               ty: Some(
                                   Num(
-                                      u32,
+                                      SynNumTy {
+                                          data: CommonSynTyData {
+                                              _lifetime: PhantomData<&()>,
+                                              span: SpanId(..),
+                                          },
+                                          numeric_kind: U32,
+                                      },
                                   ),
                               ),
                               span: None,
@@ -63,7 +69,13 @@ warning: print test
                               name: None,
                               ty: Some(
                                   Num(
-                                      u32,
+                                      SynNumTy {
+                                          data: CommonSynTyData {
+                                              _lifetime: PhantomData<&()>,
+                                              span: SpanId(..),
+                                          },
+                                          numeric_kind: U32,
+                                      },
                                   ),
                               ),
                               span: None,
