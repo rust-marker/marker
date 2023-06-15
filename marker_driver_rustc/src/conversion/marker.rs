@@ -19,7 +19,7 @@ use marker_api::{
         expr::ExprKind,
         item::{Body, ItemKind},
         ty::SemTyKind,
-        BodyId, Crate, ExprId, ItemId, Span, SymbolId,
+        BodyId, Crate, ExprId, ItemId, Span, SymbolId, TyDefId,
     },
     lint::Level,
 };
@@ -74,6 +74,7 @@ impl<'ast, 'tcx> MarkerConverter<'ast, 'tcx> {
     forward_to_inner!(pub fn to_lint_level(&self, level: rustc_lint::Level) -> Level);
     forward_to_inner!(pub fn to_item(&self, rustc_item: &'tcx hir::Item<'tcx>) -> Option<ItemKind<'ast>>);
     forward_to_inner!(pub fn to_body(&self, body: &hir::Body<'tcx>) -> &'ast Body<'ast>);
+    forward_to_inner!(pub fn to_ty_def_id(&self, id: hir::def_id::DefId) -> TyDefId);
     forward_to_inner!(pub fn to_span(&self, rustc_span: rustc_span::Span) -> Span<'ast>);
     forward_to_inner!(pub fn to_crate(
         &self,

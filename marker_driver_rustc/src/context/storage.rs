@@ -36,6 +36,11 @@ impl<'ast> Storage<'ast> {
     {
         self.buffer.alloc_slice_fill_iter(iter)
     }
+
+    #[must_use]
+    pub fn alloc_str(&'ast self, value: &str) -> &'ast str {
+        self.buffer.alloc_str(value)
+    }
 }
 
 impl<'ast> Storage<'ast> {
