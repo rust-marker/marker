@@ -147,6 +147,27 @@ impl<'ast> AstContext<'ast> {
         self.driver.call_body(id)
     }
 
+    /// This function tries to resolve the given path to the corresponding [`TyDefId`].
+    ///
+    /// The slice might be empty if the path could not be resolved. This could be
+    /// due to an error in the path or because the linted crate doesn't have the
+    /// required dependency. The function can also return multiple [`TyDefId`]s,
+    /// if there are multiple crates with different versions in the dependency tree.
+    ///
+    /// The returned ids are unordered and, depending on the driver, can also
+    /// change during different calls. The slice should not be stored across
+    /// `check_*` calls.
+    ///
+    /// Here is a simple example, how the method could be used:
+    /// ```ignore
+    /// // Get the type of an expression and check that it's an ADT
+    /// if let SemTyKind::Adt(ty) = expr.ty() {
+    ///     // Check if the id belongs to the path
+    ///     if cx.resolve_ty_ids("example::path::Item").contains(&ty.ty_id()) {
+    ///         // ...
+    ///     }
+    /// }
+    /// ```
     pub fn resolve_ty_ids(&self, path: &str) -> &[TyDefId] {
         (self.driver.resolve_ty_ids)(self.driver.driver_context, path.into()).get()
     }
