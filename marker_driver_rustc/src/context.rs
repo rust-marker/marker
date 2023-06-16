@@ -160,14 +160,20 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         // handling for primitive types and other items
         let tcx = self.rustc_cx;
         let krate_name = rustc_span::Symbol::intern(krate_name);
+        let additional_krate: &[_] = if krate_name == rustc_span::symbol::kw::Crate {
+            &[hir::def_id::LOCAL_CRATE]
+        } else {
+            &[]
+        };
         let krates = tcx
             .crates(())
             .iter()
             .copied()
             .chain(std::iter::once(hir::def_id::LOCAL_CRATE))
             .filter(|id| tcx.crate_name(*id) == krate_name)
-            .map(|id| id.as_def_id());
+            .chain(additional_krate.iter().copied());
         let mut searches: Vec<_> = krates
+            .map(rustc_span::def_id::CrateNum::as_def_id)
             .map(|id| hir::def::Res::Def::<hir::def_id::DefId>(tcx.def_kind(id), id))
             .collect();
 
@@ -175,25 +181,7 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         while let [seg, next_rest @ ..] = rest {
             rest = next_rest;
             let seg = rustc_span::Symbol::intern(seg);
-            let mut next_search = vec![];
-            searches.into_iter().filter_map(|res| res.mod_def_id()).for_each(|id| {
-                if !id.is_local() {
-                    match tcx.def_kind(id) {
-                        hir::def::DefKind::Mod => {
-                            tcx.module_children(id)
-                                .iter()
-                                .filter(|item| item.ident.name == seg)
-                                .map(|child| child.res.expect_non_local())
-                                .collect_into(&mut next_search);
-                        },
-                        _ => {},
-                    }
-                } else {
-                    todo!()
-                }
-            });
-
-            searches = next_search;
+            searches = select_children_with_name(tcx, &searches, seg);
         }
 
         // Filtering to only take `DefId`s which are also `TyDefId`s
@@ -253,4 +241,53 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
     fn resolve_method_target(&'ast self, _id: ExprId) -> ItemId {
         todo!()
     }
+}
+
+fn select_children_with_name(
+    tcx: TyCtxt<'_>,
+    search: &[hir::def::Res<hir::def_id::DefId>],
+    name: rustc_span::Symbol,
+) -> Vec<hir::def::Res<hir::def_id::DefId>> {
+    let mut next_search = vec![];
+    search
+        .iter()
+        .filter_map(rustc_hir::def::Res::mod_def_id)
+        .for_each(|id| {
+            if let Some(local_id) = id.as_local() {
+                let hir = tcx.hir();
+
+                let root_mod;
+                let item = match hir.find_by_def_id(local_id) {
+                    Some(hir::Node::Crate(r#mod)) => {
+                        root_mod = hir::ItemKind::Mod(r#mod);
+                        Some(&root_mod)
+                    },
+                    Some(hir::Node::Item(item)) => Some(&item.kind),
+                    _ => None,
+                };
+
+                if let Some(hir::ItemKind::Mod(module)) = item {
+                    module
+                        .item_ids
+                        .iter()
+                        .filter_map(|&item_id| {
+                            if hir.item(item_id).ident.name == name {
+                                let def_id = item_id.owner_id.to_def_id();
+                                Some(hir::def::Res::Def(tcx.def_kind(def_id), def_id))
+                            } else {
+                                None
+                            }
+                        })
+                        .collect_into(&mut next_search);
+                }
+            } else if let hir::def::DefKind::Mod = tcx.def_kind(id) {
+                tcx.module_children(id)
+                    .iter()
+                    .filter(|item| item.ident.name == name)
+                    .map(|child| child.res.expect_non_local())
+                    .collect_into(&mut next_search);
+            }
+        });
+
+    next_search
 }

@@ -143,7 +143,7 @@ impl LintPass for TestLintPass {
                 });
             } else if ident.name().starts_with("_check_path") {
                 cx.emit_lint(TEST_LINT, stmt.id(), "check type resolution", stmt.span(), |diag| {
-                    let SemTyKind::Adt(adt) = expr.ty().kind() else {
+                    let SemTyKind::Adt(adt) = expr.ty() else {
                         unreachable!("how? Everything should be an ADT")
                     };
                     let path = "std::vec::Vec";
@@ -155,6 +155,10 @@ impl LintPass for TestLintPass {
                     diag.note(format!("Is this a {:#?} -> {}", path, ids.contains(&adt.def_id())));
 
                     let path = "std::option::Option";
+                    let ids = cx.resolve_ty_ids(path);
+                    diag.note(format!("Is this a {:#?} -> {}", path, ids.contains(&adt.def_id())));
+
+                    let path = "crate::TestType";
                     let ids = cx.resolve_ty_ids(path);
                     diag.note(format!("Is this a {:#?} -> {}", path, ids.contains(&adt.def_id())));
                 });
@@ -179,27 +183,36 @@ impl LintPass for TestLintPass {
                     try_resolve_path(cx, "crate::super");
                     try_resolve_path(cx, "crate::self::super");
 
-                    eprintln!("");
+                    eprintln!();
                     eprintln!("# Unresolvable");
                     try_resolve_path(cx, "something::weird");
                     try_resolve_path(cx, "something::weird::very::very::very::very::very::long");
 
-                    eprintln!("");
+                    eprintln!();
                     eprintln!("# Not a type");
                     try_resolve_path(cx, "std::env");
                     try_resolve_path(cx, "std::i32");
                     try_resolve_path(cx, "std::primitive::i32");
                     try_resolve_path(cx, "std::option::Option::None");
 
-                    eprintln!("");
+                    eprintln!();
                     eprintln!("# Valid");
                     try_resolve_path(cx, "std::option::Option");
                     try_resolve_path(cx, "std::vec::Vec");
                     try_resolve_path(cx, "std::string::String");
 
-                    eprintln!("");
+                    eprintln!();
+                    eprintln!("# Valid local items");
+                    try_resolve_path(cx, "item_id_resolution::TestType");
+                    try_resolve_path(cx, "crate::TestType");
+                    eprintln!(
+                        "Check equal: {}",
+                        cx.resolve_ty_ids("item_id_resolution::TestType") == cx.resolve_ty_ids("crate::TestType")
+                    );
+
+                    eprintln!();
                     eprintln!("=====================================================================");
-                    eprintln!("");
+                    eprintln!();
                 }
             }
         }
