@@ -18,7 +18,7 @@ use std::{
 use cargo_fetch::PackageSource;
 use cli::{get_clap_config, Flags};
 use config::Config;
-use driver::{get_driver_path, run_driver};
+use driver::run_driver;
 use lints::{LintCrateSpec, PackageName};
 use once_cell::sync::Lazy;
 
@@ -39,6 +39,8 @@ pub enum ExitStatus {
     /// The toolchain validation failed. This could happen, if rustup is not
     /// installed or the required toolchain is not installed.
     InvalidToolchain = 100,
+    /// The execution of a tool, like rustup or cargo, failed.
+    ToolExecutionFailed = 101,
     /// Unable to find the driver binary
     MissingDriver = 200,
     /// Nothing we can really do, but good to know. The user will have to analyze
@@ -125,7 +127,7 @@ fn main() -> Result<(), ExitStatus> {
     let flags = Flags::from_args(&matches);
 
     if matches.get_flag("version") {
-        print_version(flags.verbose);
+        print_version(&flags);
         return Ok(());
     }
 
@@ -151,6 +153,9 @@ fn run_check(crate_entries: Vec<LintCrateSpec>, flags: &Flags) -> Result<(), Exi
         driver::install_driver(flags)?;
     }
 
+    // FIXME: Respect version info during lint crate compilation
+    let (run_info, _version_info) = driver::validate_and_get_info(flags, true)?;
+
     if crate_entries.is_empty() {
         eprintln!("{NO_LINTS_ERROR}");
         return Err(ExitStatus::NoLints);
@@ -166,24 +171,28 @@ fn run_check(crate_entries: Vec<LintCrateSpec>, flags: &Flags) -> Result<(), Exi
         .collect();
 
     #[rustfmt::skip]
-    let env = vec![
-        (OsString::from("RUSTC_WORKSPACE_WRAPPER"), get_driver_path().as_os_str().to_os_string()),
-        (OsString::from("MARKER_LINT_CRATES"), lint_crates.join(OsStr::new(";")))
+    let mut env = vec![
+        (OsString::from("RUSTC_WORKSPACE_WRAPPER"), run_info.driver_path.as_os_str().to_os_string()),
+        (OsString::from("MARKER_LINT_CRATES"), lint_crates.join(OsStr::new(";"))),
     ];
+    if let Some(toolchain) = &run_info.toolchain {
+        env.push((OsString::from("RUSTUP_TOOLCHAIN"), toolchain.into()));
+    }
+
     if flags.test_build {
         print_env(env).unwrap();
         Ok(())
     } else {
         let cargo_args = std::env::args().skip_while(|c| c != CARGO_ARGS_SEPARATOR).skip(1);
-        run_driver(env, cargo_args, flags.verbose)
+        run_driver(&run_info, env, cargo_args, flags)
     }
 }
 
-fn print_version(verbose: bool) {
+fn print_version(flags: &Flags) {
     println!("cargo-marker version: {}", env!("CARGO_PKG_VERSION"));
 
-    if verbose {
-        print_driver_version();
+    if flags.verbose {
+        print_driver_version(flags);
     }
 }
 

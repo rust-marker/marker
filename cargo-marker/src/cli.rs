@@ -4,13 +4,14 @@ use crate::VERSION;
 
 const AFTER_HELP_MSG: &str = r#"CARGO ARGS
     All arguments after double dashes(`--`) will be passed to cargo.
-    These options are the same as for `cargo check`.
+    Run `cargo check --help` to see these options.
 
 EXAMPLES:
     * `cargo marker -l ./marker_lints`
 "#;
 
 #[allow(clippy::struct_excessive_bools)]
+#[derive(Debug)]
 pub struct Flags {
     pub verbose: bool,
     pub test_build: bool,

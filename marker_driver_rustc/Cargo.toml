@@ -1,0 +1,21 @@
+[package]
+name = "marker_rustc_driver"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+build = "build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+marker_api = { path = "../marker_api", features = ["driver-api"] }
+marker_adapter = { path = "../marker_adapter" }
+
+rustc_tools_util = "0.3"
+bumpalo = "3.12"
+
+[build-dependencies]
+rustc_tools_util = "0.3"
+
+[package.metadata.rust-analyzer]
+rustc_private=true
