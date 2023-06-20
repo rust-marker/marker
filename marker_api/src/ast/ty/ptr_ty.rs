@@ -1,9 +1,54 @@
 use crate::{
-    ast::{Abi, Mutability, Safety},
-    ffi::FfiSlice,
+    ast::{generic::Lifetime, impl_callable_data_trait, Abi, CommonCallableData, Mutability, Safety},
+    ffi::{FfiOption, FfiSlice},
 };
 
-use super::SemTyKind;
+use super::{CommonSynTyData, SemTyKind, SynTyKind};
+
+/// The syntactic representation of a reference like [`&T`](prim@reference)
+/// or [`&mut T`](prim@reference)
+
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct SynRefTy<'ast> {
+    data: CommonSynTyData<'ast>,
+    lifetime: FfiOption<Lifetime<'ast>>,
+    is_mut: bool,
+    inner_ty: SynTyKind<'ast>,
+}
+
+impl<'ast> SynRefTy<'ast> {
+    pub fn has_lifetime(&self) -> bool {
+        self.lifetime.get().is_some()
+    }
+
+    pub fn is_mut(&self) -> bool {
+        self.is_mut
+    }
+
+    pub fn inner_ty(&self) -> SynTyKind<'ast> {
+        self.inner_ty
+    }
+}
+
+super::impl_ty_data!(SynRefTy<'ast>, Ref);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SynRefTy<'ast> {
+    pub fn new(
+        data: CommonSynTyData<'ast>,
+        lifetime: Option<Lifetime<'ast>>,
+        is_mut: bool,
+        inner_ty: SynTyKind<'ast>,
+    ) -> Self {
+        Self {
+            data,
+            lifetime: lifetime.into(),
+            is_mut,
+            inner_ty,
+        }
+    }
+}
 
 /// The semantic representation of a reference like [`&T`](prim@reference)
 /// or [`&mut T`](prim@reference)
@@ -37,6 +82,35 @@ impl<'ast> SemRefTy<'ast> {
     }
 }
 
+/// The syntactic representation of a raw pointer like [`*const T`](prim@pointer)
+/// or [`*mut T`](prim@pointer)
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct SynRawPtrTy<'ast> {
+    data: CommonSynTyData<'ast>,
+    is_mut: bool,
+    inner_ty: SynTyKind<'ast>,
+}
+
+impl<'ast> SynRawPtrTy<'ast> {
+    pub fn is_mut(&self) -> bool {
+        self.is_mut
+    }
+
+    pub fn inner_ty(&self) -> SynTyKind<'ast> {
+        self.inner_ty
+    }
+}
+
+super::impl_ty_data!(SynRawPtrTy<'ast>, RawPtr);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SynRawPtrTy<'ast> {
+    pub fn new(data: CommonSynTyData<'ast>, is_mut: bool, inner_ty: SynTyKind<'ast>) -> Self {
+        Self { data, is_mut, inner_ty }
+    }
+}
+
 /// The semantic representation of a raw pointer like [`*const T`](prim@pointer)
 /// or [`*mut T`](prim@pointer)
 #[repr(C)]
@@ -63,8 +137,26 @@ impl<'ast> SemRawPtrTy<'ast> {
     }
 }
 
-/// The semantic representation of a function pointer, like
-/// [`fn(u32) -> i32`](<https://doc.rust-lang.org/stable/std/keyword.fn.html>)
+/// The semantic representation of a function pointer, like [`fn (T) -> U`](prim@fn)
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct SynFnPtrTy<'ast> {
+    data: CommonSynTyData<'ast>,
+    callable_data: CommonCallableData<'ast>,
+    // FIXME: Add `for<'a>` bound
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SynFnPtrTy<'ast> {
+    pub fn new(data: CommonSynTyData<'ast>, callable_data: CommonCallableData<'ast>) -> Self {
+        Self { data, callable_data }
+    }
+}
+
+super::impl_ty_data!(SynFnPtrTy<'ast>, FnPtr);
+impl_callable_data_trait!(SynFnPtrTy<'ast>);
+
+/// The semantic representation of a function pointer, like [`fn (T) -> U`](prim@fn)
 #[repr(C)]
 #[derive(Debug)]
 pub struct SemFnPtrTy<'ast> {

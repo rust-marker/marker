@@ -1,5 +1,5 @@
 use crate::{
-    ast::ty::TyKind,
+    ast::ty::SynTyKind,
     ffi::{FfiOption, FfiSlice},
 };
 
@@ -56,7 +56,7 @@ impl<'ast> LifetimeClause<'ast> {
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct TyClause<'ast> {
     params: FfiOption<GenericParams<'ast>>,
-    ty: TyKind<'ast>,
+    ty: SynTyKind<'ast>,
     bounds: FfiSlice<'ast, TyParamBound<'ast>>,
 }
 
@@ -67,7 +67,7 @@ impl<'ast> TyClause<'ast> {
     }
 
     /// The bound type
-    pub fn ty(&self) -> TyKind<'ast> {
+    pub fn ty(&self) -> SynTyKind<'ast> {
         self.ty
     }
 
@@ -79,7 +79,7 @@ impl<'ast> TyClause<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TyClause<'ast> {
-    pub fn new(params: Option<GenericParams<'ast>>, ty: TyKind<'ast>, bounds: &'ast [TyParamBound<'ast>]) -> Self {
+    pub fn new(params: Option<GenericParams<'ast>>, ty: SynTyKind<'ast>, bounds: &'ast [TyParamBound<'ast>]) -> Self {
         Self {
             params: params.into(),
             ty,

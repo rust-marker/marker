@@ -1,5 +1,5 @@
 use crate::ast::generic::GenericParams;
-use crate::ast::ty::TyKind;
+use crate::ast::ty::SynTyKind;
 use crate::ast::{FieldId, Span, SpanId, SymbolId, VariantId};
 use crate::context::with_cx;
 use crate::ffi::FfiSlice;
@@ -266,7 +266,7 @@ pub struct Field<'ast> {
     id: FieldId,
     vis: Visibility<'ast>,
     ident: SymbolId,
-    ty: TyKind<'ast>,
+    ty: SynTyKind<'ast>,
     span: SpanId,
 }
 
@@ -284,7 +284,7 @@ impl<'ast> Field<'ast> {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
 
-    pub fn ty(&self) -> TyKind<'ast> {
+    pub fn ty(&self) -> SynTyKind<'ast> {
         self.ty
     }
 
@@ -299,7 +299,7 @@ impl<'ast> Field<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Field<'ast> {
-    pub fn new(id: FieldId, vis: Visibility<'ast>, ident: SymbolId, ty: TyKind<'ast>, span: SpanId) -> Self {
+    pub fn new(id: FieldId, vis: Visibility<'ast>, ident: SymbolId, ty: SynTyKind<'ast>, span: SpanId) -> Self {
         Self {
             id,
             vis,

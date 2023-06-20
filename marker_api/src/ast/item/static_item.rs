@@ -1,5 +1,5 @@
 use crate::{
-    ast::{ty::TyKind, BodyId},
+    ast::{ty::SynTyKind, BodyId},
     ffi::FfiOption,
 };
 
@@ -22,7 +22,7 @@ pub struct StaticItem<'ast> {
     data: CommonItemData<'ast>,
     is_mut: bool,
     body_id: FfiOption<BodyId>,
-    ty: TyKind<'ast>,
+    ty: SynTyKind<'ast>,
 }
 
 super::impl_item_data!(StaticItem, Static);
@@ -34,7 +34,7 @@ impl<'ast> StaticItem<'ast> {
     }
 
     /// The defined type of this static item
-    pub fn ty(&self) -> TyKind<'ast> {
+    pub fn ty(&self) -> SynTyKind<'ast> {
         self.ty
     }
 
@@ -46,7 +46,7 @@ impl<'ast> StaticItem<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> StaticItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, is_mut: bool, body_id: Option<BodyId>, ty: TyKind<'ast>) -> Self {
+    pub fn new(data: CommonItemData<'ast>, is_mut: bool, body_id: Option<BodyId>, ty: SynTyKind<'ast>) -> Self {
         Self {
             data,
             is_mut,

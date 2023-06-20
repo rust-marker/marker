@@ -1,4 +1,6 @@
-use crate::ast::{generic::SemGenericArgs, ItemId, TyDefId};
+use crate::ast::{generic::SemGenericArgs, impl_callable_data_trait, CommonCallableData, ItemId, TyDefId};
+
+use super::CommonSynTyData;
 
 /// A [function item type](https://doc.rust-lang.org/reference/types/function-item.html)
 /// identifying a specific function and potentualy additional generics.
@@ -27,6 +29,27 @@ impl<'ast> SemFnTy<'ast> {
         Self { fn_id, generics }
     }
 }
+
+/// The syntactic representation of a
+/// [closure type](https://doc.rust-lang.org/reference/types/closure.html).
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct SynClosureTy<'ast> {
+    data: CommonSynTyData<'ast>,
+    callable_data: CommonCallableData<'ast>,
+    // FIXME: Add support for `for<'lifetime>` binder
+    // FIXME: Potentially add functions to check which [`Fn`] traits this implements
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SynClosureTy<'ast> {
+    pub fn new(data: CommonSynTyData<'ast>, callable_data: CommonCallableData<'ast>) -> Self {
+        Self { data, callable_data }
+    }
+}
+
+super::impl_ty_data!(SynClosureTy<'ast>, Closure);
+impl_callable_data_trait!(SynClosureTy<'ast>);
 
 /// The semantic representation of a
 /// [closure type](https://doc.rust-lang.org/reference/types/closure.html).

@@ -1,11 +1,8 @@
 use std::marker::PhantomData;
 
-use crate::ffi::FfiOption;
-
 use super::{Span, SpanId};
 
 // Primitive types
-mod bool_ty;
 mod fn_ty;
 mod other_ty;
 mod prim_ty;
@@ -13,7 +10,6 @@ mod ptr_ty;
 mod sequence_ty;
 mod trait_ty;
 mod user_ty;
-pub use bool_ty::*;
 pub use fn_ty::*;
 pub use other_ty::*;
 pub use prim_ty::*;
@@ -21,119 +17,57 @@ pub use ptr_ty::*;
 pub use sequence_ty::*;
 pub use trait_ty::*;
 pub use user_ty::*;
-mod text_ty;
-pub use text_ty::*;
-mod num_ty;
-pub use num_ty::*;
-mod never_ty;
-pub use never_ty::*;
-// Sequence types
-mod tuple_ty;
-pub use tuple_ty::*;
-mod array_ty;
-pub use array_ty::*;
-mod slice_ty;
-pub use slice_ty::*;
-// Function types
-mod closure_ty;
-pub use closure_ty::*;
-// Pointer types
-mod ref_ty;
-pub use ref_ty::*;
-mod raw_ptr_ty;
-pub use raw_ptr_ty::*;
-mod fn_ptr_ty;
-pub use fn_ptr_ty::*;
-// Trait types
-mod trait_obj_ty;
-pub use trait_obj_ty::*;
-mod impl_trait_ty;
-pub use impl_trait_ty::*;
-// Syntactic types
-mod inferred_ty;
-pub use inferred_ty::*;
-mod path_ty;
-pub use path_ty::*;
 
-pub trait TyData<'ast> {
-    fn as_kind(&'ast self) -> TyKind<'ast>;
+pub trait SynTyData<'ast> {
+    fn as_kind(&'ast self) -> SynTyKind<'ast>;
 
-    /// The [`Span`] of the type, if it's written in the source code. Only
-    /// syntactic types can have spans attached to them.
-    ///
-    /// Currently, every syntactic type will return a valid [`Span`], but this can
-    /// change in the future.
-    fn span(&self) -> Option<&Span<'ast>>;
-
-    // FIXME: I feel like `is_syntactic` and `is_semantic` are not the best
-    // names to distinguish between the two sources, but I can't think of
-    // something better, rn.
-    // After starting with semantic types, I think it would actually make sense
-    // to distinguish the two types (semantic/syntactic) again. A big factor for
-    // this is, that it'll make tooling a lot better and interfaces more expressive.
-    // I'll think a bit more about this change, before committing to it.
-
-    /// Returns `true`, if this type instance originates from a written type.
-    /// These types can have a [`Span`] attached to them.
-    ///
-    /// In the expression `let x: Vec<_> = vec![15];` the type declaration
-    /// `: Vec<_>` syntactic type written by the user with a [`Span`]. The
-    /// semantic type is `Vec<u32>`. Notice that the semantic type includes
-    /// the inferred `u32` type in the vector. This separation also means, that
-    /// a variable can have two different kinds, the written syntactic one and
-    /// the semantic one.
-    fn is_syntactic(&self) -> bool;
-
-    /// Returns `true`, if this type instance is a semantic type, which was
-    /// determined by the driver during translation.
-    ///
-    /// See [`is_syntactic`](`TyData::is_syntactic`) for an example.
-    fn is_semantic(&self) -> bool;
+    /// The [`Span`] of the type, if it's written in the source code.
+    fn span(&self) -> &Span<'ast>;
 }
 
 #[repr(C)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum TyKind<'ast> {
+pub enum SynTyKind<'ast> {
     // ================================
     // Primitive types
     // ================================
     /// The `bool` type
-    Bool(&'ast BoolTy<'ast>),
+    Bool(&'ast SynBoolTy<'ast>),
     /// A numeric type like [`u32`], [`i32`], [`f64`]
-    Num(&'ast NumTy<'ast>),
+    Num(&'ast SynNumTy<'ast>),
     /// A textual type like [`char`] or [`str`]
-    Text(&'ast TextTy<'ast>),
+    Text(&'ast SynTextTy<'ast>),
     /// The never type [`!`](prim@never)
-    Never(&'ast NeverTy<'ast>),
+    Never(&'ast SynNeverTy<'ast>),
     // ================================
     // Sequence types
     // ================================
     /// A tuple type like [`()`](prim@tuple), [`(T, U)`](prim@tuple)
-    Tuple(&'ast TupleTy<'ast>),
+    Tuple(&'ast SynTupleTy<'ast>),
     /// An array with a known size like: [`[T; N]`](prim@array)
-    Array(&'ast ArrayTy<'ast>),
+    Array(&'ast SynArrayTy<'ast>),
     /// A variable length slice like [`[T]`](prim@slice)
-    Slice(&'ast SliceTy<'ast>),
+    Slice(&'ast SynSliceTy<'ast>),
     // ================================
     // Function types
     // ================================
-    Closure(&'ast ClosureTy<'ast>),
+    Closure(&'ast SynClosureTy<'ast>),
     // ================================
     // Pointer types
     // ================================
     /// A reference like [`&T`](prim@reference) or [`&mut T`](prim@reference)
-    Ref(&'ast RefTy<'ast>),
+    Ref(&'ast SynRefTy<'ast>),
     /// A raw pointer like [`*const T`](prim@pointer) or [`*mut T`](prim@pointer)
-    RawPtr(&'ast RawPtrTy<'ast>),
+    RawPtr(&'ast SynRawPtrTy<'ast>),
     /// A function pointer like [`fn (T) -> U`](prim@fn)
-    FnPtr(&'ast FnPtrTy<'ast>),
+    FnPtr(&'ast SynFnPtrTy<'ast>),
     // ================================
     // Trait types
     // ================================
-    /// A trait object like [`dyn Trait`](<https://doc.rust-lang.org/stable/std/keyword.dyn.html>)
-    TraitObj(&'ast TraitObjTy<'ast>),
-    /// An [`impl Trait`](<https://doc.rust-lang.org/stable/std/keyword.impl.html>) type like:
+    /// A trait object like [`dyn Trait`](https://doc.rust-lang.org/stable/std/keyword.dyn.html)
+    TraitObj(&'ast SynTraitObjTy<'ast>),
+    /// An [`impl Trait`](https://doc.rust-lang.org/stable/std/keyword.impl.html) type like:
     ///
     /// ```
     /// trait Trait {}
@@ -149,16 +83,16 @@ pub enum TyKind<'ast> {
     /// ```
     ///
     /// See: <https://doc.rust-lang.org/stable/reference/types/impl-trait.html>
-    ImplTrait(&'ast ImplTraitTy<'ast>),
+    ImplTrait(&'ast SynImplTraitTy<'ast>),
     // ================================
     // Syntactic types
     // ================================
     /// An inferred type
-    Inferred(&'ast InferredTy<'ast>),
-    Path(&'ast PathTy<'ast>),
+    Inferred(&'ast SynInferredTy<'ast>),
+    Path(&'ast SynPathTy<'ast>),
 }
 
-impl<'ast> TyKind<'ast> {
+impl<'ast> SynTyKind<'ast> {
     /// Returns `true` if this is a primitive type.
     #[must_use]
     pub fn is_primitive_ty(&self) -> bool {
@@ -189,87 +123,73 @@ impl<'ast> TyKind<'ast> {
         matches!(self, Self::TraitObj(..) | Self::ImplTrait(..))
     }
 
-    /// Returns `true` if this is a syntactic type, meaning a type that is
-    /// only used in syntax like [`TyKind::Inferred`].
-    ///
-    /// See [`TyKind::is_syntactic()`] to check if this type originates from
-    /// a syntactic definition.
     #[must_use]
     pub fn is_inferred(&self) -> bool {
         matches!(self, Self::Inferred(..))
     }
 }
 
-impl<'ast> TyKind<'ast> {
-    impl_ty_data_fn!(span() -> Option<&Span<'ast>>);
-    impl_ty_data_fn!(is_syntactic() -> bool);
-    impl_ty_data_fn!(is_semantic() -> bool);
+impl<'ast> SynTyKind<'ast> {
+    impl_syn_ty_data_fn!(span() -> &Span<'ast>);
 }
 
 /// Until [trait upcasting](https://github.com/rust-lang/rust/issues/65991) has been implemented
-/// and stabilized we need this to call [`TyData`] functions for every [`TyKind`].
-macro_rules! impl_ty_data_fn {
+/// and stabilized we need this to call [`SynTyData`] functions for every [`SynTyKind`].
+macro_rules! impl_syn_ty_data_fn {
     ($method:ident () -> $return_ty:ty) => {
-        impl_ty_data_fn!($method() -> $return_ty,
-        Bool, Num, Text, Never, Tuple, Array, Slice, Closure, Ref,
-        RawPtr, FnPtr, TraitObj, ImplTrait, Inferred, Path);
+        impl_syn_ty_data_fn!($method() -> $return_ty,
+            Bool, Num, Text, Never,
+            Tuple, Array, Slice,
+            Closure,
+            Ref, RawPtr, FnPtr,
+            TraitObj, ImplTrait,
+            Inferred, Path
+        );
     };
     ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
         pub fn $method(&self) -> $return_ty {
             match self {
-                $(TyKind::$item(data) => data.$method(),)*
+                $(SynTyKind::$item(data) => data.$method(),)*
             }
         }
     };
 }
 
-use impl_ty_data_fn;
+use impl_syn_ty_data_fn;
 
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
-pub(crate) struct CommonTyData<'ast> {
+pub(crate) struct CommonSynTyData<'ast> {
     _lifetime: PhantomData<&'ast ()>,
-    span: FfiOption<SpanId>,
-    is_syntactic: bool,
+    span: SpanId,
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> CommonTyData<'ast> {
+impl<'ast> CommonSynTyData<'ast> {
     pub fn new_syntactic(span: SpanId) -> Self {
         Self {
             _lifetime: PhantomData,
-            span: Some(span).into(),
-            is_syntactic: true,
+            span,
         }
     }
 }
 
 macro_rules! impl_ty_data {
     ($self_ty:ty, $enum_name:ident) => {
-        impl<'ast> From<&'ast $self_ty> for $crate::ast::ty::TyKind<'ast> {
+        impl<'ast> From<&'ast $self_ty> for $crate::ast::ty::SynTyKind<'ast> {
             fn from(from: &'ast $self_ty) -> Self {
-                $crate::ast::ty::TyKind::$enum_name(from)
+                $crate::ast::ty::SynTyKind::$enum_name(from)
             }
         }
 
-        impl<'ast> $crate::ast::ty::TyData<'ast> for $self_ty {
-            fn as_kind(&'ast self) -> $crate::ast::ty::TyKind<'ast> {
+        impl<'ast> $crate::ast::ty::SynTyData<'ast> for $self_ty {
+            fn as_kind(&'ast self) -> $crate::ast::ty::SynTyKind<'ast> {
                 self.into()
             }
 
-            fn span(&self) -> Option<&$crate::ast::Span<'ast>> {
-                self.data
-                    .span
-                    .get()
-                    .map(|span_id| $crate::context::with_cx(self, |cx| cx.get_span(*span_id)))
-            }
-            fn is_syntactic(&self) -> bool {
-                self.data.is_syntactic
-            }
-
-            fn is_semantic(&self) -> bool {
-                !self.data.is_syntactic
+            fn span(&self) -> &$crate::ast::Span<'ast> {
+                $crate::context::with_cx(self, |cx| cx.get_span(self.data.span))
             }
         }
     };
@@ -317,13 +237,12 @@ pub enum SemTyKind<'ast> {
     Ref(&'ast SemRefTy<'ast>),
     /// A raw pointer like [`*const T`](prim@pointer) or [`*mut T`](prim@pointer)
     RawPtr(&'ast SemRawPtrTy<'ast>),
-    /// The semantic representation of a function pointer, like
-    /// [`fn(u32) -> i32`](<https://doc.rust-lang.org/stable/std/keyword.fn.html>)
+    /// The semantic representation of a function pointer, like [`fn (T) -> U`](prim@fn)
     FnPtr(&'ast SemFnPtrTy<'ast>),
     // ================================
     // Trait types
     // ================================
-    /// A trait object like [`dyn Trait`](<https://doc.rust-lang.org/stable/std/keyword.dyn.html>)
+    /// A trait object like [`dyn Trait`](https://doc.rust-lang.org/stable/std/keyword.dyn.html)
     TraitObj(&'ast SemTraitObjTy<'ast>),
     // ================================
     // User defined types

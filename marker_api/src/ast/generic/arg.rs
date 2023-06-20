@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use crate::{
     ast::{
-        ty::{SemTyKind, TyKind},
+        ty::{SemTyKind, SynTyKind},
         GenericId, ItemId, Span, SpanId, SymbolId,
     },
     context::with_cx,
@@ -112,7 +112,7 @@ impl<'ast> Lifetime<'ast> {
 pub struct BindingGenericArg<'ast> {
     span: FfiOption<SpanId>,
     ident: SymbolId,
-    ty: TyKind<'ast>,
+    ty: SynTyKind<'ast>,
 }
 
 impl<'ast> BindingGenericArg<'ast> {
@@ -136,7 +136,7 @@ impl<'ast> BindingGenericArg<'ast> {
     /// ```
     ///
     /// Would return `i32` as the type.
-    pub fn ty(&self) -> TyKind<'ast> {
+    pub fn ty(&self) -> SynTyKind<'ast> {
         self.ty
     }
 
@@ -148,7 +148,7 @@ impl<'ast> BindingGenericArg<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> BindingGenericArg<'ast> {
-    pub fn new(span: Option<SpanId>, ident: SymbolId, ty: TyKind<'ast>) -> Self {
+    pub fn new(span: Option<SpanId>, ident: SymbolId, ty: SynTyKind<'ast>) -> Self {
         Self {
             span: span.into(),
             ident,

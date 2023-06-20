@@ -1,5 +1,5 @@
 use crate::ast::generic::{GenericParams, TyParamBound};
-use crate::ast::ty::TyKind;
+use crate::ast::ty::SynTyKind;
 use crate::ffi::{FfiOption, FfiSlice};
 
 use super::CommonItemData;
@@ -21,7 +21,7 @@ pub struct TyAliasItem<'ast> {
     data: CommonItemData<'ast>,
     generics: GenericParams<'ast>,
     bounds: FfiSlice<'ast, TyParamBound<'ast>>,
-    aliased_ty: FfiOption<TyKind<'ast>>,
+    aliased_ty: FfiOption<SynTyKind<'ast>>,
 }
 
 super::impl_item_data!(TyAliasItem, TyAlias);
@@ -39,7 +39,7 @@ impl<'ast> TyAliasItem<'ast> {
         self.bounds.get()
     }
 
-    pub fn aliased_ty(&self) -> Option<TyKind> {
+    pub fn aliased_ty(&self) -> Option<SynTyKind> {
         self.aliased_ty.copy()
     }
 }
@@ -50,7 +50,7 @@ impl<'ast> TyAliasItem<'ast> {
         data: CommonItemData<'ast>,
         generics: GenericParams<'ast>,
         bounds: &'ast [TyParamBound<'ast>],
-        aliased_ty: Option<TyKind<'ast>>,
+        aliased_ty: Option<SynTyKind<'ast>>,
     ) -> Self {
         Self {
             data,

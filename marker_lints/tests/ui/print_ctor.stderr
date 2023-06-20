@@ -519,13 +519,10 @@ warning: print test
                                            self_ty: None,
                                            path_ty: Some(
                                                Path(
-                                                   PathTy {
-                                                       data: CommonTyData {
+                                                   SynPathTy {
+                                                       data: CommonSynTyData {
                                                            _lifetime: PhantomData<&()>,
-                                                           span: Some(
-                                                               SpanId(..),
-                                                           ),
-                                                           is_syntactic: true,
+                                                           span: SpanId(..),
                                                        },
                                                        path: AstQPath {
                                                            self_ty: None,
@@ -849,13 +846,10 @@ warning: print test
                                            self_ty: None,
                                            path_ty: Some(
                                                Path(
-                                                   PathTy {
-                                                       data: CommonTyData {
+                                                   SynPathTy {
+                                                       data: CommonSynTyData {
                                                            _lifetime: PhantomData<&()>,
-                                                           span: Some(
-                                                               SpanId(..),
-                                                           ),
-                                                           is_syntactic: true,
+                                                           span: SpanId(..),
                                                        },
                                                        path: AstQPath {
                                                            self_ty: None,
