@@ -1,68 +1,34 @@
-warning: a function named `foo`, consider using a more meaningful name
- --> $DIR/foo_items.rs:2:5
-  |
-2 |     fn foo() {}
-  |     ^^^^^^^^^^^
-  |
-  = note: `#[warn(marker::foo_items)]` on by default
-
-warning: a static item named `foo`, consider using a more meaningful name
- --> $DIR/foo_items.rs:4:5
-  |
-4 |     static FOO: i32 = 0;
-  |     ^^^^^^^^^^^^^^^^^^^^
-
-warning: a struct named `foo`, consider using a more meaningful name
- --> $DIR/foo_items.rs:6:5
-  |
-6 | /     struct Foo {
-7 | |         foo: i32,
-8 | |     }
-  | |_____^
-
-warning: a field named `foo`, consider using a more meaningful name
- --> $DIR/foo_items.rs:7:9
-  |
-7 |         foo: i32,
-  |         ^^^^^^^^
-
-warning: a module named `foo`, consider using a more meaningful name
-  --> $DIR/foo_items.rs:11:1
+warning: found a `module` item with a test name
+  --> $DIR/foo_items.rs:1:1
    |
-11 | / mod foo {
-12 | |     use crate::good as foo;
-13 | |
-14 | |     const FOO: i32 = 0;
+1  | / mod find_me {
+2  | |     const FIND_ME_CONST: i32 = 0;
+3  | |
+4  | |     static FIND_ME_STATIC: i32 = 0;
 ...  |
-18 | |     }
+18 | |     trait FindMeTrait {}
 19 | | }
    | |_^
-
-warning: a `use` binding named `foo`, consider using a more meaningful name
-  --> $DIR/foo_items.rs:12:5
    |
-12 |     use crate::good as foo;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^
+   = note: `#[warn(marker::item_with_test_name)]` on by default
 
-warning: a constant item named `foo`, consider using a more meaningful name
-  --> $DIR/foo_items.rs:14:5
+warning: found a field with a test name
+ --> $DIR/foo_items.rs:9:9
+  |
+9 |         find_me_field: i32,
+  |         ^^^^^^^^^^^^^^^^^^
+
+warning: found an enum variant with a test name
+  --> $DIR/foo_items.rs:12:9
    |
-14 |     const FOO: i32 = 0;
-   |     ^^^^^^^^^^^^^^^^^^^
+12 |         FindMe,
+   |         ^^^^^^
 
-warning: an enum named `foo`, consider using a more meaningful name
-  --> $DIR/foo_items.rs:16:5
+warning: found a `use` item with a test name
+  --> $DIR/foo_items.rs:21:1
    |
-16 | /     enum Foo {
-17 | |         Foo,
-18 | |     }
-   | |_____^
+21 | use find_me::find_me_fn as find_me;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-warning: an enum variant named `foo`, consider using a more meaningful name
-  --> $DIR/foo_items.rs:17:9
-   |
-17 |         Foo,
-   |         ^^^
-
-warning: 9 warnings emitted
+warning: 4 warnings emitted
 

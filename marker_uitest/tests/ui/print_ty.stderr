@@ -1,4 +1,4 @@
-warning: Printing type for
+warning: printing type for
  --> $DIR/print_ty.rs:4:32
   |
 4 | static PRINT_TYPE_PRIMITIVE_1: Option<(u8, u16, u32, u64, u128, usize)> = None;
@@ -109,7 +109,7 @@ Path(
 )
 
 
-warning: Printing type for
+warning: printing type for
  --> $DIR/print_ty.rs:5:32
   |
 5 | static PRINT_TYPE_PRIMITIVE_2: Option<(i8, i16, i32, i64, i128, isize)> = None;
@@ -218,7 +218,7 @@ Path(
 )
 
 
-warning: Printing type for
+warning: printing type for
  --> $DIR/print_ty.rs:6:32
   |
 6 | static PRINT_TYPE_PRIMITIVE_3: Option<(char, bool, f32, f64)> = None;
@@ -308,7 +308,7 @@ Path(
 )
 
 
-warning: Printing type for
+warning: printing type for
  --> $DIR/print_ty.rs:7:29
   |
 7 | static PRINT_TYPE_SEQUENCE: Option<AllowSync<(&[i32], [i32; 8])>> = None;
@@ -452,7 +452,7 @@ Path(
 )
 
 
-warning: Printing type for
+warning: printing type for
  --> $DIR/print_ty.rs:8:28
   |
 8 | static PRINT_TYPE_POINTER: Option<AllowSync<(&'static str, *const i32, *mut i32)>> = None;
@@ -607,7 +607,7 @@ Path(
 )
 
 
-warning: Printing type for
+warning: printing type for
   --> $DIR/print_ty.rs:9:28
    |
 9  |   static PRINT_TYPE_COMPLEX: Option<

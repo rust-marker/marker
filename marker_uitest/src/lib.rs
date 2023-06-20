@@ -3,10 +3,7 @@
 
 use marker_api::{
     ast::{
-        item::{
-            ConstItem, EnumItem, EnumVariant, ExternCrateItem, Field, FnItem, ItemData, ItemKind, ModItem, StaticItem,
-            StructItem, UseItem,
-        },
+        item::{EnumVariant, Field, ItemData, ItemKind, StaticItem},
         pat::PatKind,
         stmt::StmtKind,
         ty::SemTyKind,
@@ -22,18 +19,22 @@ marker_api::interface::export_lint_pass!(TestLintPass);
 
 marker_api::lint::declare_lint!(TEST_LINT, Warn, "test lint warning");
 
-// this ideally should use only specific `check_*` functions
-// to test them, think `check_struct` instead of `check_item`
-marker_api::lint::declare_lint!(FOO_ITEMS, Warn, "non-descriptive item names");
+marker_api::lint::declare_lint!(
+    ITEM_WITH_TEST_NAME,
+    Warn,
+    r#"A lint used for markers uitests.
 
-fn emit_foo_lint<'ast, S: Into<String>>(
+    It warns about about item names starting with `FindMe`, `find_me` or `FIND_ME`"#
+);
+
+fn emit_item_with_test_name_lint<'ast>(
     cx: &'ast AstContext<'ast>,
     node: impl Into<EmissionNode>,
-    description: S,
+    desc: impl std::fmt::Display,
     span: &Span<'ast>,
 ) {
-    let msg = description.into() + " named `foo`, consider using a more meaningful name";
-    cx.emit_lint(FOO_ITEMS, node, msg, span, |_| {});
+    let msg = format!("found {desc} with a test name");
+    cx.emit_lint(ITEM_WITH_TEST_NAME, node, msg, span, |_| {});
 }
 
 #[derive(Default)]
@@ -44,86 +45,49 @@ impl LintPass for TestLintPass {
         Box::new([TEST_LINT])
     }
 
-    fn check_static_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {
-        if let Some(name) = item.ident() {
-            let name = name.name();
-            if name.starts_with("PRINT_TYPE") {
-                cx.emit_lint(TEST_LINT, item.id(), "Printing type for", item.ty().span(), |_| {});
-                eprintln!("{:#?}\n\n", item.ty());
-            } else if name.starts_with("FIND_ITEM") {
-                cx.emit_lint(
-                    TEST_LINT,
-                    item.id(),
-                    "hey there is a static item here",
-                    item.span(),
-                    |diag| {
-                        diag.note("a note");
-                        diag.help("a help");
-                        diag.span_note("a spanned note", item.span());
-                        diag.span_help("a spanned help", item.span());
-                        diag.span_suggestion("try", item.span(), "duck", Applicability::Unspecified);
-                    },
-                );
-            } else if name == "FOO" {
-                emit_foo_lint(cx, item.id(), "a static item", item.span());
+    fn check_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
+        if let ItemKind::Fn(item) = item {
+            if let Some(ident) = item.ident() {
+                if ident.name() == "test_ty_id_resolution" {
+                    test_ty_id_resolution(cx);
+                }
+            }
+        }
+
+        match item {
+            ItemKind::Static(item) => check_static_item(cx, item),
+            _ => {},
+        }
+        if matches!(item.ident().map(|x| x.name()), Some(name) if name.starts_with("FindMe") || name.starts_with("FIND_ME") || name.starts_with("find_me"))
+        {
+            let msg = match item {
+                ItemKind::Mod(_) => Some("module"),
+                ItemKind::Use(_) => Some("use"),
+                ItemKind::Static(_) => Some("static"),
+                ItemKind::Const(_) => Some("const"),
+                ItemKind::Fn(_) => Some("fn"),
+                ItemKind::Struct(_) => Some("struct"),
+                ItemKind::Enum(_) => Some("enum"),
+                ItemKind::Union(_) => Some("union"),
+                ItemKind::Trait(_) => Some("trait"),
+                _ => None,
+            };
+
+            if let Some(msg) = msg {
+                emit_item_with_test_name_lint(cx, item.id(), format!("a `{msg}` item"), item.span());
             }
         }
     }
 
-    fn check_const_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast ConstItem<'ast>) {
-        if matches!(item.ident(), Some(name) if name == "FOO") {
-            emit_foo_lint(cx, item.id(), "a constant item", item.span());
-        }
-    }
-
-    fn check_extern_crate<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast ExternCrateItem<'ast>) {
-        if matches!(item.ident(), Some(name) if name == "foo") {
-            emit_foo_lint(cx, item.id(), "an `extern` crate", item.span());
-        }
-    }
-
-    fn check_use_decl<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast UseItem<'ast>) {
-        if item.is_glob() {
-            return;
-        }
-        if matches!(item.ident(), Some(name) if name == "foo") {
-            emit_foo_lint(cx, item.id(), "a `use` binding", item.span());
-        }
-    }
-
     fn check_field<'ast>(&mut self, cx: &'ast AstContext<'ast>, field: &'ast Field<'ast>) {
-        if field.ident() == "foo" {
-            emit_foo_lint(cx, field.id(), "a field", field.span());
+        if field.ident().starts_with("find_me") {
+            emit_item_with_test_name_lint(cx, field.id(), "a field", field.span());
         }
     }
 
     fn check_variant<'ast>(&mut self, cx: &'ast AstContext<'ast>, variant: &'ast EnumVariant<'ast>) {
-        if variant.ident() == "Foo" {
-            emit_foo_lint(cx, variant.id(), "an enum variant", variant.span());
-        }
-    }
-
-    fn check_mod<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast ModItem<'ast>) {
-        if matches!(item.ident(), Some(name) if name == "foo") {
-            emit_foo_lint(cx, item.id(), "a module", item.span());
-        }
-    }
-
-    fn check_enum<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast EnumItem<'ast>) {
-        if matches!(item.ident(), Some(name) if name == "Foo") {
-            emit_foo_lint(cx, item.id(), "an enum", item.span());
-        }
-    }
-
-    fn check_struct<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast StructItem<'ast>) {
-        if matches!(item.ident(), Some(name) if name == "Foo") {
-            emit_foo_lint(cx, item.id(), "a struct", item.span());
-        }
-    }
-
-    fn check_fn<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &'ast FnItem<'ast>) {
-        if matches!(item.ident(), Some(name) if name == "foo") {
-            emit_foo_lint(cx, item.id(), "a function", item.span());
+        if variant.ident().starts_with("FindMe") {
+            emit_item_with_test_name_lint(cx, variant.id(), "an enum variant", variant.span());
         }
     }
 
@@ -165,56 +129,74 @@ impl LintPass for TestLintPass {
             }
         }
     }
+}
 
-    fn check_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
-        fn try_resolve_path(cx: &AstContext<'_>, path: &str) {
-            let ids = cx.resolve_ty_ids(path);
-            eprintln!("Resolving {path:?} yielded {ids:#?}");
-        }
-
-        if let ItemKind::Fn(item) = item {
-            if let Some(ident) = item.ident() {
-                if ident.name() == "test_ty_id_resolution" {
-                    eprintln!("# Invalid paths");
-                    try_resolve_path(cx, "");
-                    try_resolve_path(cx, "something");
-                    try_resolve_path(cx, "bool");
-                    try_resolve_path(cx, "u32");
-                    try_resolve_path(cx, "crate::super");
-                    try_resolve_path(cx, "crate::self::super");
-
-                    eprintln!();
-                    eprintln!("# Unresolvable");
-                    try_resolve_path(cx, "something::weird");
-                    try_resolve_path(cx, "something::weird::very::very::very::very::very::long");
-
-                    eprintln!();
-                    eprintln!("# Not a type");
-                    try_resolve_path(cx, "std::env");
-                    try_resolve_path(cx, "std::i32");
-                    try_resolve_path(cx, "std::primitive::i32");
-                    try_resolve_path(cx, "std::option::Option::None");
-
-                    eprintln!();
-                    eprintln!("# Valid");
-                    try_resolve_path(cx, "std::option::Option");
-                    try_resolve_path(cx, "std::vec::Vec");
-                    try_resolve_path(cx, "std::string::String");
-
-                    eprintln!();
-                    eprintln!("# Valid local items");
-                    try_resolve_path(cx, "item_id_resolution::TestType");
-                    try_resolve_path(cx, "crate::TestType");
-                    eprintln!(
-                        "Check equal: {}",
-                        cx.resolve_ty_ids("item_id_resolution::TestType") == cx.resolve_ty_ids("crate::TestType")
-                    );
-
-                    eprintln!();
-                    eprintln!("=====================================================================");
-                    eprintln!();
-                }
-            }
+fn check_static_item<'ast>(cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {
+    if let Some(name) = item.ident() {
+        let name = name.name();
+        if name.starts_with("PRINT_TYPE") {
+            cx.emit_lint(TEST_LINT, item.id(), "printing type for", item.ty().span(), |_| {});
+            eprintln!("{:#?}\n\n", item.ty());
+        } else if name.starts_with("FIND_ITEM") {
+            cx.emit_lint(
+                TEST_LINT,
+                item.id(),
+                "hey there is a static item here",
+                item.span(),
+                |diag| {
+                    diag.note("a note");
+                    diag.help("a help");
+                    diag.span_note("a spanned note", item.span());
+                    diag.span_help("a spanned help", item.span());
+                    diag.span_suggestion("try", item.span(), "duck", Applicability::Unspecified);
+                },
+            );
         }
     }
+}
+
+fn test_ty_id_resolution<'ast>(cx: &'ast AstContext<'ast>) {
+    fn try_resolve_path(cx: &AstContext<'_>, path: &str) {
+        let ids = cx.resolve_ty_ids(path);
+        eprintln!("Resolving {path:?} yielded {ids:#?}");
+    }
+
+    eprintln!("# Invalid paths");
+    try_resolve_path(cx, "");
+    try_resolve_path(cx, "something");
+    try_resolve_path(cx, "bool");
+    try_resolve_path(cx, "u32");
+    try_resolve_path(cx, "crate::super");
+    try_resolve_path(cx, "crate::self::super");
+
+    eprintln!();
+    eprintln!("# Unresolvable");
+    try_resolve_path(cx, "something::weird");
+    try_resolve_path(cx, "something::weird::very::very::very::very::very::long");
+
+    eprintln!();
+    eprintln!("# Not a type");
+    try_resolve_path(cx, "std::env");
+    try_resolve_path(cx, "std::i32");
+    try_resolve_path(cx, "std::primitive::i32");
+    try_resolve_path(cx, "std::option::Option::None");
+
+    eprintln!();
+    eprintln!("# Valid");
+    try_resolve_path(cx, "std::option::Option");
+    try_resolve_path(cx, "std::vec::Vec");
+    try_resolve_path(cx, "std::string::String");
+
+    eprintln!();
+    eprintln!("# Valid local items");
+    try_resolve_path(cx, "item_id_resolution::TestType");
+    try_resolve_path(cx, "crate::TestType");
+    eprintln!(
+        "Check equal: {}",
+        cx.resolve_ty_ids("item_id_resolution::TestType") == cx.resolve_ty_ids("crate::TestType")
+    );
+
+    eprintln!();
+    eprintln!("=====================================================================");
+    eprintln!();
 }

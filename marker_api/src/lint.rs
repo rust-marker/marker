@@ -34,11 +34,13 @@ pub struct Lint {
     ///
     /// See [`MacroReport`] for the possible levels.
     pub report_in_macro: MacroReport,
-    // TODO: do we want these
-    // pub edition_lint_opts: Option<(Edition, Level)>,
-    // pub future_incompatible: Option<FutureIncompatibleInfo>,
-    // pub feature_gate: Option<&'static str>,
-    // pub crate_level_only: bool,
+    // FIXME: We might want to add more fields. This should be possible as this
+    // struct is always constructed by a macro controlled by marker. These are some
+    // additional fields used  in rustc:
+    // * pub edition_lint_opts: Option<(Edition, Level)>,
+    // * pub future_incompatible: Option<FutureIncompatibleInfo>,
+    // * pub feature_gate: Option<&'static str>,
+    // * pub crate_level_only: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]

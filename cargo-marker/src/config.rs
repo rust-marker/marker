@@ -53,7 +53,7 @@ impl From<GitRef> for GitReference {
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum Source {
-    // TODO: Registries are not supported yet, see https://github.com/rust-marker/marker/issues/87
+    // FIXME: Registries are not supported yet, see https://github.com/rust-marker/marker/issues/87
     Registry {
         version: String,
         registry: Option<String>,
@@ -73,7 +73,7 @@ pub struct LintDependencyEntry {
     #[serde(flatten)]
     source: Source,
     package: Option<String>,
-    // TODO: Features are not supported yet, see https://github.com/rust-marker/marker/issues/81
+    // FIXME: Features are not supported yet, see https://github.com/rust-marker/marker/issues/81
     #[serde(rename = "default-features")]
     default_features: Option<bool>,
     features: Option<Vec<String>>,
