@@ -11,9 +11,11 @@ pub struct FnPtrTy<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> FnPtrTy<'ast> {}
+impl<'ast> FnPtrTy<'ast> {
+    pub fn new(data: CommonTyData<'ast>, callable_data: CommonCallableData<'ast>) -> Self {
+        Self { data, callable_data }
+    }
+}
 
 super::impl_ty_data!(FnPtrTy<'ast>, FnPtr);
 impl_callable_data_trait!(FnPtrTy<'ast>);
-
-impl<'ast> FnPtrTy<'ast> {}

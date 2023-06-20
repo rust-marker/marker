@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use crate::{
     ast::{
-        ty::{SemTy, TyKind},
+        ty::{SemTyKind, TyKind},
         GenericId, ItemId, Span, SpanId, SymbolId,
     },
     context::with_cx,
@@ -168,7 +168,7 @@ impl<'ast> BindingGenericArg<'ast> {
 #[derive(Debug)]
 pub struct SemTyBindingArg<'ast> {
     binding_target: ItemId,
-    ty: SemTy<'ast>,
+    ty: SemTyKind<'ast>,
 }
 
 impl<'ast> SemTyBindingArg<'ast> {
@@ -185,14 +185,14 @@ impl<'ast> SemTyBindingArg<'ast> {
     /// ```
     ///
     /// Would return `i32` as the type.
-    pub fn ty(&self) -> &SemTy<'ast> {
-        &self.ty
+    pub fn ty(&self) -> SemTyKind<'ast> {
+        self.ty
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> SemTyBindingArg<'ast> {
-    pub fn new(binding_target: ItemId, ty: SemTy<'ast>) -> Self {
+    pub fn new(binding_target: ItemId, ty: SemTyKind<'ast>) -> Self {
         Self { binding_target, ty }
     }
 }

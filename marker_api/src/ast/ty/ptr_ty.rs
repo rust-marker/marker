@@ -1,6 +1,9 @@
-use crate::ast::Mutability;
+use crate::{
+    ast::{Abi, Mutability, Safety},
+    ffi::FfiSlice,
+};
 
-use super::SemTy;
+use super::SemTyKind;
 
 /// The semantic representation of a reference like [`&T`](prim@reference)
 /// or [`&mut T`](prim@reference)
@@ -12,7 +15,7 @@ use super::SemTy;
 #[derive(Debug)]
 pub struct SemRefTy<'ast> {
     mutability: Mutability,
-    inner_ty: SemTy<'ast>,
+    inner_ty: SemTyKind<'ast>,
 }
 
 impl<'ast> SemRefTy<'ast> {
@@ -21,15 +24,15 @@ impl<'ast> SemRefTy<'ast> {
         self.mutability
     }
 
-    /// This returns the inner [`SemTy`]
-    pub fn inner_ty(&self) -> &SemTy<'ast> {
-        &self.inner_ty
+    /// This returns the inner [`SemTyKind`]
+    pub fn inner_ty(&self) -> SemTyKind<'ast> {
+        self.inner_ty
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> SemRefTy<'ast> {
-    pub fn new(mutability: Mutability, inner_ty: SemTy<'ast>) -> Self {
+    pub fn new(mutability: Mutability, inner_ty: SemTyKind<'ast>) -> Self {
         Self { mutability, inner_ty }
     }
 }
@@ -40,7 +43,7 @@ impl<'ast> SemRefTy<'ast> {
 #[derive(Debug)]
 pub struct SemRawPtrTy<'ast> {
     mutability: Mutability,
-    inner_ty: SemTy<'ast>,
+    inner_ty: SemTyKind<'ast>,
 }
 
 impl<'ast> SemRawPtrTy<'ast> {
@@ -48,14 +51,55 @@ impl<'ast> SemRawPtrTy<'ast> {
         self.mutability
     }
 
-    pub fn inner_ty(&self) -> &SemTy<'ast> {
-        &self.inner_ty
+    pub fn inner_ty(&self) -> SemTyKind<'ast> {
+        self.inner_ty
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> SemRawPtrTy<'ast> {
-    pub fn new(mutability: Mutability, inner_ty: SemTy<'ast>) -> Self {
+    pub fn new(mutability: Mutability, inner_ty: SemTyKind<'ast>) -> Self {
         Self { mutability, inner_ty }
+    }
+}
+
+/// The semantic representation of a function pointer, like
+/// [`fn(u32) -> i32`](<https://doc.rust-lang.org/stable/std/keyword.fn.html>)
+#[repr(C)]
+#[derive(Debug)]
+pub struct SemFnPtrTy<'ast> {
+    safety: Safety,
+    abi: Abi,
+    params: FfiSlice<'ast, SemTyKind<'ast>>,
+    return_ty: SemTyKind<'ast>,
+}
+
+impl<'ast> SemFnPtrTy<'ast> {
+    pub fn safety(&self) -> Safety {
+        self.safety
+    }
+
+    pub fn abi(&self) -> Abi {
+        self.abi
+    }
+
+    pub fn params(&self) -> &[SemTyKind<'ast>] {
+        self.params.get()
+    }
+
+    pub fn return_ty(&self) -> SemTyKind<'ast> {
+        self.return_ty
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SemFnPtrTy<'ast> {
+    pub fn new(safety: Safety, abi: Abi, params: &'ast [SemTyKind<'ast>], return_ty: SemTyKind<'ast>) -> Self {
+        Self {
+            safety,
+            abi,
+            params: params.into(),
+            return_ty,
+        }
     }
 }

@@ -4,7 +4,7 @@ use marker_api::ast::generic::GenericArgs;
 use marker_api::ast::ty::TyKind;
 use marker_api::ast::{
     Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, CrateId, ExprId, FieldId, GenericId, Ident, ItemId,
-    LetStmtId, Mutability, Span, SpanId, SpanSource, SymbolId, TraitRef, TyDefId, VarId, VariantId,
+    LetStmtId, Mutability, Safety, Span, SpanId, SpanSource, SymbolId, TraitRef, TyDefId, VarId, VariantId,
 };
 use marker_api::lint::Level;
 use rustc_hir as hir;
@@ -147,6 +147,14 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_ident(&self, ident: rustc_span::symbol::Ident) -> Ident<'ast> {
         Ident::new(self.to_symbol_id(ident.name), self.to_span_id(ident.span))
+    }
+
+    #[must_use]
+    pub fn to_safety(&self, safety: hir::Unsafety) -> Safety {
+        match safety {
+            hir::Unsafety::Normal => Safety::Safe,
+            hir::Unsafety::Unsafe => Safety::Unsafe,
+        }
     }
 
     #[must_use]

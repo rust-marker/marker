@@ -3,19 +3,6 @@
 use core::fmt::Debug;
 use core::marker::PhantomData;
 
-static HELP_ITEM_TYPE_SEQUENCE: Option<AllowSync<(&[i32], [i32; 8])>> = None;
-static HELP_ITEM_TYPE_POINTER: Option<AllowSync<(&'static str, *const i32, *mut i32)>> = None;
-static HELP_ITEM_TYPE_COMPLEX: Option<
-    AllowSync<(
-        AliasTy,
-        String,
-        Option<String>,
-        Vec<UnionItem>,
-        Box<dyn Debug>,
-        Box<dyn Iterator<Item = i32> + 'static>,
-    )>,
-> = None;
-
 type AliasTy = Box<u32>;
 
 pub union UnionItem {
@@ -37,11 +24,16 @@ trait InterestingTrait<T> {
     }
 }
 
-fn param_type<T: Debug>(t: T) {
+pub fn param_type<T: Debug>(t: T) {
     let _ty_generic: T = t;
 }
 
+fn u32_to_f32(_: u32) -> f32 {
+    0.0
+}
+
 fn main() {
+    let mut x = 0;
     let _ty: u32 = 10;
     let _ty_primitive: Option<(u8, u16, u32, u64, u128, usize)> = None;
     let _ty_primitive: Option<(i8, i16, i32, i64, i128, isize)> = None;
@@ -50,6 +42,13 @@ fn main() {
     let slice: &[u32] = &[10];
     let _ty_sequence: &[u32] = slice;
     let _ty_ptr: Option<(&'static str, *const i32, *mut i32)> = None;
+    let _ty_fn_item: fn(u32) -> f32 = u32_to_f32;
+    let _ty_closure = || x = 9;
+    
+    // The path `u32_to_f32` actually has the function item type, it has
+    // to be stored in a value, to become a function pointer
+    let fn_ptr: fn(u32) -> f32 = u32_to_f32;
+    let _ty_fn_ptr: fn(u32) -> f32 = fn_ptr;
 
     // Interestingly, rustc substitutes the type directly and the semantic type
     // doesn't show the type alias.

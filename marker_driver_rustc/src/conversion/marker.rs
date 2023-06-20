@@ -18,7 +18,7 @@ use marker_api::{
     ast::{
         expr::ExprKind,
         item::{Body, ItemKind},
-        ty::SemTy,
+        ty::SemTyKind,
         BodyId, Crate, ExprId, ItemId, Span, SymbolId,
     },
     lint::Level,
@@ -64,10 +64,10 @@ impl<'ast, 'tcx> MarkerConverter<'ast, 'tcx> {
         res
     }
 
-    pub fn expr_ty(&self, id: hir::HirId) -> &SemTy<'ast> {
+    pub fn expr_ty(&self, id: hir::HirId) -> SemTyKind<'ast> {
         self.with_body(id, |inner| {
             let ty = inner.rustc_ty_check().node_type(id);
-            inner.alloc(inner.to_sem_ty(ty))
+            inner.to_sem_ty(ty)
         })
     }
 

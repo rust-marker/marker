@@ -1,4 +1,4 @@
-use super::{ty::SemTy, ExprId, Span, SpanId};
+use super::{ty::SemTyKind, ExprId, Span, SpanId};
 
 use std::{fmt::Debug, marker::PhantomData};
 
@@ -28,7 +28,7 @@ pub trait ExprData<'ast>: Debug {
     fn span(&self) -> &Span<'ast>;
 
     // This returns the semantic type of this expression
-    fn ty(&self) -> &SemTy<'ast>;
+    fn ty(&self) -> SemTyKind<'ast>;
 
     fn precedence(&self) -> ExprPrecedence;
 
@@ -76,7 +76,7 @@ pub enum ExprKind<'ast> {
 impl<'ast> ExprKind<'ast> {
     impl_expr_kind_fn!(ExprKind: span() -> &Span<'ast>);
     impl_expr_kind_fn!(ExprKind: id() -> ExprId);
-    impl_expr_kind_fn!(ExprKind: ty() -> &SemTy<'ast>);
+    impl_expr_kind_fn!(ExprKind: ty() -> SemTyKind<'ast>);
     impl_expr_kind_fn!(ExprKind: precedence() -> ExprPrecedence);
 }
 
@@ -94,7 +94,7 @@ pub enum LitExprKind<'ast> {
 impl<'ast> LitExprKind<'ast> {
     impl_expr_kind_fn!(LitExprKind: span() -> &Span<'ast>);
     impl_expr_kind_fn!(LitExprKind: id() -> ExprId);
-    impl_expr_kind_fn!(LitExprKind: ty() -> &SemTy<'ast>);
+    impl_expr_kind_fn!(LitExprKind: ty() -> SemTyKind<'ast>);
     impl_expr_kind_fn!(LitExprKind: precedence() -> ExprPrecedence);
 }
 
@@ -287,7 +287,7 @@ macro_rules! impl_expr_data {
                 $crate::context::with_cx(self, |cx| cx.get_span(self.data.span))
             }
 
-            fn ty(&self) -> &$crate::ast::ty::SemTy<'ast> {
+            fn ty(&self) -> $crate::ast::ty::SemTyKind<'ast> {
                 $crate::context::with_cx(self, |cx| cx.expr_ty(self.data.id))
             }
 

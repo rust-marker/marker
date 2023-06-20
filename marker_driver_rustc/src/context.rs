@@ -131,7 +131,7 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         self.marker_converter.to_body(rustc_body)
     }
 
-    fn expr_ty(&'ast self, expr: ExprId) -> &'ast marker_api::ast::ty::SemTy<'ast> {
+    fn expr_ty(&'ast self, expr: ExprId) -> marker_api::ast::ty::SemTyKind<'ast> {
         let hir_id = self.rustc_converter.to_hir_id(expr);
         self.marker_converter.expr_ty(hir_id)
     }

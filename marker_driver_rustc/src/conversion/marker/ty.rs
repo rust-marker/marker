@@ -1,9 +1,9 @@
 use marker_api::ast::{
     ty::{
-        ArrayTy, BoolTy, CommonTyData, FnTy, ImplTraitTy, InferredTy, NeverTy, NumKind, NumTy, PathTy, RawPtrTy, RefTy,
-        SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemGenericTy, SemNeverTy, SemNumTy, SemRawPtrTy, SemRefTy,
-        SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy, SemTy, SemTyKind, SliceTy, TextKind, TextTy, TraitObjTy,
-        TupleTy, TyKind,
+        ArrayTy, BoolTy, CommonTyData, FnPtrTy, ImplTraitTy, InferredTy, NeverTy, NumKind, NumTy, PathTy, RawPtrTy,
+        RefTy, SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemClosureTy, SemFnPtrTy, SemFnTy, SemGenericTy,
+        SemNeverTy, SemNumTy, SemRawPtrTy, SemRefTy, SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy, SemTyKind,
+        SemUnstableTy, SliceTy, TextKind, TextTy, TraitObjTy, TupleTy, TyKind,
     },
     CommonCallableData, Parameter,
 };
@@ -34,10 +34,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
 impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
-    pub fn to_sem_ty(&self, rustc_ty: mid::ty::Ty<'tcx>) -> SemTy<'ast> {
+    pub fn to_sem_ty(&self, rustc_ty: mid::ty::Ty<'tcx>) -> SemTyKind<'ast> {
         // Semantic types could be cached, the question is if they should and at
         // which level.
-        let kind = match &rustc_ty.kind() {
+        match &rustc_ty.kind() {
             mid::ty::TyKind::Bool => SemTyKind::Bool(self.alloc(SemBoolTy::new())),
             mid::ty::TyKind::Char => SemTyKind::Text(self.alloc(SemTextTy::new(TextKind::Char))),
             mid::ty::TyKind::Int(int_ty) => {
@@ -89,18 +89,37 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             mid::ty::TyKind::Ref(_lifetime, inner, muta) => {
                 SemTyKind::Ref(self.alloc(SemRefTy::new(self.to_mutability(*muta), self.to_sem_ty(*inner))))
             },
-            mid::ty::TyKind::FnDef(_, _) => todo!(),
-            mid::ty::TyKind::FnPtr(_) => todo!(),
+            mid::ty::TyKind::FnDef(fn_id, generic_args) => SemTyKind::FnTy(self.alloc(SemFnTy::new(
+                self.to_item_id(*fn_id),
+                self.to_sem_generic_args(generic_args),
+            ))),
+            mid::ty::TyKind::FnPtr(fn_info) => SemTyKind::FnPtr(
+                self.alloc(SemFnPtrTy::new(
+                    self.to_safety(fn_info.unsafety()),
+                    self.to_abi(fn_info.abi()),
+                    self.alloc_slice(
+                        fn_info
+                            .inputs()
+                            .skip_binder()
+                            .iter()
+                            .map(|input| self.to_sem_ty(*input)),
+                    ),
+                    self.to_sem_ty(fn_info.output().skip_binder()),
+                )),
+            ),
             mid::ty::TyKind::Dynamic(binders, _region, kind) => {
                 if !matches!(kind, mid::ty::DynKind::Dyn) {
                     unimplemented!("the docs are not totally clear, when `DynStar` is used, her it is: {rustc_ty:#?}")
                 }
                 SemTyKind::TraitObj(self.alloc(SemTraitObjTy::new(self.to_sem_trait_bounds(binders))))
             },
-            mid::ty::TyKind::Closure(_, _) => todo!(),
-            mid::ty::TyKind::Generator(_, _, _) => todo!(),
-            mid::ty::TyKind::GeneratorWitness(_) => todo!(),
-            mid::ty::TyKind::GeneratorWitnessMIR(_, _) => todo!(),
+            mid::ty::TyKind::Closure(id, generics) => SemTyKind::ClosureTy(self.alloc(SemClosureTy::new(
+                self.to_ty_def_id(*id),
+                self.to_sem_generic_args(generics),
+            ))),
+            mid::ty::TyKind::Generator(_, _, _)
+            | mid::ty::TyKind::GeneratorWitness(_)
+            | mid::ty::TyKind::GeneratorWitnessMIR(_, _) => SemTyKind::Unstable(self.alloc(SemUnstableTy::new())),
             mid::ty::TyKind::Never => SemTyKind::Never(self.alloc(SemNeverTy::new())),
             mid::ty::TyKind::Alias(mid::ty::AliasKind::Inherent, info) => {
                 SemTyKind::Alias(self.alloc(SemAliasTy::new(self.to_item_id(info.def_id))))
@@ -121,14 +140,14 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     .type_param(param, self.rustc_cx);
                 SemTyKind::Generic(self.alloc(SemGenericTy::new(self.to_generic_id(generic_info.def_id))))
             },
-            mid::ty::TyKind::Bound(_, _) => todo!(),
+            mid::ty::TyKind::Bound(_, _) => {
+                unreachable!("used by rustc for higher ranked types, which are not represented in marker")
+            },
             mid::ty::TyKind::Placeholder(_) | mid::ty::TyKind::Infer(_) => {
                 unreachable!("used by rustc during typechecking, should not exist afterwards")
             },
             mid::ty::TyKind::Error(_) => unreachable!("would have triggered a rustc error"),
-        };
-
-        SemTy::new(kind)
+        }
     }
 }
 
@@ -159,7 +178,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     self.to_syn_ty(mut_ty.ty),
                 )
             })),
-            hir::TyKind::BareFn(rust_fn) => TyKind::Fn(self.alloc(self.to_syn_fn_ty(data, rust_fn))),
+            hir::TyKind::BareFn(rust_fn) => TyKind::FnPtr(self.alloc(self.to_syn_fn_prt_ty(data, rust_fn))),
             hir::TyKind::Never => TyKind::Never(self.alloc(NeverTy::new(data))),
             hir::TyKind::Tup(rustc_tys) => {
                 let api_tys = self.alloc_slice(rustc_tys.iter().map(|rustc_ty| self.to_syn_ty(rustc_ty)));
@@ -188,7 +207,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
-    pub fn to_syn_fn_ty(&self, data: CommonTyData<'ast>, rust_fn: &hir::BareFnTy<'tcx>) -> FnTy<'ast> {
+    pub fn to_syn_fn_prt_ty(&self, data: CommonTyData<'ast>, rust_fn: &hir::BareFnTy<'tcx>) -> FnPtrTy<'ast> {
         assert_eq!(rust_fn.param_names.len(), rust_fn.decl.inputs.len());
         let params = rust_fn
             .decl
@@ -208,7 +227,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         } else {
             None
         };
-        FnTy::new(
+        FnPtrTy::new(
             data,
             CommonCallableData::new(
                 false,

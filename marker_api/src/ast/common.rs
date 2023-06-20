@@ -70,3 +70,18 @@ impl Mutability {
         matches!(self, Self::Mut)
     }
 }
+
+#[repr(C)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum Safety {
+    Safe,
+    Unsafe,
+}
+
+impl Safety {
+    #[must_use]
+    pub fn is_unsafe(&self) -> bool {
+        matches!(self, Self::Unsafe)
+    }
+}

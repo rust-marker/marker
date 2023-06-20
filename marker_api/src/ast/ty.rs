@@ -6,12 +6,16 @@ use super::{Span, SpanId};
 
 // Primitive types
 mod bool_ty;
+mod fn_ty;
+mod other_ty;
 mod prim_ty;
 mod ptr_ty;
 mod sequence_ty;
 mod trait_ty;
 mod user_ty;
 pub use bool_ty::*;
+pub use fn_ty::*;
+pub use other_ty::*;
 pub use prim_ty::*;
 pub use ptr_ty::*;
 pub use sequence_ty::*;
@@ -31,8 +35,6 @@ pub use array_ty::*;
 mod slice_ty;
 pub use slice_ty::*;
 // Function types
-mod fn_ty;
-pub use fn_ty::*;
 mod closure_ty;
 pub use closure_ty::*;
 // Pointer types
@@ -116,7 +118,6 @@ pub enum TyKind<'ast> {
     // ================================
     // Function types
     // ================================
-    Fn(&'ast FnTy<'ast>),
     Closure(&'ast ClosureTy<'ast>),
     // ================================
     // Pointer types
@@ -173,7 +174,7 @@ impl<'ast> TyKind<'ast> {
     /// Returns `true` if this is a function type.
     #[must_use]
     pub fn is_fn(&self) -> bool {
-        matches!(self, Self::Fn(..) | Self::Closure(..))
+        matches!(self, Self::FnPtr(..) | Self::Closure(..))
     }
 
     /// Returns `true` if this is a pointer type.
@@ -210,7 +211,7 @@ impl<'ast> TyKind<'ast> {
 macro_rules! impl_ty_data_fn {
     ($method:ident () -> $return_ty:ty) => {
         impl_ty_data_fn!($method() -> $return_ty,
-        Bool, Num, Text, Never, Tuple, Array, Slice, Fn, Closure, Ref,
+        Bool, Num, Text, Never, Tuple, Array, Slice, Closure, Ref,
         RawPtr, FnPtr, TraitObj, ImplTrait, Inferred, Path);
     };
     ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
@@ -277,25 +278,6 @@ use impl_ty_data;
 
 /// The semantic representation of a type
 #[repr(C)]
-#[derive(Debug)]
-pub struct SemTy<'ast> {
-    kind: SemTyKind<'ast>,
-}
-
-impl<'ast> SemTy<'ast> {
-    pub fn kind(&self) -> SemTyKind<'ast> {
-        self.kind
-    }
-}
-
-#[cfg(feature = "driver-api")]
-impl<'ast> SemTy<'ast> {
-    pub fn new(kind: SemTyKind<'ast>) -> Self {
-        Self { kind }
-    }
-}
-
-#[repr(C)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
 pub enum SemTyKind<'ast> {
@@ -320,12 +302,24 @@ pub enum SemTyKind<'ast> {
     /// A variable length slice like [`[T]`](prim@slice)
     Slice(&'ast SemSliceTy<'ast>),
     // ================================
+    // Function types
+    // ================================
+    /// A [function item type](https://doc.rust-lang.org/reference/types/function-item.html)
+    /// identifying a specific function and potentualy additional generics.
+    FnTy(&'ast SemFnTy<'ast>),
+    /// The semantic representation of a
+    /// [closure type](https://doc.rust-lang.org/reference/types/closure.html).
+    ClosureTy(&'ast SemClosureTy<'ast>),
+    // ================================
     // Pointer types
     // ================================
     /// A reference like [`&T`](prim@reference) or [`&mut T`](prim@reference)
     Ref(&'ast SemRefTy<'ast>),
     /// A raw pointer like [`*const T`](prim@pointer) or [`*mut T`](prim@pointer)
     RawPtr(&'ast SemRawPtrTy<'ast>),
+    /// The semantic representation of a function pointer, like
+    /// [`fn(u32) -> i32`](<https://doc.rust-lang.org/stable/std/keyword.fn.html>)
+    FnPtr(&'ast SemFnPtrTy<'ast>),
     // ================================
     // Trait types
     // ================================
@@ -342,4 +336,10 @@ pub enum SemTyKind<'ast> {
     /// semantic types. This kind is mainly used for type aliases, where the concrete
     /// type is not yet known, for example in traits.
     Alias(&'ast SemAliasTy<'ast>),
+    // ================================
+    // Other types
+    // ================================
+    /// The placeholder type, signalling that the semantic type is still unstable
+    /// and therefor not represented as part of the API.
+    Unstable(&'ast SemUnstableTy<'ast>),
 }
