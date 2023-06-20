@@ -1,3 +1,22 @@
+use crate::context::AstContext;
+
+/// **!Unstable!**
+/// This struct is used to connect lint crates to drivers.
+#[repr(C)]
+#[doc(hidden)]
+pub struct LintCrateBindings {
+    pub set_ast_context: for<'ast> extern "C" fn(cx: &'ast AstContext<'ast>),
+
+    // lint pass functions
+    pub registered_lints: for<'ast> extern "C" fn() -> &'static [&'static crate::lint::Lint],
+    pub check_item: for<'ast> extern "C" fn(&'ast AstContext<'ast>, crate::ast::item::ItemKind<'ast>),
+    pub check_field: for<'ast> extern "C" fn(&'ast AstContext<'ast>, &'ast crate::ast::item::Field<'ast>),
+    pub check_variant: for<'ast> extern "C" fn(&'ast AstContext<'ast>, &'ast crate::ast::item::EnumVariant<'ast>),
+    pub check_body: for<'ast> extern "C" fn(&'ast AstContext<'ast>, &'ast crate::ast::item::Body<'ast>),
+    pub check_stmt: for<'ast> extern "C" fn(&'ast AstContext<'ast>, crate::ast::stmt::StmtKind<'ast>),
+    pub check_expr: for<'ast> extern "C" fn(&'ast AstContext<'ast>, crate::ast::expr::ExprKind<'ast>),
+}
+
 /// This macro marks the given struct as the main [`LintPass`](`crate::LintPass`)
 /// for the lint crate. For structs implementing [`Default`] it's enough to only
 /// pass in the type. Otherwise, a second argument is required to initialize an
@@ -7,30 +26,27 @@
 /// ```ignore
 /// #[derive(Default)]
 /// struct LintPassWithDefault;
-/// marker_api::interface::export_lint_pass!(LintPassWithDefault);
+/// marker_api::export_lint_pass!(LintPassWithDefault);
 /// ```
 ///
 /// **Struct with custom initialization:**
 /// ```ignore
-/// struct LintPassCustomValue(u32);
-/// marker_api::interface::export_lint_pass!(LintPassCustomValue, LintPassCustomValue(3));
+/// struct LintPassCustomValue {
+///     // ...
+/// };
+/// marker_api::export_lint_pass!(LintPassCustomValue, LintPassCustomValue::new(/* ... */));
 /// ```
 ///
 /// This macro will create some hidden items prefixed with two underscores. These
 /// are unstable and can change in the future.
 ///
-/// ### Additional notes
-///
-/// This section provides some additional information which might be useful. Note
-/// that this can change in the future.
-///
-/// The instance is created and stored in a [`thread_local!`]
-/// [`RefCell`](`std::cell::RefCell`). One lint crate will always be called by the
-/// same thread.
+/// #### Driver information
+/// * Rustc's driver will always call lint pass instance with the same thread
+/// * Rustc's driver will create a new instance for every crate that is being checked
 #[macro_export]
 macro_rules! export_lint_pass {
     ($pass_ty:ident) => {
-        $crate::interface::export_lint_pass!($pass_ty, $pass_ty::default());
+        $crate::export_lint_pass!($pass_ty, $pass_ty::default());
     };
     ($pass_ty:ident, $pass_init:expr) => {
         thread_local! {
@@ -39,44 +55,55 @@ macro_rules! export_lint_pass {
         }
 
         #[doc(hidden)]
-        mod __marker {
+        mod __marker_todo {
             use $crate::LintPass;
 
             #[no_mangle]
-            pub extern "C" fn get_marker_api_version() -> &'static str {
+            extern "C" fn marker_get_api_version() -> &'static str {
                 $crate::MARKER_API_VERSION
             }
 
+            /// This magic function fills the `LintCrateBindings` struct to allow easy
+            /// communication between marker's driver and lint crates.
             #[no_mangle]
-            pub extern "C" fn set_ast_context<'ast>(cx: &'ast marker_api::context::AstContext<'ast>) {
-                $crate::context::set_ast_cx(cx);
+            extern "C" fn marker_get_lint_crate_bindings() -> $crate::interface::LintCrateBindings {
+                extern "C" fn set_ast_context<'ast>(cx: &'ast $crate::AstContext<'ast>) {
+                    $crate::context::set_ast_cx(cx);
+                }
+                extern "C" fn registered_lints() -> &'static [&'static $crate::lint::Lint] {
+                    let _lints: Box<[&'static $crate::lint::Lint]> = super::__MARKER_STATE.with(|state| state.borrow_mut().registered_lints());
+                    todo!()
+                }
+                extern "C" fn check_item<'ast>(cx: &'ast $crate::AstContext<'ast>, item: $crate::ast::item::ItemKind<'ast>) {
+                    super::__MARKER_STATE.with(|state| state.borrow_mut().check_item(cx, item));
+                }
+                extern "C" fn check_field<'ast>(cx: &'ast $crate::AstContext<'ast>, field: &'ast $crate::ast::item::Field<'ast>) {
+                    super::__MARKER_STATE.with(|state| state.borrow_mut().check_field(cx, field));
+                }
+                extern "C" fn check_variant<'ast>(cx: &'ast $crate::AstContext<'ast>, variant: &'ast $crate::ast::item::EnumVariant<'ast>) {
+                    super::__MARKER_STATE.with(|state| state.borrow_mut().check_variant(cx, variant));
+                }
+                extern "C" fn check_body<'ast>(cx: &'ast $crate::AstContext<'ast>, body: &'ast $crate::ast::item::Body<'ast>) {
+                    super::__MARKER_STATE.with(|state| state.borrow_mut().check_body(cx, body));
+                }
+                extern "C" fn check_stmt<'ast>(cx: &'ast $crate::AstContext<'ast>, stmt: $crate::ast::stmt::StmtKind<'ast>) {
+                    super::__MARKER_STATE.with(|state| state.borrow_mut().check_stmt(cx, stmt));
+                }
+                extern "C" fn check_expr<'ast>(cx: &'ast $crate::AstContext<'ast>, expr: $crate::ast::expr::ExprKind<'ast>) {
+                    super::__MARKER_STATE.with(|state| state.borrow_mut().check_expr(cx, expr));
+                }
+
+                $crate::interface::LintCrateBindings {
+                    set_ast_context,
+                    registered_lints,
+                    check_item,
+                    check_field,
+                    check_variant,
+                    check_body,
+                    check_stmt,
+                    check_expr,
+                }
             }
-
-            $crate::for_each_lint_pass_fn!($crate::interface::export_lint_pass_fn);
         }
     };
 }
-pub use export_lint_pass;
-
-/// **!Unstable!**
-///
-/// This macro is used to generate external functions which can be used to
-/// transfer data safely over the C ABI. The counterpart passing the information
-/// to here is implemented in `marker_adapter`
-#[macro_export]
-#[doc(hidden)]
-macro_rules! export_lint_pass_fn {
-    (fn $fn_name:ident<'ast>(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
-        #[no_mangle]
-        pub extern "C" fn $fn_name<'ast>($($arg_name: $arg_ty),*) -> $ret_ty {
-            super::__MARKER_STATE.with(|state| state.borrow().$fn_name($($arg_name),*))
-        }
-    };
-    (fn $fn_name:ident<'ast>(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
-        #[no_mangle]
-        pub extern "C" fn $fn_name<'ast>($($arg_name: $arg_ty),*) -> $ret_ty {
-            super::__MARKER_STATE.with(|state| state.borrow_mut().$fn_name($($arg_name),*))
-        }
-    };
-}
-pub use export_lint_pass_fn;

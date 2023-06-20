@@ -20,6 +20,8 @@ pub mod lint;
 #[doc(hidden)]
 pub mod ffi;
 
+pub use context::AstContext;
+
 /// **!Unstable!**
 ///
 /// This macro returns a list of all functions declared for the [`LintPass`] trait.
@@ -49,38 +51,6 @@ macro_rules! lint_pass_fns {
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,
                 _item: $crate::ast::item::ItemKind<'ast>) -> ();
-            fn check_mod<'ast>(
-                &(mut) self,
-                _cx: &'ast $crate::context::AstContext<'ast>,
-                _item: &'ast $crate::ast::item::ModItem<'ast>) -> ();
-            fn check_extern_crate<'ast>(
-                &(mut) self,
-                _cx: &'ast $crate::context::AstContext<'ast>,
-                _item: &'ast $crate::ast::item::ExternCrateItem<'ast>) -> ();
-            fn check_use_decl<'ast>(
-                &(mut) self,
-                _cx: &'ast $crate::context::AstContext<'ast>,
-                _item: &'ast $crate::ast::item::UseItem<'ast>) -> ();
-            fn check_static_item<'ast>(
-                &(mut) self,
-                _cx: &'ast $crate::context::AstContext<'ast>,
-                _item: &'ast $crate::ast::item::StaticItem<'ast>) -> ();
-            fn check_const_item<'ast>(
-                &(mut) self,
-                _cx: &'ast $crate::context::AstContext<'ast>,
-                _item: &'ast $crate::ast::item::ConstItem<'ast>) -> ();
-            fn check_fn<'ast>(
-                &(mut) self,
-                _cx: &'ast $crate::context::AstContext<'ast>,
-                _item: &'ast $crate::ast::item::FnItem<'ast>) -> ();
-            fn check_struct<'ast>(
-                &(mut) self,
-                _cx: &'ast $crate::context::AstContext<'ast>,
-                _item: &'ast $crate::ast::item::StructItem<'ast>) -> ();
-            fn check_enum<'ast>(
-                &(mut) self,
-                _cx: &'ast $crate::context::AstContext<'ast>,
-                _item: &'ast $crate::ast::item::EnumItem<'ast>) -> ();
             fn check_field<'ast>(
                 &(mut) self,
                 _cx: &'ast $crate::context::AstContext<'ast>,

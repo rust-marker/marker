@@ -15,7 +15,11 @@ use marker_api::{
     LintPass,
 };
 
-marker_api::interface::export_lint_pass!(TestLintPass);
+
+#[derive(Default)]
+struct TestLintPass {}
+
+marker_api::export_lint_pass!(TestLintPass);
 
 marker_api::lint::declare_lint!(TEST_LINT, Warn, "test lint warning");
 
@@ -37,9 +41,6 @@ fn emit_item_with_test_name_lint<'ast>(
     cx.emit_lint(ITEM_WITH_TEST_NAME, node, msg, span, |_| {});
 }
 
-#[derive(Default)]
-struct TestLintPass {}
-
 impl LintPass for TestLintPass {
     fn registered_lints(&self) -> Box<[&'static Lint]> {
         Box::new([TEST_LINT])
@@ -54,11 +55,11 @@ impl LintPass for TestLintPass {
             }
         }
 
-        match item {
-            ItemKind::Static(item) => check_static_item(cx, item),
-            _ => {},
+        if let ItemKind::Static(item) = item {
+            check_static_item(cx, item);
         }
-        if matches!(item.ident().map(|x| x.name()), Some(name) if name.starts_with("FindMe") || name.starts_with("FIND_ME") || name.starts_with("find_me"))
+
+        if matches!(item.ident().map(marker_api::ast::Ident::name), Some(name) if name.starts_with("FindMe") || name.starts_with("FIND_ME") || name.starts_with("find_me"))
         {
             let msg = match item {
                 ItemKind::Mod(_) => Some("module"),

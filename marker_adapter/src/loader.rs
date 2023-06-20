@@ -1,7 +1,7 @@
 use cfg_if::cfg_if;
 use libloading::Library;
 
-use marker_api::context::AstContext;
+use marker_api::{context::AstContext, interface::LintCrateBindings};
 use marker_api::lint::Lint;
 use marker_api::LintPass;
 
@@ -44,15 +44,15 @@ fn windows_split_os_str(s: &OsStr, c: u8) -> Vec<OsString> {
 /// This struct loads external lint crates into memory and provides a safe API
 /// to call the respective methods on all of them.
 #[derive(Default)]
-pub struct LintCrateRegistry<'ast> {
-    passes: Vec<LoadedLintCrate<'ast>>,
+pub struct LintCrateRegistry<'lib> {
+    passes: Vec<LoadedLintCrate<'lib>>,
 }
 
-impl<'ast> LintCrateRegistry<'ast> {
+impl<'lib> LintCrateRegistry<'lib> {
     /// # Errors
     /// This can return errors if the library couldn't be found or if the
     /// required symbols weren't provided.
-    fn load_external_lib(lib_path: &OsStr) -> Result<LoadedLintCrate<'ast>, LoadingError> {
+    fn load_external_lib(lib_path: &OsStr) -> Result<LoadedLintCrate<'lib>, LoadingError> {
         let lib: &'static Library = Box::leak(Box::new(
             unsafe { Library::new(lib_path) }.map_err(|_| LoadingError::FileNotFound)?,
         ));
@@ -90,7 +90,7 @@ impl<'ast> LintCrateRegistry<'ast> {
         new_self
     }
 
-    pub(super) fn set_ast_context(&self, cx: &'ast AstContext<'ast>) {
+    pub(super) fn set_ast_context<'ast>(&self, cx: &'ast AstContext<'ast>) {
         for lint_pass in &self.passes {
             lint_pass.set_ast_context(cx);
         }
@@ -123,9 +123,41 @@ macro_rules! gen_lint_crate_reg_lint_pass_fn {
     };
 }
 
+struct LoadedLintKrate {
+    _lib: &'static Library,
+    bindings: LintCrateBindings,
+}
+
+impl LoadedLintKrate {
+    fn try_from_lib(lib: &'static Library) -> Result<Self, LoadingError> {
+        // 
+        let get_api_version = {
+            unsafe {
+                lib.get::<unsafe extern "C" fn() -> &'static str>(b"marker_get_api_version\0")
+                    .map_err(|_| LoadingError::MissingLintDeclaration)?
+            }
+        };
+        if unsafe { get_api_version() } != marker_api::MARKER_API_VERSION {
+            return Err(LoadingError::IncompatibleVersion);
+        }
+
+        let get_lint_crate_bindings = unsafe {
+            lib.get::<extern "C" fn() -> LintCrateBindings>(b"marker_get_lint_crate_bindings\0")
+                .map_err(|_| LoadingError::MissingLintDeclaration)?
+        };
+
+        let bindings = get_lint_crate_bindings();
+
+        Ok(Self {
+            _lib: lib,
+            bindings
+        })
+    }
+}
+
 /// This macro generates the `LoadedLintCrate` struct, and functions for
 /// calling the [`LintPass`] functions. It's the counter part to
-/// [`marker_api::interface::export_lint_pass`]
+/// [`marker_api::export_lint_pass`]
 #[macro_export]
 macro_rules! gen_LoadedLintCrate {
     (

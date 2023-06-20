@@ -45,30 +45,22 @@ impl<'ast> Adapter<'ast> {
     fn process_item(&mut self, cx: &'ast AstContext<'ast>, item: &ItemKind<'ast>) {
         match item {
             ItemKind::Mod(data) => {
-                self.external_lint_crates.check_mod(cx, data);
                 for item in data.items() {
                     self.process_item(cx, item);
                 }
             },
-            ItemKind::ExternCrate(data) => self.external_lint_crates.check_extern_crate(cx, data),
-            ItemKind::Use(data) => self.external_lint_crates.check_use_decl(cx, data),
-            ItemKind::Static(data) => self.external_lint_crates.check_static_item(cx, data),
-            ItemKind::Const(data) => self.external_lint_crates.check_const_item(cx, data),
             // FIXME: Function-local items are not yet processed
             ItemKind::Fn(data) => {
-                self.external_lint_crates.check_fn(cx, data);
                 if let Some(id) = data.body() {
                     self.process_body(cx, id);
                 }
             },
             ItemKind::Struct(data) => {
-                self.external_lint_crates.check_struct(cx, data);
                 for field in data.fields() {
                     self.external_lint_crates.check_field(cx, field);
                 }
             },
             ItemKind::Enum(data) => {
-                self.external_lint_crates.check_enum(cx, data);
                 for variant in data.variants() {
                     self.external_lint_crates.check_variant(cx, variant);
                     for field in variant.fields() {
