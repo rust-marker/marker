@@ -22,114 +22,17 @@ pub mod ffi;
 
 pub use context::AstContext;
 
-/// **!Unstable!**
-///
-/// This macro returns a list of all functions declared for the [`LintPass`] trait.
-/// All references use the `'ast` lifetime, this needs to be provided in the given
-/// scope. The first token is a dollar sign `$` in brackets to support macro creation
-/// based on these declarations. The mutability of `self` is wrapped in brackets to
-/// support optional matching.
-///
-/// The functions can be categorized as follows:
-///
-/// 1. Informative functions used to retrieve information from the [`LintPass`]
-///    implementation. These functions take an immutable reference to self and
-///    require a manual implementation
-/// 2. `check_*` functions, which can be implemented to check specific nodes from the
-///    AST. All of these are optional and have no return type. For us, they are
-///    *fire and forget*.
-///
-/// [`for_each_lint_pass_fn`] can be used to process each item individually.
-#[macro_export]
-#[doc(hidden)]
-macro_rules! lint_pass_fns {
-    ($name:path) => {
-        $name !(($)
-            fn registered_lints<'ast>(&self) -> Box<[&'static $crate::lint::Lint]>;
-
-            fn check_item<'ast>(
-                &(mut) self,
-                _cx: &'ast $crate::context::AstContext<'ast>,
-                _item: $crate::ast::item::ItemKind<'ast>) -> ();
-            fn check_field<'ast>(
-                &(mut) self,
-                _cx: &'ast $crate::context::AstContext<'ast>,
-                _field: &'ast $crate::ast::item::Field<'ast>) -> ();
-            fn check_variant<'ast>(
-                &(mut) self,
-                _cx: &'ast $crate::context::AstContext<'ast>,
-                _variant: &'ast $crate::ast::item::EnumVariant<'ast>) -> ();
-            fn check_body<'ast>(
-                &(mut) self,
-                _cx: &'ast $crate::context::AstContext<'ast>,
-                _body: &'ast $crate::ast::item::Body<'ast>) -> ();
-            fn check_stmt<'ast>(
-                &(mut) self,
-                _cx: &'ast $crate::context::AstContext<'ast>,
-                _stmt: $crate::ast::stmt::StmtKind<'ast>) -> ();
-            fn check_expr<'ast>(
-                &(mut) self,
-                _cx: &'ast $crate::context::AstContext<'ast>,
-                _expr: $crate::ast::expr::ExprKind<'ast>) -> ();
-        );
-    };
-}
-
-/// **!Unstable!**
-///
-/// This generates the [`for_each_lint_pass_fn`] macro.
-#[macro_export]
-#[doc(hidden)]
-macro_rules! gen_for_each_lint_pass_fn {
-    (
-        ($dollar:tt)
-        $(fn $fn_name:ident<'ast>(& $(($mut_:tt))? self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty;)+
-    ) => {
-        /// **!Unstable!**
-        ///
-        /// This calls a macro for each function available in the [`LintPass`] trait. The following
-        /// patterns can be used to match the two different types of functions currently defined for
-        /// the trait. See [`lint_pass_fns`] for more information.
-        /// ```
-        /// macro_rules! lint_pass_macro {
-        ///     (fn $fn_name:ident<'ast>(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
-        ///         // TODO
-        ///     };
-        ///     (fn $fn_name:ident<'ast>(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
-        ///         // TODO
-        ///     };
-        /// }
-        /// ```
-        #[macro_export]
-        #[doc(hidden)]
-        macro_rules! for_each_lint_pass_fn {
-            ($dollar macro_name:path) => {
-                $(
-                    $dollar macro_name !(fn $fn_name<'ast>(& $(($mut_))? self $(, $arg_name: $arg_ty)*) -> $ret_ty);
-                )*
-            }
-        }
-    };
-}
-lint_pass_fns!(crate::gen_for_each_lint_pass_fn);
-
 /// A [`LintPass`] visits every node like a `Visitor`. The difference is that a
 /// [`LintPass`] provides some additional information about the implemented lints.
 /// The adapter will walk through the entire AST once and give each node to the
 /// registered [`LintPass`]es.
 pub trait LintPass {
-    for_each_lint_pass_fn!(crate::decl_lint_pass_fn);
-}
+    fn registered_lints(&self) -> Box<[&'static lint::Lint]>;
 
-/// This macro currently expects that all declarations taking `&self` have to be
-/// implemented while all taking `&mut self` have an empty default implementation.
-#[doc(hidden)]
-macro_rules! decl_lint_pass_fn {
-    (fn $fn_name:ident<'ast>(&self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
-        fn $fn_name(&self $(,$arg_name: $arg_ty)*) -> $ret_ty;
-    };
-    (fn $fn_name:ident<'ast>(&(mut) self $(, $arg_name:ident: $arg_ty:ty)*) -> $ret_ty:ty) => {
-        fn $fn_name<'ast>(&mut self $(,$arg_name: $arg_ty)*) -> $ret_ty {}
-    };
+    fn check_item<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _item: ast::item::ItemKind<'ast>) {}
+    fn check_field<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _field: &'ast ast::item::Field<'ast>) {}
+    fn check_variant<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _variant: &'ast ast::item::EnumVariant<'ast>) {}
+    fn check_body<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _body: &'ast ast::item::Body<'ast>) {}
+    fn check_stmt<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _stmt: ast::stmt::StmtKind<'ast>) {}
+    fn check_expr<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _expr: ast::expr::ExprKind<'ast>) {}
 }
-use decl_lint_pass_fn;
