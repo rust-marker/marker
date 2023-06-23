@@ -17,11 +17,11 @@ use marker_api::{
 
 /// This struct is the interface used by lint drivers to pass transformed objects to
 /// external lint passes.
-pub struct Adapter<'ast> {
-    external_lint_crates: LintCrateRegistry<'ast>,
+pub struct Adapter {
+    external_lint_crates: LintCrateRegistry,
 }
 
-impl<'ast> Adapter<'ast> {
+impl Adapter {
     #[must_use]
     pub fn new_from_env() -> Self {
         let external_lint_crates = LintCrateRegistry::new_from_env();
@@ -33,16 +33,16 @@ impl<'ast> Adapter<'ast> {
         self.external_lint_crates.registered_lints()
     }
 
-    pub fn process_krate(&mut self, cx: &'ast AstContext<'ast>, krate: &Crate<'ast>) {
+    pub fn process_krate<'ast>(&mut self, cx: &'ast AstContext<'ast>, krate: &Crate<'ast>) {
         self.external_lint_crates.set_ast_context(cx);
 
         for item in krate.items() {
-            self.external_lint_crates.check_item(cx, *item);
             self.process_item(cx, item);
         }
     }
 
-    fn process_item(&mut self, cx: &'ast AstContext<'ast>, item: &ItemKind<'ast>) {
+    fn process_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &ItemKind<'ast>) {
+        self.external_lint_crates.check_item(cx, *item);
         match item {
             ItemKind::Mod(data) => {
                 for item in data.items() {
@@ -72,14 +72,14 @@ impl<'ast> Adapter<'ast> {
         }
     }
 
-    fn process_body(&mut self, cx: &'ast AstContext<'ast>, id: BodyId) {
+    fn process_body<'ast>(&mut self, cx: &'ast AstContext<'ast>, id: BodyId) {
         let body = cx.body(id);
         self.external_lint_crates.check_body(cx, body);
         let expr = body.expr();
         self.process_expr(cx, expr);
     }
 
-    fn process_expr(&mut self, cx: &'ast AstContext<'ast>, expr: ExprKind<'ast>) {
+    fn process_expr<'ast>(&mut self, cx: &'ast AstContext<'ast>, expr: ExprKind<'ast>) {
         self.external_lint_crates.check_expr(cx, expr);
         #[expect(clippy::single_match)]
         match expr {

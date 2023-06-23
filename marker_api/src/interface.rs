@@ -71,25 +71,44 @@ macro_rules! export_lint_pass {
                     $crate::context::set_ast_cx(cx);
                 }
                 extern "C" fn registered_lints() -> &'static [&'static $crate::lint::Lint] {
-                    let _lints: Box<[&'static $crate::lint::Lint]> = super::__MARKER_STATE.with(|state| state.borrow_mut().registered_lints());
+                    let _lints: Box<[&'static $crate::lint::Lint]> =
+                        super::__MARKER_STATE.with(|state| state.borrow_mut().registered_lints());
                     todo!()
                 }
-                extern "C" fn check_item<'ast>(cx: &'ast $crate::AstContext<'ast>, item: $crate::ast::item::ItemKind<'ast>) {
+                extern "C" fn check_item<'ast>(
+                    cx: &'ast $crate::AstContext<'ast>,
+                    item: $crate::ast::item::ItemKind<'ast>,
+                ) {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().check_item(cx, item));
                 }
-                extern "C" fn check_field<'ast>(cx: &'ast $crate::AstContext<'ast>, field: &'ast $crate::ast::item::Field<'ast>) {
+                extern "C" fn check_field<'ast>(
+                    cx: &'ast $crate::AstContext<'ast>,
+                    field: &'ast $crate::ast::item::Field<'ast>,
+                ) {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().check_field(cx, field));
                 }
-                extern "C" fn check_variant<'ast>(cx: &'ast $crate::AstContext<'ast>, variant: &'ast $crate::ast::item::EnumVariant<'ast>) {
+                extern "C" fn check_variant<'ast>(
+                    cx: &'ast $crate::AstContext<'ast>,
+                    variant: &'ast $crate::ast::item::EnumVariant<'ast>,
+                ) {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().check_variant(cx, variant));
                 }
-                extern "C" fn check_body<'ast>(cx: &'ast $crate::AstContext<'ast>, body: &'ast $crate::ast::item::Body<'ast>) {
+                extern "C" fn check_body<'ast>(
+                    cx: &'ast $crate::AstContext<'ast>,
+                    body: &'ast $crate::ast::item::Body<'ast>,
+                ) {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().check_body(cx, body));
                 }
-                extern "C" fn check_stmt<'ast>(cx: &'ast $crate::AstContext<'ast>, stmt: $crate::ast::stmt::StmtKind<'ast>) {
+                extern "C" fn check_stmt<'ast>(
+                    cx: &'ast $crate::AstContext<'ast>,
+                    stmt: $crate::ast::stmt::StmtKind<'ast>,
+                ) {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().check_stmt(cx, stmt));
                 }
-                extern "C" fn check_expr<'ast>(cx: &'ast $crate::AstContext<'ast>, expr: $crate::ast::expr::ExprKind<'ast>) {
+                extern "C" fn check_expr<'ast>(
+                    cx: &'ast $crate::AstContext<'ast>,
+                    expr: $crate::ast::expr::ExprKind<'ast>,
+                ) {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().check_expr(cx, expr));
                 }
 

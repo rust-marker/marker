@@ -15,7 +15,6 @@ use marker_api::{
     LintPass,
 };
 
-
 #[derive(Default)]
 struct TestLintPass {}
 
