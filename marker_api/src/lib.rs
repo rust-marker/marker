@@ -21,13 +21,14 @@ pub mod lint;
 pub mod ffi;
 
 pub use context::AstContext;
+pub use interface::{LintPassInfo, LintPassInfoBuilder};
 
 /// A [`LintPass`] visits every node like a `Visitor`. The difference is that a
 /// [`LintPass`] provides some additional information about the implemented lints.
 /// The adapter will walk through the entire AST once and give each node to the
 /// registered [`LintPass`]es.
 pub trait LintPass {
-    fn registered_lints(&self) -> Box<[&'static lint::Lint]>;
+    fn info(&self) -> LintPassInfo;
 
     fn check_item<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _item: ast::item::ItemKind<'ast>) {}
     fn check_field<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _field: &'ast ast::item::Field<'ast>) {}

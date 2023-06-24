@@ -1,9 +1,8 @@
 use cfg_if::cfg_if;
 use libloading::Library;
 
-use marker_api::lint::Lint;
-use marker_api::LintPass;
 use marker_api::{interface::LintCrateBindings, AstContext};
+use marker_api::{LintPass, LintPassInfo};
 
 use std::ffi::{OsStr, OsString};
 
@@ -95,16 +94,19 @@ impl LintCrateRegistry {
             (lint_pass.bindings.set_ast_context)(cx);
         }
     }
+
+    pub(crate) fn collect_lint_pass_info(&self) -> Vec<LintPassInfo> {
+        let mut info = vec![];
+        for pass in &self.passes {
+            info.push((pass.bindings.info)());
+        }
+        info
+    }
 }
 
 #[warn(clippy::missing_trait_methods)]
 impl LintPass for LintCrateRegistry {
-    fn registered_lints(&self) -> Box<[&'static Lint]> {
-        // let mut lints = vec![];
-        // for lint_pass in &self.passes {
-        //     lints.extend_from_slice(&lint_pass.registered_lints());
-        // }
-        // lints.into_boxed_slice()
+    fn info(&self) -> LintPassInfo {
         panic!("`registered_lints` should not be called on `LintCrateRegistry`");
     }
 

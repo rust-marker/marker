@@ -11,8 +11,7 @@ use loader::LintCrateRegistry;
 use marker_api::{
     ast::{expr::ExprKind, item::ItemKind, BodyId, Crate},
     context::AstContext,
-    lint::Lint,
-    LintPass,
+    LintPass, LintPassInfo,
 };
 
 /// This struct is the interface used by lint drivers to pass transformed objects to
@@ -29,8 +28,8 @@ impl Adapter {
     }
 
     #[must_use]
-    pub fn registered_lints(&self) -> Box<[&'static Lint]> {
-        self.external_lint_crates.registered_lints()
+    pub fn registered_lints(&self) -> Vec<LintPassInfo> {
+        self.external_lint_crates.collect_lint_pass_info()
     }
 
     pub fn process_krate<'ast>(&mut self, cx: &'ast AstContext<'ast>, krate: &Crate<'ast>) {

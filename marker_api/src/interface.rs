@@ -1,7 +1,7 @@
 //! A module responsible for generating and exposing an interface from lint crates.
 //! [`export_lint_pass`](crate::export_lint_pass) is the main macro, from this module.
 
-use crate::context::AstContext;
+use crate::{context::AstContext, ffi::FfiSlice, lint::Lint};
 
 /// **!Unstable!**
 /// This struct is used to connect lint crates to drivers.
@@ -11,7 +11,7 @@ pub struct LintCrateBindings {
     pub set_ast_context: for<'ast> extern "C" fn(cx: &'ast AstContext<'ast>),
 
     // lint pass functions
-    pub registered_lints: for<'ast> extern "C" fn() -> &'static [&'static crate::lint::Lint],
+    pub info: for<'ast> extern "C" fn() -> LintPassInfo,
     pub check_item: for<'ast> extern "C" fn(&'ast AstContext<'ast>, crate::ast::item::ItemKind<'ast>),
     pub check_field: for<'ast> extern "C" fn(&'ast AstContext<'ast>, &'ast crate::ast::item::Field<'ast>),
     pub check_variant: for<'ast> extern "C" fn(&'ast AstContext<'ast>, &'ast crate::ast::item::EnumVariant<'ast>),
@@ -70,13 +70,13 @@ macro_rules! export_lint_pass {
             /// communication between marker's driver and lint crates.
             #[no_mangle]
             extern "C" fn marker_get_lint_crate_bindings() -> $crate::interface::LintCrateBindings {
+                pub use $crate::LintPass;
+
                 extern "C" fn set_ast_context<'ast>(cx: &'ast $crate::AstContext<'ast>) {
                     $crate::context::set_ast_cx(cx);
                 }
-                extern "C" fn registered_lints() -> &'static [&'static $crate::lint::Lint] {
-                    let _lints: Box<[&'static $crate::lint::Lint]> =
-                        super::__MARKER_STATE.with(|state| state.borrow_mut().registered_lints());
-                    todo!()
+                extern "C" fn info() -> $crate::LintPassInfo {
+                    super::__MARKER_STATE.with(|state| state.borrow_mut().info())
                 }
                 extern "C" fn check_item<'ast>(
                     cx: &'ast $crate::AstContext<'ast>,
@@ -117,7 +117,7 @@ macro_rules! export_lint_pass {
 
                 $crate::interface::LintCrateBindings {
                     set_ast_context,
-                    registered_lints,
+                    info,
                     check_item,
                     check_field,
                     check_variant,
@@ -128,4 +128,43 @@ macro_rules! export_lint_pass {
             }
         }
     };
+}
+
+#[derive(Debug)]
+pub struct LintPassInfoBuilder {
+    lints: &'static [&'static Lint],
+}
+
+impl LintPassInfoBuilder {
+    /// This method creates a new [`LintPassInfoBuilder`] with minimal required information.
+    ///
+    /// The `lints` argument should contain all lints which can be emitted by this crate. It
+    /// allows the driver to track the lint level.
+    pub fn new(lints: Box<[&'static Lint]>) -> Self {
+        Self {
+            // It's hard to add lifetimes to the `LintPassInfo` due to how and when it
+            // is called. Ideally, it would be cool to just store the `Box` directly but
+            // that is sadly not possible due to ABI constraints
+            lints: Box::leak(lints),
+        }
+    }
+
+    /// This method builds the [`LintPassInfo`], ready for consumption.
+    pub fn build(self) -> LintPassInfo {
+        LintPassInfo {
+            lints: self.lints.into(),
+        }
+    }
+}
+
+/// This struct provides basic information required by the driver. It can also
+/// be used to provide additional information. The struct is constructed using
+/// the [`LintPassInfoBuilder`].
+///
+/// All references and pointers in this struct have to have the `'static` lifetime
+/// due to ABI constraints.
+#[repr(C)]
+#[non_exhaustive]
+pub struct LintPassInfo {
+    lints: FfiSlice<'static, &'static Lint>,
 }

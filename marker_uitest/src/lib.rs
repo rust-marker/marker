@@ -11,8 +11,7 @@ use marker_api::{
     },
     context::AstContext,
     diagnostic::{Applicability, EmissionNode},
-    lint::Lint,
-    LintPass,
+    LintPass, LintPassInfo, LintPassInfoBuilder,
 };
 
 #[derive(Default)]
@@ -41,8 +40,8 @@ fn emit_item_with_test_name_lint<'ast>(
 }
 
 impl LintPass for TestLintPass {
-    fn registered_lints(&self) -> Box<[&'static Lint]> {
-        Box::new([TEST_LINT])
+    fn info(&self) -> LintPassInfo {
+        LintPassInfoBuilder::new(Box::new([TEST_LINT, ITEM_WITH_TEST_NAME])).build()
     }
 
     fn check_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
