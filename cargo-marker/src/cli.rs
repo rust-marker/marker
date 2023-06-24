@@ -69,6 +69,12 @@ fn setup_command() -> Command {
     Command::new("setup")
         .about("A collection of commands to setup marker")
         .after_help("By default this will install the driver for rustc.")
+        .arg(
+            Arg::new("auto-install-toolchain")
+                .long("auto-install-toolchain")
+                .action(ArgAction::SetTrue)
+                .help("This automatically installs the required toolchain using rustup"),
+        )
 }
 
 fn check_command() -> Command {

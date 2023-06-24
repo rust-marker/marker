@@ -140,7 +140,7 @@ fn main() -> Result<(), ExitStatus> {
     };
 
     match matches.subcommand() {
-        Some(("setup", _args)) => driver::install_driver(&flags),
+        Some(("setup", args)) => driver::install_driver(&flags, args.get_flag("auto-install-toolchain")),
         Some(("check", args)) => run_check(choose_lint_crates(args, config)?, &flags),
         None => run_check(choose_lint_crates(&matches, config)?, &flags),
         _ => unreachable!(),
@@ -150,7 +150,7 @@ fn main() -> Result<(), ExitStatus> {
 fn run_check(crate_entries: Vec<LintCrateSpec>, flags: &Flags) -> Result<(), ExitStatus> {
     // If this is a dev build, we want to recompile the driver before checking
     if flags.dev_build {
-        driver::install_driver(flags)?;
+        driver::install_driver(flags, false)?;
     }
 
     // FIXME: Respect version info during lint crate compilation

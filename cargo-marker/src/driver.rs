@@ -49,30 +49,50 @@ pub fn print_driver_version(flags: &Flags) {
 }
 
 /// This tries to install the rustc driver specified in [`DEFAULT_DRIVER_INFO`].
-pub fn install_driver(flags: &Flags) -> Result<(), ExitStatus> {
+pub fn install_driver(flags: &Flags, auto_install_toolchain: bool) -> Result<(), ExitStatus> {
     // The toolchain, driver version and api version should ideally be configurable.
     // However, that will require more prototyping and has a low priority rn.
     // See #60
 
     // Prerequisites
     let toolchain = &DEFAULT_DRIVER_INFO.toolchain;
-    check_toolchain(toolchain)?;
+    if rustup_which(toolchain, "cargo", false).is_err() {
+        if auto_install_toolchain {
+            install_toolchain(toolchain, flags)?;
+        } else {
+            eprintln!("Error: The required toolchain `{toolchain}` can't be found");
+            eprintln!();
+            eprintln!("You can install the toolchain by running: `rustup toolchain install {toolchain}`");
+            eprintln!("Or by adding the `--auto-install-toolchain` flag");
+            return Err(ExitStatus::InvalidToolchain);
+        }
+    }
 
     build_driver(toolchain, &DEFAULT_DRIVER_INFO.version, flags)?;
 
     RunInfo::find_driver_location(flags).map(|_| ())
 }
 
-/// This function checks if the specified toolchain is installed. This requires
-/// rustup. A dependency we have to live with for now.
-fn check_toolchain(toolchain: &str) -> Result<(), ExitStatus> {
-    if rustup_which(toolchain, "cargo", false).is_err() {
-        eprintln!("Error: The required toolchain `{toolchain}` can't be found");
-        eprintln!();
-        eprintln!("You can install the toolchain by running: rustup toolchain install {toolchain}");
-        Err(ExitStatus::InvalidToolchain)
-    } else {
+fn install_toolchain(toolchain: &str, flags: &Flags) -> Result<(), ExitStatus> {
+    let mut cmd = Command::new("rustup");
+
+    if flags.verbose {
+        cmd.arg("--verbose");
+    }
+
+    cmd.args(["toolchain", "install", toolchain]);
+
+    let status = cmd
+        .spawn()
+        .expect("unable to start rustup to install the toolchain")
+        .wait()
+        .expect("unable to wait on rustup to install the toolchain");
+    if status.success() {
         Ok(())
+    } else {
+        // The user can see rustup's output, as the command output was passed on
+        // to the user via the `.spawn()` call.
+        Err(ExitStatus::InvalidToolchain)
     }
 }
 
