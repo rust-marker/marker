@@ -20,9 +20,9 @@ struct TestLintPass {}
 
 marker_api::export_lint_pass!(TestLintPass);
 
-marker_api::lint::declare_lint!(TEST_LINT, Warn, "test lint warning");
+marker_api::declare_lint!(TEST_LINT, Warn, "test lint warning");
 
-marker_api::lint::declare_lint!(
+marker_api::declare_lint!(
     ITEM_WITH_TEST_NAME,
     Warn,
     r#"A lint used for markers uitests.
@@ -58,8 +58,10 @@ impl LintPass for TestLintPass {
             check_static_item(cx, item);
         }
 
-        if matches!(item.ident().map(marker_api::ast::Ident::name), Some(name) if name.starts_with("FindMe") || name.starts_with("FIND_ME") || name.starts_with("find_me"))
-        {
+        if matches!(
+            item.ident().map(marker_api::ast::Ident::name),
+            Some(name) if name.starts_with("FindMe") || name.starts_with("FIND_ME") || name.starts_with("find_me")
+        ) {
             let msg = match item {
                 ItemKind::Mod(_) => Some("module"),
                 ItemKind::Use(_) => Some("use"),

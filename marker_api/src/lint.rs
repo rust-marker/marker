@@ -1,3 +1,4 @@
+#[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 // This sadly cannot be marked as #[non_exhaustive] as the struct construction
 // has to be possible in a static context.
@@ -43,8 +44,12 @@ pub struct Lint {
     // * pub crate_level_only: bool,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+/// FIXME(xFrednet): These settings currently don't work.
+///
+/// See rust-marker#149
+#[repr(C)]
 #[non_exhaustive]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum MacroReport {
     /// No reporting in local or external macros.
     No,
@@ -87,7 +92,7 @@ pub enum Level {
 #[macro_export]
 macro_rules! declare_lint {
     ($(#[$attr:meta])* $NAME: ident, $LEVEL: ident, $EXPLANATION: literal $(,)?) => {
-        $crate::lint::declare_lint!{$(#[$attr])* $NAME, $LEVEL, $EXPLANATION, $crate::lint::MacroReport::No }
+        $crate::declare_lint!{$(#[$attr])* $NAME, $LEVEL, $EXPLANATION, $crate::lint::MacroReport::No }
     };
     ($(#[$attr:meta])* $NAME: ident, $LEVEL: ident,
         $EXPLANATION: literal, $REPORT_IN_MACRO: expr $(,)?
@@ -101,5 +106,3 @@ macro_rules! declare_lint {
         };
     };
 }
-
-pub use declare_lint;

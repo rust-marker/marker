@@ -1,3 +1,6 @@
+//! A module responsible for generating and exposing an interface from lint crates.
+//! [`export_lint_pass`](crate::export_lint_pass) is the main macro, from this module.
+
 use crate::context::AstContext;
 
 /// **!Unstable!**

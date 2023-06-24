@@ -1,3 +1,6 @@
+//! This module is responsible for the construction of diagnostic messages. The
+//! [`DiagnosticBuilder`] is the public stable interface, to construct messages.
+
 use crate::{
     ast::{ExprId, FieldId, ItemId, Span, StmtId, VariantId},
     context::AstContext,
