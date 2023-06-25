@@ -98,7 +98,7 @@ fn build_driver(toolchain: &str, version: &str, flags: &Flags) -> Result<(), Exi
     };
 
     if flags.dev_build {
-        cmd.args(["build", "--bin", "marker_driver_rustc"]);
+        cmd.args(["build", "--bin", "marker_rustc_driver"]);
     } else {
         // FIXME: This currently installs the binary in Cargo's default location.
         // Ideally this should install the driver in the toolchain folder for the
@@ -181,7 +181,7 @@ pub fn get_driver_path() -> PathBuf {
     #[allow(unused_mut)]
     let mut path = std::env::current_exe()
         .expect("unable to retrieve the path of the current executable")
-        .with_file_name("marker_driver_rustc");
+        .with_file_name("marker_rustc_driver");
 
     #[cfg(target_os = "windows")]
     path.set_extension("exe");

@@ -50,7 +50,7 @@ jobs:
     - run: cargo doc
 
   # This task ensures, required packages can be build with a stable toolchain
-  # the only package requiring nightly should be `marker_driver_rustc` and
+  # the only package requiring nightly should be `marker_rustc_driver` and
   # optionally `marker_adapter`
   rust-crates-build-stable:
     runs-on: ubuntu-latest
