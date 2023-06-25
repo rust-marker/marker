@@ -14,4 +14,4 @@ crate-type = ["cdylib"]
 marker_api = { path = "../marker_api" }
 
 [dev-dependencies]
-compiletest_rs = { version = "0.9", features = ["tmp"] }
+compiletest_rs = { version = "0.10", features = ["tmp"] }
