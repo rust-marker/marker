@@ -190,7 +190,10 @@ fn main() {
             }
 
             if orig_args.iter().any(|a| a == "--toolchain") {
-                println!("{RUSTC_TOOLCHAIN_VERSION}");
+                println!("toolchain: {RUSTC_TOOLCHAIN_VERSION}");
+                println!("driver: {}", env!("CARGO_PKG_VERSION"));
+                println!("marker-api: {}", marker_api::MARKER_API_VERSION);
+
                 exit(0);
             }
         }

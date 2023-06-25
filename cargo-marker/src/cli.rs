@@ -4,13 +4,14 @@ use crate::VERSION;
 
 const AFTER_HELP_MSG: &str = r#"CARGO ARGS
     All arguments after double dashes(`--`) will be passed to cargo.
-    These options are the same as for `cargo check`.
+    Run `cargo check --help` to see these options.
 
 EXAMPLES:
     * `cargo marker -l ./marker_lints`
 "#;
 
 #[allow(clippy::struct_excessive_bools)]
+#[derive(Debug)]
 pub struct Flags {
     pub verbose: bool,
     pub test_build: bool,
@@ -68,6 +69,12 @@ fn setup_command() -> Command {
     Command::new("setup")
         .about("A collection of commands to setup marker")
         .after_help("By default this will install the driver for rustc.")
+        .arg(
+            Arg::new("auto-install-toolchain")
+                .long("auto-install-toolchain")
+                .action(ArgAction::SetTrue)
+                .help("This automatically installs the required toolchain using rustup"),
+        )
 }
 
 fn check_command() -> Command {
