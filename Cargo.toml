@@ -3,7 +3,7 @@ members = [
     "cargo-marker",
     "marker_adapter",
     "marker_api",
-    "marker_driver_rustc",
+    "marker_rustc_driver",
     # This is needed for rust-analyzer, uitests and other tools
     "marker_lints",
 ]

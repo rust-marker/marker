@@ -912,21 +912,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "marker_driver_rustc"
+name = "marker_lints"
+version = "0.1.0"
+dependencies = [
+ "compiletest_rs",
+ "marker_api",
+]
+
+[[package]]
+name = "marker_rustc_driver"
 version = "0.1.0"
 dependencies = [
  "bumpalo",
  "marker_adapter",
  "marker_api",
  "rustc_tools_util",
-]
-
-[[package]]
-name = "marker_lints"
-version = "0.1.0"
-dependencies = [
- "compiletest_rs",
- "marker_api",
 ]
 
 [[package]]
