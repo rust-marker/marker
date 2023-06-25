@@ -8,7 +8,7 @@ use std::{
 use cargo_fetch::{GitReference, PackageSource};
 use serde::Deserialize;
 
-use toml_edit::easy::{from_str, Value};
+use toml::{from_str, Value};
 
 use crate::{
     lints::{LintCrateSpec, PackageName},
@@ -86,7 +86,7 @@ pub enum ConfigFetchError {
     /// Read failed
     IoError(io::Error),
     /// Couldn't parse `Cargo.toml`
-    ParseError(toml_edit::de::Error),
+    ParseError(toml::de::Error),
     /// `workspace.metadata.marker` has invalid structure
     InvalidStructure,
     /// `workspace.metadata.marker` doesn't exist

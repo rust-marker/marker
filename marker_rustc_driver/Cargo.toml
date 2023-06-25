@@ -12,10 +12,10 @@ marker_api = { path = "../marker_api", features = ["driver-api"] }
 marker_adapter = { path = "../marker_adapter" }
 
 rustc_tools_util = "0.3"
-bumpalo = "3.10"
+bumpalo = "3.12"
 
 [build-dependencies]
 rustc_tools_util = "0.3"
 
 [package.metadata.rust-analyzer]
-rustc_private=true
+rustc_private = true

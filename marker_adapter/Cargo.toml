@@ -9,5 +9,5 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 marker_api = { path = "../marker_api" }
 
-libloading = "0.7.3"
+libloading = "0.8.0"
 cfg-if = "1.0.0"
