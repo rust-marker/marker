@@ -7,7 +7,7 @@ const AFTER_HELP_MSG: &str = r#"CARGO ARGS
     These options are the same as for `cargo check`.
 
 EXAMPLES:
-    * `cargo marker -l ./marker_lints`
+    * `cargo marker -l ./marker_uitest`
 "#;
 
 #[allow(clippy::struct_excessive_bools)]

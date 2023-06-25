@@ -934,14 +934,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "marker_lints"
-version = "0.1.0"
-dependencies = [
- "compiletest_rs",
- "marker_api",
-]
-
-[[package]]
 name = "marker_rustc_driver"
 version = "0.1.0"
 dependencies = [
@@ -949,6 +941,14 @@ dependencies = [
  "marker_adapter",
  "marker_api",
  "rustc_tools_util",
+]
+
+[[package]]
+name = "marker_uitest"
+version = "0.1.0"
+dependencies = [
+ "compiletest_rs",
+ "marker_api",
 ]
 
 [[package]]

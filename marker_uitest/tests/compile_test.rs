@@ -1,4 +1,4 @@
-//! This test runs the `marker_lints` crate on each file inside the `ui` directory
+//! This test runs the `marker_uitest` crate on each file inside the `ui` directory
 //! and compares the output to the `.stderr` file next to it.
 //!
 //! * To update the output files, you can set the environment value `BLESS` to `1`.
@@ -57,7 +57,7 @@ struct TestSetup {
 fn run_test_setup() -> TestSetup {
     const CARGO_MARKER_INVOCATION: &[&str] = &["run", "--bin", "cargo-marker", "--features", "dev-build", "--"];
 
-    // ../rust-marker/marker_lints
+    // ../rust-marker/marker_uitest
     let current_dir = env::current_dir().unwrap();
     let lint_crate_src = fs::canonicalize(&current_dir).unwrap();
     let mut cmd = Command::new("cargo");

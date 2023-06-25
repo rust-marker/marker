@@ -19,7 +19,7 @@
 
 What works:
 - A basic Item and Pattern representation is available. Expressions and types are partially implemented
-- Dynamic libraries can be loaded as *lint crates*. A few example lints can be found in the `marker_lints` directory
+- Dynamic libraries can be loaded as *lint crates*. A few example lints can be found in the `marker_uitest` directory
 - The API is separated from the driver and translation layer. Rustc is currently the only backend development along with the API
 
 What's next:
@@ -37,7 +37,7 @@ Sounds interesting?
 
 The project is currently only available in this GitHub repo.
 For a quick test, clone the repo and run `cargo dogfood`.
-This will start `cargo-marker`, load [`./marker_lints`](./marker_lints) as a *lint crate* and run it in this repository.
+This will start `cargo-marker`, load [`./marker_uitest`](./marker_uitest) as a *lint crate* and run it in this repository.
 
 ## Contributing
 

@@ -56,9 +56,9 @@ pub struct LintCrateSpec {
     /// [`Path::file_name`], for example in case of
     /// command-line arguments:
     ///
-    /// `--lints ./marker_lints`
+    /// `--lints ./marker_uitest`
     ///
-    /// `marker_lints` is the `package_name`.
+    /// `marker_uitest` is the `package_name`.
     package_name: PackageName,
     /// Version requirement of the package, [`None`] is a wildcard requirement, aka "*".
     version_req: Option<String>,

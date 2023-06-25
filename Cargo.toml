@@ -5,9 +5,9 @@ members = [
     "marker_api",
     "marker_rustc_driver",
     # This is needed for rust-analyzer, uitests and other tools
-    "marker_lints",
+    "marker_uitest",
 ]
 resolver = "2"
 
 [workspace.metadata.marker.lints]
-marker_lints = { path = "marker_lints" }
+marker_uitest = { path = "marker_uitest" }
