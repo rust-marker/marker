@@ -2,5 +2,12 @@
 dogfood = "run --features dev-build --bin cargo-marker -- --forward-rust-flags"
 uitest = "test --test uitest"
 
+# The `binary-dep-depinfo` stuff is required, to provide dependencies to ui tests
+[build]
+rustflags = ["-Zunstable-options", "-Zbinary-dep-depinfo"]
+
+[unstable]
+binary-dep-depinfo = true
+
 [profile.dev]
 split-debuginfo = "unpacked"

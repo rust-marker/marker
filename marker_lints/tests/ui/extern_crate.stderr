@@ -1,0 +1,10 @@
+error: X <-- starting with upper case
+  --> $DIR/extern_crate.rs:26:11
+   |
+LL | fn main() {}
+   |           ^^
+   |
+   = note: `-D marker::diag-msg-capital-start` implied by `-D warnings`
+
+error: aborting due to previous error
+

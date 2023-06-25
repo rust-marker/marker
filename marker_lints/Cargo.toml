@@ -1,0 +1,19 @@
+[package]
+name = "marker_lints"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+keywords = ["marker", "lint"]
+repository = "https://github.com/rust-marker/marker"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+marker_api = { path = "../marker_api" }
+
+[dev-dependencies]
+marker_api = { path = "../marker_api" }
+compiletest_rs = { version = "0.10", features = ["tmp"] }
