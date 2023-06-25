@@ -1,7 +1,16 @@
-# Marker Lints
+# Marker UI tests
 
-Lints specificly crafted for the usage of marker.
-Right now this is just a playground to verify that lint passes are working.
-In the future this crate will hold lints that verify the correct usage of the linting API.
+UI tests for Marker, implemented as a lint crate.
 
-To run these lints on the project itself try: `cargo run --bin cargo-marker -- -l ./marker_uitest`.
+This is also a playground to experiment with markers API.
+
+## Usage
+
+```sh
+# Running these UI tests
+cargo uitest
+
+# Blessing the `.stderr`, `.stdout`, `.fixed` files
+BLESS=1 cargo uitest
+```
+
