@@ -1,15 +1,17 @@
-use std::cell::OnceCell;
+use std::cell::{OnceCell, RefCell};
 
 use marker_adapter::context::{DriverContext, DriverContextWrapper};
 use marker_api::{
     ast::{
         item::{Body, ItemKind},
-        BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId,
+        BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId, TyDefId,
     },
     context::AstContext,
     diagnostic::{Diagnostic, EmissionNode},
     lint::{Level, Lint},
 };
+use rustc_hash::FxHashMap;
+use rustc_hir as hir;
 use rustc_lint::LintStore;
 use rustc_middle::ty::TyCtxt;
 
@@ -31,6 +33,7 @@ pub mod storage;
 pub struct RustcContext<'ast, 'tcx> {
     pub rustc_cx: TyCtxt<'tcx>,
     pub lint_store: &'tcx LintStore,
+
     pub storage: &'ast Storage<'ast>,
     pub marker_converter: MarkerConverter<'ast, 'tcx>,
     pub rustc_converter: RustcConverter<'ast, 'tcx>,
@@ -39,6 +42,7 @@ pub struct RustcContext<'ast, 'tcx> {
     /// [`RustcContext`]. The once cell will be set immediately after the creation
     /// which makes it safe to access afterwards.
     ast_cx: OnceCell<&'ast AstContext<'ast>>,
+    resolved_ty_ids: RefCell<FxHashMap<&'ast str, &'ast [TyDefId]>>,
 }
 
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
@@ -51,6 +55,7 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
             marker_converter: MarkerConverter::new(rustc_cx, storage),
             rustc_converter: RustcConverter::new(rustc_cx, storage),
             ast_cx: OnceCell::new(),
+            resolved_ty_ids: RefCell::default(),
         });
 
         // Create and link `AstContext`
@@ -131,6 +136,79 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         self.marker_converter.to_body(rustc_body)
     }
 
+    fn resolve_ty_ids(&'ast self, path: &str) -> &'ast [TyDefId] {
+        // Caching
+        if let Some(ids) = self.resolved_ty_ids.borrow().get(path) {
+            return ids;
+        }
+
+        // Path splitting and "validation"
+        let mut splits = path.split("::");
+        let Some(krate_name) = splits.next() else {
+            return &[];
+        };
+        let segs: Vec<_> = splits.collect();
+        if segs.is_empty() {
+            return &[];
+        }
+        // This method is only intended to resolve `TyDefId`s, this means we can
+        // ignore primitive types and all others which are specificity handled in
+        // the `*TyKind` enums. Basically, we only need to find the ids of Enums,
+        // Structs, Unions and maybe type aliases.
+        //
+        // This code is inspired by `clippy_utils::def_path_res` without the special
+        // handling for primitive types and other items
+        let tcx = self.rustc_cx;
+        let krate_name = rustc_span::Symbol::intern(krate_name);
+        let additional_krate: &[_] = if krate_name == rustc_span::symbol::kw::Crate {
+            &[hir::def_id::LOCAL_CRATE]
+        } else {
+            &[]
+        };
+        let krates = tcx
+            .crates(())
+            .iter()
+            .copied()
+            .chain(std::iter::once(hir::def_id::LOCAL_CRATE))
+            .filter(|id| tcx.crate_name(*id) == krate_name)
+            .chain(additional_krate.iter().copied());
+        let mut searches: Vec<_> = krates
+            .map(rustc_span::def_id::CrateNum::as_def_id)
+            .map(|id| hir::def::Res::Def::<hir::def_id::DefId>(tcx.def_kind(id), id))
+            .collect();
+
+        let mut rest = &segs[..];
+        while let [seg, next_rest @ ..] = rest {
+            rest = next_rest;
+            let seg = rustc_span::Symbol::intern(seg);
+            searches = select_children_with_name(tcx, &searches, seg);
+        }
+
+        // Filtering to only take `DefId`s which are also `TyDefId`s
+        let ids: Vec<_> = searches
+            .into_iter()
+            .filter_map(|res| res.opt_def_id())
+            .filter(|def_id| {
+                matches!(
+                    tcx.def_kind(def_id),
+                    hir::def::DefKind::Struct
+                        | hir::def::DefKind::Union
+                        | hir::def::DefKind::Enum
+                        | hir::def::DefKind::Trait
+                        | hir::def::DefKind::TyAlias
+                )
+            })
+            .map(|def_id| self.marker_converter.to_ty_def_id(def_id))
+            .collect();
+
+        // Allocation and caching
+        let ids = self.storage.alloc_slice(ids);
+        self.resolved_ty_ids
+            .borrow_mut()
+            .insert(self.storage.alloc_str(path), ids);
+        ids
+    }
+
     fn expr_ty(&'ast self, expr: ExprId) -> marker_api::ast::ty::SemTyKind<'ast> {
         let hir_id = self.rustc_converter.to_hir_id(expr);
         self.marker_converter.expr_ty(hir_id)
@@ -163,4 +241,53 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
     fn resolve_method_target(&'ast self, _id: ExprId) -> ItemId {
         todo!()
     }
+}
+
+fn select_children_with_name(
+    tcx: TyCtxt<'_>,
+    search: &[hir::def::Res<hir::def_id::DefId>],
+    name: rustc_span::Symbol,
+) -> Vec<hir::def::Res<hir::def_id::DefId>> {
+    let mut next_search = vec![];
+    search
+        .iter()
+        .filter_map(rustc_hir::def::Res::mod_def_id)
+        .for_each(|id| {
+            if let Some(local_id) = id.as_local() {
+                let hir = tcx.hir();
+
+                let root_mod;
+                let item = match hir.find_by_def_id(local_id) {
+                    Some(hir::Node::Crate(r#mod)) => {
+                        root_mod = hir::ItemKind::Mod(r#mod);
+                        Some(&root_mod)
+                    },
+                    Some(hir::Node::Item(item)) => Some(&item.kind),
+                    _ => None,
+                };
+
+                if let Some(hir::ItemKind::Mod(module)) = item {
+                    module
+                        .item_ids
+                        .iter()
+                        .filter_map(|&item_id| {
+                            if hir.item(item_id).ident.name == name {
+                                let def_id = item_id.owner_id.to_def_id();
+                                Some(hir::def::Res::Def(tcx.def_kind(def_id), def_id))
+                            } else {
+                                None
+                            }
+                        })
+                        .collect_into(&mut next_search);
+                }
+            } else if let hir::def::DefKind::Mod = tcx.def_kind(id) {
+                tcx.module_children(id)
+                    .iter()
+                    .filter(|item| item.ident.name == name)
+                    .map(|child| child.res.expect_non_local())
+                    .collect_into(&mut next_search);
+            }
+        });
+
+    next_search
 }

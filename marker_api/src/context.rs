@@ -4,7 +4,7 @@ use crate::{
     ast::{
         item::{Body, ItemKind},
         ty::SemTyKind,
-        BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId,
+        BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId, TyDefId,
     },
     diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
@@ -146,6 +146,31 @@ impl<'ast> AstContext<'ast> {
     pub fn body(&self, id: BodyId) -> &Body<'ast> {
         self.driver.call_body(id)
     }
+
+    /// This function tries to resolve the given path to the corresponding [`TyDefId`].
+    ///
+    /// The slice might be empty if the path could not be resolved. This could be
+    /// due to an error in the path or because the linted crate doesn't have the
+    /// required dependency. The function can also return multiple [`TyDefId`]s,
+    /// if there are multiple crates with different versions in the dependency tree.
+    ///
+    /// The returned ids are unordered and, depending on the driver, can also
+    /// change during different calls. The slice should not be stored across
+    /// `check_*` calls.
+    ///
+    /// Here is a simple example, how the method could be used:
+    /// ```ignore
+    /// // Get the type of an expression and check that it's an ADT
+    /// if let SemTyKind::Adt(ty) = expr.ty() {
+    ///     // Check if the id belongs to the path
+    ///     if cx.resolve_ty_ids("example::path::Item").contains(&ty.ty_id()) {
+    ///         // ...
+    ///     }
+    /// }
+    /// ```
+    pub fn resolve_ty_ids(&self, path: &str) -> &[TyDefId] {
+        (self.driver.resolve_ty_ids)(self.driver.driver_context, path.into()).get()
+    }
 }
 
 impl<'ast> AstContext<'ast> {
@@ -203,6 +228,8 @@ struct DriverCallbacks<'ast> {
     pub item: extern "C" fn(&'ast (), id: ItemId) -> ffi::FfiOption<ItemKind<'ast>>,
     pub body: extern "C" fn(&'ast (), id: BodyId) -> &'ast Body<'ast>,
 
+    pub resolve_ty_ids: extern "C" fn(&'ast (), path: ffi::FfiStr<'_>) -> ffi::FfiSlice<'ast, TyDefId>,
+
     // Internal utility
     pub expr_ty: extern "C" fn(&'ast (), ExprId) -> SemTyKind<'ast>,
     pub get_span: extern "C" fn(&'ast (), &SpanOwner) -> &'ast Span<'ast>,
@@ -223,6 +250,10 @@ impl<'ast> DriverCallbacks<'ast> {
     fn call_item(&self, id: ItemId) -> Option<ItemKind<'ast>> {
         (self.item)(self.driver_context, id).copy()
     }
+    fn call_body(&self, id: BodyId) -> &'ast Body<'ast> {
+        (self.body)(self.driver_context, id)
+    }
+
     fn call_expr_ty(&self, expr: ExprId) -> SemTyKind<'ast> {
         (self.expr_ty)(self.driver_context, expr)
     }
@@ -235,9 +266,6 @@ impl<'ast> DriverCallbacks<'ast> {
     }
     fn call_symbol_str(&self, sym: SymbolId) -> &'ast str {
         (self.symbol_str)(self.driver_context, sym).get()
-    }
-    pub fn call_body(&self, id: BodyId) -> &'ast Body<'ast> {
-        (self.body)(self.driver_context, id)
     }
     pub fn resolve_method_target(&self, expr: ExprId) -> ItemId {
         (self.resolve_method_target)(self.driver_context, expr)

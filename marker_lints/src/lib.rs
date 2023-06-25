@@ -4,11 +4,12 @@
 use marker_api::{
     ast::{
         item::{
-            ConstItem, EnumItem, EnumVariant, ExternCrateItem, Field, FnItem, ItemData, ModItem, StaticItem,
+            ConstItem, EnumItem, EnumVariant, ExternCrateItem, Field, FnItem, ItemData, ItemKind, ModItem, StaticItem,
             StructItem, UseItem,
         },
         pat::PatKind,
         stmt::StmtKind,
+        ty::SemTyKind,
         Span,
     },
     context::AstContext,
@@ -140,6 +141,79 @@ impl LintPass for TestLintPass {
                 cx.emit_lint(TEST_LINT, stmt.id(), "print type test", stmt.span(), |diag| {
                     diag.note(format!("{:#?}", expr.ty()));
                 });
+            } else if ident.name().starts_with("_check_path") {
+                cx.emit_lint(TEST_LINT, stmt.id(), "check type resolution", stmt.span(), |diag| {
+                    let SemTyKind::Adt(adt) = expr.ty() else {
+                        unreachable!("how? Everything should be an ADT")
+                    };
+                    let path = "std::vec::Vec";
+                    let ids = cx.resolve_ty_ids(path);
+                    diag.note(format!("Is this a {:#?} -> {}", path, ids.contains(&adt.def_id())));
+
+                    let path = "std::string::String";
+                    let ids = cx.resolve_ty_ids(path);
+                    diag.note(format!("Is this a {:#?} -> {}", path, ids.contains(&adt.def_id())));
+
+                    let path = "std::option::Option";
+                    let ids = cx.resolve_ty_ids(path);
+                    diag.note(format!("Is this a {:#?} -> {}", path, ids.contains(&adt.def_id())));
+
+                    let path = "crate::TestType";
+                    let ids = cx.resolve_ty_ids(path);
+                    diag.note(format!("Is this a {:#?} -> {}", path, ids.contains(&adt.def_id())));
+                });
+            }
+        }
+    }
+
+    fn check_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
+        fn try_resolve_path(cx: &AstContext<'_>, path: &str) {
+            let ids = cx.resolve_ty_ids(path);
+            eprintln!("Resolving {path:?} yielded {ids:#?}");
+        }
+
+        if let ItemKind::Fn(item) = item {
+            if let Some(ident) = item.ident() {
+                if ident.name() == "test_ty_id_resolution" {
+                    eprintln!("# Invalid paths");
+                    try_resolve_path(cx, "");
+                    try_resolve_path(cx, "something");
+                    try_resolve_path(cx, "bool");
+                    try_resolve_path(cx, "u32");
+                    try_resolve_path(cx, "crate::super");
+                    try_resolve_path(cx, "crate::self::super");
+
+                    eprintln!();
+                    eprintln!("# Unresolvable");
+                    try_resolve_path(cx, "something::weird");
+                    try_resolve_path(cx, "something::weird::very::very::very::very::very::long");
+
+                    eprintln!();
+                    eprintln!("# Not a type");
+                    try_resolve_path(cx, "std::env");
+                    try_resolve_path(cx, "std::i32");
+                    try_resolve_path(cx, "std::primitive::i32");
+                    try_resolve_path(cx, "std::option::Option::None");
+
+                    eprintln!();
+                    eprintln!("# Valid");
+                    try_resolve_path(cx, "std::option::Option");
+                    try_resolve_path(cx, "std::vec::Vec");
+                    try_resolve_path(cx, "std::string::String");
+
+                    eprintln!();
+                    eprintln!("# Valid local items");
+                    try_resolve_path(cx, "item_id_resolution::TestType");
+                    try_resolve_path(cx, "crate::TestType");
+                    eprintln!(
+                        "Check equal: {}",
+                        cx.resolve_ty_ids("item_id_resolution::TestType") == cx.resolve_ty_ids("crate::TestType")
+                    );
+
+                    eprintln!();
+                    eprintln!("=====================================================================");
+                    eprintln!();
+                }
             }
         }
     }
