@@ -45,10 +45,9 @@ Internal structure of marker and its components is documented in [`docs/internal
 
 ## License
 
-Copyright (c) 2022-2022 Rust-marker
+Copyright (c) 2022-2023 Rust-Marker
 
-Rust-marker is distributed under the terms of both the MIT license
-and the Apache License (Version 2.0).
+Rust-marker is distributed under the terms of the MIT license
+or the Apache License (Version 2.0).
 
-See [LICENSE-APACHE](./LICENSE-APACHE), [LICENSE-MIT](./LICENSE-MIT).
-
+See [LICENSE-APACHE](https://github.com/rust-marker/marker/blob/master/LICENSE-APACHE), [LICENSE-MIT](https://github.com/rust-marker/marker/blob/master/LICENSE-MIT).

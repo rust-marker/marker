@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 #![warn(clippy::pedantic)]
 #![warn(clippy::index_refutable_slice)]
 #![allow(clippy::module_name_repetitions)]
