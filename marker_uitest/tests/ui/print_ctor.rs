@@ -1,5 +1,3 @@
-// normalize-stderr-windows: "tests/ui/" -> "$$DIR/"
-
 #[derive(Debug, Default)]
 struct FieldStruct {
     a: u32,
@@ -29,12 +27,18 @@ fn main() {
     let _print_range = ..;
 
     let _print_ctor = FieldStruct { a: 1, b: 2 };
-    let _print_ctor = FieldStruct { a: 10, ..FieldStruct::default() };
+    let _print_ctor = FieldStruct {
+        a: 10,
+        ..FieldStruct::default()
+    };
 
     let _print_ctor = Union { a: 8 };
 
     let _print_ctor = TupleStruct(1, 2);
-    let _print_ctor = TupleStruct { 0: 3, ..TupleStruct::default() };
+    let _print_ctor = TupleStruct {
+        0: 3,
+        ..TupleStruct::default()
+    };
 
     let _print_ctor = Enum::A;
     let _print_ctor = Enum::B(1);

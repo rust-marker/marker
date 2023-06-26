@@ -1,7 +1,7 @@
 warning: print test
-  --> $DIR/print_path_expr.rs:31:5
+  --> $DIR/print_path_expr.rs:29:5
    |
-31 |     let _print_path = rand(7);
+29 |     let _print_path = rand(7);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Call(
@@ -30,8 +30,8 @@ warning: print test
                                                    source: File(
                                                        "$DIR/print_path_expr.rs",
                                                    ),
-                                                   start: 413,
-                                                   end: 417,
+                                                   start: 359,
+                                                   end: 363,
                                                },
                                            },
                                            generics: GenericArgs {
@@ -64,9 +64,9 @@ warning: print test
    = note: `#[warn(marker::test_lint)]` on by default
 
 warning: print test
-  --> $DIR/print_path_expr.rs:32:5
+  --> $DIR/print_path_expr.rs:30:5
    |
-32 |     let _print_path = Vec::<u32>::new();
+30 |     let _print_path = Vec::<u32>::new();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Call(
@@ -104,8 +104,8 @@ warning: print test
                                                                    source: File(
                                                                        "$DIR/print_path_expr.rs",
                                                                    ),
-                                                                   start: 444,
-                                                                   end: 447,
+                                                                   start: 390,
+                                                                   end: 393,
                                                                },
                                                            },
                                                            generics: GenericArgs {
@@ -142,8 +142,8 @@ warning: print test
                                                    source: File(
                                                        "$DIR/print_path_expr.rs",
                                                    ),
-                                                   start: 444,
-                                                   end: 447,
+                                                   start: 390,
+                                                   end: 393,
                                                },
                                            },
                                            generics: GenericArgs {
@@ -169,8 +169,8 @@ warning: print test
                                                    source: File(
                                                        "$DIR/print_path_expr.rs",
                                                    ),
-                                                   start: 456,
-                                                   end: 459,
+                                                   start: 402,
+                                                   end: 405,
                                                },
                                            },
                                            generics: GenericArgs {
@@ -190,9 +190,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_path_expr.rs:33:5
+  --> $DIR/print_path_expr.rs:31:5
    |
-33 |     let _print_path = <Magic as B>::CoolTy::a();
+31 |     let _print_path = <Magic as B>::CoolTy::a();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Call(
@@ -238,8 +238,8 @@ warning: print test
                                                                                    source: File(
                                                                                        "$DIR/print_path_expr.rs",
                                                                                    ),
-                                                                                   start: 486,
-                                                                                   end: 491,
+                                                                                   start: 432,
+                                                                                   end: 437,
                                                                                },
                                                                            },
                                                                            generics: GenericArgs {
@@ -265,8 +265,8 @@ warning: print test
                                                                    source: File(
                                                                        "$DIR/print_path_expr.rs",
                                                                    ),
-                                                                   start: 495,
-                                                                   end: 496,
+                                                                   start: 441,
+                                                                   end: 442,
                                                                },
                                                            },
                                                            generics: GenericArgs {
@@ -280,8 +280,8 @@ warning: print test
                                                                    source: File(
                                                                        "$DIR/print_path_expr.rs",
                                                                    ),
-                                                                   start: 499,
-                                                                   end: 505,
+                                                                   start: 445,
+                                                                   end: 451,
                                                                },
                                                            },
                                                            generics: GenericArgs {
@@ -306,8 +306,8 @@ warning: print test
                                                    source: File(
                                                        "$DIR/print_path_expr.rs",
                                                    ),
-                                                   start: 495,
-                                                   end: 496,
+                                                   start: 441,
+                                                   end: 442,
                                                },
                                            },
                                            generics: GenericArgs {
@@ -321,8 +321,8 @@ warning: print test
                                                    source: File(
                                                        "$DIR/print_path_expr.rs",
                                                    ),
-                                                   start: 499,
-                                                   end: 505,
+                                                   start: 445,
+                                                   end: 451,
                                                },
                                            },
                                            generics: GenericArgs {
@@ -336,8 +336,8 @@ warning: print test
                                                    source: File(
                                                        "$DIR/print_path_expr.rs",
                                                    ),
-                                                   start: 507,
-                                                   end: 508,
+                                                   start: 453,
+                                                   end: 454,
                                                },
                                            },
                                            generics: GenericArgs {
@@ -357,9 +357,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_path_expr.rs:34:5
+  --> $DIR/print_path_expr.rs:32:5
    |
-34 |     let _print_path = <<Magic as B>::CoolTy as A>::a();
+32 |     let _print_path = <<Magic as B>::CoolTy as A>::a();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Call(
@@ -404,8 +404,8 @@ warning: print test
                                                                                    source: File(
                                                                                        "$DIR/print_path_expr.rs",
                                                                                    ),
-                                                                                   start: 536,
-                                                                                   end: 541,
+                                                                                   start: 482,
+                                                                                   end: 487,
                                                                                },
                                                                            },
                                                                            generics: GenericArgs {
@@ -431,8 +431,8 @@ warning: print test
                                                                    source: File(
                                                                        "$DIR/print_path_expr.rs",
                                                                    ),
-                                                                   start: 545,
-                                                                   end: 546,
+                                                                   start: 491,
+                                                                   end: 492,
                                                                },
                                                            },
                                                            generics: GenericArgs {
@@ -446,8 +446,8 @@ warning: print test
                                                                    source: File(
                                                                        "$DIR/print_path_expr.rs",
                                                                    ),
-                                                                   start: 549,
-                                                                   end: 555,
+                                                                   start: 495,
+                                                                   end: 501,
                                                                },
                                                            },
                                                            generics: GenericArgs {
@@ -473,8 +473,8 @@ warning: print test
                                                    source: File(
                                                        "$DIR/print_path_expr.rs",
                                                    ),
-                                                   start: 559,
-                                                   end: 560,
+                                                   start: 505,
+                                                   end: 506,
                                                },
                                            },
                                            generics: GenericArgs {
@@ -488,8 +488,8 @@ warning: print test
                                                    source: File(
                                                        "$DIR/print_path_expr.rs",
                                                    ),
-                                                   start: 563,
-                                                   end: 564,
+                                                   start: 509,
+                                                   end: 510,
                                                },
                                            },
                                            generics: GenericArgs {
@@ -509,9 +509,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_path_expr.rs:37:5
+  --> $DIR/print_path_expr.rs:35:5
    |
-37 |     let _print_path = var;
+35 |     let _print_path = var;
    |     ^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Path(
@@ -533,8 +533,8 @@ warning: print test
                                            source: File(
                                                "$DIR/print_path_expr.rs",
                                            ),
-                                           start: 608,
-                                           end: 611,
+                                           start: 554,
+                                           end: 557,
                                        },
                                    },
                                    generics: GenericArgs {

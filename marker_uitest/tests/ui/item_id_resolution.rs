@@ -1,5 +1,3 @@
-// normalize-stderr-windows: "tests/ui/" -> "$$DIR/"
-
 struct TestType(u32);
 
 // Please don't change the function name, it's used by the lint

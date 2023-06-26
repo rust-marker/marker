@@ -1,5 +1,3 @@
-// normalize-stderr-windows: "tests/ui/" -> "$$DIR/"
-
 #[derive(Debug, Default)]
 struct S {
     array: [i32; 3],

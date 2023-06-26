@@ -1,127 +1,127 @@
 warning: print test
-  --> $DIR/print_loop_expr.rs:4:5
-   |
-4  | /     let _print_exprs = {
-5  | |         'label: loop {
-6  | |             break 'label;
-7  | |         }
-8  | |
-9  | |         loop {}
-10 | |     };
-   | |______^
-   |
-   = note: Block(
-               BlockExpr {
-                   data: CommonExprData {
-                       _lifetime: PhantomData<&()>,
-                       id: ExprId(..),
-                       span: SpanId(..),
-                   },
-                   stmts: [
-                       Expr(
-                           Loop(
-                               LoopExpr {
-                                   data: CommonExprData {
-                                       _lifetime: PhantomData<&()>,
-                                       id: ExprId(..),
-                                       span: SpanId(..),
-                                   },
-                                   label: Some(
-                                       Ident {
-                                           name: "'label",
-                                           span: Span {
-                                               source: File(
-                                                   "$DIR/print_loop_expr.rs",
-                                               ),
-                                               start: 99,
-                                               end: 105,
-                                           },
-                                       },
-                                   ),
-                                   body: Block(
-                                       BlockExpr {
-                                           data: CommonExprData {
-                                               _lifetime: PhantomData<&()>,
-                                               id: ExprId(..),
-                                               span: SpanId(..),
-                                           },
-                                           stmts: [
-                                               Expr(
-                                                   Break(
-                                                       BreakExpr {
-                                                           data: CommonExprData {
-                                                               _lifetime: PhantomData<&()>,
-                                                               id: ExprId(..),
-                                                               span: SpanId(..),
-                                                           },
-                                                           label: Some(
-                                                               Ident {
-                                                                   name: "'label",
-                                                                   span: Span {
-                                                                       source: File(
-                                                                           "$DIR/print_loop_expr.rs",
-                                                                       ),
-                                                                       start: 132,
-                                                                       end: 138,
-                                                                   },
-                                                               },
-                                                           ),
-                                                           target_id: ExprId(..),
-                                                           expr: None,
-                                                       },
-                                                   ),
-                                               ),
-                                           ],
-                                           expr: None,
-                                           label: None,
-                                           is_unsafe: false,
-                                       },
-                                   ),
-                               },
-                           ),
-                       ),
-                   ],
-                   expr: Some(
-                       Loop(
-                           LoopExpr {
-                               data: CommonExprData {
-                                   _lifetime: PhantomData<&()>,
-                                   id: ExprId(..),
-                                   span: SpanId(..),
-                               },
-                               label: None,
-                               body: Block(
-                                   BlockExpr {
-                                       data: CommonExprData {
-                                           _lifetime: PhantomData<&()>,
-                                           id: ExprId(..),
-                                           span: SpanId(..),
-                                       },
-                                       stmts: [],
-                                       expr: None,
-                                       label: None,
-                                       is_unsafe: false,
-                                   },
-                               ),
-                           },
-                       ),
-                   ),
-                   label: None,
-                   is_unsafe: false,
-               },
-           )
-   = note: `#[warn(marker::test_lint)]` on by default
+ --> $DIR/print_loop_expr.rs:2:5
+  |
+2 | /     let _print_exprs = {
+3 | |         'label: loop {
+4 | |             break 'label;
+5 | |         }
+6 | |
+7 | |         loop {}
+8 | |     };
+  | |______^
+  |
+  = note: Block(
+              BlockExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  stmts: [
+                      Expr(
+                          Loop(
+                              LoopExpr {
+                                  data: CommonExprData {
+                                      _lifetime: PhantomData<&()>,
+                                      id: ExprId(..),
+                                      span: SpanId(..),
+                                  },
+                                  label: Some(
+                                      Ident {
+                                          name: "'label",
+                                          span: Span {
+                                              source: File(
+                                                  "$DIR/print_loop_expr.rs",
+                                              ),
+                                              start: 45,
+                                              end: 51,
+                                          },
+                                      },
+                                  ),
+                                  body: Block(
+                                      BlockExpr {
+                                          data: CommonExprData {
+                                              _lifetime: PhantomData<&()>,
+                                              id: ExprId(..),
+                                              span: SpanId(..),
+                                          },
+                                          stmts: [
+                                              Expr(
+                                                  Break(
+                                                      BreakExpr {
+                                                          data: CommonExprData {
+                                                              _lifetime: PhantomData<&()>,
+                                                              id: ExprId(..),
+                                                              span: SpanId(..),
+                                                          },
+                                                          label: Some(
+                                                              Ident {
+                                                                  name: "'label",
+                                                                  span: Span {
+                                                                      source: File(
+                                                                          "$DIR/print_loop_expr.rs",
+                                                                      ),
+                                                                      start: 78,
+                                                                      end: 84,
+                                                                  },
+                                                              },
+                                                          ),
+                                                          target_id: ExprId(..),
+                                                          expr: None,
+                                                      },
+                                                  ),
+                                              ),
+                                          ],
+                                          expr: None,
+                                          label: None,
+                                          is_unsafe: false,
+                                      },
+                                  ),
+                              },
+                          ),
+                      ),
+                  ],
+                  expr: Some(
+                      Loop(
+                          LoopExpr {
+                              data: CommonExprData {
+                                  _lifetime: PhantomData<&()>,
+                                  id: ExprId(..),
+                                  span: SpanId(..),
+                              },
+                              label: None,
+                              body: Block(
+                                  BlockExpr {
+                                      data: CommonExprData {
+                                          _lifetime: PhantomData<&()>,
+                                          id: ExprId(..),
+                                          span: SpanId(..),
+                                      },
+                                      stmts: [],
+                                      expr: None,
+                                      label: None,
+                                      is_unsafe: false,
+                                  },
+                              ),
+                          },
+                      ),
+                  ),
+                  label: None,
+                  is_unsafe: false,
+              },
+          )
+  = note: `#[warn(marker::test_lint)]` on by default
 
 warning: print test
-  --> $DIR/print_loop_expr.rs:14:5
+  --> $DIR/print_loop_expr.rs:12:5
    |
-14 | /     let _print_exprs = {
-15 | |         while cond {}
-16 | |
-17 | |         while let Some(_) = opt {
-18 | |             opt = None;
-19 | |         }
-20 | |     };
+12 | /     let _print_exprs = {
+13 | |         while cond {}
+14 | |
+15 | |         while let Some(_) = opt {
+16 | |             opt = None;
+17 | |         }
+18 | |     };
    | |______^
    |
    = note: Block(
@@ -160,8 +160,8 @@ warning: print test
                                                                    source: File(
                                                                        "$DIR/print_loop_expr.rs",
                                                                    ),
-                                                                   start: 264,
-                                                                   end: 268,
+                                                                   start: 210,
+                                                                   end: 214,
                                                                },
                                                            },
                                                            generics: GenericArgs {
@@ -224,8 +224,8 @@ warning: print test
                                                                    source: File(
                                                                        "$DIR/print_loop_expr.rs",
                                                                    ),
-                                                                   start: 291,
-                                                                   end: 295,
+                                                                   start: 237,
+                                                                   end: 241,
                                                                },
                                                            },
                                                            generics: GenericArgs {
@@ -270,8 +270,8 @@ warning: print test
                                                                        source: File(
                                                                            "$DIR/print_loop_expr.rs",
                                                                        ),
-                                                                       start: 301,
-                                                                       end: 304,
+                                                                       start: 247,
+                                                                       end: 250,
                                                                    },
                                                                },
                                                                generics: GenericArgs {
@@ -324,8 +324,8 @@ warning: print test
                                                                                            source: File(
                                                                                                "$DIR/print_loop_expr.rs",
                                                                                            ),
-                                                                                           start: 319,
-                                                                                           end: 322,
+                                                                                           start: 265,
+                                                                                           end: 268,
                                                                                        },
                                                                                    },
                                                                                    generics: GenericArgs {
@@ -360,8 +360,8 @@ warning: print test
                                                                                        source: File(
                                                                                            "$DIR/print_loop_expr.rs",
                                                                                        ),
-                                                                                       start: 325,
-                                                                                       end: 329,
+                                                                                       start: 271,
+                                                                                       end: 275,
                                                                                    },
                                                                                },
                                                                                generics: GenericArgs {
@@ -397,15 +397,15 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_loop_expr.rs:24:5
+  --> $DIR/print_loop_expr.rs:22:5
    |
-24 | /     let _print_exprs = {
-25 | |         for _ in 0..10 {}
-26 | |
-27 | |         for (a, b) in tuple_slice {
-28 | |             c += a + b;
-29 | |         }
-30 | |     };
+22 | /     let _print_exprs = {
+23 | |         for _ in 0..10 {}
+24 | |
+25 | |         for (a, b) in tuple_slice {
+26 | |             c += a + b;
+27 | |         }
+28 | |     };
    | |______^
    |
    = note: Block(
@@ -550,8 +550,8 @@ warning: print test
                                                                source: File(
                                                                    "$DIR/print_loop_expr.rs",
                                                                ),
-                                                               start: 482,
-                                                               end: 493,
+                                                               start: 428,
+                                                               end: 439,
                                                            },
                                                        },
                                                        generics: GenericArgs {
@@ -602,8 +602,8 @@ warning: print test
                                                                                            source: File(
                                                                                                "$DIR/print_loop_expr.rs",
                                                                                            ),
-                                                                                           start: 508,
-                                                                                           end: 509,
+                                                                                           start: 454,
+                                                                                           end: 455,
                                                                                        },
                                                                                    },
                                                                                    generics: GenericArgs {
@@ -645,8 +645,8 @@ warning: print test
                                                                                                source: File(
                                                                                                    "$DIR/print_loop_expr.rs",
                                                                                                ),
-                                                                                               start: 513,
-                                                                                               end: 514,
+                                                                                               start: 459,
+                                                                                               end: 460,
                                                                                            },
                                                                                        },
                                                                                        generics: GenericArgs {
@@ -680,8 +680,8 @@ warning: print test
                                                                                                source: File(
                                                                                                    "$DIR/print_loop_expr.rs",
                                                                                                ),
-                                                                                               start: 517,
-                                                                                               end: 518,
+                                                                                               start: 463,
+                                                                                               end: 464,
                                                                                            },
                                                                                        },
                                                                                        generics: GenericArgs {

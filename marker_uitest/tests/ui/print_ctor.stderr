@@ -1,7 +1,7 @@
 warning: print test
-  --> $DIR/print_ctor.rs:20:5
+  --> $DIR/print_ctor.rs:18:5
    |
-20 |     let _print_tuple = (1, 2, 3);
+18 |     let _print_tuple = (1, 2, 3);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Tuple(
@@ -51,9 +51,9 @@ warning: print test
    = note: `#[warn(marker::test_lint)]` on by default
 
 warning: print test
-  --> $DIR/print_ctor.rs:21:5
+  --> $DIR/print_ctor.rs:19:5
    |
-21 |     let _print_array = [1, 2, 3];
+19 |     let _print_array = [1, 2, 3];
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Array(
@@ -103,9 +103,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:22:5
+  --> $DIR/print_ctor.rs:20:5
    |
-22 |     let _print_array = [1; 3];
+20 |     let _print_array = [1; 3];
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Array(
@@ -145,9 +145,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:24:5
+  --> $DIR/print_ctor.rs:22:5
    |
-24 |     let _print_range = 11..;
+22 |     let _print_range = 11..;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Range(
@@ -176,9 +176,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:25:5
+  --> $DIR/print_ctor.rs:23:5
    |
-25 |     let _print_range = 1..3;
+23 |     let _print_range = 1..3;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Range(
@@ -219,9 +219,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:26:5
+  --> $DIR/print_ctor.rs:24:5
    |
-26 |     let _print_range = ..3;
+24 |     let _print_range = ..3;
    |     ^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Range(
@@ -250,9 +250,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:27:5
+  --> $DIR/print_ctor.rs:25:5
    |
-27 |     let _print_range = ..=3;
+25 |     let _print_range = ..=3;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Range(
@@ -281,9 +281,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:28:5
+  --> $DIR/print_ctor.rs:26:5
    |
-28 |     let _print_range = 1..=3;
+26 |     let _print_range = 1..=3;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Range(
@@ -324,9 +324,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:29:5
+  --> $DIR/print_ctor.rs:27:5
    |
-29 |     let _print_range = ..;
+27 |     let _print_range = ..;
    |     ^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Range(
@@ -343,9 +343,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:31:5
+  --> $DIR/print_ctor.rs:29:5
    |
-31 |     let _print_ctor = FieldStruct { a: 1, b: 2 };
+29 |     let _print_ctor = FieldStruct { a: 1, b: 2 };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Ctor(
@@ -367,8 +367,8 @@ warning: print test
                                            source: File(
                                                "$DIR/print_ctor.rs",
                                            ),
-                                           start: 573,
-                                           end: 584,
+                                           start: 519,
+                                           end: 530,
                                        },
                                    },
                                    generics: GenericArgs {
@@ -390,8 +390,8 @@ warning: print test
                                    source: File(
                                        "$DIR/print_ctor.rs",
                                    ),
-                                   start: 587,
-                                   end: 588,
+                                   start: 533,
+                                   end: 534,
                                },
                            },
                            expr: IntLit(
@@ -414,8 +414,8 @@ warning: print test
                                    source: File(
                                        "$DIR/print_ctor.rs",
                                    ),
-                                   start: 593,
-                                   end: 594,
+                                   start: 539,
+                                   end: 540,
                                },
                            },
                            expr: IntLit(
@@ -436,10 +436,13 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:32:5
+  --> $DIR/print_ctor.rs:30:5
    |
-32 |     let _print_ctor = FieldStruct { a: 10, ..FieldStruct::default() };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+30 | /     let _print_ctor = FieldStruct {
+31 | |         a: 10,
+32 | |         ..FieldStruct::default()
+33 | |     };
+   | |______^
    |
    = note: Ctor(
                CtorExpr {
@@ -460,8 +463,8 @@ warning: print test
                                            source: File(
                                                "$DIR/print_ctor.rs",
                                            ),
-                                           start: 623,
-                                           end: 634,
+                                           start: 569,
+                                           end: 580,
                                        },
                                    },
                                    generics: GenericArgs {
@@ -483,8 +486,8 @@ warning: print test
                                    source: File(
                                        "$DIR/print_ctor.rs",
                                    ),
-                                   start: 637,
-                                   end: 638,
+                                   start: 591,
+                                   end: 592,
                                },
                            },
                            expr: IntLit(
@@ -536,8 +539,8 @@ warning: print test
                                                                                source: File(
                                                                                    "$DIR/print_ctor.rs",
                                                                                ),
-                                                                               start: 646,
-                                                                               end: 657,
+                                                                               start: 608,
+                                                                               end: 619,
                                                                            },
                                                                        },
                                                                        generics: GenericArgs {
@@ -562,8 +565,8 @@ warning: print test
                                                                source: File(
                                                                    "$DIR/print_ctor.rs",
                                                                ),
-                                                               start: 646,
-                                                               end: 657,
+                                                               start: 608,
+                                                               end: 619,
                                                            },
                                                        },
                                                        generics: GenericArgs {
@@ -577,8 +580,8 @@ warning: print test
                                                                source: File(
                                                                    "$DIR/print_ctor.rs",
                                                                ),
-                                                               start: 659,
-                                                               end: 666,
+                                                               start: 621,
+                                                               end: 628,
                                                            },
                                                        },
                                                        generics: GenericArgs {
@@ -601,9 +604,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:34:5
+  --> $DIR/print_ctor.rs:35:5
    |
-34 |     let _print_ctor = Union { a: 8 };
+35 |     let _print_ctor = Union { a: 8 };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Ctor(
@@ -625,8 +628,8 @@ warning: print test
                                            source: File(
                                                "$DIR/print_ctor.rs",
                                            ),
-                                           start: 695,
-                                           end: 700,
+                                           start: 661,
+                                           end: 666,
                                        },
                                    },
                                    generics: GenericArgs {
@@ -648,8 +651,8 @@ warning: print test
                                    source: File(
                                        "$DIR/print_ctor.rs",
                                    ),
-                                   start: 703,
-                                   end: 704,
+                                   start: 669,
+                                   end: 670,
                                },
                            },
                            expr: IntLit(
@@ -670,9 +673,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:36:5
+  --> $DIR/print_ctor.rs:37:5
    |
-36 |     let _print_ctor = TupleStruct(1, 2);
+37 |     let _print_ctor = TupleStruct(1, 2);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Ctor(
@@ -694,8 +697,8 @@ warning: print test
                                            source: File(
                                                "$DIR/print_ctor.rs",
                                            ),
-                                           start: 734,
-                                           end: 745,
+                                           start: 700,
+                                           end: 711,
                                        },
                                    },
                                    generics: GenericArgs {
@@ -763,10 +766,13 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:37:5
+  --> $DIR/print_ctor.rs:38:5
    |
-37 |     let _print_ctor = TupleStruct { 0: 3, ..TupleStruct::default() };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+38 | /     let _print_ctor = TupleStruct {
+39 | |         0: 3,
+40 | |         ..TupleStruct::default()
+41 | |     };
+   | |______^
    |
    = note: Ctor(
                CtorExpr {
@@ -787,8 +793,8 @@ warning: print test
                                            source: File(
                                                "$DIR/print_ctor.rs",
                                            ),
-                                           start: 775,
-                                           end: 786,
+                                           start: 741,
+                                           end: 752,
                                        },
                                    },
                                    generics: GenericArgs {
@@ -810,8 +816,8 @@ warning: print test
                                    source: File(
                                        "$DIR/print_ctor.rs",
                                    ),
-                                   start: 789,
-                                   end: 790,
+                                   start: 763,
+                                   end: 764,
                                },
                            },
                            expr: IntLit(
@@ -863,8 +869,8 @@ warning: print test
                                                                                source: File(
                                                                                    "$DIR/print_ctor.rs",
                                                                                ),
-                                                                               start: 797,
-                                                                               end: 808,
+                                                                               start: 779,
+                                                                               end: 790,
                                                                            },
                                                                        },
                                                                        generics: GenericArgs {
@@ -889,8 +895,8 @@ warning: print test
                                                                source: File(
                                                                    "$DIR/print_ctor.rs",
                                                                ),
-                                                               start: 797,
-                                                               end: 808,
+                                                               start: 779,
+                                                               end: 790,
                                                            },
                                                        },
                                                        generics: GenericArgs {
@@ -904,8 +910,8 @@ warning: print test
                                                                source: File(
                                                                    "$DIR/print_ctor.rs",
                                                                ),
-                                                               start: 810,
-                                                               end: 817,
+                                                               start: 792,
+                                                               end: 799,
                                                            },
                                                        },
                                                        generics: GenericArgs {
@@ -928,9 +934,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:39:5
+  --> $DIR/print_ctor.rs:43:5
    |
-39 |     let _print_ctor = Enum::A;
+43 |     let _print_ctor = Enum::A;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Ctor(
@@ -952,8 +958,8 @@ warning: print test
                                            source: File(
                                                "$DIR/print_ctor.rs",
                                            ),
-                                           start: 846,
-                                           end: 850,
+                                           start: 832,
+                                           end: 836,
                                        },
                                    },
                                    generics: GenericArgs {
@@ -967,8 +973,8 @@ warning: print test
                                            source: File(
                                                "$DIR/print_ctor.rs",
                                            ),
-                                           start: 852,
-                                           end: 853,
+                                           start: 838,
+                                           end: 839,
                                        },
                                    },
                                    generics: GenericArgs {
@@ -987,9 +993,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:40:5
+  --> $DIR/print_ctor.rs:44:5
    |
-40 |     let _print_ctor = Enum::B(1);
+44 |     let _print_ctor = Enum::B(1);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Ctor(
@@ -1011,8 +1017,8 @@ warning: print test
                                            source: File(
                                                "$DIR/print_ctor.rs",
                                            ),
-                                           start: 877,
-                                           end: 881,
+                                           start: 863,
+                                           end: 867,
                                        },
                                    },
                                    generics: GenericArgs {
@@ -1026,8 +1032,8 @@ warning: print test
                                            source: File(
                                                "$DIR/print_ctor.rs",
                                            ),
-                                           start: 883,
-                                           end: 884,
+                                           start: 869,
+                                           end: 870,
                                        },
                                    },
                                    generics: GenericArgs {
@@ -1071,9 +1077,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_ctor.rs:41:5
+  --> $DIR/print_ctor.rs:45:5
    |
-41 |     let _print_ctor = Enum::C { f1: 44, f2: 55 };
+45 |     let _print_ctor = Enum::C { f1: 44, f2: 55 };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Ctor(
@@ -1095,8 +1101,8 @@ warning: print test
                                            source: File(
                                                "$DIR/print_ctor.rs",
                                            ),
-                                           start: 911,
-                                           end: 915,
+                                           start: 897,
+                                           end: 901,
                                        },
                                    },
                                    generics: GenericArgs {
@@ -1110,8 +1116,8 @@ warning: print test
                                            source: File(
                                                "$DIR/print_ctor.rs",
                                            ),
-                                           start: 917,
-                                           end: 918,
+                                           start: 903,
+                                           end: 904,
                                        },
                                    },
                                    generics: GenericArgs {
@@ -1133,8 +1139,8 @@ warning: print test
                                    source: File(
                                        "$DIR/print_ctor.rs",
                                    ),
-                                   start: 921,
-                                   end: 923,
+                                   start: 907,
+                                   end: 909,
                                },
                            },
                            expr: IntLit(
@@ -1157,8 +1163,8 @@ warning: print test
                                    source: File(
                                        "$DIR/print_ctor.rs",
                                    ),
-                                   start: 929,
-                                   end: 931,
+                                   start: 915,
+                                   end: 917,
                                },
                            },
                            expr: IntLit(

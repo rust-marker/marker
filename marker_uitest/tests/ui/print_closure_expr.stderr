@@ -1,9 +1,9 @@
 warning: print test
- --> $DIR/print_closure_expr.rs:6:5
+ --> $DIR/print_closure_expr.rs:4:5
   |
-6 | /     let _print_simple_closure = || {
-7 | |         1 + 1;
-8 | |     };
+4 | /     let _print_simple_closure = || {
+5 | |         1 + 1;
+6 | |     };
   | |______^
   |
   = note: Closure(
@@ -30,9 +30,9 @@ warning: print test
   = note: `#[warn(marker::test_lint)]` on by default
 
 warning: print test
- --> $DIR/print_closure_expr.rs:9:5
+ --> $DIR/print_closure_expr.rs:7:5
   |
-9 |     let _print_with_args = |x: u32, y: u32| x + y;
+7 |     let _print_with_args = |x: u32, y: u32| x + y;
   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = note: Closure(
@@ -89,32 +89,32 @@ warning: print test
           )
 
 warning: print test
-  --> $DIR/print_closure_expr.rs:10:5
-   |
-10 |     let _print_move = move || a;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: Closure(
-               ClosureExpr {
-                   data: CommonExprData {
-                       _lifetime: PhantomData<&()>,
-                       id: ExprId(..),
-                       span: SpanId(..),
-                   },
-                   callable_data: CommonCallableData {
-                       is_const: false,
-                       is_async: false,
-                       is_unsafe: false,
-                       is_extern: false,
-                       abi: Default,
-                       has_self: false,
-                       params: [],
-                       return_ty: None,
-                   },
-                   capture_kind: Move,
-                   body: BodyId(..),
-               },
-           )
+ --> $DIR/print_closure_expr.rs:8:5
+  |
+8 |     let _print_move = move || a;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Closure(
+              ClosureExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  callable_data: CommonCallableData {
+                      is_const: false,
+                      is_async: false,
+                      is_unsafe: false,
+                      is_extern: false,
+                      abi: Default,
+                      has_self: false,
+                      params: [],
+                      return_ty: None,
+                  },
+                  capture_kind: Move,
+                  body: BodyId(..),
+              },
+          )
 
 warning: 3 warnings emitted
 

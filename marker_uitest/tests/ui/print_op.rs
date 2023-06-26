@@ -1,5 +1,3 @@
-// normalize-stderr-windows: "tests/ui/" -> "$$DIR/"
-
 fn as_casts() {
     let _print_cast = 16 as u32;
 }

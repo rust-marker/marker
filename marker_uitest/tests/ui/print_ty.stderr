@@ -1,7 +1,7 @@
 warning: Printing type for
- --> $DIR/print_ty.rs:6:32
+ --> $DIR/print_ty.rs:4:32
   |
-6 | static PRINT_TYPE_PRIMITIVE_1: Option<(u8, u16, u32, u64, u128, usize)> = None;
+4 | static PRINT_TYPE_PRIMITIVE_1: Option<(u8, u16, u32, u64, u128, usize)> = None;
   |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = note: `#[warn(marker::test_lint)]` on by default
@@ -24,8 +24,8 @@ Path(
                                 source: File(
                                     "$DIR/print_ty.rs",
                                 ),
-                                start: 139,
-                                end: 145,
+                                start: 85,
+                                end: 91,
                             },
                         },
                         generics: GenericArgs {
@@ -110,9 +110,9 @@ Path(
 
 
 warning: Printing type for
- --> $DIR/print_ty.rs:7:32
+ --> $DIR/print_ty.rs:5:32
   |
-7 | static PRINT_TYPE_PRIMITIVE_2: Option<(i8, i16, i32, i64, i128, isize)> = None;
+5 | static PRINT_TYPE_PRIMITIVE_2: Option<(i8, i16, i32, i64, i128, isize)> = None;
   |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Path(
@@ -133,8 +133,8 @@ Path(
                                 source: File(
                                     "$DIR/print_ty.rs",
                                 ),
-                                start: 219,
-                                end: 225,
+                                start: 165,
+                                end: 171,
                             },
                         },
                         generics: GenericArgs {
@@ -219,9 +219,9 @@ Path(
 
 
 warning: Printing type for
- --> $DIR/print_ty.rs:8:32
+ --> $DIR/print_ty.rs:6:32
   |
-8 | static PRINT_TYPE_PRIMITIVE_3: Option<(char, bool, f32, f64)> = None;
+6 | static PRINT_TYPE_PRIMITIVE_3: Option<(char, bool, f32, f64)> = None;
   |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Path(
@@ -242,8 +242,8 @@ Path(
                                 source: File(
                                     "$DIR/print_ty.rs",
                                 ),
-                                start: 299,
-                                end: 305,
+                                start: 245,
+                                end: 251,
                             },
                         },
                         generics: GenericArgs {
@@ -309,9 +309,9 @@ Path(
 
 
 warning: Printing type for
- --> $DIR/print_ty.rs:9:29
+ --> $DIR/print_ty.rs:7:29
   |
-9 | static PRINT_TYPE_SEQUENCE: Option<AllowSync<(&[i32], [i32; 8])>> = None;
+7 | static PRINT_TYPE_SEQUENCE: Option<AllowSync<(&[i32], [i32; 8])>> = None;
   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Path(
@@ -332,8 +332,8 @@ Path(
                                 source: File(
                                     "$DIR/print_ty.rs",
                                 ),
-                                start: 366,
-                                end: 372,
+                                start: 312,
+                                end: 318,
                             },
                         },
                         generics: GenericArgs {
@@ -357,8 +357,8 @@ Path(
                                                                     source: File(
                                                                         "$DIR/print_ty.rs",
                                                                     ),
-                                                                    start: 373,
-                                                                    end: 382,
+                                                                    start: 319,
+                                                                    end: 328,
                                                                 },
                                                             },
                                                             generics: GenericArgs {
@@ -453,10 +453,10 @@ Path(
 
 
 warning: Printing type for
-  --> $DIR/print_ty.rs:10:28
-   |
-10 | static PRINT_TYPE_POINTER: Option<AllowSync<(&'static str, *const i32, *mut i32)>> = None;
-   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ --> $DIR/print_ty.rs:8:28
+  |
+8 | static PRINT_TYPE_POINTER: Option<AllowSync<(&'static str, *const i32, *mut i32)>> = None;
+  |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Path(
     SynPathTy {
@@ -476,8 +476,8 @@ Path(
                                 source: File(
                                     "$DIR/print_ty.rs",
                                 ),
-                                start: 439,
-                                end: 445,
+                                start: 385,
+                                end: 391,
                             },
                         },
                         generics: GenericArgs {
@@ -501,8 +501,8 @@ Path(
                                                                     source: File(
                                                                         "$DIR/print_ty.rs",
                                                                     ),
-                                                                    start: 446,
-                                                                    end: 455,
+                                                                    start: 392,
+                                                                    end: 401,
                                                                 },
                                                             },
                                                             generics: GenericArgs {
@@ -608,16 +608,16 @@ Path(
 
 
 warning: Printing type for
-  --> $DIR/print_ty.rs:11:28
+  --> $DIR/print_ty.rs:9:28
    |
-11 |   static PRINT_TYPE_COMPLEX: Option<
+9  |   static PRINT_TYPE_COMPLEX: Option<
    |  ____________________________^
-12 | |     AllowSync<(
-13 | |         AliasTy,
-14 | |         String,
+10 | |     AllowSync<(
+11 | |         AliasTy,
+12 | |         String,
 ...  |
-19 | |     )>,
-20 | | > = None;
+17 | |     )>,
+18 | | > = None;
    | |_^
 
 Path(
@@ -638,8 +638,8 @@ Path(
                                 source: File(
                                     "$DIR/print_ty.rs",
                                 ),
-                                start: 530,
-                                end: 536,
+                                start: 476,
+                                end: 482,
                             },
                         },
                         generics: GenericArgs {
@@ -663,8 +663,8 @@ Path(
                                                                     source: File(
                                                                         "$DIR/print_ty.rs",
                                                                     ),
-                                                                    start: 542,
-                                                                    end: 551,
+                                                                    start: 488,
+                                                                    end: 497,
                                                                 },
                                                             },
                                                             generics: GenericArgs {
@@ -695,8 +695,8 @@ Path(
                                                                                                                     source: File(
                                                                                                                         "$DIR/print_ty.rs",
                                                                                                                     ),
-                                                                                                                    start: 562,
-                                                                                                                    end: 569,
+                                                                                                                    start: 508,
+                                                                                                                    end: 515,
                                                                                                                 },
                                                                                                             },
                                                                                                             generics: GenericArgs {
@@ -729,8 +729,8 @@ Path(
                                                                                                                     source: File(
                                                                                                                         "$DIR/print_ty.rs",
                                                                                                                     ),
-                                                                                                                    start: 579,
-                                                                                                                    end: 585,
+                                                                                                                    start: 525,
+                                                                                                                    end: 531,
                                                                                                                 },
                                                                                                             },
                                                                                                             generics: GenericArgs {
@@ -763,8 +763,8 @@ Path(
                                                                                                                     source: File(
                                                                                                                         "$DIR/print_ty.rs",
                                                                                                                     ),
-                                                                                                                    start: 595,
-                                                                                                                    end: 601,
+                                                                                                                    start: 541,
+                                                                                                                    end: 547,
                                                                                                                 },
                                                                                                             },
                                                                                                             generics: GenericArgs {
@@ -788,8 +788,8 @@ Path(
                                                                                                                                                         source: File(
                                                                                                                                                             "$DIR/print_ty.rs",
                                                                                                                                                         ),
-                                                                                                                                                        start: 602,
-                                                                                                                                                        end: 608,
+                                                                                                                                                        start: 548,
+                                                                                                                                                        end: 554,
                                                                                                                                                     },
                                                                                                                                                 },
                                                                                                                                                 generics: GenericArgs {
@@ -834,8 +834,8 @@ Path(
                                                                                                                     source: File(
                                                                                                                         "$DIR/print_ty.rs",
                                                                                                                     ),
-                                                                                                                    start: 619,
-                                                                                                                    end: 622,
+                                                                                                                    start: 565,
+                                                                                                                    end: 568,
                                                                                                                 },
                                                                                                             },
                                                                                                             generics: GenericArgs {
@@ -859,8 +859,8 @@ Path(
                                                                                                                                                         source: File(
                                                                                                                                                             "$DIR/print_ty.rs",
                                                                                                                                                         ),
-                                                                                                                                                        start: 623,
-                                                                                                                                                        end: 632,
+                                                                                                                                                        start: 569,
+                                                                                                                                                        end: 578,
                                                                                                                                                     },
                                                                                                                                                 },
                                                                                                                                                 generics: GenericArgs {
@@ -905,8 +905,8 @@ Path(
                                                                                                                     source: File(
                                                                                                                         "$DIR/print_ty.rs",
                                                                                                                     ),
-                                                                                                                    start: 643,
-                                                                                                                    end: 646,
+                                                                                                                    start: 589,
+                                                                                                                    end: 592,
                                                                                                                 },
                                                                                                             },
                                                                                                             generics: GenericArgs {
@@ -964,8 +964,8 @@ Path(
                                                                                                                     source: File(
                                                                                                                         "$DIR/print_ty.rs",
                                                                                                                     ),
-                                                                                                                    start: 667,
-                                                                                                                    end: 670,
+                                                                                                                    start: 613,
+                                                                                                                    end: 616,
                                                                                                                 },
                                                                                                             },
                                                                                                             generics: GenericArgs {

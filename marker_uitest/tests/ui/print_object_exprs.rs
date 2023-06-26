@@ -1,5 +1,3 @@
-// normalize-stderr-windows: "tests/ui/" -> "$$DIR/"
-
 #[derive(Debug, Default)]
 pub struct Example {
     a: u32,
