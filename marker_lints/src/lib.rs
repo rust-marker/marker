@@ -1,4 +1,4 @@
-use marker_api::{lint::Lint, LintPass};
+use marker_api::{ast::expr::ExprKind, context::AstContext, LintPass, LintPassInfo, LintPassInfoBuilder};
 
 marker_api::declare_lint!(
     DIAG_MSG_CAPITAL_START,
@@ -18,7 +18,17 @@ struct MarkerLintPass;
 marker_api::export_lint_pass!(MarkerLintPass);
 
 impl LintPass for MarkerLintPass {
-    fn registered_lints(&self) -> Box<[&'static Lint]> {
-        Box::new([DIAG_MSG_CAPITAL_START])
+    fn info(&self) -> LintPassInfo {
+        LintPassInfoBuilder::new(Box::new([DIAG_MSG_CAPITAL_START])).build()
+    }
+
+    fn check_expr<'ast>(&mut self, cx: &AstContext<'ast>, expr: ExprKind<'ast>) {
+        cx.emit_lint(
+            DIAG_MSG_CAPITAL_START,
+            expr.id(),
+            "X <-- starting with upper case",
+            expr.span(),
+            |_| {},
+        );
     }
 }

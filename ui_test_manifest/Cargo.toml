@@ -1,0 +1,8 @@
+[package]
+name = "ui_tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+marker_api = { path = "../marker_api" }

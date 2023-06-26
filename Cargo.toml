@@ -7,6 +7,8 @@ members = [
     "marker_utils",
     "marker_lints",
     "marker_uitest",
+    # A dummy crate, to have a manifest for uitests
+    "ui_test_manifest",
 ]
 resolver = "2"
 
