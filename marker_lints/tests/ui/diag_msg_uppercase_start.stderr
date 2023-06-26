@@ -1,0 +1,16 @@
+warning: this message starts with an uppercase character
+  --> $DIR/diag_msg_uppercase_start.rs:21:36
+   |
+21 |     cx.emit_lint(DUMMY, expr.id(), "X <-- starting with upper case", expr.span(), |_| {});
+   |                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(marker::diag_msg_uppercase_start)]` on by default
+
+warning: this message starts with an uppercase character
+  --> $DIR/diag_msg_uppercase_start.rs:22:36
+   |
+22 |     cx.emit_lint(DUMMY, expr.id(), "Hey <-- starting with upper case", expr.span(), |_| {});
+   |                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: 2 warnings emitted
+

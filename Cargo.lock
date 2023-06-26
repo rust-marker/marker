@@ -1100,6 +1100,8 @@ version = "0.1.0"
 dependencies = [
  "compiletest_rs",
  "marker_api",
+ "tempfile",
+ "ui_test",
 ]
 
 [[package]]
@@ -1851,6 +1853,13 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
+]
+
+[[package]]
+name = "ui_tests"
+version = "0.1.0"
+dependencies = [
+ "marker_api",
 ]
 
 [[package]]
