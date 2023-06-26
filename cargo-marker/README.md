@@ -11,12 +11,16 @@ FIXME(xFrednet): Add license shield, once crates.io also says:
 > **Note**
 >
 > The project is in the very early stages of development, some things are still missing and the API is not stable yet.
+>
+> A list of limitations and planned features can be found in [Marker's Readme].
 
 [Marker]: https://github.com/rust-marker/marker
+[Marker's Readme]: https://github.com/rust-marker/marker/blob/master/README.md
 
 ## Key Features
 
-* **Seamless Integration**: *cargo_marker* effortlessly integrates with your existing workflow to leverage Marker's linting capabilities and ensure code quality.
+* **Simple CLI**: *cargo_marker* does all the heavy lifting for you, making custom code analysis, as simple as a single console command.
+* **Seamless Integration**: *cargo_marker* reuses Rust's existing infrastructure for linting, running Marker as part of your workflow is close to the effort needed for its sibling *[Clippy]*.
 * **Automatic Lint-Crate Compilation**: *cargo_marker* automatically fetches and builds specified lint crates, streamlining the process of incorporating additional linting rules into your project.
 * **User-Friendly Setup**: *cargo_marker* can automatically set up the driver and toolchain, allowing you to focus on writing quality code. (This version will setup rustc's driver for `nightly-2023-06-01`)
 
@@ -54,13 +58,15 @@ Lints from registries, like crates.io, are sadly not yet supported. See [rust-ma
 
 ### Running Marker
 
-Running Marker is as simple as running its brother *Clippy*. Navigate to your Rust project directory and run the following command:
+Running Marker is as simple as running its sibling *[Clippy]*. Navigate to your Rust project directory and run the following command:
 
 ```sh
 cargo marker
 ```
 
 This will initialize Marker, compile the lint crates and start linting.
+
+[Clippy]: https://github.com/rust-lang/rust-clippy
 
 ## Contributing
 
