@@ -1,6 +1,6 @@
 # Cargo Marker
 
-[![Crates.io](https://img.shields.io/crates/v/cargo-marker.svg)](https://crates.io/crates/cargo-marker)
+[![Crates.io](https://img.shields.io/crates/v/cargo_marker.svg)](https://crates.io/crates/cargo_marker)
 <!--
 FIXME(xFrednet): Add license shield, once crates.io also says:
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/cargo_marker.svg)](#license)
@@ -10,7 +10,7 @@ FIXME(xFrednet): Add license shield, once crates.io also says:
 
 > **Note**
 >
-> The project is in the very early stages of development, some things are still missing and the API is not stable yet.
+> The project is in the early stages of development, some things are still missing and the API is not stable yet.
 >
 > A list of limitations and planned features can be found in [Marker's Readme].
 
@@ -76,8 +76,7 @@ Contributions are highly appreciated! If you encounter any issues or have sugges
 
 Copyright (c) 2022-2023 Rust-Marker
 
-Rust-marker is distributed under the terms of the MIT license
-or the Apache License (Version 2.0).
+Rust-marker is distributed under the terms of the MIT license or the Apache License (Version 2.0).
 
 See [LICENSE-APACHE](https://github.com/rust-marker/marker/blob/master/LICENSE-APACHE), [LICENSE-MIT](https://github.com/rust-marker/marker/blob/master/LICENSE-MIT).
 
