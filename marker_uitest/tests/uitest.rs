@@ -32,7 +32,14 @@ fn ui_test() -> ui_test::color_eyre::Result<()> {
         config.output_conflict_handling = OutputConflictHandling::Bless
     }
 
-    config.path_stderr_filter(&std::path::Path::new(path), "$DIR");
+    let filters = [
+        // Normalization for windows...
+        (r"ui//", "ui/"),
+    ];
+    for (pat, repl) in filters {
+        config.stderr_filter(pat, repl);
+        config.stdout_filter(pat, repl);
+    }
 
     // hide binaries generated for successfully passing tests
     let tmp_dir = tempfile::tempdir_in(path)?;
