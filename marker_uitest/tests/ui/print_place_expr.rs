@@ -1,5 +1,3 @@
-// normalize-stderr-windows: "tests/ui/" -> "$$DIR/"
-
 #[derive(Default)]
 struct FieldStruct {
     a: u32,

@@ -1,5 +1,3 @@
-// normalize-stderr-windows: "tests/ui/" -> "$$DIR/"
-
 use core::fmt::Debug;
 use core::marker::PhantomData;
 
@@ -44,7 +42,7 @@ fn main() {
     let _ty_ptr: Option<(&'static str, *const i32, *mut i32)> = None;
     let _ty_fn_item: fn(u32) -> f32 = u32_to_f32;
     let _ty_closure = || x = 9;
-    
+
     // The path `u32_to_f32` actually has the function item type, it has
     // to be stored in a value, to become a function pointer
     let fn_ptr: fn(u32) -> f32 = u32_to_f32;

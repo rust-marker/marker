@@ -1,5 +1,3 @@
-// normalize-stderr-windows: "tests/ui/" -> "$$DIR/"
-
 fn main() {
     let _print_exprs = {
         'label: loop {

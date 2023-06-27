@@ -1,7 +1,7 @@
 warning: print test
-  --> $DIR/print_object_exprs.rs:20:5
+  --> $DIR/print_object_exprs.rs:18:5
    |
-20 |     let _print_method = foo.print();
+18 |     let _print_method = foo.print();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Method(
@@ -30,8 +30,8 @@ warning: print test
                                                    source: File(
                                                        "$DIR/print_object_exprs.rs",
                                                    ),
-                                                   start: 327,
-                                                   end: 330,
+                                                   start: 273,
+                                                   end: 276,
                                                },
                                            },
                                            generics: GenericArgs {
@@ -53,8 +53,8 @@ warning: print test
                                source: File(
                                    "$DIR/print_object_exprs.rs",
                                ),
-                               start: 331,
-                               end: 336,
+                               start: 277,
+                               end: 282,
                            },
                        },
                        generics: GenericArgs {
@@ -67,9 +67,9 @@ warning: print test
    = note: `#[warn(marker::test_lint)]` on by default
 
 warning: print test
-  --> $DIR/print_object_exprs.rs:21:5
+  --> $DIR/print_object_exprs.rs:19:5
    |
-21 |     let _print_method = foo.inc(2);
+19 |     let _print_method = foo.inc(2);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Method(
@@ -98,8 +98,8 @@ warning: print test
                                                    source: File(
                                                        "$DIR/print_object_exprs.rs",
                                                    ),
-                                                   start: 364,
-                                                   end: 367,
+                                                   start: 310,
+                                                   end: 313,
                                                },
                                            },
                                            generics: GenericArgs {
@@ -121,8 +121,8 @@ warning: print test
                                source: File(
                                    "$DIR/print_object_exprs.rs",
                                ),
-                               start: 368,
-                               end: 371,
+                               start: 314,
+                               end: 317,
                            },
                        },
                        generics: GenericArgs {

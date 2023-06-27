@@ -39,9 +39,9 @@ Check equal: true
 =====================================================================
 
 warning: check type resolution
- --> $DIR/item_id_resolution.rs:7:5
+ --> $DIR/item_id_resolution.rs:5:5
   |
-7 |     let _check_path_vec = vec!["hey"];
+5 |     let _check_path_vec = vec!["hey"];
   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = note: Is this a "std::vec::Vec" -> true
@@ -51,9 +51,9 @@ warning: check type resolution
   = note: `#[warn(marker::test_lint)]` on by default
 
 warning: check type resolution
- --> $DIR/item_id_resolution.rs:8:5
+ --> $DIR/item_id_resolution.rs:6:5
   |
-8 |     let _check_path_string = String::from("marker");
+6 |     let _check_path_string = String::from("marker");
   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = note: Is this a "std::vec::Vec" -> false
@@ -62,9 +62,9 @@ warning: check type resolution
   = note: Is this a "crate::TestType" -> false
 
 warning: check type resolution
- --> $DIR/item_id_resolution.rs:9:5
+ --> $DIR/item_id_resolution.rs:7:5
   |
-9 |     let _check_path_option = Option::Some("<3");
+7 |     let _check_path_option = Option::Some("<3");
   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = note: Is this a "std::vec::Vec" -> false
@@ -73,15 +73,15 @@ warning: check type resolution
   = note: Is this a "crate::TestType" -> false
 
 warning: check type resolution
-  --> $DIR/item_id_resolution.rs:10:5
-   |
-10 |     let _check_path_test_type = TestType(3);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: Is this a "std::vec::Vec" -> false
-   = note: Is this a "std::string::String" -> false
-   = note: Is this a "std::option::Option" -> false
-   = note: Is this a "crate::TestType" -> true
+ --> $DIR/item_id_resolution.rs:8:5
+  |
+8 |     let _check_path_test_type = TestType(3);
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Is this a "std::vec::Vec" -> false
+  = note: Is this a "std::string::String" -> false
+  = note: Is this a "std::option::Option" -> false
+  = note: Is this a "crate::TestType" -> true
 
 warning: 4 warnings emitted
 

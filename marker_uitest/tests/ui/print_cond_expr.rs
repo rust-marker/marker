@@ -1,5 +1,3 @@
-// normalize-stderr-windows: "tests/ui/" -> "$$DIR/"
-
 fn ifs() {
     let cond = true;
     let _print_if = if cond {

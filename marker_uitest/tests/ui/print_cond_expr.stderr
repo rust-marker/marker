@@ -1,13 +1,13 @@
 warning: print test
-  --> $DIR/print_cond_expr.rs:5:5
+  --> $DIR/print_cond_expr.rs:3:5
    |
-5  | /     let _print_if = if cond {
-6  | |         // The simple if condition sadly has to be printed as a sub expression
-7  | |         // as only `let _print*` triggers the print lint
-8  | |         if cond {}
+3  | /     let _print_if = if cond {
+4  | |         // The simple if condition sadly has to be printed as a sub expression
+5  | |         // as only `let _print*` triggers the print lint
+6  | |         if cond {}
 ...  |
-11 | |         2
-12 | |     };
+9  | |         2
+10 | |     };
    | |______^
    |
    = note: If(
@@ -36,8 +36,8 @@ warning: print test
                                                    source: File(
                                                        "$DIR/print_cond_expr.rs",
                                                    ),
-                                                   start: 109,
-                                                   end: 113,
+                                                   start: 55,
+                                                   end: 59,
                                                },
                                            },
                                            generics: GenericArgs {
@@ -87,8 +87,8 @@ warning: print test
                                                                            source: File(
                                                                                "$DIR/print_cond_expr.rs",
                                                                            ),
-                                                                           start: 263,
-                                                                           end: 267,
+                                                                           start: 209,
+                                                                           end: 213,
                                                                        },
                                                                    },
                                                                    generics: GenericArgs {
@@ -170,9 +170,9 @@ warning: print test
    = note: `#[warn(marker::test_lint)]` on by default
 
 warning: print test
-  --> $DIR/print_cond_expr.rs:15:5
+  --> $DIR/print_cond_expr.rs:13:5
    |
-15 |     let _print_if_let = if let Some(_) = opt { "some" } else { "none" };
+13 |     let _print_if_let = if let Some(_) = opt { "some" } else { "none" };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: If(
@@ -204,8 +204,8 @@ warning: print test
                                                        source: File(
                                                            "$DIR/print_cond_expr.rs",
                                                        ),
-                                                       start: 366,
-                                                       end: 370,
+                                                       start: 312,
+                                                       end: 316,
                                                    },
                                                },
                                                generics: GenericArgs {
@@ -250,8 +250,8 @@ warning: print test
                                                            source: File(
                                                                "$DIR/print_cond_expr.rs",
                                                            ),
-                                                           start: 376,
-                                                           end: 379,
+                                                           start: 322,
+                                                           end: 325,
                                                        },
                                                    },
                                                    generics: GenericArgs {
@@ -328,15 +328,15 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_cond_expr.rs:19:5
+  --> $DIR/print_cond_expr.rs:17:5
    |
-19 | /     let _print_else_if = if a {
-20 | |         1
-21 | |     } else if b {
-22 | |         2
-23 | |     } else {
-24 | |         3
-25 | |     };
+17 | /     let _print_else_if = if a {
+18 | |         1
+19 | |     } else if b {
+20 | |         2
+21 | |     } else {
+22 | |         3
+23 | |     };
    | |______^
    |
    = note: If(
@@ -365,8 +365,8 @@ warning: print test
                                                    source: File(
                                                        "$DIR/print_cond_expr.rs",
                                                    ),
-                                                   start: 473,
-                                                   end: 474,
+                                                   start: 419,
+                                                   end: 420,
                                                },
                                            },
                                            generics: GenericArgs {
@@ -433,8 +433,8 @@ warning: print test
                                                                source: File(
                                                                    "$DIR/print_cond_expr.rs",
                                                                ),
-                                                               start: 501,
-                                                               end: 502,
+                                                               start: 447,
+                                                               end: 448,
                                                            },
                                                        },
                                                        generics: GenericArgs {
@@ -508,15 +508,15 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_cond_expr.rs:29:5
+  --> $DIR/print_cond_expr.rs:27:5
    |
-29 | /     let _print_match = match scrutinee {
-30 | |         [] => 1,
-31 | |         [x] if check(x) => 2,
-32 | |         _ => {
+27 | /     let _print_match = match scrutinee {
+28 | |         [] => 1,
+29 | |         [x] if check(x) => 2,
+30 | |         _ => {
 ...  |
-35 | |         },
-36 | |     };
+33 | |         },
+34 | |     };
    | |______^
    |
    = note: Match(
@@ -545,8 +545,8 @@ warning: print test
                                                    source: File(
                                                        "$DIR/print_cond_expr.rs",
                                                    ),
-                                                   start: 609,
-                                                   end: 618,
+                                                   start: 555,
+                                                   end: 564,
                                                },
                                            },
                                            generics: GenericArgs {
@@ -638,8 +638,8 @@ warning: print test
                                                                        source: File(
                                                                            "$DIR/print_cond_expr.rs",
                                                                        ),
-                                                                       start: 653,
-                                                                       end: 658,
+                                                                       start: 599,
+                                                                       end: 604,
                                                                    },
                                                                },
                                                                generics: GenericArgs {
@@ -674,8 +674,8 @@ warning: print test
                                                                            source: File(
                                                                                "$DIR/print_cond_expr.rs",
                                                                            ),
-                                                                           start: 659,
-                                                                           end: 660,
+                                                                           start: 605,
+                                                                           end: 606,
                                                                        },
                                                                    },
                                                                    generics: GenericArgs {
@@ -748,13 +748,13 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_cond_expr.rs:39:5
+  --> $DIR/print_cond_expr.rs:37:5
    |
-39 | /     let _print_match_with_path = match opt {
-40 | |         Some(1) => (),
-41 | |         Some(x) => (),
-42 | |         None => (),
-43 | |     };
+37 | /     let _print_match_with_path = match opt {
+38 | |         Some(1) => (),
+39 | |         Some(x) => (),
+40 | |         None => (),
+41 | |     };
    | |______^
    |
    = note: Match(
@@ -783,8 +783,8 @@ warning: print test
                                                    source: File(
                                                        "$DIR/print_cond_expr.rs",
                                                    ),
-                                                   start: 823,
-                                                   end: 826,
+                                                   start: 769,
+                                                   end: 772,
                                                },
                                            },
                                            generics: GenericArgs {
@@ -817,8 +817,8 @@ warning: print test
                                                        source: File(
                                                            "$DIR/print_cond_expr.rs",
                                                        ),
-                                                       start: 837,
-                                                       end: 841,
+                                                       start: 783,
+                                                       end: 787,
                                                    },
                                                },
                                                generics: GenericArgs {
@@ -878,8 +878,8 @@ warning: print test
                                                        source: File(
                                                            "$DIR/print_cond_expr.rs",
                                                        ),
-                                                       start: 860,
-                                                       end: 864,
+                                                       start: 806,
+                                                       end: 810,
                                                    },
                                                },
                                                generics: GenericArgs {
@@ -942,8 +942,8 @@ warning: print test
                                                            source: File(
                                                                "$DIR/print_cond_expr.rs",
                                                            ),
-                                                           start: 883,
-                                                           end: 887,
+                                                           start: 829,
+                                                           end: 833,
                                                        },
                                                    },
                                                    generics: GenericArgs {
@@ -975,9 +975,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_cond_expr.rs:49:9
+  --> $DIR/print_cond_expr.rs:47:9
    |
-49 |         let _print_option_match = x?;
+47 |         let _print_option_match = x?;
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: QuestionMark(
@@ -1013,8 +1013,8 @@ warning: print test
                                                            source: File(
                                                                "$DIR/print_cond_expr.rs",
                                                            ),
-                                                           start: 1024,
-                                                           end: 1026,
+                                                           start: 970,
+                                                           end: 972,
                                                        },
                                                    },
                                                    generics: GenericArgs {
@@ -1049,8 +1049,8 @@ warning: print test
                                                                source: File(
                                                                    "$DIR/print_cond_expr.rs",
                                                                ),
-                                                               start: 1024,
-                                                               end: 1025,
+                                                               start: 970,
+                                                               end: 971,
                                                            },
                                                        },
                                                        generics: GenericArgs {
@@ -1072,9 +1072,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_cond_expr.rs:55:9
+  --> $DIR/print_cond_expr.rs:53:9
    |
-55 |         let _print_option_match = x?;
+53 |         let _print_option_match = x?;
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: QuestionMark(
@@ -1110,8 +1110,8 @@ warning: print test
                                                            source: File(
                                                                "$DIR/print_cond_expr.rs",
                                                            ),
-                                                           start: 1168,
-                                                           end: 1170,
+                                                           start: 1114,
+                                                           end: 1116,
                                                        },
                                                    },
                                                    generics: GenericArgs {
@@ -1146,8 +1146,8 @@ warning: print test
                                                                source: File(
                                                                    "$DIR/print_cond_expr.rs",
                                                                ),
-                                                               start: 1168,
-                                                               end: 1169,
+                                                               start: 1114,
+                                                               end: 1115,
                                                            },
                                                        },
                                                        generics: GenericArgs {
