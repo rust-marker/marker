@@ -1,7 +1,7 @@
 <h1 align="center">Marker</h1>
 <p align="center">
     <br/>
-    <img height=200 src="res/logo.svg" alt="Marker logo"/>
+    <img height=200 src="./res/marker-logo.svg" alt="Marker logo" style="border-radius: 50%;"/>
 </p>
 
 <br/>
