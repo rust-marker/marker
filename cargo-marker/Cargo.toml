@@ -3,8 +3,10 @@ name = "cargo_marker"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
-readme = "./README.md"
 keywords = ["marker", "linting", "cli", "cargo", "cargo-subcommand"]
+categories = ["development-tools::cargo-plugins"]
+repository = "https://github.com/rust-marker/marker"
+description = "Marker's CLI interface to automatically compile and run lint crates"
 
 # Crate names in Rust are fun. I reserved `cargo_marker` as a crate name. However,
 # Cargo requires it's subcommands to use a dash like `cargo-marker`. Unable to rename
