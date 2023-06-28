@@ -1,6 +1,6 @@
 <h1 align="center">Marker</h1>
 <p align="center">
-    <img height=200 src="./res/marker-logo-circle.svg" alt="Marker logo" />
+    <img height=200 src="./res/marker-logo-round.svg" alt="Marker logo" />
 </p>
 
 <br/>
