@@ -1049,6 +1049,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "marker_utils"
+version = "0.1.0"
+dependencies = [
+ "marker_api",
+]
+
+[[package]]
 name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
