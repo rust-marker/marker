@@ -27,12 +27,12 @@ use marker_api::{lint::Lint, LintPass};
 
 // With the [`declare_lint!`] macro we define a new lint. The macro accepts a
 // name, default lint level and description.
-marker_api::lint::declare_lint!(YOUR_LINT_NAME, Allow, "the lint descritpion");
+marker_api::declare_lint!(YOUR_LINT_NAME, Allow, "the lint descritpion");
 
 // Here we create an object that'll implement `LintPass`. This struct can
 // hold data used for linting. A mutable reference of this struct is passed to
 // each check in `LintPass`
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct TestLintPass;
 
 // Here we implement the `LintPass` for our struct. It only requires the
@@ -51,5 +51,5 @@ impl LintPass for TestLintPass {
 // Each lint crate requires exactly one marker. All lints have to be implemented
 // in one lint pass. For multiple lints it can be helpful to extract the individual
 // linting logic called by the `check_*` functions into separate modules.
-marker_api::interface::export_lint_pass!(TestLintPass);
+marker_api::export_lint_pass!(TestLintPass);
 ```

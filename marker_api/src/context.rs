@@ -1,3 +1,7 @@
+//! This module is responsible for the [`AstContext`] struct and related plumbing.
+//! Items in this module are generally unstable, with the exception of the
+//! exposed interface of [`AstContext`].
+
 use std::{cell::RefCell, mem::transmute};
 
 use crate::{

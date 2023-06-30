@@ -11,17 +11,16 @@ use loader::LintCrateRegistry;
 use marker_api::{
     ast::{expr::ExprKind, item::ItemKind, BodyId, Crate},
     context::AstContext,
-    lint::Lint,
-    LintPass,
+    LintPass, LintPassInfo,
 };
 
 /// This struct is the interface used by lint drivers to pass transformed objects to
 /// external lint passes.
-pub struct Adapter<'ast> {
-    external_lint_crates: LintCrateRegistry<'ast>,
+pub struct Adapter {
+    external_lint_crates: LintCrateRegistry,
 }
 
-impl<'ast> Adapter<'ast> {
+impl Adapter {
     #[must_use]
     pub fn new_from_env() -> Self {
         let external_lint_crates = LintCrateRegistry::new_from_env();
@@ -29,46 +28,38 @@ impl<'ast> Adapter<'ast> {
     }
 
     #[must_use]
-    pub fn registered_lints(&self) -> Box<[&'static Lint]> {
-        self.external_lint_crates.registered_lints()
+    pub fn registered_lints(&self) -> Vec<LintPassInfo> {
+        self.external_lint_crates.collect_lint_pass_info()
     }
 
-    pub fn process_krate(&mut self, cx: &'ast AstContext<'ast>, krate: &Crate<'ast>) {
+    pub fn process_krate<'ast>(&mut self, cx: &'ast AstContext<'ast>, krate: &Crate<'ast>) {
         self.external_lint_crates.set_ast_context(cx);
 
         for item in krate.items() {
-            self.external_lint_crates.check_item(cx, *item);
             self.process_item(cx, item);
         }
     }
 
-    fn process_item(&mut self, cx: &'ast AstContext<'ast>, item: &ItemKind<'ast>) {
+    fn process_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &ItemKind<'ast>) {
+        self.external_lint_crates.check_item(cx, *item);
         match item {
             ItemKind::Mod(data) => {
-                self.external_lint_crates.check_mod(cx, data);
                 for item in data.items() {
                     self.process_item(cx, item);
                 }
             },
-            ItemKind::ExternCrate(data) => self.external_lint_crates.check_extern_crate(cx, data),
-            ItemKind::Use(data) => self.external_lint_crates.check_use_decl(cx, data),
-            ItemKind::Static(data) => self.external_lint_crates.check_static_item(cx, data),
-            ItemKind::Const(data) => self.external_lint_crates.check_const_item(cx, data),
             // FIXME: Function-local items are not yet processed
             ItemKind::Fn(data) => {
-                self.external_lint_crates.check_fn(cx, data);
                 if let Some(id) = data.body() {
                     self.process_body(cx, id);
                 }
             },
             ItemKind::Struct(data) => {
-                self.external_lint_crates.check_struct(cx, data);
                 for field in data.fields() {
                     self.external_lint_crates.check_field(cx, field);
                 }
             },
             ItemKind::Enum(data) => {
-                self.external_lint_crates.check_enum(cx, data);
                 for variant in data.variants() {
                     self.external_lint_crates.check_variant(cx, variant);
                     for field in variant.fields() {
@@ -80,14 +71,14 @@ impl<'ast> Adapter<'ast> {
         }
     }
 
-    fn process_body(&mut self, cx: &'ast AstContext<'ast>, id: BodyId) {
+    fn process_body<'ast>(&mut self, cx: &'ast AstContext<'ast>, id: BodyId) {
         let body = cx.body(id);
         self.external_lint_crates.check_body(cx, body);
         let expr = body.expr();
         self.process_expr(cx, expr);
     }
 
-    fn process_expr(&mut self, cx: &'ast AstContext<'ast>, expr: ExprKind<'ast>) {
+    fn process_expr<'ast>(&mut self, cx: &'ast AstContext<'ast>, expr: ExprKind<'ast>) {
         self.external_lint_crates.check_expr(cx, expr);
         #[expect(clippy::single_match)]
         match expr {

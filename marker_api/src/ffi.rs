@@ -16,6 +16,7 @@ use std::{marker::PhantomData, slice};
 #[derive(Clone, Copy)]
 pub struct FfiStr<'a> {
     _lifetime: PhantomData<&'a ()>,
+    /// Not really *const, but it should have the lifetime of at least `'a`
     data: *const u8,
     len: usize,
 }
@@ -119,6 +120,7 @@ impl<T> From<Option<T>> for FfiOption<T> {
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct FfiSlice<'a, T> {
     _lifetime: PhantomData<&'a ()>,
+    /// Not really *const, but it should have the lifetime of at least `'a`
     data: *const T,
     len: usize,
 }
