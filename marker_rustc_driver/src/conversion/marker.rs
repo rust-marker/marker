@@ -167,6 +167,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             (hir::LangItem::FormatArguments, self.to_symbol_id(Symbol::intern("FormatArguments"))),
             (hir::LangItem::FormatArgument, self.to_symbol_id(Symbol::intern("FormatArgument"))),
             (hir::LangItem::TryTraitBranch, self.to_symbol_id(Symbol::intern("Try::branch"))),
+            (hir::LangItem::FormatPlaceholder, self.to_symbol_id(Symbol::intern(""))),
         ];
 
         self.lang_item_map.borrow_mut().extend(list);

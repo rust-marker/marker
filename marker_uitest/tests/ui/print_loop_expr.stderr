@@ -38,7 +38,7 @@ warning: print test
                                           },
                                       },
                                   ),
-                                  body: Block(
+                                  block: Block(
                                       BlockExpr {
                                           data: CommonExprData {
                                               _lifetime: PhantomData<&()>,
@@ -90,7 +90,7 @@ warning: print test
                                   span: SpanId(..),
                               },
                               label: None,
-                              body: Block(
+                              block: Block(
                                   BlockExpr {
                                       data: CommonExprData {
                                           _lifetime: PhantomData<&()>,
@@ -176,7 +176,7 @@ warning: print test
                                            },
                                        },
                                    ),
-                                   body: Block(
+                                   block: Block(
                                        BlockExpr {
                                            data: CommonExprData {
                                                _lifetime: PhantomData<&()>,
@@ -288,7 +288,7 @@ warning: print test
                                        ),
                                    },
                                ),
-                               body: Block(
+                               block: Block(
                                    BlockExpr {
                                        data: CommonExprData {
                                            _lifetime: PhantomData<&()>,
@@ -469,7 +469,7 @@ warning: print test
                                            is_inclusive: false,
                                        },
                                    ),
-                                   body: Block(
+                                   block: Block(
                                        BlockExpr {
                                            data: CommonExprData {
                                                _lifetime: PhantomData<&()>,
@@ -566,7 +566,7 @@ warning: print test
                                        },
                                    },
                                ),
-                               body: Block(
+                               block: Block(
                                    BlockExpr {
                                        data: CommonExprData {
                                            _lifetime: PhantomData<&()>,

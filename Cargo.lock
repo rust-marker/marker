@@ -1020,6 +1020,7 @@ dependencies = [
  "cfg-if",
  "libloading",
  "marker_api",
+ "marker_utils",
 ]
 
 [[package]]
