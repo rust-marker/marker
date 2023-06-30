@@ -111,7 +111,7 @@ impl<'ast> ClosureExpr<'ast> {
         self.capture_kind
     }
 
-    pub fn body(&self) -> BodyId {
+    pub fn body_id(&self) -> BodyId {
         self.body
     }
 }

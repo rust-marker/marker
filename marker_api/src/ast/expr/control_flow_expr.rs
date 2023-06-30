@@ -415,7 +415,7 @@ impl<'ast> ContinueExpr<'ast> {
 pub struct LoopExpr<'ast> {
     data: CommonExprData<'ast>,
     label: FfiOption<Ident<'ast>>,
-    body: ExprKind<'ast>,
+    block: ExprKind<'ast>,
 }
 
 impl<'ast> LoopExpr<'ast> {
@@ -423,8 +423,8 @@ impl<'ast> LoopExpr<'ast> {
         self.label.get()
     }
 
-    pub fn body(&self) -> ExprKind<'ast> {
-        self.body
+    pub fn block(&self) -> ExprKind<'ast> {
+        self.block
     }
 }
 
@@ -432,11 +432,11 @@ super::impl_expr_data!(LoopExpr<'ast>, Loop);
 
 #[cfg(feature = "driver-api")]
 impl<'ast> LoopExpr<'ast> {
-    pub fn new(data: CommonExprData<'ast>, label: Option<Ident<'ast>>, body: ExprKind<'ast>) -> Self {
+    pub fn new(data: CommonExprData<'ast>, label: Option<Ident<'ast>>, block: ExprKind<'ast>) -> Self {
         Self {
             data,
             label: label.into(),
-            body,
+            block,
         }
     }
 }
@@ -462,7 +462,7 @@ pub struct WhileExpr<'ast> {
     data: CommonExprData<'ast>,
     label: FfiOption<Ident<'ast>>,
     condition: ExprKind<'ast>,
-    body: ExprKind<'ast>,
+    block: ExprKind<'ast>,
 }
 
 impl<'ast> WhileExpr<'ast> {
@@ -474,8 +474,8 @@ impl<'ast> WhileExpr<'ast> {
         self.condition
     }
 
-    pub fn body(&self) -> ExprKind<'ast> {
-        self.body
+    pub fn block(&self) -> ExprKind<'ast> {
+        self.block
     }
 }
 
@@ -487,13 +487,13 @@ impl<'ast> WhileExpr<'ast> {
         data: CommonExprData<'ast>,
         label: Option<Ident<'ast>>,
         condition: ExprKind<'ast>,
-        body: ExprKind<'ast>,
+        block: ExprKind<'ast>,
     ) -> Self {
         Self {
             data,
             condition,
             label: label.into(),
-            body,
+            block,
         }
     }
 }
@@ -519,7 +519,7 @@ pub struct ForExpr<'ast> {
     label: FfiOption<Ident<'ast>>,
     pat: PatKind<'ast>,
     iterable: ExprKind<'ast>,
-    body: ExprKind<'ast>,
+    block: ExprKind<'ast>,
 }
 
 impl<'ast> ForExpr<'ast> {
@@ -535,8 +535,8 @@ impl<'ast> ForExpr<'ast> {
         self.iterable
     }
 
-    pub fn body(&self) -> ExprKind<'ast> {
-        self.body
+    pub fn block(&self) -> ExprKind<'ast> {
+        self.block
     }
 }
 
@@ -549,14 +549,14 @@ impl<'ast> ForExpr<'ast> {
         label: Option<Ident<'ast>>,
         pat: PatKind<'ast>,
         iterable: ExprKind<'ast>,
-        body: ExprKind<'ast>,
+        block: ExprKind<'ast>,
     ) -> Self {
         Self {
             data,
             label: label.into(),
             pat,
             iterable,
-            body,
+            block,
         }
     }
 }

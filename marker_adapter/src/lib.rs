@@ -50,7 +50,7 @@ impl Adapter {
             },
             // FIXME: Function-local items are not yet processed
             ItemKind::Fn(data) => {
-                if let Some(id) = data.body() {
+                if let Some(id) = data.body_id() {
                     self.process_body(cx, id);
                 }
             },
