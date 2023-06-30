@@ -12,11 +12,45 @@ warning: found a `module` item with a test name
    |
    = note: `#[warn(marker::item_with_test_name)]` on by default
 
+warning: found a `const` item with a test name
+ --> $DIR/foo_items.rs:2:5
+  |
+2 |     const FIND_ME_CONST: i32 = 0;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: found a `static` item with a test name
+ --> $DIR/foo_items.rs:4:5
+  |
+4 |     static FIND_ME_STATIC: i32 = 0;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: found a `fn` item with a test name
+ --> $DIR/foo_items.rs:6:5
+  |
+6 |     pub fn find_me_fn() {}
+  |     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: found a `struct` item with a test name
+  --> $DIR/foo_items.rs:8:5
+   |
+8  | /     struct FindMeStruct {
+9  | |         find_me_field: i32,
+10 | |     }
+   | |_____^
+
 warning: found a field with a test name
  --> $DIR/foo_items.rs:9:9
   |
 9 |         find_me_field: i32,
   |         ^^^^^^^^^^^^^^^^^^
+
+warning: found a `enum` item with a test name
+  --> $DIR/foo_items.rs:11:5
+   |
+11 | /     enum FindMeEnum {
+12 | |         FindMe,
+13 | |     }
+   | |_____^
 
 warning: found an enum variant with a test name
   --> $DIR/foo_items.rs:12:9
@@ -24,11 +58,26 @@ warning: found an enum variant with a test name
 12 |         FindMe,
    |         ^^^^^^
 
+warning: found a `union` item with a test name
+  --> $DIR/foo_items.rs:14:5
+   |
+14 | /     union FindMeUnion {
+15 | |         a: i32,
+16 | |         b: u32,
+17 | |     }
+   | |_____^
+
+warning: found a `trait` item with a test name
+  --> $DIR/foo_items.rs:18:5
+   |
+18 |     trait FindMeTrait {}
+   |     ^^^^^^^^^^^^^^^^^^^^
+
 warning: found a `use` item with a test name
   --> $DIR/foo_items.rs:21:1
    |
 21 | use find_me::find_me_fn as find_me;
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-warning: 4 warnings emitted
+warning: 11 warnings emitted
 
