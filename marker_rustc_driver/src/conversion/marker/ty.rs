@@ -122,7 +122,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             | mid::ty::TyKind::GeneratorWitness(_)
             | mid::ty::TyKind::GeneratorWitnessMIR(_, _) => SemTyKind::Unstable(self.alloc(SemUnstableTy::new())),
             mid::ty::TyKind::Never => SemTyKind::Never(self.alloc(SemNeverTy::new())),
-            mid::ty::TyKind::Alias(mid::ty::AliasKind::Inherent, info) => {
+            mid::ty::TyKind::Alias(mid::ty::AliasKind::Inherent | mid::ty::AliasKind::Projection, info) => {
                 SemTyKind::Alias(self.alloc(SemAliasTy::new(self.to_item_id(info.def_id))))
             },
             mid::ty::TyKind::Alias(kind, info) => todo!("{kind:#?}\n\n{info:#?}"),

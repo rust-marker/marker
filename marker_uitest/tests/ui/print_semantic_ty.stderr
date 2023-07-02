@@ -1,7 +1,60 @@
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:26:5
+  --> $DIR/print_semantic_ty.rs:24:9
    |
-26 |     let _ty_generic: T = t;
+24 |         let _ty: Self::C = Self::C::default();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Alias(
+               SemAliasTy {
+                   _lifetime: PhantomData<&()>,
+                   alias_item: ItemId(..),
+               },
+           )
+   = note: `#[warn(marker::test_lint)]` on by default
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:25:9
+   |
+25 |         let _ty: <Self as InterestingTrait<T>>::A = Self::A::default();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Alias(
+               SemAliasTy {
+                   _lifetime: PhantomData<&()>,
+                   alias_item: ItemId(..),
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:39:9
+   |
+39 |         let _ty: Self::C = Self::C::default();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Num(
+               SemNumTy {
+                   _ast: PhantomData<&()>,
+                   numeric_kind: U32,
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:40:9
+   |
+40 |         let _ty: <Self as InterestingTrait<u32>>::A = Self::A::default();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Num(
+               SemNumTy {
+                   _ast: PhantomData<&()>,
+                   numeric_kind: U32,
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:45:5
+   |
+45 |     let _ty_generic: T = t;
    |     ^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Generic(
@@ -10,12 +63,11 @@ warning: print type test
                    generic_id: GenericId(..),
                },
            )
-   = note: `#[warn(marker::test_lint)]` on by default
 
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:35:5
+  --> $DIR/print_semantic_ty.rs:54:5
    |
-35 |     let _ty: u32 = 10;
+54 |     let _ty: u32 = 10;
    |     ^^^^^^^^^^^^^^^^^^
    |
    = note: Num(
@@ -26,9 +78,9 @@ warning: print type test
            )
 
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:36:5
+  --> $DIR/print_semantic_ty.rs:55:5
    |
-36 |     let _ty_primitive: Option<(u8, u16, u32, u64, u128, usize)> = None;
+55 |     let _ty_primitive: Option<(u8, u16, u32, u64, u128, usize)> = None;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
@@ -86,9 +138,9 @@ warning: print type test
            )
 
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:37:5
+  --> $DIR/print_semantic_ty.rs:56:5
    |
-37 |     let _ty_primitive: Option<(i8, i16, i32, i64, i128, isize)> = None;
+56 |     let _ty_primitive: Option<(i8, i16, i32, i64, i128, isize)> = None;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
@@ -146,9 +198,9 @@ warning: print type test
            )
 
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:38:5
+  --> $DIR/print_semantic_ty.rs:57:5
    |
-38 |     let _ty_primitive: Option<(char, bool, f32, f64)> = None;
+57 |     let _ty_primitive: Option<(char, bool, f32, f64)> = None;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
@@ -190,9 +242,9 @@ warning: print type test
            )
 
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:39:5
+  --> $DIR/print_semantic_ty.rs:58:5
    |
-39 |     let _ty_sequence: [u32; 1] = [10];
+58 |     let _ty_sequence: [u32; 1] = [10];
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Array(
@@ -207,9 +259,9 @@ warning: print type test
            )
 
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:41:5
+  --> $DIR/print_semantic_ty.rs:60:5
    |
-41 |     let _ty_sequence: &[u32] = slice;
+60 |     let _ty_sequence: &[u32] = slice;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Ref(
@@ -229,9 +281,9 @@ warning: print type test
            )
 
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:42:5
+  --> $DIR/print_semantic_ty.rs:61:5
    |
-42 |     let _ty_ptr: Option<(&'static str, *const i32, *mut i32)> = None;
+61 |     let _ty_ptr: Option<(&'static str, *const i32, *mut i32)> = None;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
@@ -283,9 +335,9 @@ warning: print type test
            )
 
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:43:5
+  --> $DIR/print_semantic_ty.rs:62:5
    |
-43 |     let _ty_fn_item: fn(u32) -> f32 = u32_to_f32;
+62 |     let _ty_fn_item: fn(u32) -> f32 = u32_to_f32;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: FnTy(
@@ -298,9 +350,9 @@ warning: print type test
            )
 
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:44:5
+  --> $DIR/print_semantic_ty.rs:63:5
    |
-44 |     let _ty_closure = || x = 9;
+63 |     let _ty_closure = || x = 9;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: ClosureTy(
@@ -361,9 +413,9 @@ warning: print type test
            )
 
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:49:5
+  --> $DIR/print_semantic_ty.rs:68:5
    |
-49 |     let _ty_fn_ptr: fn(u32) -> f32 = fn_ptr;
+68 |     let _ty_fn_ptr: fn(u32) -> f32 = fn_ptr;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: FnPtr(
@@ -388,9 +440,9 @@ warning: print type test
            )
 
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:53:5
+  --> $DIR/print_semantic_ty.rs:72:5
    |
-53 |     let _ty_simple_alias: AliasTy = AliasTy::new(12);
+72 |     let _ty_simple_alias: AliasTy = AliasTy::new(12);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
@@ -422,9 +474,9 @@ warning: print type test
            )
 
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:55:5
+  --> $DIR/print_semantic_ty.rs:74:5
    |
-55 |     let _ty_adt: String = String::new();
+74 |     let _ty_adt: String = String::new();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
@@ -437,9 +489,9 @@ warning: print type test
            )
 
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:56:5
+  --> $DIR/print_semantic_ty.rs:75:5
    |
-56 |     let _ty_dyn_simple: Option<Box<dyn Debug>> = None;
+75 |     let _ty_dyn_simple: Option<Box<dyn Debug>> = None;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
@@ -489,9 +541,9 @@ warning: print type test
            )
 
 warning: print type test
-  --> $DIR/print_semantic_ty.rs:57:5
+  --> $DIR/print_semantic_ty.rs:76:5
    |
-57 |     let _ty_dyn_complex: Option<Box<dyn Iterator<Item = i32> + 'static>> = None;
+76 |     let _ty_dyn_complex: Option<Box<dyn Iterator<Item = i32> + 'static>> = None;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
@@ -552,5 +604,5 @@ warning: print type test
                },
            )
 
-warning: 15 warnings emitted
+warning: 19 warnings emitted
 

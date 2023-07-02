@@ -164,10 +164,13 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         use rustc_span::symbol::Symbol;
         #[rustfmt::skip]
         let list = [
-            (hir::LangItem::FormatArguments, self.to_symbol_id(Symbol::intern("FormatArguments"))),
-            (hir::LangItem::FormatArgument, self.to_symbol_id(Symbol::intern("FormatArgument"))),
             (hir::LangItem::TryTraitBranch, self.to_symbol_id(Symbol::intern("Try::branch"))),
-            (hir::LangItem::FormatPlaceholder, self.to_symbol_id(Symbol::intern(""))),
+            (hir::LangItem::FormatArgument, self.to_symbol_id(Symbol::intern("rustc_ast::format::FormatArgument"))),
+            (hir::LangItem::FormatArguments, self.to_symbol_id(Symbol::intern("rustc_ast::format::FormatArguments"))),
+            (hir::LangItem::FormatPlaceholder, self.to_symbol_id(Symbol::intern("rustc_ast::format::FormatPlaceholder"))),
+            (hir::LangItem::FormatAlignment, self.to_symbol_id(Symbol::intern("rustc_ast::format::FormatAlignment"))),
+            (hir::LangItem::FormatCount, self.to_symbol_id(Symbol::intern("rustc_ast::format::FormatCount"))),
+            (hir::LangItem::FormatUnsafeArg, self.to_symbol_id(Symbol::intern("core::fmt::rt::UnsafeArg"))),
         ];
 
         self.lang_item_map.borrow_mut().extend(list);

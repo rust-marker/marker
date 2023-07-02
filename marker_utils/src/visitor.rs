@@ -144,6 +144,7 @@ pub fn traverse_stmt<'ast, B>(
     ControlFlow::Continue(())
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn traverse_expr<'ast, B>(
     cx: &'ast AstContext<'ast>,
     visitor: &mut dyn Visitor<B>,

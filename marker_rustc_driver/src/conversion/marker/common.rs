@@ -203,11 +203,18 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 // Res resolution
                 let res = if segment.res == hir::def::Res::Err {
                     if let Some(res) = resolve() {
+                        assert!(
+                            res != hir::def::Res::Err,
+                            "path resolution with `resolve()` failed for {qpath:#?}"
+                        );
                         self.to_path_target(&res)
                     } else {
-                        // FIXME: The current method doesn't work to resolve
-                        // complicated trait bounds. Returning WIP is the best
-                        // workaround rn
+                        // Life is not perfect and resolving paths is hard. It would be
+                        // interesting where some of the limitations from rustc come from
+                        // or what is the intended way for these examples. Anyways, currently
+                        // this returns `Unresolved` for:
+                        // - Complex trait bounds in generic clauses
+                        // - For `Self::A` paths in traits and trait impls
                         AstPathTarget::Unresolved
                     }
                 } else {
@@ -242,22 +249,14 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     pub fn to_qpath_from_expr(&self, qpath: &hir::QPath<'tcx>, expr: &hir::Expr<'_>) -> AstQPath<'ast> {
-        self.to_qpath(qpath, || Some(self.resolve_qpath_in_body(qpath, expr.hir_id)))
+        self.to_qpath(qpath, || self.resolve_qpath_in_body(qpath, expr.hir_id))
     }
 
-    pub fn to_qpath_from_pat(&self, qpath: &hir::QPath<'tcx>) -> AstQPath<'ast> {
-        // The normal path resolution requires the specification of a function to
-        // resolve paths, which have not been resolved by rustc. The way of
-        // resolving the path depends on the context that the path occurs in.
-        // Patterns can occur in item signatures and bodies, which means that the
-        // target would need to be resolved in different ways depending on the
-        // context. From what I can tell, paths inside patters are always resolved.
-        // Therefore, it should be safe, to not provide a resolve method.
+    pub fn to_qpath_from_pat(&self, qpath: &hir::QPath<'tcx>, pat: &hir::Pat<'_>) -> AstQPath<'ast> {
+        // Rustc patterns can only occur inside bodies, so this should work just fine.
         //
-        // (Famous last words :D)
-        self.to_qpath(qpath, || {
-            unreachable!("paths in patterns should always be resolved in rustc")
-        })
+        // (Famous last words, the second :D)
+        self.to_qpath(qpath, || self.resolve_qpath_in_body(qpath, pat.hir_id))
     }
 
     pub fn to_qpath_from_ty(&self, qpath: &hir::QPath<'tcx>, rustc_ty: &hir::Ty<'_>) -> AstQPath<'ast> {
@@ -274,7 +273,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         self.to_qpath(qpath, || match res_resolution_parent(self.rustc_cx, rustc_ty.hir_id) {
-            hir::Node::Expr(_) | hir::Node::Stmt(_) => Some(self.resolve_qpath_in_body(qpath, rustc_ty.hir_id)),
+            hir::Node::Expr(_) | hir::Node::Stmt(_) => self.resolve_qpath_in_body(qpath, rustc_ty.hir_id),
             hir::Node::Item(item) => self.resolve_qpath_in_item(qpath, item.owner_id.def_id, rustc_ty),
             hir::Node::TypeBinding(_) => None,
             _ => unreachable!("types will always have a statement, expression or item as their parent"),
@@ -283,8 +282,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
     /// This function resolves the [`hir::QPath`] target based on the type
     /// context of the current body. It can only be called inside bodies.
-    fn resolve_qpath_in_body(&self, qpath: &hir::QPath<'tcx>, hir_id: hir::HirId) -> hir::def::Res {
-        self.rustc_ty_check().qpath_res(qpath, hir_id)
+    fn resolve_qpath_in_body(&self, qpath: &hir::QPath<'tcx>, hir_id: hir::HirId) -> Option<hir::def::Res> {
+        let res = self.rustc_ty_check().qpath_res(qpath, hir_id);
+        if res == hir::def::Res::Err { None } else { Some(res) }
     }
 
     fn resolve_qpath_in_item(
@@ -313,6 +313,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 | hir::def::DefKind::AssocTy
                 | hir::def::DefKind::TraitAlias
                 | hir::def::DefKind::AssocFn
+                | hir::def::DefKind::AssocConst
                 | hir::def::DefKind::Const
                 | hir::def::DefKind::Static(_),
                 id,
@@ -336,17 +337,6 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::def::Res::ToolMod => todo!("{res:#?}"),
             hir::def::Res::NonMacroAttr(_) => todo!("{res:#?}"),
             hir::def::Res::Err => unreachable!("this should have triggered an error in rustc"),
-        }
-    }
-
-    pub fn to_path_from_qpath(&self, qpath: &hir::QPath<'tcx>) -> AstPath<'ast> {
-        match qpath {
-            hir::QPath::Resolved(None, path) => self.to_path(path),
-            hir::QPath::Resolved(Some(_ty), _) => {
-                unreachable!("type relative path should never be converted to an `AstPath`")
-            },
-            hir::QPath::TypeRelative(_, _) => todo!("{qpath:#?}"),
-            hir::QPath::LangItem(_, _, _) => todo!("{qpath:#?}"),
         }
     }
 

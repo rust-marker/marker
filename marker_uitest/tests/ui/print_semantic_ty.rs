@@ -13,12 +13,31 @@ pub struct AllowSync<T> {
 }
 unsafe impl<T> Sync for AllowSync<T> {}
 
-trait InterestingTrait<T> {
+trait InterestingSuperTrait {
+    type C: Default;
+}
+
+trait InterestingTrait<T>: InterestingSuperTrait {
     type A: Default;
     fn use_alias(&self) {
-        // FIXME: This expression is currently not found by the print test code.
-        // Try to figure out why and then make sure that is is correctly represented.
-        let _ty: Self::A = Self::A::default();
+        //#[clippy::dump]
+        let _ty: Self::C = Self::C::default();
+        let _ty: <Self as InterestingTrait<T>>::A = Self::A::default();
+    }
+}
+
+struct Duck;
+
+impl InterestingSuperTrait for Duck {
+    type C = u32;
+}
+
+impl InterestingTrait<u32> for Duck {
+    type A = u32;
+    fn use_alias(&self) {
+        #[clippy::dump]
+        let _ty: Self::C = Self::C::default();
+        let _ty: <Self as InterestingTrait<u32>>::A = Self::A::default();
     }
 }
 

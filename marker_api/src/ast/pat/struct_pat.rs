@@ -1,5 +1,5 @@
 use crate::{
-    ast::{AstPath, Span, SpanId, SymbolId},
+    ast::{AstQPath, Span, SpanId, SymbolId},
     context::with_cx,
     ffi::FfiSlice,
 };
@@ -10,13 +10,13 @@ use super::{CommonPatData, PatKind};
 #[derive(Debug)]
 pub struct StructPat<'ast> {
     data: CommonPatData<'ast>,
-    path: AstPath<'ast>,
+    path: AstQPath<'ast>,
     fields: FfiSlice<'ast, StructFieldPat<'ast>>,
     is_non_exhaustive: bool,
 }
 
 impl<'ast> StructPat<'ast> {
-    pub fn path(&self) -> &AstPath<'ast> {
+    pub fn path(&self) -> &AstQPath<'ast> {
         &self.path
     }
 
@@ -38,7 +38,7 @@ super::impl_pat_data!(StructPat<'ast>, Struct);
 impl<'ast> StructPat<'ast> {
     pub fn new(
         data: CommonPatData<'ast>,
-        path: AstPath<'ast>,
+        path: AstQPath<'ast>,
         fields: &'ast [StructFieldPat<'ast>],
         is_non_exhaustive: bool,
     ) -> Self {

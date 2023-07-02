@@ -318,24 +318,31 @@ warning: print test
                                                _lifetime: PhantomData<&()>,
                                                span: SpanId(..),
                                            },
-                                           path: AstPath {
-                                               segments: [
-                                                   AstPathSegment {
-                                                       ident: Ident {
-                                                           name: "S",
-                                                           span: Span {
-                                                               source: File(
-                                                                   "$DIR/print_assign_expr.rs",
-                                                               ),
-                                                               start: 264,
-                                                               end: 265,
+                                           path: AstQPath {
+                                               self_ty: None,
+                                               path_ty: None,
+                                               path: AstPath {
+                                                   segments: [
+                                                       AstPathSegment {
+                                                           ident: Ident {
+                                                               name: "S",
+                                                               span: Span {
+                                                                   source: File(
+                                                                       "$DIR/print_assign_expr.rs",
+                                                                   ),
+                                                                   start: 264,
+                                                                   end: 265,
+                                                               },
+                                                           },
+                                                           generics: GenericArgs {
+                                                               args: [],
                                                            },
                                                        },
-                                                       generics: GenericArgs {
-                                                           args: [],
-                                                       },
-                                                   },
-                                               ],
+                                                   ],
+                                               },
+                                               target: Item(
+                                                   ItemId(..),
+                                               ),
                                            },
                                            fields: [
                                                StructFieldPat {
