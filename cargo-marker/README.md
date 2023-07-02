@@ -24,14 +24,16 @@ FIXME(xFrednet): Add license shield, once crates.io also says:
 * **Automatic Lint-Crate Compilation**: *cargo_marker* automatically fetches and builds specified lint crates, streamlining the process of incorporating additional linting rules into your project.
 * **User-Friendly Setup**: *cargo_marker* can automatically set up the driver and toolchain, allowing you to focus on writing quality code. (This version will setup rustc's driver for `nightly-2023-07-13`)
 
-## Prerequisites
+## Usage
+
+<!-- Please keep this section in sync with the main readme -->
+
+### Prerequisites
 
 *cargo_marker* requires *[Cargo]* and *[rustup]* to be installed. Currently, only Unix and Windows systems are supported. Linux, Windows, and macOS are actively tested in the CI.
 
 [Cargo]: https://github.com/rust-lang/cargo/
 [rustup]: https://github.com/rust-lang/rustup/
-
-## Usage
 
 ### Installation
 
@@ -44,7 +46,7 @@ cargo marker setup --auto-install-toolchain
 
 ### Specifying lints
 
-Marker requires lint crates to be specified. The best way, is to add them to the `Cargo.toml` file, like this:
+Marker requires lint crates to be specified. The best way is to add them to the `Cargo.toml` file, like this:
 
 ```toml
 [workspace.metadata.marker.lints]
