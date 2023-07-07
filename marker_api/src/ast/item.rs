@@ -205,7 +205,7 @@ macro_rules! impl_item_data {
             }
 
             fn span(&self) -> &crate::ast::Span<'ast> {
-                $crate::context::with_cx(self, |cx| cx.get_span(self.data.id))
+                $crate::context::with_cx(self, |cx| cx.span(self.data.id))
             }
 
             fn visibility(&self) -> &crate::ast::item::Visibility<'ast> {

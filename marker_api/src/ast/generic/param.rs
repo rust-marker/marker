@@ -97,7 +97,7 @@ impl<'ast> TyParam<'ast> {
 
 impl<'ast> GenericParamData<'ast> for TyParam<'ast> {
     fn span(&self) -> Option<&Span<'ast>> {
-        self.span.get().map(|span| with_cx(self, |cx| cx.get_span(*span)))
+        self.span.get().map(|span| with_cx(self, |cx| cx.span(*span)))
     }
 }
 
@@ -147,7 +147,7 @@ impl<'ast> LifetimeParam<'ast> {
 
 impl<'ast> GenericParamData<'ast> for LifetimeParam<'ast> {
     fn span(&self) -> Option<&Span<'ast>> {
-        self.span.get().map(|span| with_cx(self, |cx| cx.get_span(*span)))
+        self.span.get().map(|span| with_cx(self, |cx| cx.span(*span)))
     }
 }
 

@@ -144,7 +144,7 @@ macro_rules! impl_pat_data {
     ($self_ty:ty, $enum_name:ident) => {
         impl<'ast> super::PatData<'ast> for $self_ty {
             fn span(&self) -> &crate::ast::Span<'ast> {
-                $crate::context::with_cx(self, |cx| cx.get_span(self.data.span))
+                $crate::context::with_cx(self, |cx| cx.span(self.data.span))
             }
 
             fn as_pat(&'ast self) -> crate::ast::pat::PatKind<'ast> {

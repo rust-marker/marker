@@ -214,7 +214,7 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         self.marker_converter.expr_ty(hir_id)
     }
 
-    fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast> {
+    fn span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast> {
         let rustc_span = match owner {
             SpanOwner::Item(item) => self.rustc_cx.hir().item(self.rustc_converter.to_item_id(*item)).span,
             SpanOwner::SpecificSpan(span_id) => self.rustc_converter.to_span_from_id(*span_id),

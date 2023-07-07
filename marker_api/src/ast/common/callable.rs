@@ -87,7 +87,7 @@ impl<'ast> Parameter<'ast> {
         self.span
             .get()
             .copied()
-            .map(|span| with_cx(self, |cx| cx.get_span(span)))
+            .map(|span| with_cx(self, |cx| cx.span(span)))
     }
 }
 

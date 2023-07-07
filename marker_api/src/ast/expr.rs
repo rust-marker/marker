@@ -284,7 +284,7 @@ macro_rules! impl_expr_data {
             }
 
             fn span(&self) -> &crate::ast::Span<'ast> {
-                $crate::context::with_cx(self, |cx| cx.get_span(self.data.span))
+                $crate::context::with_cx(self, |cx| cx.span(self.data.span))
             }
 
             fn ty(&self) -> $crate::ast::ty::SemTyKind<'ast> {

@@ -62,14 +62,14 @@ macro_rules! export_lint_pass {
             use $crate::LintPass;
 
             #[no_mangle]
-            extern "C" fn marker_get_api_version() -> &'static str {
+            extern "C" fn marker_api_version() -> &'static str {
                 $crate::MARKER_API_VERSION
             }
 
             /// This magic function fills the `LintCrateBindings` struct to allow easy
             /// communication between marker's driver and lint crates.
             #[no_mangle]
-            extern "C" fn marker_get_lint_crate_bindings() -> $crate::interface::LintCrateBindings {
+            extern "C" fn marker_lint_crate_bindings() -> $crate::interface::LintCrateBindings {
                 pub use $crate::LintPass;
 
                 extern "C" fn set_ast_context<'ast>(cx: &'ast $crate::AstContext<'ast>) {

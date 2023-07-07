@@ -189,7 +189,7 @@ macro_rules! impl_ty_data {
             }
 
             fn span(&self) -> &$crate::ast::Span<'ast> {
-                $crate::context::with_cx(self, |cx| cx.get_span(self.data.span))
+                $crate::context::with_cx(self, |cx| cx.span(self.data.span))
             }
         }
     };
