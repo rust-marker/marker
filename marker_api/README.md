@@ -1,12 +1,41 @@
 # Marker API
 
-This crate provides the stable API for lint crates.
-Here you can find representations for a simple variable name up to the AST of an entire crate.
-This is the only dependency needed to get start with a new *linting crate*.
+[![Crates.io](https://img.shields.io/crates/v/marker_api.svg)](https://crates.io/crates/marker_api)
+<!--
+FIXME(xFrednet): Add license shield, once crates.io also says:
+[![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/marker_api.svg)](#license)
+-->
 
-:warning: This crate also contains some unstable items, which are required by the current infrastructure. These items are clearly marked and hidden from the documentation. :warning:
+*marker_api* provides a representation of the AST and all connected types needed to create custom *lint crates* for [Marker], an experimental linting interface for Rust.
 
-## Getting started
+> **Note**
+>
+> The project is in the early stages of development, some things are still missing and the API is not stable yet.
+>
+> A list of limitations and planned features can be found in [Marker's Readme].
+
+[Marker]: https://github.com/rust-marker/marker
+[Marker's Readme]: https://github.com/rust-marker/marker/blob/master/README.md
+
+## Key Features
+
+* **Stability**: Marker's API design focuses on stability and extendability. The goal is to archive backwards compatibility, so that any lint, written after version 1.0.0, will compile and continue to work for years to come.
+* **Usability**: Marker's API focuses on usability, where possible under the constraints of Marker's stability guarantees. Types follow common design patterns and naming conventions, allowing you to focus on the lint logic directly.
+* **Driver Independent**: Every code analysis requires a driver that parses the code and provides further information. Marker's API is designed to be driver-independent, allowing it to support future compilers and potentially IDEs. (Currently, [rustc] is the only available driver)
+
+## Usage
+
+This section will cover how you can setup your own *lint crate*. If you only want to run custom lints, checkout Marker's CLI interface [cargo_marker]. The rest of the section assumes that you have [`cargo_marker`] installed.
+
+[cargo_marker]: https://crates.io/crates/cargo_marker
+
+### Template
+
+The simplest way to get started, is to use Marker's [lint crate template], which already includes all dependencies, example code, and a working test setup.
+
+[lint crate template]: https://github.com/rust-marker/lint-crate-template
+
+### Manual Setup
 
 To get started, create a new cargo project that compiles to a library (`cargo init --lib`).
 Afterwards, the `Cargo.toml` has to be edited to compile the crate to a dynamic library.
@@ -18,42 +47,17 @@ crate-type = ["cdylib"]
 
 [dependencies]
 marker_api = "<version>"
+marker_utils = "<version>"
 ```
 
-Now that everything is setup, we jump into `src/lib.rs` where we add everything needed for marker to load the crate:
+## Contributing
 
-```rust,ignore
-use marker_api::{lint::Lint, LintPass};
+Contributions are highly appreciated! If you encounter any issues or have suggestions for improvements, please don't hesitate to open an issue or submit a pull request on [Marker's GitHub repository](https://github.com/rust-marker/marker).
 
-// With the [`declare_lint!`] macro we define a new lint. The macro accepts a
-// name, default lint level and description.
-marker_api::declare_lint!{
-    /// The lint description
-    YOUR_LINT_NAME,
-    Allow,
-}
+## License
 
-// Here we create an object that'll implement `LintPass`. This struct can
-// hold data used for linting. A mutable reference of this struct is passed to
-// each check in `LintPass`
-#[derive(Debug, Default)]
-struct TestLintPass;
+Copyright (c) 2022-2023 Rust-Marker
 
-// Here we implement the `LintPass` for our struct. It only requires the
-// implementation of one function, that returns all lints which are implemented
-// by this crate.
-impl LintPass for TestLintPass {
-    fn registered_lints(&self) -> Box<[&'static Lint]> {
-        Box::new([YOUR_LINT_NAME])
-    }
+Rust-Marker is distributed under the terms of the MIT license or the Apache License (Version 2.0).
 
-    // Here we can finally start linting, by implementing `check_*` functions.
-    // See `LintPass` for a complete list of provided callbacks.
-}
-
-// Last but not least, we have to mark our object that implements `LintPass`.
-// Each lint crate requires exactly one marker. All lints have to be implemented
-// in one lint pass. For multiple lints it can be helpful to extract the individual
-// linting logic called by the `check_*` functions into separate modules.
-marker_api::export_lint_pass!(TestLintPass);
-```
+See [LICENSE-APACHE](https://github.com/rust-marker/marker/blob/master/LICENSE-APACHE), [LICENSE-MIT](https://github.com/rust-marker/marker/blob/master/LICENSE-MIT).
