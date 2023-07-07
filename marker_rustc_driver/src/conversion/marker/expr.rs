@@ -7,7 +7,7 @@ use marker_api::ast::{
         StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr, WhileExpr,
     },
     pat::PatKind,
-    CommonCallableData, Ident, Parameter,
+    CommonCallableData, Constness, Ident, Parameter, Safety, Syncness,
 };
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
@@ -405,9 +405,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         };
 
         let call = CommonCallableData::new(
-            false,
-            false,
-            false,
+            Constness::NotConst,
+            Syncness::Sync,
+            Safety::Safe,
             false,
             marker_api::ast::Abi::Default,
             false,

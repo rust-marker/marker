@@ -6,7 +6,7 @@ use marker_api::ast::{
         SynNumTy, SynPathTy, SynRawPtrTy, SynRefTy, SynSliceTy, SynTextTy, SynTraitObjTy, SynTupleTy, SynTyKind,
         TextKind,
     },
-    CommonCallableData, Parameter,
+    CommonCallableData, Constness, Parameter, Syncness,
 };
 use rustc_hir as hir;
 use rustc_middle as mid;
@@ -232,9 +232,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         SynFnPtrTy::new(
             data,
             CommonCallableData::new(
-                false,
-                false,
-                matches!(rust_fn.unsafety, hir::Unsafety::Unsafe),
+                Constness::NotConst,
+                Syncness::Sync,
+                self.to_safety(rust_fn.unsafety),
                 false,
                 self.to_abi(rust_fn.abi),
                 false,

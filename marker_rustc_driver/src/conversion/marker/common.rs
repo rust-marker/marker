@@ -3,8 +3,9 @@ use std::mem::{size_of, transmute};
 use marker_api::ast::generic::GenericArgs;
 use marker_api::ast::ty::SynTyKind;
 use marker_api::ast::{
-    Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, CrateId, ExprId, FieldId, GenericId, Ident, ItemId,
-    LetStmtId, Mutability, Safety, Span, SpanId, SpanSource, SymbolId, TraitRef, TyDefId, VarId, VariantId,
+    Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, Constness, CrateId, ExprId, FieldId, GenericId,
+    Ident, ItemId, LetStmtId, Mutability, Safety, Span, SpanId, SpanSource, SymbolId, Syncness, TraitRef, TyDefId,
+    VarId, VariantId,
 };
 use marker_api::lint::Level;
 use rustc_hir as hir;
@@ -150,10 +151,32 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
+    pub fn to_mutability(&self, mutability: rustc_ast::Mutability) -> Mutability {
+        match mutability {
+            rustc_ast::Mutability::Not => Mutability::Unmut,
+            rustc_ast::Mutability::Mut => Mutability::Mut,
+        }
+    }
+
+    #[must_use]
     pub fn to_safety(&self, safety: hir::Unsafety) -> Safety {
         match safety {
             hir::Unsafety::Normal => Safety::Safe,
             hir::Unsafety::Unsafe => Safety::Unsafe,
+        }
+    }
+
+    pub fn to_constness(&self, constness: hir::Constness) -> Constness {
+        match constness {
+            hir::Constness::Const => Constness::Const,
+            hir::Constness::NotConst => Constness::NotConst,
+        }
+    }
+
+    pub fn to_syncness(&self, syncness: hir::IsAsync) -> Syncness {
+        match syncness {
+            hir::IsAsync::Async => Syncness::Async,
+            hir::IsAsync::NotAsync => Syncness::Sync,
         }
     }
 
@@ -163,13 +186,6 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             rustc_target::spec::abi::Abi::Rust => Abi::Default,
             rustc_target::spec::abi::Abi::C { .. } => Abi::C,
             _ => Abi::Other,
-        }
-    }
-
-    pub fn to_mutability(&self, mutability: rustc_ast::Mutability) -> Mutability {
-        match mutability {
-            rustc_ast::Mutability::Not => Mutability::Unmut,
-            rustc_ast::Mutability::Mut => Mutability::Mut,
         }
     }
 
