@@ -187,6 +187,12 @@ impl<'ast> std::fmt::Debug for Ident<'ast> {
     }
 }
 
+impl<'ast> std::fmt::Display for Ident<'ast> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name())
+    }
+}
+
 macro_rules! impl_ident_eq_for {
     ($ty:ty) => {
         impl<'ast> PartialEq<$ty> for Ident<'ast> {

@@ -60,7 +60,9 @@ impl<'ast> TraitRef<'ast> {
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Mutability {
+    /// The object is mutable
     Mut,
+    /// The object is unmutable
     Unmut,
 }
 
@@ -68,6 +70,11 @@ impl Mutability {
     #[must_use]
     pub fn is_mut(&self) -> bool {
         matches!(self, Self::Mut)
+    }
+
+    #[must_use]
+    pub fn is_unmut(&self) -> bool {
+        matches!(self, Self::Unmut)
     }
 }
 

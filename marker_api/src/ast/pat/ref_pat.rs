@@ -1,3 +1,5 @@
+use crate::ast::Mutability;
+
 use super::{CommonPatData, PatKind};
 
 #[repr(C)]
@@ -5,7 +7,7 @@ use super::{CommonPatData, PatKind};
 pub struct RefPat<'ast> {
     data: CommonPatData<'ast>,
     pattern: PatKind<'ast>,
-    is_mut: bool,
+    mutability: Mutability,
 }
 
 impl<'ast> RefPat<'ast> {
@@ -14,8 +16,8 @@ impl<'ast> RefPat<'ast> {
         self.pattern
     }
 
-    pub fn is_mut(&self) -> bool {
-        self.is_mut
+    pub fn mutability(&self) -> Mutability {
+        self.mutability
     }
 }
 
@@ -23,7 +25,11 @@ super::impl_pat_data!(RefPat<'ast>, Ref);
 
 #[cfg(feature = "driver-api")]
 impl<'ast> RefPat<'ast> {
-    pub fn new(data: CommonPatData<'ast>, pattern: PatKind<'ast>, is_mut: bool) -> Self {
-        Self { data, pattern, is_mut }
+    pub fn new(data: CommonPatData<'ast>, pattern: PatKind<'ast>, mutability: Mutability) -> Self {
+        Self {
+            data,
+            pattern,
+            mutability,
+        }
     }
 }

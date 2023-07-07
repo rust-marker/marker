@@ -56,7 +56,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ItemKind::Static(rustc_ty, rustc_mut, rustc_body_id) => ItemKind::Static(self.alloc({
                 StaticItem::new(
                     data,
-                    matches!(*rustc_mut, rustc_ast::Mutability::Mut),
+                    self.to_mutability(*rustc_mut),
                     Some(self.to_body_id(*rustc_body_id)),
                     self.to_ty(*rustc_ty),
                 )
@@ -219,14 +219,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     None,
                 )
             })),
-            hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(self.alloc({
-                StaticItem::new(
-                    data,
-                    matches!(*rustc_mut, rustc_ast::Mutability::Mut),
-                    None,
-                    self.to_ty(*ty),
-                )
-            })),
+            hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(
+                self.alloc({ StaticItem::new(data, self.to_mutability(*rustc_mut), None, self.to_ty(*ty)) }),
+            ),
             hir::ForeignItemKind::Type => todo!(),
         };
 

@@ -84,10 +84,7 @@ impl<'ast> Parameter<'ast> {
     }
 
     pub fn span(&self) -> Option<&Span<'ast>> {
-        self.span
-            .get()
-            .copied()
-            .map(|span| with_cx(self, |cx| cx.span(span)))
+        self.span.get().copied().map(|span| with_cx(self, |cx| cx.span(span)))
     }
 }
 

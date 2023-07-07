@@ -45,7 +45,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                             data,
                             self.to_symbol_id(ident.name),
                             self.to_var_id(*id),
-                            matches!(mutab, rustc_ast::Mutability::Mut),
+                            self.to_mutability(*mutab),
                             matches!(by_ref, hir::ByRef::Yes),
                             pat.map(|rustc_pat| self.to_pat_with_hls(rustc_pat, lhs_map)),
                         )
@@ -105,7 +105,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::PatKind::Ref(pat, muta) => PatKind::Ref(self.alloc(RefPat::new(
                 data,
                 self.to_pat_with_hls(pat, lhs_map),
-                matches!(muta, hir::Mutability::Mut),
+                self.to_mutability(*muta),
             ))),
             hir::PatKind::Slice(start, wild, end) => {
                 let elements = if let Some(wild) = wild {

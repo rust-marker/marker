@@ -386,7 +386,7 @@ Path(
                                                                                                     kind: Static,
                                                                                                 },
                                                                                             ),
-                                                                                            is_mut: false,
+                                                                                            mutability: Unmut,
                                                                                             inner_ty: Slice(
                                                                                                 SynSliceTy {
                                                                                                     data: CommonSynTyData {
@@ -530,7 +530,7 @@ Path(
                                                                                                     kind: Static,
                                                                                                 },
                                                                                             ),
-                                                                                            is_mut: false,
+                                                                                            mutability: Unmut,
                                                                                             inner_ty: Text(
                                                                                                 SynTextTy {
                                                                                                     data: CommonSynTyData {
@@ -548,7 +548,7 @@ Path(
                                                                                                 _lifetime: PhantomData<&()>,
                                                                                                 span: SpanId(..),
                                                                                             },
-                                                                                            is_mut: false,
+                                                                                            mutability: Unmut,
                                                                                             inner_ty: Num(
                                                                                                 SynNumTy {
                                                                                                     data: CommonSynTyData {
@@ -566,7 +566,7 @@ Path(
                                                                                                 _lifetime: PhantomData<&()>,
                                                                                                 span: SpanId(..),
                                                                                             },
-                                                                                            is_mut: true,
+                                                                                            mutability: Mut,
                                                                                             inner_ty: Num(
                                                                                                 SynNumTy {
                                                                                                     data: CommonSynTyData {
