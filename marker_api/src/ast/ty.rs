@@ -1,4 +1,7 @@
+use std::fmt::Debug;
 use std::marker::PhantomData;
+
+use crate::private::Sealed;
 
 use super::{Span, SpanId};
 
@@ -18,7 +21,15 @@ pub use sequence_ty::*;
 pub use trait_ty::*;
 pub use user_ty::*;
 
-pub trait SynTyData<'ast> {
+/// This trait combines methods, which are common between all syntactic types.
+///
+/// This trait is only meant to be implemented inside this crate. The `Sealed`
+/// super trait prevents external implementations.
+pub trait SynTyData<'ast>: Debug + Sealed {
+    /// Returns `&self` wrapped in it's [`SynTyKind`] variant.
+    ///
+    /// In function parameters, it's recommended to use `Into<SynTyKind<'ast>>`
+    /// as a bound to support all expressions and `SynTyKind<'ast>` as parameters.
     fn as_kind(&'ast self) -> SynTyKind<'ast>;
 
     /// The [`Span`] of the type, if it's written in the source code.
@@ -177,12 +188,6 @@ impl<'ast> CommonSynTyData<'ast> {
 
 macro_rules! impl_ty_data {
     ($self_ty:ty, $enum_name:ident) => {
-        impl<'ast> From<&'ast $self_ty> for $crate::ast::ty::SynTyKind<'ast> {
-            fn from(from: &'ast $self_ty) -> Self {
-                $crate::ast::ty::SynTyKind::$enum_name(from)
-            }
-        }
-
         impl<'ast> $crate::ast::ty::SynTyData<'ast> for $self_ty {
             fn as_kind(&'ast self) -> $crate::ast::ty::SynTyKind<'ast> {
                 self.into()
@@ -192,11 +197,19 @@ macro_rules! impl_ty_data {
                 $crate::context::with_cx(self, |cx| cx.span(self.data.span))
             }
         }
+
+        impl<'ast> $crate::private::Sealed for $self_ty {}
+
+        impl<'ast> From<&'ast $self_ty> for $crate::ast::ty::SynTyKind<'ast> {
+            fn from(from: &'ast $self_ty) -> Self {
+                $crate::ast::ty::SynTyKind::$enum_name(from)
+            }
+        }
     };
 }
 use impl_ty_data;
 
-/// The semantic representation of a type
+/// The semantic representation of a type.
 #[repr(C)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]

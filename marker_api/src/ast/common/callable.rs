@@ -1,7 +1,10 @@
+use std::fmt::Debug;
+
 use crate::{
     ast::ty::SynTyKind,
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
+    private::Sealed,
 };
 
 use super::{Abi, Span, SpanId, SymbolId};
@@ -9,7 +12,10 @@ use super::{Abi, Span, SpanId, SymbolId};
 /// This trait provides information about callable items and types. Some
 /// properties might not be available for every callable object. In these
 /// cases the default value will be returned.
-pub trait CallableData<'ast> {
+///
+/// This trait is only meant to be implemented inside this crate. The `Sealed`
+/// super trait prevents external implementations.
+pub trait CallableData<'ast>: Debug + Sealed {
     /// Returns `true`, if this callable is `const`.
     ///
     /// Defaults to `false` if unspecified.
