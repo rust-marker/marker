@@ -164,6 +164,7 @@ impl LintPassInfoBuilder {
 /// All references and pointers in this struct have to have the `'static` lifetime
 /// due to ABI constraints.
 #[repr(C)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct LintPassInfo {
     lints: FfiSlice<'static, &'static Lint>,

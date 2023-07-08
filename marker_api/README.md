@@ -27,7 +27,11 @@ use marker_api::{lint::Lint, LintPass};
 
 // With the [`declare_lint!`] macro we define a new lint. The macro accepts a
 // name, default lint level and description.
-marker_api::declare_lint!(YOUR_LINT_NAME, Allow, "the lint descritpion");
+marker_api::declare_lint!{
+    /// The lint description
+    YOUR_LINT_NAME,
+    Allow,
+}
 
 // Here we create an object that'll implement `LintPass`. This struct can
 // hold data used for linting. A mutable reference of this struct is passed to
