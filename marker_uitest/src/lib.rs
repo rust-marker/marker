@@ -19,15 +19,23 @@ struct TestLintPass {}
 
 marker_api::export_lint_pass!(TestLintPass);
 
-marker_api::declare_lint!(TEST_LINT, Warn, "test lint warning");
+marker_api::declare_lint! {
+    /// # What it does
+    /// A lint used for marker's uitests.
+    ///
+    /// It's just the default lint used for most emissions here :)
+    TEST_LINT,
+    Warn,
+}
 
-marker_api::declare_lint!(
+marker_api::declare_lint! {
+    /// # What it does
+    /// A lint used for markers uitests.
+    ///
+    /// It warns about about item names starting with `FindMe`, `find_me` or `FIND_ME`.
     ITEM_WITH_TEST_NAME,
     Warn,
-    r#"A lint used for markers uitests.
-
-    It warns about about item names starting with `FindMe`, `find_me` or `FIND_ME`"#
-);
+}
 
 fn emit_item_with_test_name_lint<'ast>(
     cx: &'ast AstContext<'ast>,

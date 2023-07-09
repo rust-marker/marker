@@ -81,10 +81,10 @@ impl<'ast> Span<'ast> {
     /// //  span1   span2
     ///
     /// // The snipped call would return the corresponding code snippets
-    /// span1.snippet_or_else("..") // -> "value"
-    /// span2.snippet_or_else("..") // -> "Vec::new()"
+    /// span1.snippet_or("..") // -> "value"
+    /// span2.snippet_or("..") // -> "Vec::new()"
     /// ```
-    pub fn snippet_or_else(&self, default: &str) -> String {
+    pub fn snippet_or(&self, default: &str) -> String {
         self.snippet().unwrap_or_else(|| default.to_string())
     }
 
