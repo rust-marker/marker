@@ -195,24 +195,31 @@ warning: print test
                                        _lifetime: PhantomData<&()>,
                                        span: SpanId(..),
                                    },
-                                   path: AstPath {
-                                       segments: [
-                                           AstPathSegment {
-                                               ident: Ident {
-                                                   name: "Some",
-                                                   span: Span {
-                                                       source: File(
-                                                           "$DIR/print_cond_expr.rs",
-                                                       ),
-                                                       start: 312,
-                                                       end: 316,
+                                   path: AstQPath {
+                                       self_ty: None,
+                                       path_ty: None,
+                                       path: AstPath {
+                                           segments: [
+                                               AstPathSegment {
+                                                   ident: Ident {
+                                                       name: "Some",
+                                                       span: Span {
+                                                           source: File(
+                                                               "$DIR/print_cond_expr.rs",
+                                                           ),
+                                                           start: 312,
+                                                           end: 316,
+                                                       },
+                                                   },
+                                                   generics: GenericArgs {
+                                                       args: [],
                                                    },
                                                },
-                                               generics: GenericArgs {
-                                                   args: [],
-                                               },
-                                           },
-                                       ],
+                                           ],
+                                       },
+                                       target: Variant(
+                                           VariantId(..),
+                                       ),
                                    },
                                    fields: [
                                        StructFieldPat {
@@ -808,24 +815,31 @@ warning: print test
                                        _lifetime: PhantomData<&()>,
                                        span: SpanId(..),
                                    },
-                                   path: AstPath {
-                                       segments: [
-                                           AstPathSegment {
-                                               ident: Ident {
-                                                   name: "Some",
-                                                   span: Span {
-                                                       source: File(
-                                                           "$DIR/print_cond_expr.rs",
-                                                       ),
-                                                       start: 783,
-                                                       end: 787,
+                                   path: AstQPath {
+                                       self_ty: None,
+                                       path_ty: None,
+                                       path: AstPath {
+                                           segments: [
+                                               AstPathSegment {
+                                                   ident: Ident {
+                                                       name: "Some",
+                                                       span: Span {
+                                                           source: File(
+                                                               "$DIR/print_cond_expr.rs",
+                                                           ),
+                                                           start: 783,
+                                                           end: 787,
+                                                       },
+                                                   },
+                                                   generics: GenericArgs {
+                                                       args: [],
                                                    },
                                                },
-                                               generics: GenericArgs {
-                                                   args: [],
-                                               },
-                                           },
-                                       ],
+                                           ],
+                                       },
+                                       target: Variant(
+                                           VariantId(..),
+                                       ),
                                    },
                                    fields: [
                                        StructFieldPat {
@@ -869,24 +883,31 @@ warning: print test
                                        _lifetime: PhantomData<&()>,
                                        span: SpanId(..),
                                    },
-                                   path: AstPath {
-                                       segments: [
-                                           AstPathSegment {
-                                               ident: Ident {
-                                                   name: "Some",
-                                                   span: Span {
-                                                       source: File(
-                                                           "$DIR/print_cond_expr.rs",
-                                                       ),
-                                                       start: 806,
-                                                       end: 810,
+                                   path: AstQPath {
+                                       self_ty: None,
+                                       path_ty: None,
+                                       path: AstPath {
+                                           segments: [
+                                               AstPathSegment {
+                                                   ident: Ident {
+                                                       name: "Some",
+                                                       span: Span {
+                                                           source: File(
+                                                               "$DIR/print_cond_expr.rs",
+                                                           ),
+                                                           start: 806,
+                                                           end: 810,
+                                                       },
+                                                   },
+                                                   generics: GenericArgs {
+                                                       args: [],
                                                    },
                                                },
-                                               generics: GenericArgs {
-                                                   args: [],
-                                               },
-                                           },
-                                       ],
+                                           ],
+                                       },
+                                       target: Variant(
+                                           VariantId(..),
+                                       ),
                                    },
                                    fields: [
                                        StructFieldPat {

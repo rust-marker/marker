@@ -1020,6 +1020,7 @@ dependencies = [
  "cfg-if",
  "libloading",
  "marker_api",
+ "marker_utils",
 ]
 
 [[package]]
@@ -1046,6 +1047,13 @@ dependencies = [
  "marker_api",
  "tempfile",
  "ui_test",
+]
+
+[[package]]
+name = "marker_utils"
+version = "0.1.0"
+dependencies = [
+ "marker_api",
 ]
 
 [[package]]

@@ -29,7 +29,7 @@ impl<'ast> ArrayExpr<'ast> {
         self.elements.get()
     }
 
-    pub fn len_expr(&self) -> Option<ExprKind<'ast>> {
+    pub fn len(&self) -> Option<ExprKind<'ast>> {
         self.len_expr.copy()
     }
 }

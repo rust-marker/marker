@@ -55,7 +55,7 @@ impl LintPass for TestLintPass {
     fn check_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
         if let ItemKind::Fn(item) = item {
             if let Some(ident) = item.ident() {
-                if ident.name() == "test_ty_id_resolution" {
+                if ident.name() == "test_ty_id_resolution_trigger" {
                     test_ty_id_resolution(cx);
                 }
             }

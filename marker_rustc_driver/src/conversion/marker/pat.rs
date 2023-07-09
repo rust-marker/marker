@@ -62,7 +62,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 }));
                 PatKind::Struct(self.alloc(StructPat::new(
                     data,
-                    self.to_path_from_qpath(qpath),
+                    self.to_qpath_from_pat(qpath, pat),
                     api_fields,
                     *has_rest,
                 )))
@@ -82,7 +82,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 }));
                 PatKind::Struct(self.alloc(StructPat::new(
                     data,
-                    self.to_path_from_qpath(qpath),
+                    self.to_qpath_from_pat(qpath, pat),
                     api_fields,
                     ddpos.is_some(),
                 )))
@@ -116,7 +116,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 };
                 PatKind::Slice(self.alloc(SlicePat::new(data, elements)))
             },
-            hir::PatKind::Path(path) => PatKind::Path(self.alloc(PathPat::new(data, self.to_qpath_from_pat(path)))),
+            hir::PatKind::Path(path) => {
+                PatKind::Path(self.alloc(PathPat::new(data, self.to_qpath_from_pat(path, pat))))
+            },
             hir::PatKind::Lit(lit) => {
                 let expr = self.to_expr(lit);
                 let lit_expr = expr.try_into().expect("this should be a literal expression");

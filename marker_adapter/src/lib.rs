@@ -7,12 +7,20 @@
 pub mod context;
 mod loader;
 
+use std::ops::ControlFlow;
+
 use loader::LintCrateRegistry;
 use marker_api::{
-    ast::{expr::ExprKind, item::ItemKind, BodyId, Crate},
+    ast::{
+        expr::ExprKind,
+        item::{Body, EnumVariant, Field, ItemKind},
+        stmt::StmtKind,
+        Crate,
+    },
     context::AstContext,
     LintPass, LintPassInfo,
 };
+use marker_utils::visitor::{self, Visitor};
 
 /// This struct is the interface used by lint drivers to pass transformed objects to
 /// external lint passes.
@@ -36,61 +44,39 @@ impl Adapter {
         self.external_lint_crates.set_ast_context(cx);
 
         for item in krate.items() {
-            self.process_item(cx, item);
+            visitor::traverse_item::<()>(cx, self, *item);
         }
     }
+}
 
-    fn process_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: &ItemKind<'ast>) {
-        self.external_lint_crates.check_item(cx, *item);
-        match item {
-            ItemKind::Mod(data) => {
-                for item in data.items() {
-                    self.process_item(cx, item);
-                }
-            },
-            // FIXME: Function-local items are not yet processed
-            ItemKind::Fn(data) => {
-                if let Some(id) = data.body() {
-                    self.process_body(cx, id);
-                }
-            },
-            ItemKind::Struct(data) => {
-                for field in data.fields() {
-                    self.external_lint_crates.check_field(cx, field);
-                }
-            },
-            ItemKind::Enum(data) => {
-                for variant in data.variants() {
-                    self.external_lint_crates.check_variant(cx, variant);
-                    for field in variant.fields() {
-                        self.external_lint_crates.check_field(cx, field);
-                    }
-                }
-            },
-            _ => {},
-        }
+impl Visitor<()> for Adapter {
+    fn visit_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) -> ControlFlow<()> {
+        self.external_lint_crates.check_item(cx, item);
+        ControlFlow::Continue(())
     }
 
-    fn process_body<'ast>(&mut self, cx: &'ast AstContext<'ast>, id: BodyId) {
-        let body = cx.body(id);
+    fn visit_field<'ast>(&mut self, cx: &'ast AstContext<'ast>, field: &'ast Field<'ast>) -> ControlFlow<()> {
+        self.external_lint_crates.check_field(cx, field);
+        ControlFlow::Continue(())
+    }
+
+    fn visit_variant<'ast>(&mut self, cx: &'ast AstContext<'ast>, variant: &'ast EnumVariant<'ast>) -> ControlFlow<()> {
+        self.external_lint_crates.check_variant(cx, variant);
+        ControlFlow::Continue(())
+    }
+
+    fn visit_body<'ast>(&mut self, cx: &'ast AstContext<'ast>, body: &'ast Body<'ast>) -> ControlFlow<()> {
         self.external_lint_crates.check_body(cx, body);
-        let expr = body.expr();
-        self.process_expr(cx, expr);
+        ControlFlow::Continue(())
     }
 
-    fn process_expr<'ast>(&mut self, cx: &'ast AstContext<'ast>, expr: ExprKind<'ast>) {
+    fn visit_stmt<'ast>(&mut self, cx: &'ast AstContext<'ast>, stmt: StmtKind<'ast>) -> ControlFlow<()> {
+        self.external_lint_crates.check_stmt(cx, stmt);
+        ControlFlow::Continue(())
+    }
+
+    fn visit_expr<'ast>(&mut self, cx: &'ast AstContext<'ast>, expr: ExprKind<'ast>) -> ControlFlow<()> {
         self.external_lint_crates.check_expr(cx, expr);
-        #[expect(clippy::single_match)]
-        match expr {
-            ExprKind::Block(block) => {
-                for stmt in block.stmts() {
-                    self.external_lint_crates.check_stmt(cx, *stmt);
-                }
-                if let Some(expr) = block.expr() {
-                    self.process_expr(cx, expr);
-                }
-            },
-            _ => {},
-        }
+        ControlFlow::Continue(())
     }
 }

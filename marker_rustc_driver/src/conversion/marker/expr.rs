@@ -198,7 +198,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ExprKind::Match(_scrutinee, _arms, hir::MatchSource::ForLoopDesugar) => {
                 ExprKind::For(self.alloc(self.to_for_from_desugar(expr)))
             },
-            hir::ExprKind::Match(scrutinee, arms, hir::MatchSource::Normal) => {
+            hir::ExprKind::Match(scrutinee, arms, hir::MatchSource::Normal | hir::MatchSource::FormatArgs) => {
                 ExprKind::Match(self.alloc(MatchExpr::new(data, self.to_expr(scrutinee), self.to_match_arms(arms))))
             },
             hir::ExprKind::Match(scrutinee, [_early_return, _continue], hir::MatchSource::TryDesugar) => {

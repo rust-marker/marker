@@ -38,7 +38,7 @@ warning: print test
                                           },
                                       },
                                   ),
-                                  body: Block(
+                                  block: Block(
                                       BlockExpr {
                                           data: CommonExprData {
                                               _lifetime: PhantomData<&()>,
@@ -90,7 +90,7 @@ warning: print test
                                   span: SpanId(..),
                               },
                               label: None,
-                              body: Block(
+                              block: Block(
                                   BlockExpr {
                                       data: CommonExprData {
                                           _lifetime: PhantomData<&()>,
@@ -176,7 +176,7 @@ warning: print test
                                            },
                                        },
                                    ),
-                                   body: Block(
+                                   block: Block(
                                        BlockExpr {
                                            data: CommonExprData {
                                                _lifetime: PhantomData<&()>,
@@ -215,24 +215,31 @@ warning: print test
                                                    _lifetime: PhantomData<&()>,
                                                    span: SpanId(..),
                                                },
-                                               path: AstPath {
-                                                   segments: [
-                                                       AstPathSegment {
-                                                           ident: Ident {
-                                                               name: "Some",
-                                                               span: Span {
-                                                                   source: File(
-                                                                       "$DIR/print_loop_expr.rs",
-                                                                   ),
-                                                                   start: 237,
-                                                                   end: 241,
+                                               path: AstQPath {
+                                                   self_ty: None,
+                                                   path_ty: None,
+                                                   path: AstPath {
+                                                       segments: [
+                                                           AstPathSegment {
+                                                               ident: Ident {
+                                                                   name: "Some",
+                                                                   span: Span {
+                                                                       source: File(
+                                                                           "$DIR/print_loop_expr.rs",
+                                                                       ),
+                                                                       start: 237,
+                                                                       end: 241,
+                                                                   },
+                                                               },
+                                                               generics: GenericArgs {
+                                                                   args: [],
                                                                },
                                                            },
-                                                           generics: GenericArgs {
-                                                               args: [],
-                                                           },
-                                                       },
-                                                   ],
+                                                       ],
+                                                   },
+                                                   target: Variant(
+                                                       VariantId(..),
+                                                   ),
                                                },
                                                fields: [
                                                    StructFieldPat {
@@ -288,7 +295,7 @@ warning: print test
                                        ),
                                    },
                                ),
-                               body: Block(
+                               block: Block(
                                    BlockExpr {
                                        data: CommonExprData {
                                            _lifetime: PhantomData<&()>,
@@ -469,7 +476,7 @@ warning: print test
                                            is_inclusive: false,
                                        },
                                    ),
-                                   body: Block(
+                                   block: Block(
                                        BlockExpr {
                                            data: CommonExprData {
                                                _lifetime: PhantomData<&()>,
@@ -566,7 +573,7 @@ warning: print test
                                        },
                                    },
                                ),
-                               body: Block(
+                               block: Block(
                                    BlockExpr {
                                        data: CommonExprData {
                                            _lifetime: PhantomData<&()>,

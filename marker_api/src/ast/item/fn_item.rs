@@ -26,7 +26,7 @@ pub struct FnItem<'ast> {
     data: CommonItemData<'ast>,
     generics: GenericParams<'ast>,
     callable_data: CommonCallableData<'ast>,
-    body: FfiOption<BodyId>,
+    body_id: FfiOption<BodyId>,
 }
 
 super::impl_item_data!(FnItem, Fn);
@@ -36,8 +36,8 @@ impl<'ast> FnItem<'ast> {
         &self.generics
     }
 
-    pub fn body(&self) -> Option<BodyId> {
-        self.body.copy()
+    pub fn body_id(&self) -> Option<BodyId> {
+        self.body_id.copy()
     }
 }
 
@@ -55,7 +55,7 @@ impl<'ast> FnItem<'ast> {
             data,
             generics,
             callable_data,
-            body: body.into(),
+            body_id: body.into(),
         }
     }
 }

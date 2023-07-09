@@ -68,4 +68,5 @@ jobs:
     # Test
     - run: cargo build --package cargo_marker
     - run: cargo build --package marker_api
+    - run: cargo build --package marker_utils
     - run: cargo build --package marker_uitest
