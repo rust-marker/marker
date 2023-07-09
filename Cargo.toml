@@ -5,7 +5,7 @@ members = [
     "marker_api",
     "marker_rustc_driver",
     "marker_utils",
-    # This is needed for rust-analyzer, uitests and other tools
+    "marker_lints",
     "marker_uitest",
 ]
 resolver = "2"
