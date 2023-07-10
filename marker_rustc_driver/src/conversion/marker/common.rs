@@ -137,10 +137,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     pub fn to_lint_level(&self, level: rustc_lint::Level) -> Level {
         match level {
             rustc_lint::Level::Allow => Level::Allow,
-            rustc_lint::Level::Warn => Level::Warn,
+            rustc_lint::Level::Warn | rustc_lint::Level::ForceWarn(_) | rustc_lint::Level::Expect(_) => Level::Warn,
             rustc_lint::Level::Deny => Level::Deny,
             rustc_lint::Level::Forbid => Level::Forbid,
-            _ => unreachable!(),
         }
     }
 

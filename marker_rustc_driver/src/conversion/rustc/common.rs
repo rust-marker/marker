@@ -141,7 +141,7 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
             },
             EmissionNode::Field(id) => return Some(self.to_hir_id(id)),
             EmissionNode::Variant(id) => self.to_def_id(id),
-            _ => todo!(),
+            _ => unreachable!(),
         };
 
         def_id
@@ -179,7 +179,7 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
             Applicability::MaybeIncorrect => rustc_errors::Applicability::MaybeIncorrect,
             Applicability::HasPlaceholders => rustc_errors::Applicability::HasPlaceholders,
             Applicability::Unspecified => rustc_errors::Applicability::Unspecified,
-            _ => todo!(),
+            _ => unreachable!(),
         }
     }
 

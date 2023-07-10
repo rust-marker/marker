@@ -1,21 +1,17 @@
 #![doc = include_str!("../README.md")]
 #![feature(rustc_private)]
-#![feature(lint_reasons)]
 #![feature(let_chains)]
+#![feature(lint_reasons)]
 #![feature(iter_collect_into)]
+#![feature(non_exhaustive_omitted_patterns_lint)]
 #![warn(rustc::internal)]
 #![warn(clippy::pedantic)]
+#![warn(non_exhaustive_omitted_patterns)]
 #![allow(clippy::missing_panics_doc)]
 #![allow(clippy::module_name_repetitions)]
-#![allow(
-    clippy::needless_lifetimes,
-    reason = "some lifetimes will be required to fix ICEs, <'ast, '_> also looks weird"
-)]
-#![allow(clippy::needless_collect, reason = "it has false positives for `alloc_slice_iter`")]
-#![allow(
-    clippy::too_many_lines,
-    reason = "long functions are sometimes unavoidable for matches"
-)]
+#![allow(clippy::needless_lifetimes, reason = "lifetimes will be required to fix ICEs")]
+#![allow(clippy::needless_collect, reason = "false positives for `alloc_slice`")]
+#![allow(clippy::too_many_lines, reason = "long functions are unavoidable for matches")]
 
 extern crate rustc_ast;
 extern crate rustc_data_structures;

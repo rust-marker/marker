@@ -9,7 +9,7 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
             let report_in_external_macro = match api_lint.report_in_macro {
                 MacroReport::No | MacroReport::Local => false,
                 MacroReport::All => true,
-                _ => unreachable!("added variant to lint::MacroReport"),
+                _ => unreachable!(),
             };
 
             Box::leak(Box::new(rustc_lint::Lint {

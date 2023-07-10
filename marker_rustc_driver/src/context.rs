@@ -117,7 +117,7 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
                                 self.rustc_converter.to_applicability(*app),
                             );
                         },
-                        _ => todo!(),
+                        _ => unreachable!(),
                     }
                 }
                 builder
