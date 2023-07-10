@@ -1,13 +1,18 @@
+use std::collections::HashMap;
+
 use clap::{builder::ValueParser, Arg, ArgAction, ArgMatches, Command};
 
-use crate::VERSION;
+use crate::{
+    config::{Config, LintDependency},
+    VERSION,
+};
 
 const AFTER_HELP_MSG: &str = r#"CARGO ARGS
     All arguments after double dashes(`--`) will be passed to cargo.
     Run `cargo check --help` to see these options.
 
 EXAMPLES:
-    * `cargo marker -l ./marker_uitest`
+    * `cargo marker -l 'marker_uitest = { path = "./marker_lints" }'`
 "#;
 
 #[allow(clippy::struct_excessive_bools)]
@@ -27,6 +32,21 @@ impl Flags {
             dev_build: cfg!(feature = "dev-build"),
             forward_rust_flags: args.get_flag("forward-rust-flags"),
         }
+    }
+}
+
+pub fn collect_lint_deps(args: &ArgMatches) -> Option<HashMap<String, LintDependency>> {
+    if let Some(lints) = args.get_many::<&str>("lints") {
+        let mut virtual_manifest = "[workspace.metadata.marker.lints]\n".to_string();
+        for dep in lints.copied() {
+            virtual_manifest.push_str(dep);
+            virtual_manifest.push('\n');
+        }
+
+        let Config { lints } = Config::try_from_str(&virtual_manifest).ok()?;
+        Some(lints)
+    } else {
+        None
     }
 }
 
