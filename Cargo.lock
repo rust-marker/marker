@@ -460,7 +460,6 @@ dependencies = [
 name = "marker_lints"
 version = "0.1.0"
 dependencies = [
- "cargo_marker",
  "marker_api",
  "tempfile",
  "ui_test",
@@ -480,7 +479,6 @@ dependencies = [
 name = "marker_uitest"
 version = "0.1.0"
 dependencies = [
- "cargo_marker",
  "marker_api",
  "tempfile",
  "ui_test",

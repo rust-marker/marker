@@ -9,7 +9,7 @@ mod config;
 mod exit;
 mod utils;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, ffi::OsString};
 
 use cli::{get_clap_config, Flags};
 use config::Config;
@@ -82,6 +82,11 @@ fn run_check(args: &clap::ArgMatches, config: Option<Config>, flags: &Flags) -> 
         return Err(ExitStatus::NoLints);
     }
 
+    // If this is a dev build, we want to rebuild the driver before checking
+    if flags.dev_build {
+        backend::driver::install_driver(false, flags.dev_build, "")?;
+    }
+
     // Configure backend
     let toolchain = backend::toolchain::Toolchain::try_find_toolchain(flags.dev_build, flags.verbose)?;
     let backend_conf = backend::Config {
@@ -90,12 +95,20 @@ fn run_check(args: &clap::ArgMatches, config: Option<Config>, flags: &Flags) -> 
         ..backend::Config::try_base_from(toolchain)?
     };
 
+    // Prepare backend
+    let info = backend::prepare_check(&backend_conf)?;
+
     // Run backend
-    let additional_cargo_args: Vec<_> = std::env::args()
-        .skip_while(|c| c != CARGO_ARGS_SEPARATOR)
-        .skip(1)
-        .collect();
-    backend::run_check(&backend_conf, &additional_cargo_args)
+    if flags.test_build {
+        print_env(&info.env).unwrap();
+        Ok(())
+    } else {
+        let additional_cargo_args: Vec<_> = std::env::args()
+            .skip_while(|c| c != CARGO_ARGS_SEPARATOR)
+            .skip(1)
+            .collect();
+        backend::run_check(&backend_conf, info, &additional_cargo_args)
+    }
 }
 
 fn print_version(flags: &Flags) {
@@ -104,4 +117,47 @@ fn print_version(flags: &Flags) {
     if flags.verbose {
         backend::driver::print_driver_version(flags.dev_build);
     }
+}
+
+#[allow(clippy::unnecessary_wraps)]
+fn print_env(env: &[(&'static str, OsString)]) -> std::io::Result<()> {
+    // Operating systems are fun... So, this function prints out the environment
+    // values to the standard output. For Unix systems, this requires `OsStr`
+    // objects, as file names are just bytes and don't need to be valid UTF-8.
+    // Windows, on the other hand, restricts file names, but uses UTF-16. The
+    // restriction only makes it slightly better, since windows `OsString` version
+    // doesn't have a `bytes()` method. Rust additionally has a restriction on the
+    // stdout of windows, that it has to be valid UTF-8, which means more conversion.
+    //
+    // This would be so much easier if everyone followed the "UTF-8 Everywhere Manifesto"
+
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    {
+        use std::io::Write;
+        use std::os::unix::prelude::OsStrExt;
+
+        // stdout is used directly, to print the `OsString`s without requiring
+        // them to be valid UTF-8
+        let mut lock = std::io::stdout().lock();
+        for (name, value) in env {
+            write!(lock, "env:")?;
+            lock.write_all(name.as_bytes())?;
+            write!(lock, "=")?;
+            lock.write_all(value.as_bytes())?;
+            writeln!(lock)?;
+        }
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        for (name, value) in env {
+            if let Some(value) = value.to_str() {
+                println!("env:{name}={value}");
+            } else {
+                unreachable!("Windows requires it's file path to be valid UTF-16 AFAIK");
+            }
+        }
+    }
+
+    Ok(())
 }

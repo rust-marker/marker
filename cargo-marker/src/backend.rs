@@ -63,16 +63,29 @@ impl Config {
     }
 }
 
-pub fn run_check(config: &Config, additional_cargo_args: &[String]) -> Result<(), ExitStatus> {
-    // If this is a dev build, we want to rebuild the driver before checking
-    if config.dev_build {
-        driver::install_driver(false, config.dev_build, &config.build_rustc_flags)?;
-    }
+/// This struct contains all information to use rustc as a driver.
+pub struct CheckInfo {
+    pub env: Vec<(&'static str, OsString)>,
+}
 
+pub fn prepare_check(config: &Config) -> Result<CheckInfo, ExitStatus> {
     println!();
     println!("Compiling Lints:");
     let lints = lints::build_lints(config)?;
 
+    #[rustfmt::skip]
+    let mut env = vec![
+        ("RUSTC_WORKSPACE_WRAPPER", config.toolchain.driver_path.as_os_str().to_os_string()),
+        ("MARKER_LINT_CRATES", to_marker_lint_crates_env(&lints)),
+    ];
+    if let Some(toolchain) = &config.toolchain.toolchain {
+        env.push(("RUSTUP_TOOLCHAIN", toolchain.into()));
+    }
+
+    Ok(CheckInfo { env })
+}
+
+pub fn run_check(config: &Config, info: CheckInfo, additional_cargo_args: &[String]) -> Result<(), ExitStatus> {
     println!();
     println!("Start linting:");
 
@@ -80,8 +93,8 @@ pub fn run_check(config: &Config, additional_cargo_args: &[String]) -> Result<()
     cmd.arg("check");
     cmd.args(additional_cargo_args);
 
-    cmd.env("RUSTC_WORKSPACE_WRAPPER", config.toolchain.driver_path.as_os_str());
-    cmd.env("MARKER_LINT_CRATES", to_marker_lint_crates_env(&lints));
+    cmd.envs(info.env);
+
     let exit_status = cmd
         .spawn()
         .expect("could not run cargo")

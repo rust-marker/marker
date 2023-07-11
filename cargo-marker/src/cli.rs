@@ -36,9 +36,9 @@ impl Flags {
 }
 
 pub fn collect_lint_deps(args: &ArgMatches) -> Option<HashMap<String, LintDependency>> {
-    if let Some(lints) = args.get_many::<&str>("lints") {
+    if let Some(lints) = args.get_many::<String>("lints") {
         let mut virtual_manifest = "[workspace.metadata.marker.lints]\n".to_string();
-        for dep in lints.copied() {
+        for dep in lints {
             virtual_manifest.push_str(dep);
             virtual_manifest.push('\n');
         }
@@ -109,7 +109,7 @@ fn check_command_args() -> impl IntoIterator<Item = impl Into<Arg>> {
             .short('l')
             .long("lints")
             .num_args(1..)
-            .value_parser(ValueParser::os_string())
+            .value_parser(ValueParser::string())
             .help("Defines a set of lint crates that should be used"),
     ]
 }

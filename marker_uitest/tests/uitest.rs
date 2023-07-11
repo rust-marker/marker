@@ -1,7 +1,9 @@
 use std::{
-    env,
+    collections::HashMap,
+    env, fs,
     num::NonZeroUsize,
     path::{Path, PathBuf},
+    process::Command,
 };
 use ui_test::*;
 
@@ -9,11 +11,7 @@ use ui_test::*;
 fn ui_test() -> ui_test::color_eyre::Result<()> {
     let path = "../target";
 
-    let setup = cargo_marker::test_setup(
-        env!("CARGO_PKG_NAME").to_string(),
-        &PathBuf::from(env!("CARGO_MANIFEST_DIR")),
-    )
-    .unwrap();
+    let setup = run_test_setup();
     for (key, val) in setup.env_vars {
         env::set_var(key, val);
     }
@@ -70,5 +68,56 @@ fn test_name_filter() -> Box<dyn Fn(&Path) -> bool + Sync> {
         })
     } else {
         Box::new(|_| true)
+    }
+}
+
+struct TestSetup {
+    rustc_path: String,
+    /// The environment values that should be set. The first element is the
+    /// value name, the second is the value the it should be set to.
+    env_vars: HashMap<String, String>,
+}
+
+/// This function calls `cargo-marker` for the basic test setup. For normal linting
+/// crates this will need to be adjusted to run the installed `cargo-marker` version
+///
+/// In the future it would be nice to have a nice wrapper library as well.
+fn run_test_setup() -> TestSetup {
+    const CARGO_MARKER_INVOCATION: &[&str] = &["run", "--bin", "cargo-marker", "--features", "dev-build", "--"];
+
+    // ../marker/marker_uitest
+    let current_dir = env::current_dir().unwrap();
+    let lint_crate_src = fs::canonicalize(&current_dir).unwrap();
+    let lint_spec = format!(
+        r#"{} = {{ path = "{}" }}"#,
+        env!("CARGO_PKG_NAME"),
+        lint_crate_src.display()
+    );
+    let mut cmd = Command::new("cargo");
+    let output = cmd
+        .current_dir(current_dir.parent().unwrap())
+        .args(CARGO_MARKER_INVOCATION)
+        .arg("-l")
+        .arg(lint_spec)
+        .arg("--test-setup")
+        .output()
+        .expect("Unable to run the test setup using `cargo-marker`");
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    if !output.status.success() {
+        let stderr = String::from_utf8(output.stderr).unwrap();
+        panic!("Test setup failed:\n\n===STDOUT===\n{stdout}\n\n===STDERR===\n{stderr}\n");
+    }
+
+    let mut env_vars: HashMap<_, _> = stdout
+        .lines()
+        .filter_map(|line| line.strip_prefix("env:"))
+        .filter_map(|line| line.split_once('='))
+        .map(|(var, val)| (var.to_string(), val.to_string()))
+        .collect();
+
+    TestSetup {
+        rustc_path: env_vars.remove("RUSTC_WORKSPACE_WRAPPER").unwrap(),
+        env_vars,
     }
 }
