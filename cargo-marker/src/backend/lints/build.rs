@@ -11,6 +11,18 @@ const DYNAMIC_LIB_FILE_ENDING: &str = "dylib";
 #[cfg(target_os = "windows")]
 const DYNAMIC_LIB_FILE_ENDING: &str = "dll";
 
+/// A list of file endings which are expected to be inside the lint crate dir.
+/// It's assumed that these can be safely removed.
+const ARTIFACT_ENDINGS: &[&str] = &[
+    DYNAMIC_LIB_FILE_ENDING,
+    #[cfg(target_os = "windows")]
+    "exp",
+    #[cfg(target_os = "windows")]
+    "lib",
+    #[cfg(target_os = "windows")]
+    "pdb",
+];
+
 pub fn build_lints(sources: &[LintCrateSource], config: &Config) -> Result<Vec<LintCrate>, ExitStatus> {
     // By default Cargo doesn't provide the path of the compiled lint crate.
     // As a work around, we use the `--out-dir` option to make cargo copy all
@@ -61,10 +73,10 @@ fn clear_lints_dir(lints_dir: &Path) -> Result<(), ExitStatus> {
         // Delete all files
         match std::fs::read_dir(lints_dir) {
             Ok(dir) => {
-                let ending = OsStr::new(DYNAMIC_LIB_FILE_ENDING);
+                let endings: Vec<_> = ARTIFACT_ENDINGS.iter().map(OsStr::new).collect();
                 for file in dir {
                     let file = file.unwrap().path();
-                    if file.extension() == Some(ending) {
+                    if file.extension().map_or(false, |ending| endings.contains(&ending)) {
                         std::fs::remove_file(file).map_err(|_| ExitStatus::LintCrateBuildFail)?;
                     } else {
                         eprintln!(
