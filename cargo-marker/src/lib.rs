@@ -28,14 +28,22 @@ pub struct TestSetup {
     pub env_vars: HashMap<String, OsString>,
 }
 
+#[allow(clippy::missing_panics_doc, clippy::missing_errors_doc)]
 pub fn test_setup(krate_name: String, krate_dir: &Path) -> Result<TestSetup, ExitStatus> {
     let dev_build = cfg!(feature = "dev-build");
 
+    let toolchain;
     if dev_build {
+        let lint_dir = std::env::current_dir().unwrap();
+        std::env::set_current_dir(lint_dir.parent().unwrap()).unwrap();
         backend::driver::install_driver(false, dev_build, "")?;
+
+        toolchain = backend::toolchain::Toolchain::try_find_toolchain(dev_build, true)?;
+        std::env::set_current_dir(lint_dir).unwrap();
+    } else {
+        toolchain = backend::toolchain::Toolchain::try_find_toolchain(dev_build, true)?;
     }
 
-    let toolchain = backend::toolchain::Toolchain::try_find_toolchain(dev_build, true)?;
     let mut config = Config::try_base_from(toolchain)?;
     config.lints.insert(
         krate_name,

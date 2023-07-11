@@ -127,12 +127,14 @@ impl Toolchain {
     }
 
     fn search_target_dir(verbose: bool) -> Result<Toolchain, ExitStatus> {
-        let metadata = MetadataCommand::new().exec().map_err(|_| ExitStatus::BadConfiguration)?;
+        let metadata = MetadataCommand::new()
+            .exec()
+            .map_err(|_| ExitStatus::BadConfiguration)?;
         let path = metadata.target_directory.as_std_path();
         Self::search_directory(&path.join("debug").join("dummy_file_name"), verbose)
     }
 
-    fn search_directory(path: &Path, verbose: bool) -> Result<Toolchain, ExitStatus>  {
+    fn search_directory(path: &Path, verbose: bool) -> Result<Toolchain, ExitStatus> {
         let driver_path = path.with_file_name(MARKER_DRIVER_BIN_NAME);
         if verbose {
             println!("Searching for driver at '{}'", driver_path.to_string_lossy());

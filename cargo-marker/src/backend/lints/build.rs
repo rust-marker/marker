@@ -1,4 +1,4 @@
-use std::ffi::OsStr;
+use std::{ffi::OsStr, path::Path};
 
 use crate::{backend::Config, ExitStatus};
 
@@ -17,13 +17,16 @@ pub fn build_lints(sources: &[LintCrateSource], config: &Config) -> Result<Vec<L
     // created binaries into one folder. We then scan that folder and collect
     // all dynamic libraries, assuming that they're lint crates.
 
+    // Clear previously build lints
+    let lints_dir = config.lint_crate_dir();
+    clear_lints_dir(&lints_dir)?;
+
     // Build lint crates
     for lint_src in sources {
         build_lint(lint_src, config)?;
     }
 
     // Find lint lint crates
-    let lints_dir = config.lint_crate_dir();
     match std::fs::read_dir(&lints_dir) {
         Ok(dir) => {
             let ending = OsStr::new(DYNAMIC_LIB_FILE_ENDING);
@@ -44,6 +47,41 @@ pub fn build_lints(sources: &[LintCrateSource], config: &Config) -> Result<Vec<L
                 lints_dir.display()
             );
         },
+    }
+}
+
+/// This function clears the `marker/lints` directory holding all compiled lints. This
+/// is required, as Marker uses the content of that directory to determine which lints
+/// should be run.
+///
+/// This is an extra function to not call `delete_dir_all` and just accidentally delete
+/// the entire system.
+fn clear_lints_dir(lints_dir: &Path) -> Result<(), ExitStatus> {
+    if lints_dir.exists() {
+        // Delete all files
+        match std::fs::read_dir(lints_dir) {
+            Ok(dir) => {
+                let ending = OsStr::new(DYNAMIC_LIB_FILE_ENDING);
+                for file in dir {
+                    let file = file.unwrap().path();
+                    if file.extension() == Some(ending) {
+                        std::fs::remove_file(file).map_err(|_| ExitStatus::LintCrateBuildFail)?;
+                    } else {
+                        eprintln!(
+                            "Marker's lint directory contains an unexpected file: {}",
+                            file.display()
+                        );
+                        return Err(ExitStatus::LintCrateBuildFail);
+                    }
+                }
+
+                // The dir should now be empty
+                std::fs::remove_dir(lints_dir).map_err(|_| ExitStatus::LintCrateBuildFail)
+            },
+            Err(_) => Err(ExitStatus::LintCrateBuildFail),
+        }
+    } else {
+        Ok(())
     }
 }
 

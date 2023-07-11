@@ -72,7 +72,7 @@ fn write_to_file(path: &PathBuf, content: &str) -> Result<(), ExitStatus> {
         // that case only once.
         let _ = std::fs::create_dir_all(parent);
     }
-    let mut file = match OpenOptions::new().create(true).write(true).open(path) {
+    let mut file = match OpenOptions::new().create(true).truncate(true).write(true).open(path) {
         Ok(file) => file,
         Err(_) => {
             // FIXME(xFrednet): Handle this case better by returning a custom status
