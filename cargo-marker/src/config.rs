@@ -62,12 +62,12 @@ impl LintDependency {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LintDependencyEntry {
     #[serde(flatten)]
-    source: Source,
-    package: Option<String>,
+    pub(crate) source: Source,
+    pub(crate) package: Option<String>,
     // FIXME: Features are not supported yet, see https://github.com/rust-marker/marker/issues/81
     #[serde(rename = "default-features")]
-    default_features: Option<bool>,
-    features: Option<Vec<String>>,
+    pub(crate) default_features: Option<bool>,
+    pub(crate) features: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

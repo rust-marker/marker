@@ -18,4 +18,4 @@ marker_api = { path = "../marker_api" }
 marker_api = { path = "../marker_api" }
 ui_test = "0.11.5"
 tempfile = "3.5.0"
-
+cargo_marker = { path = "../cargo-marker", features = ["dev-build"] }

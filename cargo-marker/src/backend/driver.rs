@@ -142,6 +142,7 @@ fn build_driver(
     // Build driver
     let mut cmd = Command::new("cargo");
     if dev_build {
+        cmd.current_dir(std::fs::canonicalize("..").unwrap());
         cmd.args(["build", "--bin", "marker_rustc_driver"]);
     } else {
         cmd.env("RUSTUP_TOOLCHAIN", toolchain);

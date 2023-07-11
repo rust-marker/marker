@@ -78,7 +78,7 @@ impl Toolchain {
 
     pub fn try_find_toolchain(dev_build: bool, verbose: bool) -> Result<Toolchain, ExitStatus> {
         if dev_build {
-            Self::search_next_to_cargo_marker(verbose)
+            Self::search_target_dir(verbose)
         } else {
             // First check if there is a rustc driver for the current toolchain. This
             // allows the used to override the used toolchain with `+<toolchain>` or
@@ -120,23 +120,35 @@ impl Toolchain {
 
     fn search_next_to_cargo_marker(verbose: bool) -> Result<Toolchain, ExitStatus> {
         if let Ok(path) = std::env::current_exe() {
-            let driver_path = path.with_file_name(MARKER_DRIVER_BIN_NAME);
-            if verbose {
-                println!("Searching for driver at '{}'", driver_path.to_string_lossy());
-            }
+            return Self::search_directory(&path, verbose);
+        }
 
-            if driver_path.exists() && driver_path.is_file() {
-                if verbose {
-                    println!("Found driver at '{}'", driver_path.to_string_lossy());
-                }
-                return Ok(Toolchain {
-                    driver_path,
-                    cargo_path: PathBuf::from(
-                        std::env::var_os("CARGO").expect("expected environment value `CARGO` to be set"),
-                    ),
-                    toolchain: None,
-                });
+        Err(ExitStatus::MissingDriver)
+    }
+
+    fn search_target_dir(verbose: bool) -> Result<Toolchain, ExitStatus> {
+        let metadata = MetadataCommand::new().exec().map_err(|_| ExitStatus::BadConfiguration)?;
+        let path = metadata.target_directory.as_std_path();
+        Self::search_directory(&path.join("debug").join("dummy_file_name"), verbose)
+    }
+
+    fn search_directory(path: &Path, verbose: bool) -> Result<Toolchain, ExitStatus>  {
+        let driver_path = path.with_file_name(MARKER_DRIVER_BIN_NAME);
+        if verbose {
+            println!("Searching for driver at '{}'", driver_path.to_string_lossy());
+        }
+
+        if driver_path.exists() && driver_path.is_file() {
+            if verbose {
+                println!("Found driver at '{}'", driver_path.to_string_lossy());
             }
+            return Ok(Toolchain {
+                driver_path,
+                cargo_path: PathBuf::from(
+                    std::env::var_os("CARGO").expect("expected environment value `CARGO` to be set"),
+                ),
+                toolchain: None,
+            });
         }
 
         Err(ExitStatus::MissingDriver)

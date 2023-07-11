@@ -12,7 +12,7 @@ use std::{
 
 use crate::{config::LintDependencyEntry, ExitStatus};
 
-use self::toolchain::Toolchain;
+use self::{lints::LintCrate, toolchain::Toolchain};
 
 pub mod driver;
 pub mod lints;
@@ -66,16 +66,12 @@ impl Config {
 pub fn run_check(config: &Config, additional_cargo_args: &[String]) -> Result<(), ExitStatus> {
     // If this is a dev build, we want to rebuild the driver before checking
     if config.dev_build {
-        driver::install_driver(false, true, &config.build_rustc_flags)?;
+        driver::install_driver(false, config.dev_build, &config.build_rustc_flags)?;
     }
 
     println!();
     println!("Compiling Lints:");
     let lints = lints::build_lints(config)?;
-    let lint_paths: Vec<_> = lints
-        .iter()
-        .map(|krate| OsString::from(krate.file.as_os_str()))
-        .collect();
 
     println!();
     println!("Start linting:");
@@ -85,7 +81,7 @@ pub fn run_check(config: &Config, additional_cargo_args: &[String]) -> Result<()
     cmd.args(additional_cargo_args);
 
     cmd.env("RUSTC_WORKSPACE_WRAPPER", config.toolchain.driver_path.as_os_str());
-    cmd.env("MARKER_LINT_CRATES", lint_paths.join(OsStr::new(";")));
+    cmd.env("MARKER_LINT_CRATES", to_marker_lint_crates_env(&lints));
     let exit_status = cmd
         .spawn()
         .expect("could not run cargo")
@@ -97,4 +93,12 @@ pub fn run_check(config: &Config, additional_cargo_args: &[String]) -> Result<()
     } else {
         Err(ExitStatus::MarkerCheckFailed)
     }
+}
+
+pub fn to_marker_lint_crates_env(lints: &[LintCrate]) -> OsString {
+    let lint_paths: Vec<_> = lints
+        .iter()
+        .map(|krate| OsString::from(krate.file.as_os_str()))
+        .collect();
+    lint_paths.join(OsStr::new(";"))
 }

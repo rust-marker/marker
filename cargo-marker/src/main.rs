@@ -1,18 +1,20 @@
 #![doc = include_str!("../README.md")]
 #![warn(clippy::pedantic)]
-#![warn(clippy::index_refutable_slice)]
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::manual_let_else)] // Rustfmt doesn't like `let ... else {` rn
 
 mod backend;
 mod cli;
 mod config;
+mod exit;
 mod utils;
 
 use std::collections::HashMap;
 
 use cli::{get_clap_config, Flags};
 use config::Config;
+
+pub use exit::ExitStatus;
 
 const CARGO_ARGS_SEPARATOR: &str = "--";
 const VERSION: &str = concat!("cargo-marker ", env!("CARGO_PKG_VERSION"));
@@ -21,40 +23,6 @@ const NO_LINTS_ERROR: &str = concat!(
     "with the `--lints` argument, ",
     "or `[workspace.metadata.marker.lints]` in `Cargo.toml`"
 );
-
-#[derive(Debug)]
-pub enum ExitStatus {
-    /// The toolchain validation failed. This could happen, if rustup is not
-    /// installed or the required toolchain is not installed.
-    InvalidToolchain = 100,
-    /// The execution of a tool, like rustup or cargo, failed.
-    ToolExecutionFailed = 101,
-    /// Unable to find the driver binary
-    MissingDriver = 200,
-    /// Nothing we can really do, but good to know. The user will have to analyze
-    /// the forwarded cargo output.
-    DriverInstallationFailed = 300,
-    /// A general collection status, for failures originating from the driver
-    DriverFailed = 400,
-    /// The lint crate build failed for some reason
-    LintCrateBuildFail = 500,
-    /// Lint crate could not be found
-    LintCrateNotFound = 501,
-    /// The lint crate has been build, but the resulting binary could not be found.
-    LintCrateLibNotFound = 502,
-    /// Failed to fetch the lint crate
-    LintCrateFetchFailed = 550,
-    /// General "bad config" error
-    BadConfiguration = 600,
-    /// No lint crates were specified -> nothing to do
-    NoLints = 601,
-    /// Can't deserialise `workspace.metadata.marker.lints` properly
-    WrongStructure = 602,
-    /// An invalid configuration value was specified
-    InvalidValue = 603,
-    /// Check failed
-    MarkerCheckFailed = 1000,
-}
 
 fn main() -> Result<(), ExitStatus> {
     let matches = get_clap_config().get_matches_from(
@@ -70,9 +38,6 @@ fn main() -> Result<(), ExitStatus> {
         print_version(&flags);
         return Ok(());
     }
-
-    // TODO: Remove old implementation thingies
-    // TODO: Probably next PR, but make uitest use the `cargo-marker` as a lib
 
     let config = match Config::try_from_manifest() {
         Ok(v) => Some(v),
