@@ -21,6 +21,18 @@ Let's make custom lints and code analysis a reality!
 >
 > A collection of features, goals and current limitations is available below.
 
+## Features
+
+* **Custom Lints**: Marker offers a framework for everyone to create and provide custom lints, allowing you to automatically improve the code quality for you and users of your crate.
+* **User-Friendly Interface**: Marker provides a new subcommand for [Cargo] that does all the heavy lifting for you. [cargo_marker] can automatically set up a driver for linting, compile lint crates and run them on any project.
+* **Driver Independent**: Every code analysis requires a driver that parses the code and provides further information. Marker's API is designed to be driver-independent, allowing it to support future compilers and potentially IDEs. (Currently, [rustc] is the only available driver)
+
+And more to come, see Marker's goals and limitations below.
+
+<!-- FIXME(xFrednet): Update the link to link to `crates.io` once the first version was released-->
+[cargo_marker]: https://github.com/rust-marker/marker/tree/master/cargo-marker
+[rustc]: https://github.com/rust-lang/rustc/
+
 ## Usage
 
 <!-- Please keep this section in sync with the main readme -->
@@ -67,18 +79,6 @@ This will initialize Marker, compile the lint crates and start linting.
 
 [Clippy]: https://github.com/rust-lang/rust-clippy
 
-## Features
-
-* **Custom Lints**: Marker offers a framework for everyone to create and provide custom lints, allowing you to automatically improve the code quality for you and users of your crate.
-* **User-Friendly Interface**: Marker provides a new subcommand for [Cargo] that does all the heavy lifting for you. [cargo_marker] can automatically set up a driver for linting, compile lint crate and run them on any project.
-* **Driver Independent**: Every code analysis requires a driver that parses the code and provides further information. Marker's API is designed to be driver-independent, allowing it to support future compilers and potentially IDEs. (Currently, [rustc] is the only available driver)
-
-And more to come, see Marker's goals and limitations below.
-
-<!-- FIXME(xFrednet): Update the link to link to `crates.io` once the first version was released-->
-[cargo_marker]: https://github.com/rust-marker/marker/tree/master/cargo-marker
-[rustc]: https://github.com/rust-lang/rustc/
-
 ## Goals
 
 * **Stability**: Marker's API design focuses on stability and extendability. The goal is to archive backwards compatibility, so that any lint, written after version 1.0.0, will compile and continue to work for years to come.
@@ -93,7 +93,6 @@ And more to come, see Marker's goals and limitations below.
 Marker is still growing up, and that's a good thing. We can still shape the API and adapt it to what the user needs. However, this and the fact that Marker is not an official Rust project comes with some limitations:
 
 * **Nightly**: Internally, Marker has to rely on nightly versions of rustc. However, you, as an end-user, should not notice this dependency.
-* **Lint Crates Registry**: Lint crates can currently only be compiled from paths and git repos. Fetching lint crates from [crates.io] is planned, but not yet supported.
 * **AST Limitations**: Marker's API is still missing a few elements to represent everything required for linting. The API is still incomplete when it comes to:
     * `async` expressions
     * Higher order types
