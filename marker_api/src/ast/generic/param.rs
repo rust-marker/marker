@@ -1,8 +1,10 @@
+use std::fmt::Debug;
 use std::marker::PhantomData;
 
 use crate::ast::{GenericId, Span, SpanId, SymbolId};
 use crate::context::with_cx;
 use crate::ffi::FfiOption;
+use crate::private::Sealed;
 
 /// A singular generic parameter, like `'a` and `T` in this example:
 ///
@@ -50,7 +52,10 @@ impl<'ast> GenericParamKind<'ast> {
 
 /// This trait is a collection of common information that is provided by all
 /// generic parameters.
-pub trait GenericParamData<'ast> {
+///
+/// This trait is only meant to be implemented inside this crate. The `Sealed`
+/// super trait prevents external implementations.
+pub trait GenericParamData<'ast>: Debug + Sealed {
     /// This returns the span, of the defined parameter, if this parameter originates from source
     /// code.
     fn span(&self) -> Option<&Span<'ast>>;
@@ -97,9 +102,11 @@ impl<'ast> TyParam<'ast> {
 
 impl<'ast> GenericParamData<'ast> for TyParam<'ast> {
     fn span(&self) -> Option<&Span<'ast>> {
-        self.span.get().map(|span| with_cx(self, |cx| cx.get_span(*span)))
+        self.span.get().map(|span| with_cx(self, |cx| cx.span(*span)))
     }
 }
+
+impl Sealed for TyParam<'_> {}
 
 impl<'ast> From<&'ast TyParam<'ast>> for GenericParamKind<'ast> {
     fn from(src: &'ast TyParam<'ast>) -> Self {
@@ -147,9 +154,11 @@ impl<'ast> LifetimeParam<'ast> {
 
 impl<'ast> GenericParamData<'ast> for LifetimeParam<'ast> {
     fn span(&self) -> Option<&Span<'ast>> {
-        self.span.get().map(|span| with_cx(self, |cx| cx.get_span(*span)))
+        self.span.get().map(|span| with_cx(self, |cx| cx.span(*span)))
     }
 }
+
+impl Sealed for LifetimeParam<'_> {}
 
 impl<'ast> From<&'ast LifetimeParam<'ast>> for GenericParamKind<'ast> {
     fn from(src: &'ast LifetimeParam<'ast>) -> Self {

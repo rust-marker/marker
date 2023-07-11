@@ -1,31 +1,37 @@
+use std::fmt::Debug;
+
 use crate::{
     ast::ty::SynTyKind,
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
+    private::Sealed,
 };
 
-use super::{Abi, Span, SpanId, SymbolId};
+use super::{Abi, Constness, Safety, Span, SpanId, SymbolId, Syncness};
 
 /// This trait provides information about callable items and types. Some
 /// properties might not be available for every callable object. In these
 /// cases the default value will be returned.
-pub trait CallableData<'ast> {
+///
+/// This trait is only meant to be implemented inside this crate. The `Sealed`
+/// super trait prevents external implementations.
+pub trait CallableData<'ast>: Debug + Sealed {
     /// Returns `true`, if this callable is `const`.
     ///
     /// Defaults to `false` if unspecified.
-    fn is_const(&self) -> bool;
+    fn constness(&self) -> Constness;
 
     /// Returns `true`, if this callable is `async`.
     ///
     /// Defaults to `false` if unspecified.
-    fn is_async(&self) -> bool;
+    fn syncness(&self) -> Syncness;
 
     /// Returns `true`, if this callable is marked as `unsafe`.
     ///
     /// Defaults to `false` if unspecified. `extern` functions will
     /// also return `false` by default, even if they require `unsafe`
     /// by default.
-    fn is_unsafe(&self) -> bool;
+    fn safety(&self) -> Safety;
 
     /// Returns `true`, if this callable is marked as `extern`. Bare functions
     /// only use the `extern` keyword to specify the ABI. These will currently
@@ -84,10 +90,7 @@ impl<'ast> Parameter<'ast> {
     }
 
     pub fn span(&self) -> Option<&Span<'ast>> {
-        self.span
-            .get()
-            .copied()
-            .map(|span| with_cx(self, |cx| cx.get_span(span)))
+        self.span.get().copied().map(|span| with_cx(self, |cx| cx.span(span)))
     }
 }
 
@@ -95,9 +98,9 @@ impl<'ast> Parameter<'ast> {
 #[derive(Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) struct CommonCallableData<'ast> {
-    pub(crate) is_const: bool,
-    pub(crate) is_async: bool,
-    pub(crate) is_unsafe: bool,
+    pub(crate) constness: Constness,
+    pub(crate) syncness: Syncness,
+    pub(crate) safety: Safety,
     pub(crate) is_extern: bool,
     pub(crate) abi: Abi,
     pub(crate) has_self: bool,
@@ -109,9 +112,9 @@ pub(crate) struct CommonCallableData<'ast> {
 #[allow(clippy::fn_params_excessive_bools, clippy::too_many_arguments)]
 impl<'ast> CommonCallableData<'ast> {
     pub fn new(
-        is_const: bool,
-        is_async: bool,
-        is_unsafe: bool,
+        constness: Constness,
+        syncness: Syncness,
+        safety: Safety,
         is_extern: bool,
         abi: Abi,
         has_self: bool,
@@ -119,9 +122,9 @@ impl<'ast> CommonCallableData<'ast> {
         return_ty: Option<SynTyKind<'ast>>,
     ) -> Self {
         Self {
-            is_const,
-            is_async,
-            is_unsafe,
+            constness,
+            syncness,
+            safety,
             is_extern,
             abi,
             has_self,
@@ -136,14 +139,14 @@ impl<'ast> CommonCallableData<'ast> {
 macro_rules! impl_callable_data_trait {
     ($self_ty:ty) => {
         impl<'ast> $crate::ast::common::CallableData<'ast> for $self_ty {
-            fn is_const(&self) -> bool {
-                self.callable_data.is_const
+            fn constness(&self) -> $crate::ast::Constness {
+                self.callable_data.constness
             }
-            fn is_async(&self) -> bool {
-                self.callable_data.is_async
+            fn syncness(&self) -> $crate::ast::Syncness {
+                self.callable_data.syncness
             }
-            fn is_unsafe(&self) -> bool {
-                self.callable_data.is_unsafe
+            fn safety(&self) -> $crate::ast::Safety {
+                self.callable_data.safety
             }
             fn is_extern(&self) -> bool {
                 self.callable_data.is_extern

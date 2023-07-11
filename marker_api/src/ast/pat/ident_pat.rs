@@ -1,5 +1,5 @@
 use crate::{
-    ast::{SymbolId, VarId},
+    ast::{Mutability, SymbolId, VarId},
     context::with_cx,
     ffi::FfiOption,
 };
@@ -12,7 +12,7 @@ pub struct IdentPat<'ast> {
     data: CommonPatData<'ast>,
     name: SymbolId,
     var: VarId,
-    is_mut: bool,
+    mutability: Mutability,
     is_ref: bool,
     binding_pat: FfiOption<PatKind<'ast>>,
 }
@@ -26,8 +26,8 @@ impl<'ast> IdentPat<'ast> {
         self.var
     }
 
-    pub fn is_mut(&self) -> bool {
-        self.is_mut
+    pub fn mutability(&self) -> Mutability {
+        self.mutability
     }
 
     pub fn is_ref(&self) -> bool {
@@ -59,7 +59,7 @@ impl<'ast> IdentPat<'ast> {
         data: CommonPatData<'ast>,
         name: SymbolId,
         var: VarId,
-        is_mut: bool,
+        mutability: Mutability,
         is_ref: bool,
         binding_pat: Option<PatKind<'ast>>,
     ) -> Self {
@@ -67,7 +67,7 @@ impl<'ast> IdentPat<'ast> {
             data,
             name,
             var,
-            is_mut,
+            mutability,
             is_ref,
             binding_pat: binding_pat.into(),
         }

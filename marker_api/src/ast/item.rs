@@ -1,5 +1,7 @@
 use std::{fmt::Debug, marker::PhantomData};
 
+use crate::private::Sealed;
+
 use super::expr::ExprKind;
 use super::{Ident, ItemId, Span};
 
@@ -29,7 +31,11 @@ pub use extern_block_item::*;
 mod unstable_item;
 pub use unstable_item::*;
 
-pub trait ItemData<'ast>: Debug {
+/// This trait combines methods, which are common between all items.
+///
+/// This trait is only meant to be implemented inside this crate. The `Sealed`
+/// super trait prevents external implementations.
+pub trait ItemData<'ast>: Debug + Sealed {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
     /// and to request items from the [`AstContext`](`crate::context::AstContext`).
     fn id(&self) -> ItemId;
@@ -44,9 +50,10 @@ pub trait ItemData<'ast>: Debug {
     /// This function can return [`None`] if the item was generated and has no real name
     fn ident(&self) -> Option<&Ident<'ast>>;
 
-    /// This returns this [`ItemData`] instance as a [`ItemKind`]. This can be useful for
-    /// functions that take [`ItemKind`] as a parameter. For general function calls it's better
-    /// to call them directoly on the item, instead of converting it to a [`ItemKind`] first.
+    /// Returns this item wrapped in it's [`ExprKind`] variant.
+    ///
+    /// In function parameters, it's recommended to use `Into<ItemKind<'ast>>`
+    /// as a bound to support all items and `ItemKind<'ast>` as parameters.
     fn as_item(&'ast self) -> ItemKind<'ast>;
 
     fn attrs(&self); // FIXME: Add return type: -> &'ast [&'ast dyn Attribute<'ast>];
@@ -205,7 +212,7 @@ macro_rules! impl_item_data {
             }
 
             fn span(&self) -> &crate::ast::Span<'ast> {
-                $crate::context::with_cx(self, |cx| cx.get_span(self.data.id))
+                $crate::context::with_cx(self, |cx| cx.span(self.data.id))
             }
 
             fn visibility(&self) -> &crate::ast::item::Visibility<'ast> {
@@ -224,6 +231,8 @@ macro_rules! impl_item_data {
                 todo!()
             }
         }
+
+        impl $crate::private::Sealed for $self_name<'_> {}
 
         impl<'ast> From<&'ast $self_name<'ast>> for crate::ast::item::ItemKind<'ast> {
             fn from(value: &'ast $self_name<'ast>) -> Self {

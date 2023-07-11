@@ -4,7 +4,7 @@ use marker_api::ast::{
         ExternCrateItem, ExternItemKind, Field, FnItem, ImplItem, ItemKind, ModItem, StaticItem, StructItem, TraitItem,
         TyAliasItem, UnionItem, UnstableItem, UseItem, UseKind, Visibility,
     },
-    Abi, CommonCallableData, Parameter,
+    Abi, CommonCallableData, Constness, Parameter, Safety, Syncness,
 };
 use rustc_hir as hir;
 
@@ -56,7 +56,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ItemKind::Static(rustc_ty, rustc_mut, rustc_body_id) => ItemKind::Static(self.alloc({
                 StaticItem::new(
                     data,
-                    matches!(*rustc_mut, rustc_ast::Mutability::Mut),
+                    self.to_mutability(*rustc_mut),
                     Some(self.to_body_id(*rustc_body_id)),
                     self.to_ty(*rustc_ty),
                 )
@@ -165,9 +165,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             None
         };
         CommonCallableData::new(
-            header.is_const(),
-            header.is_async(),
-            header.is_unsafe(),
+            self.to_constness(header.constness),
+            self.to_syncness(header.asyncness),
+            self.to_safety(header.unsafety),
             is_extern,
             self.to_abi(header.abi),
             fn_sig.decl.implicit_self.has_implicit_self(),
@@ -219,14 +219,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     None,
                 )
             })),
-            hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(self.alloc({
-                StaticItem::new(
-                    data,
-                    matches!(*rustc_mut, rustc_ast::Mutability::Mut),
-                    None,
-                    self.to_ty(*ty),
-                )
-            })),
+            hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(self.alloc(StaticItem::new(
+                data,
+                self.to_mutability(*rustc_mut),
+                None,
+                self.to_ty(*ty),
+            ))),
             hir::ForeignItemKind::Type => todo!(),
         };
 
@@ -255,9 +253,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             None
         };
         CommonCallableData::new(
-            false,
-            false,
-            false,
+            Constness::NotConst,
+            Syncness::Sync,
+            Safety::Safe,
             is_extern,
             abi,
             fn_decl.implicit_self.has_implicit_self(),

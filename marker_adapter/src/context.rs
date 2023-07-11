@@ -47,7 +47,7 @@ impl<'ast> DriverContextWrapper<'ast> {
             body,
             resolve_ty_ids,
             expr_ty,
-            get_span,
+            span,
             span_snippet,
             symbol_str,
             resolve_method_target,
@@ -88,9 +88,9 @@ extern "C" fn expr_ty<'ast>(data: &(), expr: ExprId) -> SemTyKind<'ast> {
     wrapper.driver_cx.expr_ty(expr)
 }
 
-extern "C" fn get_span<'ast>(data: &(), owner: &SpanOwner) -> &'ast Span<'ast> {
+extern "C" fn span<'ast>(data: &(), owner: &SpanOwner) -> &'ast Span<'ast> {
     let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
-    wrapper.driver_cx.get_span(owner)
+    wrapper.driver_cx.span(owner)
 }
 
 extern "C" fn span_snippet<'ast>(data: &(), span: &Span) -> ffi::FfiOption<ffi::FfiStr<'ast>> {
@@ -118,7 +118,7 @@ pub trait DriverContext<'ast> {
     fn resolve_ty_ids(&'ast self, path: &str) -> &'ast [TyDefId];
 
     fn expr_ty(&'ast self, expr: ExprId) -> SemTyKind<'ast>;
-    fn get_span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast>;
+    fn span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast>;
     fn span_snippet(&'ast self, span: &Span) -> Option<&'ast str>;
     fn symbol_str(&'ast self, api_id: SymbolId) -> &'ast str;
     fn resolve_method_target(&'ast self, id: ExprId) -> ItemId;

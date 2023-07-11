@@ -90,7 +90,7 @@ impl<'ast> Lifetime<'ast> {
     }
 
     pub fn span(&self) -> Option<&Span<'ast>> {
-        self.span.get().map(|span| with_cx(self, |cx| cx.get_span(*span)))
+        self.span.get().map(|span| with_cx(self, |cx| cx.span(*span)))
     }
 }
 
@@ -142,7 +142,7 @@ impl<'ast> BindingGenericArg<'ast> {
 
     /// The [`Span`] of the binding, if this instance originates from source code.
     pub fn span(&self) -> Option<&Span<'ast>> {
-        self.span.get().map(|span| with_cx(self, |cx| cx.get_span(*span)))
+        self.span.get().map(|span| with_cx(self, |cx| cx.span(*span)))
     }
 }
 

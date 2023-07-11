@@ -200,7 +200,7 @@ pub struct CtorField<'ast> {
 impl<'ast> CtorField<'ast> {
     /// This returns the span of the entire field expression
     pub fn span(&self) -> &Span<'ast> {
-        with_cx(self, |cx| cx.get_span(self.span))
+        with_cx(self, |cx| cx.span(self.span))
     }
 
     /// The identifier of the field.

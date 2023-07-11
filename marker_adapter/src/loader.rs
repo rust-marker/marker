@@ -161,7 +161,7 @@ impl LoadedLintCrate {
         // Check API version for verification
         let get_api_version = {
             unsafe {
-                lib.get::<unsafe extern "C" fn() -> &'static str>(b"marker_get_api_version\0")
+                lib.get::<unsafe extern "C" fn() -> &'static str>(b"marker_api_version\0")
                     .map_err(|_| LoadingError::MissingLintDeclaration)?
             }
         };
@@ -171,7 +171,7 @@ impl LoadedLintCrate {
 
         // Load bindings
         let get_lint_crate_bindings = unsafe {
-            lib.get::<extern "C" fn() -> LintCrateBindings>(b"marker_get_lint_crate_bindings\0")
+            lib.get::<extern "C" fn() -> LintCrateBindings>(b"marker_lint_crate_bindings\0")
                 .map_err(|_| LoadingError::MissingLintDeclaration)?
         };
         let bindings = get_lint_crate_bindings();

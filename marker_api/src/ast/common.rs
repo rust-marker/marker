@@ -58,9 +58,11 @@ impl<'ast> TraitRef<'ast> {
 
 #[repr(C)]
 #[non_exhaustive]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Mutability {
+    /// The object is mutable
     Mut,
+    /// The object is unmutable
     Unmut,
 }
 
@@ -73,7 +75,7 @@ impl Mutability {
 
 #[repr(C)]
 #[non_exhaustive]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Safety {
     Safe,
     Unsafe,
@@ -83,5 +85,40 @@ impl Safety {
     #[must_use]
     pub fn is_unsafe(&self) -> bool {
         matches!(self, Self::Unsafe)
+    }
+}
+
+#[repr(C)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Constness {
+    Const,
+    NotConst,
+}
+
+impl Constness {
+    #[must_use]
+    pub fn is_const(&self) -> bool {
+        matches!(self, Self::Const)
+    }
+}
+
+#[repr(C)]
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Syncness {
+    Sync,
+    Async,
+}
+
+impl Syncness {
+    #[must_use]
+    pub fn is_sync(&self) -> bool {
+        matches!(self, Self::Sync)
+    }
+
+    #[must_use]
+    pub fn is_async(&self) -> bool {
+        matches!(self, Self::Async)
     }
 }

@@ -37,3 +37,11 @@ pub trait LintPass {
     fn check_stmt<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _stmt: ast::stmt::StmtKind<'ast>) {}
     fn check_expr<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _expr: ast::expr::ExprKind<'ast>) {}
 }
+
+pub(crate) mod private {
+    /// A private super trait, to prevent other creates from implementing Marker's
+    /// API traits.
+    ///
+    /// See [Sealed traits](https://rust-lang.github.io/api-guidelines/future-proofing.html)
+    pub trait Sealed {}
+}

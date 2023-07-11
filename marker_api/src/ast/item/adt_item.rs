@@ -157,7 +157,7 @@ impl<'ast> EnumVariant<'ast> {
     /// The [`Span`] of the entire item. This span should be used for general item related
     /// diagnostics.
     pub fn span(&self) -> &Span<'ast> {
-        with_cx(self, |cx| cx.get_span(self.span))
+        with_cx(self, |cx| cx.span(self.span))
     }
 }
 
@@ -291,7 +291,7 @@ impl<'ast> Field<'ast> {
     /// The [`Span`] of the entire item. This span should be used for general item related
     /// diagnostics.
     pub fn span(&self) -> &Span<'ast> {
-        with_cx(self, |cx| cx.get_span(self.span))
+        with_cx(self, |cx| cx.span(self.span))
     }
 
     // FIXME: Add `fn attrs() -> ??? {}`

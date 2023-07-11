@@ -51,7 +51,7 @@ pub fn set_ast_cx<'ast>(cx: &'ast AstContext<'ast>) {
 ///
 /// ```ignore
 /// pub fn span(&self) -> &Span<'ast> {
-///     with_cx(self, |cx| cx.get_span(self.id))
+///     with_cx(self, |cx| cx.span(self.id))
 /// }
 /// ```
 ///
@@ -186,8 +186,8 @@ impl<'ast> AstContext<'ast> {
         self.driver.call_span_snippet(span)
     }
 
-    pub(crate) fn get_span<T: Into<SpanOwner>>(&self, span_owner: T) -> &'ast Span<'ast> {
-        self.driver.call_get_span(&span_owner.into())
+    pub(crate) fn span<T: Into<SpanOwner>>(&self, span_owner: T) -> &'ast Span<'ast> {
+        self.driver.call_span(&span_owner.into())
     }
 
     pub(crate) fn symbol_str(&self, sym: SymbolId) -> &'ast str {
@@ -236,7 +236,7 @@ struct DriverCallbacks<'ast> {
 
     // Internal utility
     pub expr_ty: extern "C" fn(&'ast (), ExprId) -> SemTyKind<'ast>,
-    pub get_span: extern "C" fn(&'ast (), &SpanOwner) -> &'ast Span<'ast>,
+    pub span: extern "C" fn(&'ast (), &SpanOwner) -> &'ast Span<'ast>,
     pub span_snippet: extern "C" fn(&'ast (), &Span) -> ffi::FfiOption<ffi::FfiStr<'ast>>,
     pub symbol_str: extern "C" fn(&'ast (), SymbolId) -> ffi::FfiStr<'ast>,
     pub resolve_method_target: extern "C" fn(&'ast (), ExprId) -> ItemId,
@@ -261,8 +261,8 @@ impl<'ast> DriverCallbacks<'ast> {
     fn call_expr_ty(&self, expr: ExprId) -> SemTyKind<'ast> {
         (self.expr_ty)(self.driver_context, expr)
     }
-    fn call_get_span(&self, span_owner: &SpanOwner) -> &'ast Span<'ast> {
-        (self.get_span)(self.driver_context, span_owner)
+    fn call_span(&self, span_owner: &SpanOwner) -> &'ast Span<'ast> {
+        (self.span)(self.driver_context, span_owner)
     }
     fn call_span_snippet(&self, span: &Span) -> Option<String> {
         let result: Option<ffi::FfiStr> = (self.span_snippet)(self.driver_context, span).into();

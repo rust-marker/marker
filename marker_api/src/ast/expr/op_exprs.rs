@@ -1,5 +1,5 @@
 use crate::{
-    ast::{pat::PatKind, ty::SynTyKind},
+    ast::{pat::PatKind, ty::SynTyKind, Mutability},
     ffi::FfiOption,
 };
 
@@ -114,7 +114,7 @@ pub enum BinaryOpKind {
 pub struct RefExpr<'ast> {
     data: CommonExprData<'ast>,
     expr: ExprKind<'ast>,
-    is_mut: bool,
+    mutability: Mutability,
 }
 
 impl<'ast> RefExpr<'ast> {
@@ -122,8 +122,8 @@ impl<'ast> RefExpr<'ast> {
         self.expr
     }
 
-    pub fn is_mut(&self) -> bool {
-        self.is_mut
+    pub fn mutability(&self) -> Mutability {
+        self.mutability
     }
 }
 
@@ -137,8 +137,8 @@ super::impl_expr_data!(
 
 #[cfg(feature = "driver-api")]
 impl<'ast> RefExpr<'ast> {
-    pub fn new(data: CommonExprData<'ast>, expr: ExprKind<'ast>, is_mut: bool) -> Self {
-        Self { data, expr, is_mut }
+    pub fn new(data: CommonExprData<'ast>, expr: ExprKind<'ast>, mutability: Mutability) -> Self {
+        Self { data, expr, mutability }
     }
 }
 

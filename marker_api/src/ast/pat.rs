@@ -1,3 +1,5 @@
+use crate::private::Sealed;
+
 use super::{
     expr::{ExprKind, LitExprKind},
     Span, SpanId,
@@ -28,10 +30,18 @@ pub use tuple_pat::*;
 pub use unstable_pat::*;
 pub use wildcard_pat::*;
 
-pub trait PatData<'ast>: Debug {
-    /// Returns the span of this pattern.
+/// This trait combines methods, which are common between all patterns.
+///
+/// This trait is only meant to be implemented inside this crate. The `Sealed`
+/// super trait prevents external implementations.
+pub trait PatData<'ast>: Debug + Sealed {
+    /// Returns the [`Span`] of this pattern.
     fn span(&self) -> &Span<'ast>;
 
+    /// Returns this expression wrapped in it's [`PatKind`] variant.
+    ///
+    /// In function parameters, it's recommended to use `Into<PatKind<'ast>>`
+    /// as a bound to support all patterns and `PatKind<'ast>` as parameters.
     fn as_pat(&'ast self) -> PatKind<'ast>;
 }
 
@@ -144,7 +154,7 @@ macro_rules! impl_pat_data {
     ($self_ty:ty, $enum_name:ident) => {
         impl<'ast> super::PatData<'ast> for $self_ty {
             fn span(&self) -> &crate::ast::Span<'ast> {
-                $crate::context::with_cx(self, |cx| cx.get_span(self.data.span))
+                $crate::context::with_cx(self, |cx| cx.span(self.data.span))
             }
 
             fn as_pat(&'ast self) -> crate::ast::pat::PatKind<'ast> {
@@ -157,6 +167,8 @@ macro_rules! impl_pat_data {
                 $crate::ast::pat::PatKind::$enum_name(from)
             }
         }
+
+        impl<'ast> $crate::private::Sealed for $self_ty {}
     };
 }
 

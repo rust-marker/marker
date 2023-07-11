@@ -148,6 +148,7 @@ impl From<SpanId> for SpanOwner {
     }
 }
 
+#[repr(C)]
 #[derive(PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "driver-api", derive(Clone))]
 pub struct Ident<'ast> {
@@ -162,7 +163,7 @@ impl<'ast> Ident<'ast> {
     }
 
     pub fn span(&self) -> &Span<'ast> {
-        with_cx(self, |cx| cx.get_span(self.span))
+        with_cx(self, |cx| cx.span(self.span))
     }
 }
 
@@ -183,6 +184,12 @@ impl<'ast> std::fmt::Debug for Ident<'ast> {
             .field("name", &self.name())
             .field("span", &self.span())
             .finish()
+    }
+}
+
+impl<'ast> std::fmt::Display for Ident<'ast> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name())
     }
 }
 

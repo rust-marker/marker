@@ -202,7 +202,7 @@ pub struct MatchArm<'ast> {
 
 impl<'ast> MatchArm<'ast> {
     pub fn span(&self) -> &Span<'ast> {
-        with_cx(self, |cx| cx.get_span(self.span))
+        with_cx(self, |cx| cx.span(self.span))
     }
 
     pub fn pat(&self) -> PatKind<'ast> {

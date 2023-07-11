@@ -13,7 +13,7 @@ use super::{CommonSynTyData, SemTyKind, SynTyKind};
 pub struct SynRefTy<'ast> {
     data: CommonSynTyData<'ast>,
     lifetime: FfiOption<Lifetime<'ast>>,
-    is_mut: bool,
+    mutability: Mutability,
     inner_ty: SynTyKind<'ast>,
 }
 
@@ -22,8 +22,8 @@ impl<'ast> SynRefTy<'ast> {
         self.lifetime.get().is_some()
     }
 
-    pub fn is_mut(&self) -> bool {
-        self.is_mut
+    pub fn mutability(&self) -> Mutability {
+        self.mutability
     }
 
     pub fn inner_ty(&self) -> SynTyKind<'ast> {
@@ -38,13 +38,13 @@ impl<'ast> SynRefTy<'ast> {
     pub fn new(
         data: CommonSynTyData<'ast>,
         lifetime: Option<Lifetime<'ast>>,
-        is_mut: bool,
+        mutability: Mutability,
         inner_ty: SynTyKind<'ast>,
     ) -> Self {
         Self {
             data,
             lifetime: lifetime.into(),
-            is_mut,
+            mutability,
             inner_ty,
         }
     }
@@ -88,13 +88,13 @@ impl<'ast> SemRefTy<'ast> {
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct SynRawPtrTy<'ast> {
     data: CommonSynTyData<'ast>,
-    is_mut: bool,
+    mutability: Mutability,
     inner_ty: SynTyKind<'ast>,
 }
 
 impl<'ast> SynRawPtrTy<'ast> {
-    pub fn is_mut(&self) -> bool {
-        self.is_mut
+    pub fn mutability(&self) -> Mutability {
+        self.mutability
     }
 
     pub fn inner_ty(&self) -> SynTyKind<'ast> {
@@ -106,8 +106,12 @@ super::impl_ty_data!(SynRawPtrTy<'ast>, RawPtr);
 
 #[cfg(feature = "driver-api")]
 impl<'ast> SynRawPtrTy<'ast> {
-    pub fn new(data: CommonSynTyData<'ast>, is_mut: bool, inner_ty: SynTyKind<'ast>) -> Self {
-        Self { data, is_mut, inner_ty }
+    pub fn new(data: CommonSynTyData<'ast>, mutability: Mutability, inner_ty: SynTyKind<'ast>) -> Self {
+        Self {
+            data,
+            mutability,
+            inner_ty,
+        }
     }
 }
 

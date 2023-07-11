@@ -6,7 +6,7 @@ use marker_api::ast::{
         SynNumTy, SynPathTy, SynRawPtrTy, SynRefTy, SynSliceTy, SynTextTy, SynTraitObjTy, SynTupleTy, SynTyKind,
         TextKind,
     },
-    CommonCallableData, Parameter,
+    CommonCallableData, Constness, Parameter, Syncness,
 };
 use rustc_hir as hir;
 use rustc_middle as mid;
@@ -168,18 +168,16 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::TyKind::Array(inner_ty, _) => {
                 SynTyKind::Array(self.alloc(SynArrayTy::new(data, self.to_syn_ty(inner_ty))))
             },
-            hir::TyKind::Ptr(mut_ty) => SynTyKind::RawPtr(self.alloc({
-                SynRawPtrTy::new(
-                    data,
-                    matches!(mut_ty.mutbl, rustc_ast::Mutability::Mut),
-                    self.to_syn_ty(mut_ty.ty),
-                )
-            })),
+            hir::TyKind::Ptr(mut_ty) => SynTyKind::RawPtr(self.alloc(SynRawPtrTy::new(
+                data,
+                self.to_mutability(mut_ty.mutbl),
+                self.to_syn_ty(mut_ty.ty),
+            ))),
             hir::TyKind::Ref(rust_lt, mut_ty) => SynTyKind::Ref(self.alloc({
                 SynRefTy::new(
                     data,
                     self.to_lifetime(rust_lt),
-                    matches!(mut_ty.mutbl, rustc_ast::Mutability::Mut),
+                    self.to_mutability(mut_ty.mutbl),
                     self.to_syn_ty(mut_ty.ty),
                 )
             })),
@@ -234,9 +232,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         SynFnPtrTy::new(
             data,
             CommonCallableData::new(
-                false,
-                false,
-                matches!(rust_fn.unsafety, hir::Unsafety::Unsafe),
+                Constness::NotConst,
+                Syncness::Sync,
+                self.to_safety(rust_fn.unsafety),
                 false,
                 self.to_abi(rust_fn.abi),
                 false,

@@ -220,7 +220,7 @@ warning: print test
                           },
                       },
                   ),
-                  is_mut: true,
+                  mutability: Mut,
               },
           )
 

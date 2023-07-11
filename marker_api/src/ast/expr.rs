@@ -1,3 +1,5 @@
+use crate::private::Sealed;
+
 use super::{ty::SemTyKind, ExprId, Span, SpanId};
 
 use std::{fmt::Debug, marker::PhantomData};
@@ -21,17 +23,27 @@ pub use path_expr::*;
 pub use place_expr::*;
 pub use unstable_expr::*;
 
-pub trait ExprData<'ast>: Debug {
+/// This trait combines methods, which are common between all expressions.
+///
+/// This trait is only meant to be implemented inside this crate. The `Sealed`
+/// super trait prevents external implementations.
+pub trait ExprData<'ast>: Debug + Sealed {
+    /// Returns the [`ExprId`] of this expression.
     fn id(&self) -> ExprId;
 
-    /// Returns the span of this expression.
+    /// Returns the [`Span`] of this expression.
     fn span(&self) -> &Span<'ast>;
 
-    // This returns the semantic type of this expression
+    /// Returns the semantic type of this expression.
     fn ty(&self) -> SemTyKind<'ast>;
 
+    /// Returns the [`ExprPrecedence`] of this expression.
     fn precedence(&self) -> ExprPrecedence;
 
+    /// Returns this expression wrapped in it's [`ExprKind`] variant.
+    ///
+    /// In function parameters, it's recommended to use `Into<ExprKind<'ast>>`
+    /// as a bound to support all expressions and `ExprKind<'ast>` as parameters.
     fn as_expr(&'ast self) -> ExprKind<'ast>;
 }
 
@@ -79,6 +91,8 @@ impl<'ast> ExprKind<'ast> {
     impl_expr_kind_fn!(ExprKind: ty() -> SemTyKind<'ast>);
     impl_expr_kind_fn!(ExprKind: precedence() -> ExprPrecedence);
 }
+
+impl Sealed for ExprKind<'_> {}
 
 #[repr(C)]
 #[non_exhaustive]
@@ -284,7 +298,7 @@ macro_rules! impl_expr_data {
             }
 
             fn span(&self) -> &crate::ast::Span<'ast> {
-                $crate::context::with_cx(self, |cx| cx.get_span(self.data.span))
+                $crate::context::with_cx(self, |cx| cx.span(self.data.span))
             }
 
             fn ty(&self) -> $crate::ast::ty::SemTyKind<'ast> {
@@ -297,6 +311,8 @@ macro_rules! impl_expr_data {
                 $crate::ast::expr::ExprKind::$enum_name(self)
             }
         }
+
+        impl<'ast> $crate::private::Sealed for $self_ty {}
 
         impl<'ast> From<&'ast $self_ty> for $crate::ast::expr::ExprKind<'ast> {
             fn from(from: &'ast $self_ty) -> Self {
