@@ -48,13 +48,13 @@ Marker requires lint crates to be specified. The best way, is to add them to the
 
 ```sh
 [workspace.metadata.marker.lints]
-# Add a local crate as a path
-local_lint_crate = { path = "path/to/lint_crate" }
-# Add an external crate via git
-git_lint_crate = { git = "https://github.com/rust-marker/marker" }
+# A local crate as a path
+marker_lints = { path = "./marker_lints" }
+# An external crate via git
+marker_lints = { git = "https://github.com/rust-marker/marker" }
+# An external crate from a registry
+marker_lints = "0.1.0"
 ```
-
-Lints from registries, like crates.io, are sadly not yet supported. See [rust-marker/marker#87](https://github.com/rust-marker/marker/issues/87).
 
 ### Running Marker
 
