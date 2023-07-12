@@ -475,7 +475,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "marker_uilint"
+name = "marker_uilints"
 version = "0.1.0"
 dependencies = [
  "marker_api",
