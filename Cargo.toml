@@ -6,10 +6,9 @@ members = [
     "marker_rustc_driver",
     "marker_utils",
     "marker_lints",
-    "marker_uitest",
+    "marker_uilints",
 ]
 resolver = "2"
 
 [workspace.metadata.marker.lints]
 marker_lints = { path = "./marker_lints" }
-marker_uitest = { path = "./marker_uitest" }
