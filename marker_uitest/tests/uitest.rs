@@ -81,22 +81,24 @@ struct TestSetup {
 /// This function calls `cargo-marker` for the basic test setup. For normal linting
 /// crates this will need to be adjusted to run the installed `cargo-marker` version
 ///
-/// This function is currently slow and hacky. marker#155 should clean this up and
-/// give us a speed up.
-///
 /// In the future it would be nice to have a nice wrapper library as well.
 fn run_test_setup() -> TestSetup {
     const CARGO_MARKER_INVOCATION: &[&str] = &["run", "--bin", "cargo-marker", "--features", "dev-build", "--"];
 
-    // ../rust-marker/marker_uitest
+    // ../marker/marker_uitest
     let current_dir = env::current_dir().unwrap();
     let lint_crate_src = fs::canonicalize(&current_dir).unwrap();
+    let lint_spec = format!(
+        r#"{} = {{ path = "{}" }}"#,
+        env!("CARGO_PKG_NAME"),
+        lint_crate_src.display()
+    );
     let mut cmd = Command::new("cargo");
     let output = cmd
         .current_dir(current_dir.parent().unwrap())
         .args(CARGO_MARKER_INVOCATION)
         .arg("-l")
-        .arg(lint_crate_src)
+        .arg(lint_spec)
         .arg("--test-setup")
         .output()
         .expect("Unable to run the test setup using `cargo-marker`");

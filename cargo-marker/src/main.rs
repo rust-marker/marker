@@ -1,121 +1,26 @@
 #![doc = include_str!("../README.md")]
 #![warn(clippy::pedantic)]
-#![warn(clippy::index_refutable_slice)]
 #![allow(clippy::module_name_repetitions)]
+#![allow(clippy::manual_let_else)] // Rustfmt doesn't like `let ... else {` rn
 
+mod backend;
 mod cli;
 mod config;
-mod driver;
-mod lints;
+mod exit;
+mod utils;
 
-use std::{
-    ffi::{OsStr, OsString},
-    fs::create_dir_all,
-    io,
-    path::Path,
-    process::exit,
-};
+use std::{collections::HashMap, ffi::OsString};
 
-use cargo_fetch::PackageSource;
+use backend::CheckInfo;
 use cli::{get_clap_config, Flags};
 use config::Config;
-use driver::run_driver;
-use lints::{LintCrateSpec, PackageName};
-use once_cell::sync::Lazy;
 
-use crate::driver::print_driver_version;
+pub use exit::ExitStatus;
+
+use crate::backend::driver::DriverVersionInfo;
 
 const CARGO_ARGS_SEPARATOR: &str = "--";
 const VERSION: &str = concat!("cargo-marker ", env!("CARGO_PKG_VERSION"));
-const LINT_KRATES_BASE_DIR: &str = "./target/marker";
-const NO_LINTS_ERROR: &str = concat!(
-    "Please provide at least one valid lint crate, ",
-    "with the `--lints` argument, ",
-    "or `[workspace.metadata.marker.lints]` in `Cargo.toml`"
-);
-static MARKER_LINT_DIR: Lazy<String> = Lazy::new(|| prepare_lint_build_dir("marker", "marker"));
-
-#[derive(Debug)]
-pub enum ExitStatus {
-    /// The toolchain validation failed. This could happen, if rustup is not
-    /// installed or the required toolchain is not installed.
-    InvalidToolchain = 100,
-    /// The execution of a tool, like rustup or cargo, failed.
-    ToolExecutionFailed = 101,
-    /// Unable to find the driver binary
-    MissingDriver = 200,
-    /// Nothing we can really do, but good to know. The user will have to analyze
-    /// the forwarded cargo output.
-    DriverInstallationFailed = 300,
-    /// A general collection status, for failures originating from the driver
-    DriverFailed = 400,
-    /// The lint crate build failed for some reason
-    LintCrateBuildFail = 500,
-    /// Lint crate could not be found
-    LintCrateNotFound = 501,
-    /// The lint crate has been build, but the resulting binary could not be found.
-    LintCrateLibNotFound = 502,
-    /// Failed to fetch the lint crate
-    LintCrateFetchFailed = 550,
-    /// General "bad config" error
-    BadConfiguration = 600,
-    /// No lint crates were specified -> nothing to do
-    NoLints = 601,
-    /// Can't deserialise `workspace.metadata.marker.lints` properly
-    WrongStructure = 602,
-    /// An invalid configuration value was specified
-    InvalidValue = 603,
-    /// Check failed
-    MarkerCheckFailed = 1000,
-}
-
-/// This creates the absolute path for a given build directory.
-fn prepare_lint_build_dir(dir_name: &str, info_name: &str) -> String {
-    if !Path::new("Cargo.toml").exists() {
-        // FIXME: This is a temporary check to ensure that we don't randomly create files.
-        // This should not be part of the release and maybe be replaced by something more
-        // elegant or removed completely.
-        eprintln!("Cargo manifest doesn't exist (`Cargo.toml`), most likely running in the wrong directory");
-        exit(-1);
-    }
-
-    let path = Path::new(LINT_KRATES_BASE_DIR).join(dir_name);
-    if !path.exists() {
-        create_dir_all(&path).unwrap_or_else(|_| panic!("Error while creating lint crate {info_name} directory"));
-    }
-
-    std::fs::canonicalize(path)
-        .expect("This should find the directory, as we just created it")
-        .display()
-        .to_string()
-}
-
-fn choose_lint_crates(args: &clap::ArgMatches, config: Option<Config>) -> Result<Vec<LintCrateSpec>, ExitStatus> {
-    match args.get_many::<OsString>("lints") {
-        Some(v) => v
-            .map(|s| {
-                let p = Path::new(s);
-                let src = PackageSource::path(p).map_err(|e| {
-                    eprintln!("{}: {e}", p.display());
-                    ExitStatus::LintCrateNotFound
-                })?;
-                Ok(LintCrateSpec::new(
-                    PackageName::Named(p.file_name().unwrap_or_default().to_string_lossy().to_string()),
-                    None,
-                    src,
-                ))
-            })
-            .collect::<Result<_, _>>(),
-        None => {
-            if let Some(config) = config {
-                config.collect_crates()
-            } else {
-                eprintln!("{NO_LINTS_ERROR}");
-                Err(ExitStatus::NoLints)
-            }
-        },
-    }
-}
 
 fn main() -> Result<(), ExitStatus> {
     let matches = get_clap_config().get_matches_from(
@@ -128,77 +33,97 @@ fn main() -> Result<(), ExitStatus> {
     let flags = Flags::from_args(&matches);
 
     if matches.get_flag("version") {
-        print_version(&flags);
+        print_version();
         return Ok(());
     }
 
-    let config = match Config::get_marker_config() {
+    let config = match Config::try_from_manifest() {
         Ok(v) => Some(v),
         Err(e) => match e {
-            config::ConfigFetchError::NotFound => None,
+            config::ConfigFetchError::SectionNotFound => None,
             _ => return Err(e.emit_and_convert()),
         },
     };
 
     match matches.subcommand() {
-        Some(("setup", args)) => driver::install_driver(&flags, args.get_flag("auto-install-toolchain")),
-        Some(("check", args)) => run_check(choose_lint_crates(args, config)?, &flags),
-        None => run_check(choose_lint_crates(&matches, config)?, &flags),
+        Some(("setup", args)) => {
+            let rustc_flags = if flags.forward_rust_flags {
+                std::env::var("RUSTFLAGS").unwrap_or_default()
+            } else {
+                String::new()
+            };
+            backend::driver::install_driver(args.get_flag("auto-install-toolchain"), flags.dev_build, &rustc_flags)
+        },
+        Some(("check", args)) => run_check(args, config, &flags),
+        None => run_check(&matches, config, &flags),
         _ => unreachable!(),
     }
 }
 
-fn run_check(crate_entries: Vec<LintCrateSpec>, flags: &Flags) -> Result<(), ExitStatus> {
-    // If this is a dev build, we want to recompile the driver before checking
-    if flags.dev_build {
-        driver::install_driver(flags, false)?;
+fn run_check(args: &clap::ArgMatches, config: Option<Config>, flags: &Flags) -> Result<(), ExitStatus> {
+    // determine lints
+    let mut lints = HashMap::new();
+    let deps = if let Some(deps) = cli::collect_lint_deps(args) {
+        deps
+    } else if let Some(config) = config {
+        config.lints
+    } else {
+        HashMap::new()
+    };
+    for (name, dep) in deps {
+        lints.insert(name, dep.to_dep_entry());
     }
 
-    // FIXME: Respect version info during lint crate compilation
-    let (run_info, _version_info) = driver::validate_and_get_info(flags, true)?;
-
-    if crate_entries.is_empty() {
-        eprintln!("{NO_LINTS_ERROR}");
+    // Validation
+    if lints.is_empty() {
         return Err(ExitStatus::NoLints);
     }
 
-    println!();
-    println!("Compiling Lints:");
-    let target_dir = Path::new(&*MARKER_LINT_DIR);
-
-    let lint_crates: Vec<OsString> = LintCrateSpec::build_many(crate_entries, target_dir, flags)?
-        .into_iter()
-        .map(OsString::from)
-        .collect();
-
-    #[rustfmt::skip]
-    let mut env = vec![
-        (OsString::from("RUSTC_WORKSPACE_WRAPPER"), run_info.driver_path.as_os_str().to_os_string()),
-        (OsString::from("MARKER_LINT_CRATES"), lint_crates.join(OsStr::new(";"))),
-    ];
-    if let Some(toolchain) = &run_info.toolchain {
-        env.push((OsString::from("RUSTUP_TOOLCHAIN"), toolchain.into()));
+    // If this is a dev build, we want to rebuild the driver before checking
+    if flags.dev_build {
+        backend::driver::install_driver(false, flags.dev_build, "")?;
     }
 
+    // Configure backend
+    let toolchain = backend::toolchain::Toolchain::try_find_toolchain(flags.dev_build, flags.verbose)?;
+    let backend_conf = backend::Config {
+        dev_build: flags.dev_build,
+        lints,
+        ..backend::Config::try_base_from(toolchain)?
+    };
+
+    // Prepare backend
+    let info = backend::prepare_check(&backend_conf)?;
+
+    // Run backend
     if flags.test_build {
-        print_env(env).unwrap();
+        print_test_info(&backend_conf, &info).unwrap();
         Ok(())
     } else {
-        let cargo_args = std::env::args().skip_while(|c| c != CARGO_ARGS_SEPARATOR).skip(1);
-        run_driver(&run_info, env, cargo_args, flags)
+        let additional_cargo_args: Vec<_> = std::env::args()
+            .skip_while(|c| c != CARGO_ARGS_SEPARATOR)
+            .skip(1)
+            .collect();
+        backend::run_check(&backend_conf, info, &additional_cargo_args)
     }
 }
 
-fn print_version(flags: &Flags) {
+fn print_version() {
     println!("cargo-marker version: {}", env!("CARGO_PKG_VERSION"));
+}
 
-    if flags.verbose {
-        print_driver_version(flags);
-    }
+fn print_test_info(config: &backend::Config, check: &CheckInfo) -> Result<(), ExitStatus> {
+    print_env(&check.env).unwrap();
+
+    let info = DriverVersionInfo::try_from_toolchain(&config.toolchain, &config.marker_dir.join("Cargo.toml"))?;
+    println!("info:toolchain={}", info.toolchain);
+    println!("info:marker-api={}", info.api_version);
+
+    Ok(())
 }
 
 #[allow(clippy::unnecessary_wraps)]
-fn print_env(env: Vec<(OsString, OsString)>) -> io::Result<()> {
+fn print_env(env: &[(&'static str, OsString)]) -> std::io::Result<()> {
     // Operating systems are fun... So, this function prints out the environment
     // values to the standard output. For Unix systems, this requires `OsStr`
     // objects, as file names are just bytes and don't need to be valid UTF-8.
@@ -216,7 +141,7 @@ fn print_env(env: Vec<(OsString, OsString)>) -> io::Result<()> {
 
         // stdout is used directly, to print the `OsString`s without requiring
         // them to be valid UTF-8
-        let mut lock = io::stdout().lock();
+        let mut lock = std::io::stdout().lock();
         for (name, value) in env {
             write!(lock, "env:")?;
             lock.write_all(name.as_bytes())?;
@@ -229,7 +154,7 @@ fn print_env(env: Vec<(OsString, OsString)>) -> io::Result<()> {
     #[cfg(target_os = "windows")]
     {
         for (name, value) in env {
-            if let (Some(name), Some(value)) = (name.to_str(), value.to_str()) {
+            if let Some(value) = value.to_str() {
                 println!("env:{name}={value}");
             } else {
                 unreachable!("Windows requires it's file path to be valid UTF-16 AFAIK");

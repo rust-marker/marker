@@ -11,4 +11,5 @@ members = [
 resolver = "2"
 
 [workspace.metadata.marker.lints]
-marker_uitest = { path = "marker_uitest" }
+marker_lints = { path = "./marker_lints" }
+marker_uitest = { path = "./marker_uitest" }
