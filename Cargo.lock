@@ -461,8 +461,7 @@ name = "marker_lints"
 version = "0.1.0"
 dependencies = [
  "marker_api",
- "tempfile",
- "ui_test",
+ "marker_uitest",
 ]
 
 [[package]]
