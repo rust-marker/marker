@@ -480,8 +480,7 @@ name = "marker_uilint"
 version = "0.1.0"
 dependencies = [
  "marker_api",
- "tempfile",
- "ui_test",
+ "marker_uitest",
 ]
 
 [[package]]

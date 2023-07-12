@@ -1,6 +1,7 @@
 [alias]
 dogfood = "run --features dev-build --bin cargo-marker -- --forward-rust-flags"
 uitest = "test --test uitest"
+bless = "test --test uitest -- -- --bless"
 
 [profile.dev]
 split-debuginfo = "unpacked"

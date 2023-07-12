@@ -14,5 +14,8 @@ crate-type = ["cdylib"]
 marker_api = { path = "../marker_api" }
 
 [dev-dependencies]
-ui_test = "0.11.5"
-tempfile = "3.6.0"
+marker_uitest = { path = "../marker_uitest", features = ["dev-build"] }
+
+[[test]]
+name = "uitest"
+harness = false
