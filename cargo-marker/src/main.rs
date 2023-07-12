@@ -11,18 +11,16 @@ mod utils;
 
 use std::{collections::HashMap, ffi::OsString};
 
+use backend::CheckInfo;
 use cli::{get_clap_config, Flags};
 use config::Config;
 
 pub use exit::ExitStatus;
 
+use crate::backend::driver::DriverVersionInfo;
+
 const CARGO_ARGS_SEPARATOR: &str = "--";
 const VERSION: &str = concat!("cargo-marker ", env!("CARGO_PKG_VERSION"));
-const NO_LINTS_ERROR: &str = concat!(
-    "Please provide at least one valid lint crate, ",
-    "with the `--lints` argument, ",
-    "or `[workspace.metadata.marker.lints]` in `Cargo.toml`"
-);
 
 fn main() -> Result<(), ExitStatus> {
     let matches = get_clap_config().get_matches_from(
@@ -35,7 +33,7 @@ fn main() -> Result<(), ExitStatus> {
     let flags = Flags::from_args(&matches);
 
     if matches.get_flag("version") {
-        print_version(&flags);
+        print_version();
         return Ok(());
     }
 
@@ -78,7 +76,6 @@ fn run_check(args: &clap::ArgMatches, config: Option<Config>, flags: &Flags) -> 
 
     // Validation
     if lints.is_empty() {
-        eprintln!("{NO_LINTS_ERROR}");
         return Err(ExitStatus::NoLints);
     }
 
@@ -100,7 +97,7 @@ fn run_check(args: &clap::ArgMatches, config: Option<Config>, flags: &Flags) -> 
 
     // Run backend
     if flags.test_build {
-        print_env(&info.env).unwrap();
+        print_test_info(&backend_conf, &info).unwrap();
         Ok(())
     } else {
         let additional_cargo_args: Vec<_> = std::env::args()
@@ -111,12 +108,18 @@ fn run_check(args: &clap::ArgMatches, config: Option<Config>, flags: &Flags) -> 
     }
 }
 
-fn print_version(flags: &Flags) {
+fn print_version() {
     println!("cargo-marker version: {}", env!("CARGO_PKG_VERSION"));
+}
 
-    if flags.verbose {
-        backend::driver::print_driver_version(flags.dev_build);
-    }
+fn print_test_info(config: &backend::Config, check: &CheckInfo) -> Result<(), ExitStatus> {
+    print_env(&check.env).unwrap();
+
+    let info = DriverVersionInfo::try_from_toolchain(&config.toolchain, &config.marker_dir.join("Cargo.toml"))?;
+    println!("info:toolchain={}", info.toolchain);
+    println!("info:marker-api={}", info.api_version);
+
+    Ok(())
 }
 
 #[allow(clippy::unnecessary_wraps)]

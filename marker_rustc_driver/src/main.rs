@@ -170,6 +170,14 @@ fn main() {
             exit(0);
         }
 
+        if orig_args.iter().any(|a| a == "--toolchain") {
+            println!("toolchain: {RUSTC_TOOLCHAIN_VERSION}");
+            println!("driver: {}", env!("CARGO_PKG_VERSION"));
+            println!("marker-api: {}", marker_api::MARKER_API_VERSION);
+
+            exit(0);
+        }
+
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
         // We're invoking the compiler programmatically, so we'll ignore this.
         let wrapper_mode = orig_args.get(1).map(Path::new).and_then(Path::file_stem) == Some("rustc".as_ref());
@@ -179,19 +187,9 @@ fn main() {
             orig_args.remove(1);
         }
 
-        if !wrapper_mode {
-            if orig_args.iter().any(|a| a == "--help" || a == "-h") {
-                display_help();
-                exit(0);
-            }
-
-            if orig_args.iter().any(|a| a == "--toolchain") {
-                println!("toolchain: {RUSTC_TOOLCHAIN_VERSION}");
-                println!("driver: {}", env!("CARGO_PKG_VERSION"));
-                println!("marker-api: {}", marker_api::MARKER_API_VERSION);
-
-                exit(0);
-            }
+        if !wrapper_mode && orig_args.iter().any(|a| a == "--help" || a == "-h") {
+            display_help();
+            exit(0);
         }
 
         // We enable Marker if one of the following conditions is met

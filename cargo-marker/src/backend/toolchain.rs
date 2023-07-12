@@ -31,14 +31,26 @@ impl Toolchain {
     /// See also [`Self::cargo_build_command`] if the commands is intended to build
     /// a crate.
     pub fn cargo_command(&self) -> Command {
-        let mut cmd = Command::new(&self.cargo_path);
+        // Marker requires rustc's shared libraries to be available. These are
+        // added by rustup, when it acts like a proxy for cargo/rustc/etc.
+        // This also means that cargo needs to be invoked via rustup, to have
+        // the libraries available when Marker is invoked. This is such a mess...
+        // All of this would be so, so much simpler if marker was part of rustup :/
+        if let Some(toolchain) = &self.toolchain {
+            let mut cmd = Command::new("cargo");
 
-        // In theory, it's not necessary to set the toolchain, as the comment
-        // takes the absolute path to the cargo of the toolchain. It's still
-        // better to set it, to keep everything consistent.
-        self.toolchain
-            .as_ref()
-            .map(|toolchain| cmd.env("RUSTUP_TOOLCHAIN", toolchain));
+            cmd.env("RUSTUP_TOOLCHAIN", toolchain);
+
+            cmd
+        } else {
+            Command::new(&self.cargo_path)
+        }
+    }
+
+    pub fn cargo_with_driver(&self) -> Command {
+        let mut cmd = self.cargo_command();
+
+        cmd.env("RUSTC_WORKSPACE_WRAPPER", &self.driver_path);
 
         cmd
     }
@@ -71,7 +83,7 @@ impl Toolchain {
         let metadata = MetadataCommand::new()
             .cargo_path(&self.cargo_path)
             .exec()
-            .map_err(|_| ExitStatus::LintCrateFetchFailed)?;
+            .map_err(|_| ExitStatus::NoTargetDir)?;
 
         Ok(metadata.target_directory.into())
     }
@@ -168,6 +180,11 @@ pub(crate) fn rustup_which(toolchain: &str, tool: &str, verbose: bool) -> Result
         if output.status.success() {
             if let Some(path_str) = to_os_str(output.stdout) {
                 let path = PathBuf::from(path_str);
+
+                // Remove the `\n` from the print output
+                let trimmed_name = path.file_name().unwrap().to_str().unwrap().trim();
+                let path = path.with_file_name(trimmed_name);
+
                 if verbose {
                     println!("Found `{tool}` for `{toolchain}` at {}", path.to_string_lossy());
                 }

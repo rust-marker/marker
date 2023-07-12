@@ -89,7 +89,7 @@ pub fn run_check(config: &Config, info: CheckInfo, additional_cargo_args: &[Stri
     println!();
     println!("Start linting:");
 
-    let mut cmd = config.toolchain.cargo_command();
+    let mut cmd = config.toolchain.cargo_with_driver();
     cmd.arg("check");
     cmd.args(additional_cargo_args);
 

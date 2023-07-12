@@ -1,4 +1,4 @@
-use std::{process::Command, str::from_utf8};
+use std::{path::Path, process::Command, str::from_utf8};
 
 use once_cell::sync::Lazy;
 
@@ -27,8 +27,16 @@ pub struct DriverVersionInfo {
 }
 
 impl DriverVersionInfo {
-    fn try_from_toolchain(toolchain: &Toolchain) -> Result<DriverVersionInfo, ExitStatus> {
-        if let Ok(output) = Command::new(toolchain.driver_path.as_os_str())
+    pub fn try_from_toolchain(toolchain: &Toolchain, manifest: &Path) -> Result<DriverVersionInfo, ExitStatus> {
+        // The driver has to be invoked via cargo, to ensure that the libraries
+        // are correctly linked. Toolchains are truly fun...
+        if let Ok(output) = toolchain
+            .cargo_with_driver()
+            .arg("rustc")
+            .arg("--quiet")
+            .arg("--manifest-path")
+            .arg(manifest.as_os_str())
+            .arg("--")
             .arg("--toolchain")
             .output()
         {
@@ -59,17 +67,6 @@ impl DriverVersionInfo {
         }
 
         Err(ExitStatus::DriverFailed)
-    }
-}
-
-pub fn print_driver_version(dev_build: bool) {
-    if let Ok(ts) = Toolchain::try_find_toolchain(dev_build, false) {
-        if let Ok(info) = DriverVersionInfo::try_from_toolchain(&ts) {
-            println!(
-                "rustc driver version: {} (toolchain: {}, api: {})",
-                info.version, info.toolchain, info.api_version
-            );
-        }
     }
 }
 

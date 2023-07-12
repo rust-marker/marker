@@ -46,7 +46,7 @@ cargo marker setup --auto-install-toolchain
 
 Marker requires lint crates to be specified. The best way, is to add them to the `Cargo.toml` file, like this:
 
-```sh
+```toml
 [workspace.metadata.marker.lints]
 # A local crate as a path
 marker_lints = { path = "./marker_lints" }
