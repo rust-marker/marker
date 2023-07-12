@@ -17,4 +17,4 @@ marker_api = { path = "../marker_api" }
 [dev-dependencies]
 marker_api = { path = "../marker_api" }
 ui_test = "0.11.5"
-tempfile = "3.5.0"
+tempfile = "3.6.0"

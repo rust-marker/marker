@@ -485,6 +485,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "marker_uitest"
+version = "0.1.0"
+dependencies = [
+ "semver",
+ "tempfile",
+ "ui_test",
+]
+
+[[package]]
 name = "marker_utils"
 version = "0.1.0"
 dependencies = [

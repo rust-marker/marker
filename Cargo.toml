@@ -6,6 +6,7 @@ members = [
     "marker_rustc_driver",
     "marker_utils",
     "marker_lints",
+    "marker_uitest",
     "marker_uilints",
 ]
 resolver = "2"
