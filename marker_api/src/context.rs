@@ -202,13 +202,13 @@ impl<'ast> AstContext<'ast> {
 /// This struct holds function pointers to driver implementations of required
 /// functions. These can roughly be split into two categories:
 ///
-/// 1. **Public utility**: These functions will be exposed to lint-crates via
-///     an [`AstContext`] instance. Therefore, the function signature of these
-///     has to be stable, or at least be stable for [`AstContext`].
-/// 2. **Internal utility**: These functions are intended for internal usage
-///     inside the API or the `marker_adapter` crate. Some nodes might also have
-///     a reference to these callbacks to request additional information if
-///     required. These are not part of the stable API and can therefore be changed.
+/// 1. **Public utility**: These functions will be exposed to lint-crates via an [`AstContext`]
+///    instance. Therefore, the function signature of these has to be stable, or at least be stable
+///    for [`AstContext`].
+/// 2. **Internal utility**: These functions are intended for internal usage inside the API or the
+///    `marker_adapter` crate. Some nodes might also have a reference to these callbacks to request
+///    additional information if required. These are not part of the stable API and can therefore be
+///    changed.
 ///
 /// Any changes to this struct will most likely require changes to the
 /// `DriverContextWrapper` implementation in the `marker_adapter` crate. That

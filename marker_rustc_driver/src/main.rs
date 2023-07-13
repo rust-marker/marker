@@ -37,7 +37,10 @@ use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command};
 
-const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-06-01";
+use rustc_session::config::ErrorOutputType;
+use rustc_session::EarlyErrorHandler;
+
+const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-07-13";
 
 struct DefaultCallbacks;
 impl rustc_driver::Callbacks for DefaultCallbacks {}
@@ -135,7 +138,8 @@ interfacing with the driver directly and use `cargo marker` instead.
 }
 
 fn main() {
-    rustc_driver::init_rustc_env_logger();
+    let handler = EarlyErrorHandler::new(ErrorOutputType::default());
+    rustc_driver::init_rustc_env_logger(&handler);
 
     // FIXME: Add ICE hook. Ideally this would distinguish where the error happens.
     // ICEs have to be reported like in Clippy. For lint impl ICEs we should have
