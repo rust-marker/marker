@@ -17,15 +17,17 @@ FIXME(xFrednet): Add license shield, once crates.io also says:
 [Marker]: https://github.com/rust-marker/marker
 [Marker's Readme]: https://github.com/rust-marker/marker/blob/master/README.md
 
-## Key Features
+## Goals
 
-* **Stability**: Marker's API design focuses on stability and extendability. The goal is to archive backwards compatibility, so that any lint, written after version 1.0.0, will compile and continue to work for years to come.
+* **Stability**: Marker's API design focuses on stability and expendability. The goal is to archive backwards compatibility, so that any lint, written after version 1.0.0, will compile and continue to work for years to come.
 * **Usability**: Marker's API focuses on usability, where possible under the constraints of Marker's stability guarantees. Types follow common design patterns and naming conventions, allowing you to focus on the lint logic directly.
 * **Driver Independent**: Every code analysis requires a driver that parses the code and provides further information. Marker's API is designed to be driver-independent, allowing it to support future compilers and potentially IDEs. (Currently, [rustc] is the only available driver)
 
+[rustc]: https://github.com/rust-lang/rust/
+
 ## Usage
 
-This section will cover how you can setup your own *lint crate*. If you only want to run custom lints, checkout Marker's CLI interface [cargo_marker]. The rest of the section assumes that you have [`cargo_marker`] installed.
+This section will cover how you can set up your own *lint crate*. If you only want to run custom lints, checkout Marker's CLI interface [cargo_marker]. The rest of the section assumes that you have [cargo_marker] installed.
 
 [cargo_marker]: https://crates.io/crates/cargo_marker
 
@@ -37,9 +39,9 @@ The simplest way to get started, is to use Marker's [lint crate template], which
 
 ### Manual Setup
 
-To get started, create a new cargo project that compiles to a library (`cargo init --lib`).
-Afterwards, the `Cargo.toml` has to be edited to compile the crate to a dynamic library.
-You can simply add the following after the `[package]` values:
+#### Cargo.toml
+
+To get started, create a new Rust crate that compiles to a library (`cargo init --lib`). Afterwards, edit the `Cargo.toml` to compile the crate to a dynamic library and include `marker_api` as a dependency. You can simply add the following to your `Cargo.toml` file:
 
 ```toml
 [lib]
@@ -49,6 +51,58 @@ crate-type = ["cdylib"]
 marker_api = "<version>"
 marker_utils = "<version>"
 ```
+
+#### src/lib.rs
+
+The lint crate needs to provide an implementation of the `LintPass` trait and call the `marker_api::export_lint_pass` macro with the implementing type. Here is the minimal template:
+
+```rust,ignore
+use marker_api::{LintPass, LintPassInfo, LintPassInfoBuilder};
+
+// This is the struct that will implement the `LintPass` trait.
+#[derive(Default)]
+struct MyLintPass;
+
+// This macro allow Marker to load the lint crate. Only one lint pass can be
+// exported per lint crate.
+marker_api::export_lint_pass!(MyLintPass);
+
+// This macro declares a new lint, that can later be emitted
+marker_api::declare_lint! {
+    /// # What it does
+    /// Here you can explain what your lint does. The description supports normal
+    /// markdown.
+    ///
+    /// # Example
+    /// ```rs
+    /// // Bad example
+    /// ```
+    ///
+    /// Use instead:
+    /// ```rs
+    /// // Good example
+    /// ```
+    MY_LINT,
+    Warn,
+}
+
+// This is the actual `LintPass` implementation, which will be called by Marker.
+impl LintPass for MyLintPass {
+    fn info(&self) -> LintPassInfo {
+        LintPassInfoBuilder::new(Box::new([MY_LINT])).build()
+    }
+}
+```
+
+Now you can implement different `check_*` function in the `LintPass` trait.
+
+#### UI-Tests
+
+To automatically test your lints, you might want to check out the [marker_uitest] crate.
+
+And that's it. Happy linting!
+
+[marker_uitest]: https://crates.io/crates/marker_uitest
 
 ## Contributing
 
