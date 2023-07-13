@@ -80,7 +80,7 @@ where
 }
 
 /// This context will be passed to each [`LintPass`](`super::LintPass`) call to enable the user
-/// to emit lints and to retieve nodes by the given ids.
+/// to emit lints and to retrieve nodes by the given ids.
 #[repr(C)]
 pub struct AstContext<'ast> {
     driver: &'ast DriverCallbacks<'ast>,

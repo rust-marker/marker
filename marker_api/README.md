@@ -57,6 +57,7 @@ marker_utils = "<version>"
 The lint crate needs to provide an implementation of the `LintPass` trait and call the `marker_api::export_lint_pass` macro with the implementing type. Here is the minimal template:
 
 ```rust,ignore
+use marker_api::prelude::*;
 use marker_api::{LintPass, LintPassInfo, LintPassInfoBuilder};
 
 // This is the struct that will implement the `LintPass` trait.
