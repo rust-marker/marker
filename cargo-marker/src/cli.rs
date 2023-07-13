@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use clap::{builder::ValueParser, Arg, ArgAction, ArgMatches, Command};
 
 use crate::{
-    config::{Config, LintDependency},
-    VERSION,
+    config::{Config, ConfigFetchError, LintDependency},
+    ExitStatus, VERSION,
 };
 
 const AFTER_HELP_MSG: &str = r#"CARGO ARGS
@@ -12,7 +12,7 @@ const AFTER_HELP_MSG: &str = r#"CARGO ARGS
     Run `cargo check --help` to see these options.
 
 EXAMPLES:
-    * `cargo marker -l 'marker_uitest = { path = "./marker_lints" }'`
+    * `cargo marker -l "marker_uitest = { path = './marker_lints' }"`
 "#;
 
 #[allow(clippy::struct_excessive_bools)]
@@ -35,7 +35,7 @@ impl Flags {
     }
 }
 
-pub fn collect_lint_deps(args: &ArgMatches) -> Option<HashMap<String, LintDependency>> {
+pub fn collect_lint_deps(args: &ArgMatches) -> Result<HashMap<String, LintDependency>, ExitStatus> {
     if let Some(lints) = args.get_many::<String>("lints") {
         let mut virtual_manifest = "[workspace.metadata.marker.lints]\n".to_string();
         for dep in lints {
@@ -43,10 +43,10 @@ pub fn collect_lint_deps(args: &ArgMatches) -> Option<HashMap<String, LintDepend
             virtual_manifest.push('\n');
         }
 
-        let Config { lints } = Config::try_from_str(&virtual_manifest).ok()?;
-        Some(lints)
+        let Config { lints } = Config::try_from_str(&virtual_manifest).map_err(ConfigFetchError::emit_and_convert)?;
+        Ok(lints)
     } else {
-        None
+        Err(ExitStatus::NoLints)
     }
 }
 

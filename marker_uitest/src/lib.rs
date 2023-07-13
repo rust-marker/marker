@@ -107,8 +107,8 @@ fn retrieve_test_setup(crate_name: &str, pkg_dir: &Path) -> TestSetup {
     #[cfg(feature = "dev-build")]
     let command_dir = pkg_dir.parent().unwrap();
 
-    let lint_spec = format!(r#"{} = {{ path = "{}" }}"#, crate_name, pkg_dir.display());
-
+    // This needs to use ' string limiters for the path, to prevent `\\` escaping on windows...
+    let lint_spec = format!(r#"{} = {{ path = '{}' }}"#, crate_name, pkg_dir.display());
     let mut cmd = Command::new("cargo");
     let output = cmd
         .current_dir(command_dir)
