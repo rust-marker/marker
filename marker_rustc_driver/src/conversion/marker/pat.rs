@@ -121,7 +121,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             },
             hir::PatKind::Lit(lit) => {
                 let expr = self.to_expr(lit);
-                let lit_expr = expr.try_into().expect("this should be a literal expression");
+                let lit_expr = expr.try_into().unwrap_or_else(|_| panic!("this should be a literal expression {lit:#?}"));
                 PatKind::Lit(lit_expr)
             },
             hir::PatKind::Range(start, end, kind) => PatKind::Range(self.alloc(RangePat::new(

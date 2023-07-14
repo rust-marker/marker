@@ -347,7 +347,14 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::def::Res::SelfTyParam { trait_: def_id, .. } | hir::def::Res::SelfTyAlias { alias_to: def_id, .. } => {
                 AstPathTarget::SelfTy(self.to_item_id(*def_id))
             },
-            hir::def::Res::SelfCtor(_) => todo!("{res:#?}"),
+            hir::def::Res::SelfCtor(self_src) => {
+                // This should only be able to show up while a `CtorExpr` is
+                // constructed. Marker's `CtorExpr` don't include a `DefId` to
+                // the actual constructor, but a path indicating which type will
+                // be constructed. This means it should be safe to just return a
+                // `SelfTy` here.
+                AstPathTarget::SelfTy(self.to_item_id(*self_src))
+            },
             hir::def::Res::Local(id) => AstPathTarget::Var(self.to_var_id(*id)),
             hir::def::Res::ToolMod => todo!("{res:#?}"),
             hir::def::Res::NonMacroAttr(_) => todo!("{res:#?}"),
