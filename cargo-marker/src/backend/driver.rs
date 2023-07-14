@@ -151,6 +151,7 @@ fn build_driver(
         cmd.arg("--no-track");
     }
     cmd.env("RUSTFLAGS", rustc_flags);
+    cmd.env("MARKER_ALLOW_DRIVER_BUILD", "1");
 
     let status = cmd
         .spawn()
