@@ -1,7 +1,10 @@
-use marker_api::ast::generic::{
-    BindingGenericArg, GenericArgKind, GenericArgs, GenericParamKind, GenericParams, Lifetime, LifetimeClause,
-    LifetimeKind, LifetimeParam, SemGenericArgKind, SemGenericArgs, SemTraitBound, SemTyBindingArg, TraitBound,
-    TyClause, TyParam, TyParamBound, WhereClauseKind,
+use marker_api::ast::{
+    generic::{
+        BindingGenericArg, GenericArgKind, GenericArgs, GenericParamKind, GenericParams, Lifetime, LifetimeClause,
+        LifetimeKind, LifetimeParam, SemGenericArgKind, SemGenericArgs, SemTraitBound, SemTyBindingArg, TraitBound,
+        TyClause, TyParam, TyParamBound, WhereClauseKind,
+    },
+    TraitRef,
 };
 use rustc_hir as hir;
 use rustc_middle as mid;
@@ -225,14 +228,28 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let bounds: Vec<_> = bounds
             .iter()
             .filter_map(|bound| match bound {
-                hir::GenericBound::Trait(trait_ref, modifier) => Some(TyParamBound::TraitBound(self.alloc({
-                    TraitBound::new(
+                hir::GenericBound::Trait(trait_ref, modifier) => {
+                    Some(TyParamBound::TraitBound(self.alloc(TraitBound::new(
                         !matches!(modifier, hir::TraitBoundModifier::None),
                         self.to_trait_ref(&trait_ref.trait_ref),
                         self.to_span_id(bound.span()),
-                    )
-                }))),
-                hir::GenericBound::LangItemTrait(_, _, _, _) => todo!(),
+                    ))))
+                },
+                hir::GenericBound::LangItemTrait(lang_item, span, _, rustc_args) => Some(TyParamBound::TraitBound(
+                    self.alloc(TraitBound::new(
+                        false,
+                        TraitRef::new(
+                            self.to_item_id(
+                                self.rustc_cx
+                                    .get_lang_items(())
+                                    .get(*lang_item)
+                                    .expect("the lang item is used and should therefore be loaded"),
+                            ),
+                            self.to_generic_args(Some(rustc_args)),
+                        ),
+                        self.to_span_id(*span),
+                    )),
+                )),
                 hir::GenericBound::Outlives(rust_lt) => self
                     .to_lifetime(rust_lt)
                     .map(|api_lt| TyParamBound::Lifetime(self.alloc(api_lt))),
