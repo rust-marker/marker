@@ -1110,11 +1110,12 @@ warning: print test
                                                    ident: Ident {
                                                        name: "Try::branch",
                                                        span: Span {
-                                                           source: File(
+                                                           source: Sugar(
                                                                "$DIR/print_cond_expr.rs",
+                                                               SpanSrcId(..),
                                                            ),
-                                                           start: 994,
-                                                           end: 996,
+                                                           start: 0,
+                                                           end: 2,
                                                        },
                                                    },
                                                    generics: GenericArgs {
@@ -1174,7 +1175,7 @@ warning: print test
 warning: print test
   --> $DIR/print_cond_expr.rs:54:9
    |
-54 |         let _print_option_match = x?;
+54 |         let _print_result_match = x?;
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: QuestionMark(
@@ -1207,11 +1208,12 @@ warning: print test
                                                    ident: Ident {
                                                        name: "Try::branch",
                                                        span: Span {
-                                                           source: File(
+                                                           source: Sugar(
                                                                "$DIR/print_cond_expr.rs",
+                                                               SpanSrcId(..),
                                                            ),
-                                                           start: 1138,
-                                                           end: 1140,
+                                                           start: 0,
+                                                           end: 2,
                                                        },
                                                    },
                                                    generics: GenericArgs {

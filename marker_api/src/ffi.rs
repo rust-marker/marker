@@ -13,12 +13,18 @@
 use std::{marker::PhantomData, slice};
 
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Eq)]
 pub struct FfiStr<'a> {
     _lifetime: PhantomData<&'a ()>,
     /// Not really *const, but it should have the lifetime of at least `'a`
     data: *const u8,
     len: usize,
+}
+
+impl<'a> PartialEq for FfiStr<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.get().eq(other.get())
+    }
 }
 
 impl<'a> From<&'a str> for FfiStr<'a> {
@@ -66,6 +72,12 @@ impl<'a> ToString for FfiStr<'a> {
 impl std::fmt::Debug for FfiStr<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.get())
+    }
+}
+
+impl std::hash::Hash for FfiStr<'_> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.get().hash(state);
     }
 }
 

@@ -1,23 +1,32 @@
-use std::{marker::PhantomData, path::PathBuf};
+use std::marker::PhantomData;
 
-use crate::{context::with_cx, diagnostic::Applicability};
+use crate::{context::with_cx, diagnostic::Applicability, ffi};
 
-use super::{AstPath, ItemId, SpanId, SymbolId};
+use super::{ItemId, SpanId, SpanSrcId, SymbolId};
 
+// FIXME(xFrednet): This enum is "limited" to say it lightly, it should contain
+// the more information about macros and their expansion etc. This covers the
+// basic use case of checking if a span comes from a macro or a file. The rest
+// will come in due time. Luckily it's not a public enum right now.
 #[repr(C)]
 #[doc(hidden)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "driver-api", visibility::make(pub))]
 #[allow(clippy::exhaustive_enums)]
+#[derive(Debug, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "driver-api", visibility::make(pub))]
 enum SpanSource<'ast> {
-    File(&'ast PathBuf),
-    Macro(&'ast AstPath<'ast>),
+    /// The span comes from a file
+    File(ffi::FfiStr<'ast>),
+    /// The span comes from a macro.
+    Macro(SpanSrcId),
+    /// The span belongs to a file, but is the result of desugaring, they should
+    /// be handled like normal files. This is variant mostly important for the driver.
+    Sugar(ffi::FfiStr<'ast>, SpanSrcId),
 }
 
 #[repr(C)]
 #[derive(Debug, Clone)]
 pub struct Span<'ast> {
-    source: SpanSource<'ast>,
+    source: &'ast SpanSource<'ast>,
     /// The start marks the first byte in the [`SpanSource`] that is included in this
     /// span. The span continues until the end position.
     start: usize,
@@ -112,11 +121,11 @@ impl<'ast> Span<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Span<'ast> {
-    pub fn new(source: SpanSource<'ast>, start: usize, end: usize) -> Self {
+    pub fn new(source: &'ast SpanSource<'ast>, start: usize, end: usize) -> Self {
         Self { source, start, end }
     }
 
-    pub fn source(&self) -> SpanSource<'ast> {
+    pub fn source(&self) -> &'ast SpanSource<'ast> {
         self.source
     }
 }

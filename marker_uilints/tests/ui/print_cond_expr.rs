@@ -51,7 +51,7 @@ mod question_mark {
 
     fn kanske_result() -> Result<i32, i32> {
         let x: Result<i32, i32> = Ok(1);
-        let _print_option_match = x?;
+        let _print_result_match = x?;
         Err(4)
     }
 }

@@ -222,8 +222,10 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         self.storage.alloc(self.marker_converter.to_span(rustc_span))
     }
 
-    fn span_snippet(&self, _span: &Span) -> Option<&'ast str> {
-        todo!()
+    fn span_snippet(&self, api_span: &Span<'ast>) -> Option<&'ast str> {
+        let rust_span = self.rustc_converter.to_span(api_span);
+        let snippet = self.rustc_cx.sess.source_map().span_to_snippet(rust_span).ok()?;
+        Some(self.storage.alloc_str(&snippet))
     }
 
     fn symbol_str(&'ast self, api_id: SymbolId) -> &'ast str {
