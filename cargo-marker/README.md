@@ -1,6 +1,6 @@
 # Cargo Marker
 
-[![Crates.io](https://img.shields.io/crates/v/cargo-marker.svg)](https://crates.io/crates/cargo-marker)
+[![Crates.io](https://img.shields.io/crates/v/cargo_marker.svg)](https://crates.io/crates/cargo_marker)
 <!--
 FIXME(xFrednet): Add license shield, once crates.io also says:
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/cargo_marker.svg)](#license)
@@ -10,7 +10,7 @@ FIXME(xFrednet): Add license shield, once crates.io also says:
 
 > **Note**
 >
-> The project is in the very early stages of development, some things are still missing and the API is not stable yet.
+> The project is in the early stages of development, some things are still missing and the API is not stable yet.
 >
 > A list of limitations and planned features can be found in [Marker's Readme].
 
@@ -24,14 +24,16 @@ FIXME(xFrednet): Add license shield, once crates.io also says:
 * **Automatic Lint-Crate Compilation**: *cargo_marker* automatically fetches and builds specified lint crates, streamlining the process of incorporating additional linting rules into your project.
 * **User-Friendly Setup**: *cargo_marker* can automatically set up the driver and toolchain, allowing you to focus on writing quality code. (This version will setup rustc's driver for `nightly-2023-07-13`)
 
-## Prerequisites
+## Usage
+
+<!-- Please keep this section in sync with the main readme -->
+
+### Prerequisites
 
 *cargo_marker* requires *[Cargo]* and *[rustup]* to be installed. Currently, only Unix and Windows systems are supported. Linux, Windows, and macOS are actively tested in the CI.
 
 [Cargo]: https://github.com/rust-lang/cargo/
 [rustup]: https://github.com/rust-lang/rustup/
-
-## Usage
 
 ### Installation
 
@@ -44,7 +46,7 @@ cargo marker setup --auto-install-toolchain
 
 ### Specifying lints
 
-Marker requires lint crates to be specified. The best way, is to add them to the `Cargo.toml` file, like this:
+Marker requires lint crates to be specified. The best way is to add them to the `Cargo.toml` file, like this:
 
 ```toml
 [workspace.metadata.marker.lints]
@@ -76,8 +78,7 @@ Contributions are highly appreciated! If you encounter any issues or have sugges
 
 Copyright (c) 2022-2023 Rust-Marker
 
-Rust-marker is distributed under the terms of the MIT license
-or the Apache License (Version 2.0).
+Rust-marker is distributed under the terms of the MIT license or the Apache License (Version 2.0).
 
 See [LICENSE-APACHE](https://github.com/rust-marker/marker/blob/master/LICENSE-APACHE), [LICENSE-MIT](https://github.com/rust-marker/marker/blob/master/LICENSE-MIT).
 

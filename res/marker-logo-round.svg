@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg viewBox="-900 -1400.098 900 900.098" xmlns="http://www.w3.org/2000/svg">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="-850 -1350 800 800" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="-450" cy="-950" r="400" fill="white"/>
   <g transform="matrix(1.706546, 0, 0, 1.706546, -17.339253, 351.452492)" style="">
     <g id="logo" transform="matrix(-4.021422, 0, 0, 4.021422, -253.529968, -762.623779)" style="">
       <g id="gear" mask="url(#holes)">
