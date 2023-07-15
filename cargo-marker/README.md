@@ -49,7 +49,7 @@ Marker requires lint crates to be specified. The best way, is to add them to the
 ```toml
 [workspace.metadata.marker.lints]
 # A local crate as a path
-marker_lints = { path = "./marker_lints" }
+marker_lints = { path = './marker_lints' }
 # An external crate via git
 marker_lints = { git = "https://github.com/rust-marker/marker" }
 # An external crate from a registry

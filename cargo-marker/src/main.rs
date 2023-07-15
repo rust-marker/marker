@@ -62,14 +62,18 @@ fn main() -> Result<(), ExitStatus> {
 
 fn run_check(args: &clap::ArgMatches, config: Option<Config>, flags: &Flags) -> Result<(), ExitStatus> {
     // determine lints
-    let mut lints = HashMap::new();
-    let deps = if let Some(deps) = cli::collect_lint_deps(args) {
-        deps
-    } else if let Some(config) = config {
-        config.lints
-    } else {
-        HashMap::new()
+    let deps = match cli::collect_lint_deps(args) {
+        Ok(deps) => deps,
+        Err(ExitStatus::NoLints) => {
+            if let Some(config) = config {
+                config.lints
+            } else {
+                HashMap::new()
+            }
+        },
+        Err(err) => return Err(err),
     };
+    let mut lints = HashMap::new();
     for (name, dep) in deps {
         lints.insert(name, dep.to_dep_entry());
     }

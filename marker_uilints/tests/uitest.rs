@@ -4,8 +4,6 @@ use std::{env, path::Path};
 fn main() -> color_eyre::Result<()> {
     let mut config = marker_uitest::simple_ui_test_config!("tests/ui", "../target")?;
 
-    config.dependencies_crate_manifest_path = Some("./Cargo.toml".into());
-
     let bless = env::var_os("BLESS").is_some() || env::args().any(|arg| arg == "--bless");
     if bless {
         config.output_conflict_handling = OutputConflictHandling::Bless

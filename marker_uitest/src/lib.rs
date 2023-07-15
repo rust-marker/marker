@@ -1,211 +1,262 @@
 #![doc = include_str!("../README.md")]
-#![warn(clippy::pedantic)]
 
-use marker_api::{
-    ast::{
-        item::{EnumVariant, Field, ItemData, ItemKind, StaticItem},
-        pat::PatKind,
-        stmt::StmtKind,
-        ty::SemTyKind,
-        Span,
-    },
-    context::AstContext,
-    diagnostic::{Applicability, EmissionNode},
-    LintPass, LintPassInfo, LintPassInfoBuilder,
+use std::{
+    collections::HashMap,
+    num::NonZeroUsize,
+    path::{Path, PathBuf},
+    process::Command,
 };
 
-#[derive(Default)]
-struct TestLintPass {}
+use semver::Version;
+pub use ui_test;
 
-marker_api::export_lint_pass!(TestLintPass);
-
-marker_api::declare_lint! {
-    /// # What it does
-    /// A lint used for marker's uitests.
-    ///
-    /// It's just the default lint used for most emissions here :)
-    TEST_LINT,
-    Warn,
+#[derive(Debug)]
+struct TestSetup {
+    rustc_path: String,
+    /// The environment values that should be set. The first element is the
+    /// value name, the second is the value the it should be set to.
+    env_vars: HashMap<String, String>,
+    toolchain: String,
+    marker_api: String,
 }
 
-marker_api::declare_lint! {
-    /// # What it does
-    /// A lint used for markers uitests.
-    ///
-    /// It warns about about item names starting with `FindMe`, `find_me` or `FIND_ME`.
-    ITEM_WITH_TEST_NAME,
-    Warn,
+/// This macro automatically fills the parameters of [`create_ui_test_config`]
+/// with environment values and default values.
+///
+/// It assumes a dependency to `marker_api` and that all tests are located in the
+/// `./tests/ui` folder.
+#[macro_export]
+macro_rules! simple_ui_test_config {
+    () => {
+        $crate::simple_ui_test_config!("tests/ui");
+    };
+    ($ui_dir:expr) => {
+        $crate::simple_ui_test_config!("tests/ui", "./target");
+    };
+    ($ui_dir:expr, $target_dir:expr) => {
+        $crate::create_ui_test_config(
+            std::path::PathBuf::from($ui_dir),
+            std::path::Path::new($target_dir),
+            env!("CARGO_PKG_NAME"),
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")),
+            marker_api::MARKER_API_VERSION,
+        );
+    };
 }
 
-fn emit_item_with_test_name_lint<'ast>(
-    cx: &'ast AstContext<'ast>,
-    node: impl Into<EmissionNode>,
-    desc: impl std::fmt::Display,
-    span: &Span<'ast>,
-) {
-    let msg = format!("found {desc} with a test name");
-    cx.emit_lint(ITEM_WITH_TEST_NAME, node, msg, span, |_| {});
+/// This function creates a [`ui_test::Config`] instance configured to run Marker
+/// as a driver, with the given crate as a lint crate.
+///
+/// It's recommended to use environment values or constants to retrieve the
+/// parameters for this function.
+///
+/// ```rust,ignore
+/// let config = create_ui_test_config(
+///     PathBuf::from("tests/ui"),
+///     Path::new("./target"),
+///     env!("CARGO_PKG_NAME"),
+///     Path::new(env!("CARGO_MANIFEST_DIR")),
+///     marker_api::MARKER_API_VERSION,
+/// );
+/// ```
+///
+/// You can use the [`simple_ui_test_config`] macro to fill all parameters automatically.
+pub fn create_ui_test_config(
+    ui_dir: PathBuf,
+    target_dir: &Path,
+    crate_name: &str,
+    crate_dir: &Path,
+    marker_api_version: &str,
+) -> ui_test::color_eyre::Result<ui_test::Config> {
+    let setup = retrieve_test_setup(crate_name, &std::fs::canonicalize(crate_dir)?);
+    verify_driver(&setup, marker_api_version);
+
+    // Set environment values
+    for (key, val) in setup.env_vars {
+        std::env::set_var(key, val);
+    }
+
+    // Create config
+    let mut config = ui_test::Config {
+        mode: ui_test::Mode::Yolo,
+        num_test_threads: NonZeroUsize::new(1).unwrap(),
+        ..ui_test::Config::rustc(ui_dir)
+    };
+
+    config.program.program = PathBuf::from(setup.rustc_path);
+    config.program.args.push("-Aunused".into());
+
+    // hide binaries generated for successfully passing tests
+    let tmp_dir = tempfile::tempdir_in(target_dir)?;
+    let tmp_dir = tmp_dir.path();
+    config.out_dir = tmp_dir.into();
+    config.path_stderr_filter(tmp_dir, "$TMP");
+
+    Ok(config)
 }
 
-impl LintPass for TestLintPass {
-    fn info(&self) -> LintPassInfo {
-        LintPassInfoBuilder::new(Box::new([TEST_LINT, ITEM_WITH_TEST_NAME])).build()
+/// This function calls `cargo-marker` for the basic test setup.
+fn retrieve_test_setup(crate_name: &str, pkg_dir: &Path) -> TestSetup {
+    #[cfg(not(feature = "dev-build"))]
+    const CARGO_MARKER_INVOCATION: &[&str] = &["marker"];
+    #[cfg(feature = "dev-build")]
+    const CARGO_MARKER_INVOCATION: &[&str] = &["run", "--bin", "cargo-marker", "--features", "dev-build", "--"];
+
+    #[cfg(not(feature = "dev-build"))]
+    let command_dir = pkg_dir;
+    #[cfg(feature = "dev-build")]
+    let command_dir = pkg_dir.parent().unwrap();
+
+    // This needs to use ' string limiters for the path, to prevent `\\` escaping on windows...
+    let lint_spec = format!(r#"{} = {{ path = '{}' }}"#, crate_name, pkg_dir.display());
+    let mut cmd = Command::new("cargo");
+    let output = cmd
+        .current_dir(command_dir)
+        .args(CARGO_MARKER_INVOCATION)
+        .arg("-l")
+        .arg(lint_spec)
+        .arg("--test-setup")
+        .output()
+        .expect("Unable to run the test setup using `cargo-marker`");
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    if !output.status.success() {
+        let stderr = String::from_utf8(output.stderr).unwrap();
+        if stderr.starts_with("error: no such command") {
+            panic!("{NO_SUCH_COMMENT_ADVICE}");
+        }
+        panic!("Test setup failed:\n\n===STDOUT===\n{stdout}\n\n===STDERR===\n{stderr}\n");
     }
 
-    fn check_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
-        if let ItemKind::Fn(item) = item {
-            if let Some(ident) = item.ident() {
-                if ident.name() == "test_ty_id_resolution_trigger" {
-                    test_ty_id_resolution(cx);
-                }
-            }
-        }
+    let info_vars: HashMap<_, _> = stdout
+        .lines()
+        .filter_map(|line| line.strip_prefix("info:"))
+        .filter_map(|line| line.split_once('='))
+        .map(|(var, value)| (var.to_string(), value.to_string()))
+        .collect();
 
-        if let ItemKind::Static(item) = item {
-            check_static_item(cx, item);
-        }
+    let mut env_vars: HashMap<_, _> = stdout
+        .lines()
+        .filter_map(|line| line.strip_prefix("env:"))
+        .filter_map(|line| line.split_once('='))
+        .map(|(var, value)| (var.to_string(), value.to_string()))
+        .collect();
+    let toolchain = info_vars
+        .get("toolchain")
+        .expect("missing info field 'toolchain'")
+        .clone();
+    let marker_api = info_vars
+        .get("marker-api")
+        .expect("missing info field 'marker-api'")
+        .clone();
 
-        if matches!(
-            item.ident().map(marker_api::ast::Ident::name),
-            Some(name) if name.starts_with("FindMe") || name.starts_with("FIND_ME") || name.starts_with("find_me")
-        ) {
-            let msg = match item {
-                ItemKind::Mod(_) => Some("module"),
-                ItemKind::Use(_) => Some("use"),
-                ItemKind::Static(_) => Some("static"),
-                ItemKind::Const(_) => Some("const"),
-                ItemKind::Fn(_) => Some("fn"),
-                ItemKind::Struct(_) => Some("struct"),
-                ItemKind::Enum(_) => Some("enum"),
-                ItemKind::Union(_) => Some("union"),
-                ItemKind::Trait(_) => Some("trait"),
-                _ => None,
-            };
-
-            if let Some(msg) = msg {
-                emit_item_with_test_name_lint(cx, item.id(), format!("a `{msg}` item"), item.span());
-            }
-        }
-    }
-
-    fn check_field<'ast>(&mut self, cx: &'ast AstContext<'ast>, field: &'ast Field<'ast>) {
-        if field.ident().starts_with("find_me") {
-            emit_item_with_test_name_lint(cx, field.id(), "a field", field.span());
-        }
-    }
-
-    fn check_variant<'ast>(&mut self, cx: &'ast AstContext<'ast>, variant: &'ast EnumVariant<'ast>) {
-        if variant.ident().starts_with("FindMe") {
-            emit_item_with_test_name_lint(cx, variant.id(), "an enum variant", variant.span());
-        }
-    }
-
-    fn check_stmt<'ast>(&mut self, cx: &'ast AstContext<'ast>, stmt: StmtKind<'ast>) {
-        // I didn't realize that `let_chains` are still unstable. This makes the
-        // code significantly less readable -.-
-        if let StmtKind::Let(lets) = stmt {
-            let PatKind::Ident(ident) = lets.pat() else { return };
-            let Some(expr) = lets.init() else { return };
-            if ident.name().starts_with("_print") {
-                cx.emit_lint(TEST_LINT, stmt.id(), "print test", stmt.span(), |diag| {
-                    diag.note(format!("{expr:#?}"));
-                });
-            } else if ident.name().starts_with("_ty") {
-                cx.emit_lint(TEST_LINT, stmt.id(), "print type test", stmt.span(), |diag| {
-                    diag.note(format!("{:#?}", expr.ty()));
-                });
-            } else if ident.name().starts_with("_check_path") {
-                cx.emit_lint(TEST_LINT, stmt.id(), "check type resolution", stmt.span(), |diag| {
-                    let SemTyKind::Adt(adt) = expr.ty() else {
-                        unreachable!("how? Everything should be an ADT")
-                    };
-                    let path = "std::vec::Vec";
-                    let ids = cx.resolve_ty_ids(path);
-                    diag.note(format!("Is this a {:#?} -> {}", path, ids.contains(&adt.def_id())));
-
-                    let path = "std::string::String";
-                    let ids = cx.resolve_ty_ids(path);
-                    diag.note(format!("Is this a {:#?} -> {}", path, ids.contains(&adt.def_id())));
-
-                    let path = "std::option::Option";
-                    let ids = cx.resolve_ty_ids(path);
-                    diag.note(format!("Is this a {:#?} -> {}", path, ids.contains(&adt.def_id())));
-
-                    let path = "crate::TestType";
-                    let ids = cx.resolve_ty_ids(path);
-                    diag.note(format!("Is this a {:#?} -> {}", path, ids.contains(&adt.def_id())));
-                });
-            }
-        }
-    }
-}
-
-fn check_static_item<'ast>(cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {
-    if let Some(name) = item.ident() {
-        let name = name.name();
-        if name.starts_with("PRINT_TYPE") {
-            cx.emit_lint(TEST_LINT, item.id(), "printing type for", item.ty().span(), |_| {});
-            eprintln!("{:#?}\n\n", item.ty());
-        } else if name.starts_with("FIND_ITEM") {
-            cx.emit_lint(
-                TEST_LINT,
-                item.id(),
-                "hey there is a static item here",
-                item.span(),
-                |diag| {
-                    diag.note("a note");
-                    diag.help("a help");
-                    diag.span_note("a spanned note", item.span());
-                    diag.span_help("a spanned help", item.span());
-                    diag.span_suggestion("try", item.span(), "duck", Applicability::Unspecified);
-                },
-            );
-        }
+    TestSetup {
+        rustc_path: env_vars.remove("RUSTC_WORKSPACE_WRAPPER").unwrap(),
+        env_vars,
+        toolchain,
+        marker_api,
     }
 }
 
-fn test_ty_id_resolution<'ast>(cx: &'ast AstContext<'ast>) {
-    fn try_resolve_path(cx: &AstContext<'_>, path: &str) {
-        let ids = cx.resolve_ty_ids(path);
-        eprintln!("Resolving {path:?} yielded {ids:#?}");
+const NO_SUCH_COMMENT_ADVICE: &str = r#"
+===========================================================
+
+Error: Command `marker` was not found
+
+UI tests require `cargo-marker` to be installed
+
+* Try installing `cargo-marker`
+
+    ```
+    # Update `cargo-marker` first
+    cargo install cargo-marker
+
+    # Now update the driver
+    cargo marker setup --auto-install-toolchain
+    ```
+
+===========================================================
+"#;
+
+const DRIVER_FAIL_ADVICE: &str = r#"
+===========================================================
+
+Error: Unable to start Marker's driver
+
+UI tests need to be executed with the nightly version of the driver
+
+* Try setting the version in a `rust-toolchain.toml` file, like this:
+    ```
+    [toolchain]
+    channel = "{toolchain}"
+    ```
+
+* Try setting the channel when invoking the tests, like this:
+    ```
+    cargo +{toolchain} test"
+    ```
+
+===========================================================
+"#;
+
+const VERSION_LESS_ADVICE: &str = r#"
+===========================================================
+
+Error: API versions mismatch, the lint crate is behind the driver.
+
+* Try updating the used api version to: `{marker_api}`
+
+===========================================================
+"#;
+
+const VERSION_GREATER_ADVICE: &str = r#"
+===========================================================
+
+Error: API versions mismatch, the lint crate uses a newer version
+
+* Try updating the driver.
+
+    ```
+    # Update `cargo-marker` first
+    cargo install cargo-marker
+
+    # Now update the driver
+    cargo marker setup --auto-install-toolchain
+    ```
+
+    You might also need to update the used toolchain. In that case a new error
+    will be emitted.
+
+===========================================================
+"#;
+
+// FIXME(xFrednet): It would be better to return the error messages as a result
+// instead of panicking
+fn verify_driver(setup: &TestSetup, marker_api_version: &str) {
+    // Check that the correct channel is used
+    let test = Command::new(&setup.rustc_path)
+        .arg("-V")
+        .spawn()
+        .expect("failed to start marker's driver")
+        .wait()
+        .expect("failed to wait for marker's driver");
+    if !test.success() {
+        panic!("{}", DRIVER_FAIL_ADVICE.replace("{toolchain}", &setup.toolchain));
     }
 
-    eprintln!("# Invalid paths");
-    try_resolve_path(cx, "");
-    try_resolve_path(cx, "something");
-    try_resolve_path(cx, "bool");
-    try_resolve_path(cx, "u32");
-    try_resolve_path(cx, "crate::super");
-    try_resolve_path(cx, "crate::self::super");
+    // Check the versions match
+    let this_version = Version::parse(marker_api_version).unwrap();
+    let driver_version = Version::parse(&setup.marker_api).unwrap();
 
-    eprintln!();
-    eprintln!("# Unresolvable");
-    try_resolve_path(cx, "something::weird");
-    try_resolve_path(cx, "something::weird::very::very::very::very::very::long");
-
-    eprintln!();
-    eprintln!("# Not a type");
-    try_resolve_path(cx, "std::env");
-    try_resolve_path(cx, "std::i32");
-    try_resolve_path(cx, "std::primitive::i32");
-    try_resolve_path(cx, "std::option::Option::None");
-
-    eprintln!();
-    eprintln!("# Valid");
-    try_resolve_path(cx, "std::option::Option");
-    try_resolve_path(cx, "std::vec::Vec");
-    try_resolve_path(cx, "std::string::String");
-
-    eprintln!();
-    eprintln!("# Valid local items");
-    try_resolve_path(cx, "item_id_resolution::TestType");
-    try_resolve_path(cx, "crate::TestType");
-    eprintln!(
-        "Check equal: {}",
-        cx.resolve_ty_ids("item_id_resolution::TestType") == cx.resolve_ty_ids("crate::TestType")
-    );
-
-    eprintln!();
-    eprintln!("=====================================================================");
-    eprintln!();
+    match this_version.cmp(&driver_version) {
+        std::cmp::Ordering::Less => {
+            panic!("{}", VERSION_LESS_ADVICE.replace("{marker_api}", &setup.marker_api));
+        },
+        std::cmp::Ordering::Equal => {
+            // Perfection, everything is beautiful!!
+        },
+        std::cmp::Ordering::Greater => {
+            panic!("{VERSION_GREATER_ADVICE}");
+        },
+    }
 }
