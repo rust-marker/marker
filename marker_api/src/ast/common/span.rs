@@ -35,7 +35,7 @@ pub struct Span<'ast> {
 
 impl<'ast> Span<'ast> {
     pub fn is_from_file(&self) -> bool {
-        matches!(self.source, SpanSource::File(..))
+        matches!(self.source, SpanSource::File(..) | SpanSource::Sugar(..))
     }
 
     pub fn is_from_macro(&self) -> bool {

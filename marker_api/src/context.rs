@@ -12,7 +12,7 @@ use crate::{
     },
     diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
-    lint::{Level, Lint},
+    lint::{Level, Lint, MacroReport},
 };
 
 thread_local! {
@@ -126,6 +126,9 @@ impl<'ast> AstContext<'ast> {
     ) where
         F: FnOnce(&mut DiagnosticBuilder<'ast>),
     {
+        if matches!(lint.report_in_macro, MacroReport::No) && span.is_from_macro() {
+            return;
+        }
         let node = node.into();
         if self.lint_level_at(lint, node) != Level::Allow {
             let mut builder = DiagnosticBuilder::new(lint, node, msg.to_string(), span.clone());
