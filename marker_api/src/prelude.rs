@@ -1,0 +1,16 @@
+//! This prelude is a collection of traits and types which are commonly used
+//! when working with Marker. Simply add `use marker_api::prelude::*;` to your
+//! file, to import them all.
+
+// AST Traits:
+pub use crate::ast::expr::ExprData;
+pub use crate::ast::item::ItemData;
+pub use crate::ast::pat::PatData;
+pub use crate::ast::ty::SynTyData;
+
+// Common types
+pub use crate::ast::expr::ExprKind;
+pub use crate::ast::item::ItemKind;
+pub use crate::ast::Ident;
+pub use crate::ast::Span;
+pub use crate::AstContext;
