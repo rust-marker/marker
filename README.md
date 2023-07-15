@@ -83,7 +83,7 @@ This will initialize Marker, compile the lint crates and start linting.
 
 * **Stability**: Marker's API design focuses on stability and extendability. The goal is to archive backwards compatibility, so that any lint, written after version 1.0.0, will compile and continue to work for years to come.
 * **Usability**: Marker's API focuses on usability, where possible under the constraints of Marker's stability guarantees. Types follow common design patterns and naming conventions, allowing you to focus on the lint logic directly.
-* **Be A Foundation**: Marker want's to be a foundation, for new tools which make linting even easier, provide deeper code analysis capabilities and allow for automated migrations.
+* **Be A Foundation**: Marker wants to be a foundation for new tools which make linting even easier, provide deeper code analysis capabilities and allow for automated migrations.
 
 <!-- FIXME(xFrednet): Update the link to link to `crates.io` once the first version was released-->
 [marker_api]: https://github.com/rust-marker/marker/tree/master/marker_api
@@ -104,7 +104,7 @@ Marker is still growing up, and that's a good thing. We can still shape the API 
 
 [crates.io]: https://crates.io/
 
-## Timeline
+## Development Timeline
 
 1. Complete a draft of the API.
 2. Improve documentation and conduct first user tests.
@@ -117,11 +117,12 @@ The used nightly version will be updated every 6 weeks, when a new version of Ru
 
 Contributions are highly appreciated! If you encounter any issues or have suggestions for improvements, please don't hesitate to [open an issue]. If you have an idea for a lint you want to implement with Marker, please share it by creating a [user story].
 
-Still reading? It would be wonderful if you're interested in helping out! Checkout Marker's [open issues].
+Still reading? Interested in helping out? Wonderful! Check out Marker's [open issues] or reach out to @xFrednet via E-Mail or on [Zulip]
 
 [open an issue]: https://github.com/rust-marker/marker/issues/new
 [user story]: https://github.com/rust-marker/design/issues/new?assignees=&labels=A-user-story&template=user-story.md&title=
 [open issues]: https://github.com/rust-marker/marker/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc
+[Zulip]: https://rust-lang.zulipchat.com/
 
 ## License
 
