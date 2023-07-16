@@ -143,7 +143,7 @@ fn main() {
 
     rustc_driver::install_ice_hook(BUG_REPORT_URL, |handler| {
         handler.note_without_error(format!("{}", rustc_tools_util::get_version_info!()));
-        handler.note_without_error("Achievement Unlocked: [Free Ice Cream]")
+        handler.note_without_error("Achievement Unlocked: [Free Ice Cream]");
     });
 
     exit(rustc_driver::catch_with_exit_code(|| {

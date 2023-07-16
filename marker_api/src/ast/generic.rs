@@ -90,7 +90,6 @@ pub enum GenericArgKind<'ast> {
     /// ```
     Binding(&'ast BindingGenericArg<'ast>),
     /// A constant expression as a generic argument, like this:
-    /// /// A constant expression as an argument for a constant generic.
     ///
     /// ```
     /// # struct Vec<const N: usize> {
@@ -167,7 +166,17 @@ pub enum SemGenericArgKind<'ast> {
     /// //                      ^^^^^^^^^^^
     /// ```
     TyBinding(&'ast SemTyBindingArg<'ast>),
-    // FIXME: Add GenericArgsConst
+    /// A constant expression as a generic argument, like this:
+    ///
+    /// ```
+    /// # struct Vec<const N: usize> {
+    /// #     data: [f32; N],
+    /// # }
+    /// #
+    /// let _bat: Vec<3> = todo!();
+    /// //            ^
+    /// ```
+    Const(&'ast SemConstArg<'ast>),
 }
 
 /// This represents the generic parameters of a generic item. The bounds applied

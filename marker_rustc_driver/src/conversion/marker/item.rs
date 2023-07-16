@@ -69,6 +69,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             ))),
             hir::ItemKind::Fn(fn_sig, generics, body_id) => {
                 #[cfg(debug_assertions)]
+                #[allow(clippy::manual_assert)]
                 if rustc_item.ident.name.as_str() == "rustc_driver_please_ice_on_this" {
                     panic!("this is your captain talking, we are about to ICE");
                 }

@@ -4,7 +4,7 @@ use crate::{
     ast::{
         expr::ConstExpr,
         ty::{SemTyKind, SynTyKind},
-        GenericId, ItemId, Span, SpanId, SymbolId,
+        ConstValue, GenericId, ItemId, Span, SpanId, SymbolId,
     },
     context::with_cx,
     ffi::FfiOption,
@@ -239,5 +239,25 @@ impl<'ast> SemTyBindingArg<'ast> {
 impl<'ast> SemTyBindingArg<'ast> {
     pub fn new(binding_target: ItemId, ty: SemTyKind<'ast>) -> Self {
         Self { binding_target, ty }
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct SemConstArg<'ast> {
+    value: ConstValue<'ast>,
+}
+
+impl<'ast> SemConstArg<'ast> {
+    /// The value that is used as an argument.
+    pub fn value(&self) -> &ConstValue<'ast> {
+        &self.value
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SemConstArg<'ast> {
+    pub fn new(value: ConstValue<'ast>) -> Self {
+        Self { value }
     }
 }

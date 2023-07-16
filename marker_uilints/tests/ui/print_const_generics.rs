@@ -14,10 +14,10 @@ impl<T: Debug, const N: usize> ArrayPair<T, N> {
 }
 
 fn main() {
-    // let _ty = ArrayPair {
-    //     left: [1, 2, 3],
-    //     right: [4, 5, 6],
-    // };
+    let _ty = ArrayPair {
+        left: [1, 2, 3],
+        right: [4, 5, 6],
+    };
     // let arr = ArrayPair {
     //     left: [1, 2, 3],
     //     right: [4, 5, 6],

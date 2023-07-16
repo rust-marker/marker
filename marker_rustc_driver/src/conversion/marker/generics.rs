@@ -27,7 +27,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         match &arg.unpack() {
             mid::ty::GenericArgKind::Lifetime(_) => None,
             mid::ty::GenericArgKind::Type(ty) => Some(SemGenericArgKind::Ty(self.to_sem_ty(*ty))),
-            mid::ty::GenericArgKind::Const(_) => todo!(),
+            mid::ty::GenericArgKind::Const(_) => todo!("{arg:#?}"),
         }
     }
 
