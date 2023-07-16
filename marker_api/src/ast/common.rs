@@ -9,7 +9,7 @@ pub use ast_path::*;
 
 use std::{fmt::Debug, marker::PhantomData};
 
-use super::generic::GenericArgs;
+use super::generic::SynGenericArgs;
 
 #[non_exhaustive]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -36,12 +36,12 @@ pub enum Abi {
 #[derive(Debug)]
 pub struct TraitRef<'ast> {
     item_id: ItemId,
-    generics: GenericArgs<'ast>,
+    generics: SynGenericArgs<'ast>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TraitRef<'ast> {
-    pub fn new(item_id: ItemId, generics: GenericArgs<'ast>) -> Self {
+    pub fn new(item_id: ItemId, generics: SynGenericArgs<'ast>) -> Self {
         Self { item_id, generics }
     }
 }
@@ -51,7 +51,7 @@ impl<'ast> TraitRef<'ast> {
         self.item_id
     }
 
-    pub fn generics(&self) -> &GenericArgs<'ast> {
+    pub fn generics(&self) -> &SynGenericArgs<'ast> {
         &self.generics
     }
 }

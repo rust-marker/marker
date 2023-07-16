@@ -22,10 +22,10 @@ warning: printing item
                           },
                       },
                   },
-                  generics: GenericParams {
+                  generics: SynGenericParams {
                       params: [
                           Const(
-                              ConstParam {
+                              SynConstParam {
                                   id: GenericId(..),
                                   name: SymbolId(..),
                                   ty: Num(
@@ -90,7 +90,7 @@ warning: printing item
                                                                               end: 64,
                                                                           },
                                                                       },
-                                                                      generics: GenericArgs {
+                                                                      generics: SynGenericArgs {
                                                                           args: [],
                                                                       },
                                                                   },
@@ -138,7 +138,7 @@ warning: printing item
                           },
                       },
                   },
-                  generics: GenericParams {
+                  generics: SynGenericParams {
                       params: [],
                       clauses: [],
                   },
@@ -173,10 +173,10 @@ warning: printing item
                                                           end: 107,
                                                       },
                                                   },
-                                                  generics: GenericArgs {
+                                                  generics: SynGenericArgs {
                                                       args: [
                                                           Const(
-                                                              SynConstGenericArg {
+                                                              SynConstArg {
                                                                   span: SpanId(..),
                                                                   expr: ConstExpr {
                                                                       expr: IntLit(

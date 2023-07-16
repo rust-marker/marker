@@ -4,7 +4,7 @@
 
 use super::{GenericId, Ident, ItemId, VarId, VariantId};
 use crate::{
-    ast::{generic::GenericArgs, ty::SynTyKind},
+    ast::{generic::SynGenericArgs, ty::SynTyKind},
     ffi::{FfiOption, FfiSlice},
 };
 
@@ -151,11 +151,11 @@ impl<'ast> AstQPath<'ast> {
         self.target
     }
 
-    /// This returns the [`GenericArgs`] specified on the last segment of the path.
+    /// This returns the [`SynGenericArgs`] specified on the last segment of the path.
     /// This is especially useful, for paths pointing to types or functions. For
-    /// example, the `u32` of the path `Vec<u32>`, is stored in the [`GenericArgs`]
+    /// example, the `u32` of the path `Vec<u32>`, is stored in the [`SynGenericArgs`]
     /// as a type parameter.
-    pub fn generics(&self) -> &GenericArgs<'ast> {
+    pub fn generics(&self) -> &SynGenericArgs<'ast> {
         self.path.generics()
     }
 }
@@ -244,11 +244,11 @@ impl<'ast> AstPath<'ast> {
         self.segments.get()
     }
 
-    /// This returns the [`GenericArgs`] specified on the last segment of the path.
+    /// This returns the [`SynGenericArgs`] specified on the last segment of the path.
     /// This is especially useful, for paths pointing to types or functions. For
-    /// example, the `u32` of the path `Vec<u32>`, is stored in the [`GenericArgs`]
+    /// example, the `u32` of the path `Vec<u32>`, is stored in the [`SynGenericArgs`]
     /// as a type parameter.
-    pub fn generics(&self) -> &GenericArgs<'ast> {
+    pub fn generics(&self) -> &SynGenericArgs<'ast> {
         self.segments
             .get()
             .last()
@@ -262,12 +262,12 @@ impl<'ast> AstPath<'ast> {
 #[cfg_attr(feature = "driver-api", derive(Clone))]
 pub struct AstPathSegment<'ast> {
     ident: Ident<'ast>,
-    generics: GenericArgs<'ast>,
+    generics: SynGenericArgs<'ast>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> AstPathSegment<'ast> {
-    pub fn new(ident: Ident<'ast>, generics: GenericArgs<'ast>) -> Self {
+    pub fn new(ident: Ident<'ast>, generics: SynGenericArgs<'ast>) -> Self {
         Self { ident, generics }
     }
 }
@@ -277,7 +277,7 @@ impl<'ast> AstPathSegment<'ast> {
         &self.ident
     }
 
-    pub fn generics(&self) -> &GenericArgs<'ast> {
+    pub fn generics(&self) -> &SynGenericArgs<'ast> {
         &self.generics
     }
 }

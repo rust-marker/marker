@@ -11,7 +11,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     self.to_let_stmt_id(local.hir_id),
                     self.to_span_id(local.span),
                     self.to_pat(local.pat),
-                    local.ty.map(|ty| self.to_ty(ty)),
+                    local.ty.map(|ty| self.to_syn_ty(ty)),
                     local.init.map(|init| self.to_expr(init)),
                     local.els.map(|els| self.to_expr_from_block(els)),
                 )))),

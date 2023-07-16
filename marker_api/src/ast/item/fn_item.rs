@@ -1,4 +1,4 @@
-use crate::ast::generic::GenericParams;
+use crate::ast::generic::SynGenericParams;
 use crate::ast::{impl_callable_data_trait, BodyId, CommonCallableData};
 use crate::ffi::FfiOption;
 
@@ -24,7 +24,7 @@ use super::CommonItemData;
 #[derive(Debug)]
 pub struct FnItem<'ast> {
     data: CommonItemData<'ast>,
-    generics: GenericParams<'ast>,
+    generics: SynGenericParams<'ast>,
     callable_data: CommonCallableData<'ast>,
     body_id: FfiOption<BodyId>,
 }
@@ -32,7 +32,7 @@ pub struct FnItem<'ast> {
 super::impl_item_data!(FnItem, Fn);
 
 impl<'ast> FnItem<'ast> {
-    pub fn generics(&self) -> &GenericParams<'ast> {
+    pub fn generics(&self) -> &SynGenericParams<'ast> {
         &self.generics
     }
 
@@ -47,7 +47,7 @@ impl_callable_data_trait!(FnItem<'ast>);
 impl<'ast> FnItem<'ast> {
     pub fn new(
         data: CommonItemData<'ast>,
-        generics: GenericParams<'ast>,
+        generics: SynGenericParams<'ast>,
         callable_data: CommonCallableData<'ast>,
         body: Option<BodyId>,
     ) -> Self {

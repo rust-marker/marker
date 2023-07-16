@@ -1,4 +1,4 @@
-use crate::ast::generic::GenericParams;
+use crate::ast::generic::SynGenericParams;
 use crate::ast::ty::SynTyKind;
 use crate::ast::TraitRef;
 use crate::ffi::{FfiOption, FfiSlice};
@@ -37,7 +37,7 @@ pub struct ImplItem<'ast> {
     is_unsafe: bool,
     is_negated: bool,
     trait_ref: FfiOption<TraitRef<'ast>>,
-    generics: GenericParams<'ast>,
+    generics: SynGenericParams<'ast>,
     ty: SynTyKind<'ast>,
     items: FfiSlice<'ast, AssocItemKind<'ast>>,
 }
@@ -49,7 +49,7 @@ impl<'ast> ImplItem<'ast> {
         self.is_unsafe
     }
 
-    pub fn generics(&self) -> &GenericParams<'ast> {
+    pub fn generics(&self) -> &SynGenericParams<'ast> {
         &self.generics
     }
 
@@ -81,7 +81,7 @@ impl<'ast> ImplItem<'ast> {
         is_unsafe: bool,
         is_negated: bool,
         trait_ref: Option<TraitRef<'ast>>,
-        generics: GenericParams<'ast>,
+        generics: SynGenericParams<'ast>,
         ty: SynTyKind<'ast>,
         items: &'ast [AssocItemKind<'ast>],
     ) -> Self {

@@ -24,7 +24,7 @@ warning: printing item
                           },
                       },
                   },
-                  generics: GenericParams {
+                  generics: SynGenericParams {
                       params: [],
                       clauses: [],
                   },

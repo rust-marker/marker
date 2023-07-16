@@ -567,8 +567,8 @@ warning: print type test
                                                                    trait_id: TyDefId(..),
                                                                    trait_generic_args: SemGenericArgs {
                                                                        args: [
-                                                                           TyBinding(
-                                                                               SemTyBindingArg {
+                                                                           Binding(
+                                                                               SemBindingArg {
                                                                                    binding_target: ItemId(..),
                                                                                    ty: Num(
                                                                                        SemNumTy {
