@@ -232,7 +232,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 None,
                 self.to_ty(*ty),
             ))),
-            hir::ForeignItemKind::Type => todo!(),
+            hir::ForeignItemKind::Type => {
+                todo!("foreign type are currently sadly not supported. See rust-marker/marker#182")
+            },
         };
 
         self.items.borrow_mut().insert(id, item.as_item());

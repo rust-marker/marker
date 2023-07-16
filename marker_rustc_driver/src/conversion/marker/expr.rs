@@ -394,8 +394,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let fn_decl = closure.fn_decl;
 
         let params = self.alloc_slice(fn_decl.inputs.iter().map(|ty| {
-            // FIXME: The name should be a pattern retrieved from the body, but
-            // that requires adjustments in `Parameter`.
+            // FIXME(xFrednet): The name should be a pattern retrieved from the body, but
+            // that requires adjustments in `Parameter`. rust-marker/marker#181
             Parameter::new(None, Some(self.to_ty(ty)), None)
         }));
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_decl.output {

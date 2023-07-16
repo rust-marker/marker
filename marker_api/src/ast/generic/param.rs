@@ -32,7 +32,6 @@ pub enum GenericParamKind<'ast> {
     Ty(&'ast TyParam<'ast>),
     Lifetime(&'ast LifetimeParam<'ast>),
     Const(&'ast ConstParam<'ast>),
-    // FIXME: Add const `ConstParam`
 }
 
 impl<'ast> GenericParamKind<'ast> {
@@ -64,14 +63,8 @@ pub trait GenericParamData<'ast>: Debug + Sealed {
     /// This returns the span, of the defined parameter, if this parameter originates from source
     /// code.
     fn span(&self) -> Option<&Span<'ast>>;
-    // FIXME: Add `fn attrs(&self) -> &[Attrs<'ast>]` once implemented.
 
-    /// Returns the attributes attached to this generic parameter.
-    ///
-    /// Currently, it's only a placeholder until a proper representation is implemented.
-    /// rust-marker/marker#51 tracks the task of implementing this. You're welcome to
-    /// leave any comments in that issue.
-    fn attrs(&self) {}
+    // FIXME(xFrednet): Add `fn attrs() -> ??? {}`, see rust-marker/marker#51
 }
 
 /// A type parameter with optional bounds like `T` and `U` in this example:

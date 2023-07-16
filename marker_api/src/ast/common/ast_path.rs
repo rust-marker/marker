@@ -2,9 +2,6 @@
 //!
 //! See: <https://doc.rust-lang.org/stable/reference/paths.html>
 
-// FIXME: It might be useful to not use a single path for everything, but instead
-// split it up into an `ItemPath`, `GenericPath` etc. implementation.
-
 use super::{GenericId, Ident, ItemId, VarId, VariantId};
 use crate::{
     ast::{generic::GenericArgs, ty::SynTyKind},
@@ -228,8 +225,8 @@ pub enum AstPathTarget {
 #[repr(C)]
 #[derive(Debug)]
 pub struct AstPath<'ast> {
-    // FIXME: Add optional target ID for values, lifetimes, etc that is faster to compare
     segments: FfiSlice<'ast, AstPathSegment<'ast>>,
+    // FIXME(xFrednet): Maybe add an optional target ID for values, lifetimes, etc this path.
 }
 
 #[cfg(feature = "driver-api")]

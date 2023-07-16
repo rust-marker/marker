@@ -232,9 +232,7 @@ macro_rules! impl_item_data {
                 $crate::ast::item::ItemKind::$enum_name(self)
             }
 
-            fn attrs(&self) {
-                todo!()
-            }
+            fn attrs(&self) {}
         }
 
         impl $crate::private::Sealed for $self_name<'_> {}
@@ -261,7 +259,7 @@ impl<'ast> CommonItemData<'ast> {
 }
 
 /// This struct represents the visibility of an item.
-/// 
+///
 /// Currently, it's only a placeholder until a proper representation is implemented.
 /// rust-marker/marker#26 tracks the task of implementing this. You're welcome to
 /// leave any comments in that issue.

@@ -348,8 +348,6 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 AstPathTarget::Variant(self.to_variant_id(target))
             },
             hir::def::Res::Def(hir::def::DefKind::Variant, id) => AstPathTarget::Variant(self.to_variant_id(*id)),
-            hir::def::Res::Def(_, _) => todo!("{res:#?}"),
-            hir::def::Res::PrimTy(_) => todo!("{res:#?}"),
             hir::def::Res::SelfTyParam { trait_: def_id, .. } | hir::def::Res::SelfTyAlias { alias_to: def_id, .. } => {
                 AstPathTarget::SelfTy(self.to_item_id(*def_id))
             },
@@ -364,6 +362,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::def::Res::Local(id) => AstPathTarget::Var(self.to_var_id(*id)),
             hir::def::Res::ToolMod => todo!("{res:#?}"),
             hir::def::Res::NonMacroAttr(_) => todo!("{res:#?}"),
+            hir::def::Res::Def(_, _) => {
+                unreachable!("all valid cases should be covered. This was triggered by: {res:#?}")
+            },
+            hir::def::Res::PrimTy(_) => {
+                unreachable!("this function should never be called for primitive types {res:#?}")
+            },
             hir::def::Res::Err => unreachable!("this should have triggered an error in rustc"),
         }
     }

@@ -38,7 +38,6 @@ pub struct SynClosureTy<'ast> {
     data: CommonSynTyData<'ast>,
     callable_data: CommonCallableData<'ast>,
     // FIXME: Add support for `for<'lifetime>` binder
-    // FIXME: Potentially add functions to check which [`Fn`] traits this implements
 }
 
 #[cfg(feature = "driver-api")]

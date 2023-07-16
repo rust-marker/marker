@@ -109,7 +109,7 @@ impl<'ast> EnumVariant<'ast> {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
 
-    // FIXME: Add `fn attrs() -> ??? {}`
+    // FIXME(xFrednet): Add `fn attrs() -> ??? {}`, see rust-marker/marker#51
 
     /// Returns `true` if this is a unit variant like:
     ///
@@ -294,7 +294,7 @@ impl<'ast> Field<'ast> {
         with_cx(self, |cx| cx.span(self.span))
     }
 
-    // FIXME: Add `fn attrs() -> ??? {}`
+    // FIXME(xFrednet): Add `fn attrs() -> ??? {}`, see rust-marker/marker#51
 }
 
 #[cfg(feature = "driver-api")]

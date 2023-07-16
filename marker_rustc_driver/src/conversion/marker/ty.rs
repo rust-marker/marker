@@ -75,7 +75,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 self.to_ty_def_id(def.did()),
                 self.to_sem_generic_args(generics),
             ))),
-            mid::ty::TyKind::Foreign(_) => todo!(),
+            mid::ty::TyKind::Foreign(_) => {
+                todo!("foreign type are currently sadly not supported. See rust-marker/marker#182")
+            },
             mid::ty::TyKind::Array(inner, _len) => {
                 SemTyKind::Array(self.alloc(SemArrayTy::new(self.to_sem_ty(*inner))))
             },

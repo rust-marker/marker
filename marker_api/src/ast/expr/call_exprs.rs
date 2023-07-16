@@ -1,8 +1,4 @@
-use crate::{
-    ast::{AstPathSegment, ItemId},
-    context::with_cx,
-    ffi::FfiSlice,
-};
+use crate::{ast::AstPathSegment, ffi::FfiSlice};
 
 use super::{CommonExprData, ExprKind};
 
@@ -77,11 +73,14 @@ impl<'ast> MethodExpr<'ast> {
         &self.method
     }
 
-    /// This method resolves the [`ItemId`] of the method being called by this
-    /// expression.
-    pub fn resolve(&self) -> ItemId {
-        with_cx(self, |cx| cx.resolve_method_target(self.data.id))
-    }
+    // FIXME(xFrednet): Add this method again, once `resolve_method_target` is
+    // supported by rustc's driver
+    //
+    // /// This method resolves the [`ItemId`] of the method being called by this
+    // /// expression.
+    // pub fn resolve(&self) -> ItemId {
+    //     with_cx(self, |cx| cx.resolve_method_target(self.data.id))
+    // }
 
     /// The arguments given to the operand.
     pub fn args(&self) -> &[ExprKind<'ast>] {

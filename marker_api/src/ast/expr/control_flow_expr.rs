@@ -217,7 +217,7 @@ impl<'ast> MatchArm<'ast> {
         self.expr
     }
 
-    // FIXME: Add `attrs(&self)` function
+    // FIXME(xFrednet): Add `fn attrs() -> ??? {}`, see rust-marker/marker#51
 }
 
 #[cfg(feature = "driver-api")]
