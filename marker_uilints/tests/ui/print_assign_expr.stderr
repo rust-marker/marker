@@ -297,7 +297,7 @@ warning: print test
                                                    },
                                                ),
                                            ],
-                                           len_expr: None,
+                                           len: None,
                                        },
                                    ),
                                    op: None,

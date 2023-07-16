@@ -96,7 +96,6 @@ Marker is still growing up, and that's a good thing. We can still shape the API 
 * **AST Limitations**: Marker's API is still missing a few elements to represent everything required for linting. The API is still incomplete when it comes to:
     * `async`/`await` expressions [#174](https://github.com/rust-marker/marker/issues/174)
     * Higher order types
-    * Array types
     * Attributes [#51](https://github.com/rust-marker/marker/issues/51)
     * Macros
     * Item visibility [#26](https://github.com/rust-marker/marker/issues/26)

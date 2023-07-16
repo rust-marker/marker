@@ -6,7 +6,7 @@ use marker_api::ast::{
         SynNumTy, SynPathTy, SynRawPtrTy, SynRefTy, SynSliceTy, SynTextTy, SynTraitObjTy, SynTupleTy, SynTyKind,
         TextKind,
     },
-    CommonCallableData, Constness, Parameter, Syncness,
+    CommonCallableData, ConstValue, Constness, Parameter, Syncness,
 };
 use rustc_hir as hir;
 use rustc_middle as mid;
@@ -79,7 +79,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 todo!("foreign type are currently sadly not supported. See rust-marker/marker#182")
             },
             mid::ty::TyKind::Array(inner, _len) => {
-                SemTyKind::Array(self.alloc(SemArrayTy::new(self.to_sem_ty(*inner))))
+                SemTyKind::Array(self.alloc(SemArrayTy::new(self.to_sem_ty(*inner), ConstValue::new())))
             },
             mid::ty::TyKind::Slice(inner) => SemTyKind::Slice(self.alloc(SemSliceTy::new(self.to_sem_ty(*inner)))),
             mid::ty::TyKind::Tuple(ty_lst) => SemTyKind::Tuple(self.alloc(SemTupleTy::new(
@@ -166,8 +166,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::TyKind::Slice(inner_ty) => {
                 SynTyKind::Slice(self.alloc(SynSliceTy::new(data, self.to_syn_ty(inner_ty))))
             },
-            hir::TyKind::Array(inner_ty, _) => {
-                SynTyKind::Array(self.alloc(SynArrayTy::new(data, self.to_syn_ty(inner_ty))))
+            hir::TyKind::Array(inner_ty, rust_len) => {
+                let len = match rust_len {
+                    hir::ArrayLen::Body(anon) => Some(self.to_const_expr(*anon)),
+                    hir::ArrayLen::Infer(_, _) => None,
+                };
+                SynTyKind::Array(self.alloc(SynArrayTy::new(data, self.to_syn_ty(inner_ty), len)))
             },
             hir::TyKind::Ptr(mut_ty) => SynTyKind::RawPtr(self.alloc(SynRawPtrTy::new(
                 data,

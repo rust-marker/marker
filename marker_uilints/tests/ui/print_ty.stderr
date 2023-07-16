@@ -421,6 +421,21 @@ Path(
                                                                                                     numeric_kind: I32,
                                                                                                 },
                                                                                             ),
+                                                                                            len: Some(
+                                                                                                ConstExpr {
+                                                                                                    expr: IntLit(
+                                                                                                        IntLitExpr {
+                                                                                                            data: CommonExprData {
+                                                                                                                _lifetime: PhantomData<&()>,
+                                                                                                                id: ExprId(..),
+                                                                                                                span: SpanId(..),
+                                                                                                            },
+                                                                                                            value: 8,
+                                                                                                            suffix: None,
+                                                                                                        },
+                                                                                                    ),
+                                                                                                },
+                                                                                            ),
                                                                                         },
                                                                                     ),
                                                                                 ],

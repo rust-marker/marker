@@ -1,4 +1,7 @@
-use crate::ffi::FfiSlice;
+use crate::{
+    ast::{expr::ConstExpr, ConstValue},
+    ffi::{FfiOption, FfiSlice},
+};
 
 use super::{CommonSynTyData, SemTyKind, SynTyKind};
 
@@ -127,19 +130,14 @@ impl<'ast> std::fmt::Debug for SemSliceTy<'ast> {
 }
 
 /// The syntactic representation of an array with a known size like: [`[T; N]`](prim@array)
-
 #[repr(C)]
 #[derive(Debug)]
 pub struct SynArrayTy<'ast> {
     data: CommonSynTyData<'ast>,
     inner_ty: SynTyKind<'ast>,
-}
-
-#[cfg(feature = "driver-api")]
-impl<'ast> SynArrayTy<'ast> {
-    pub fn new(data: CommonSynTyData<'ast>, inner_ty: SynTyKind<'ast>) -> Self {
-        Self { data, inner_ty }
-    }
+    // FIXME(xFrednet): This might need to change, if a syntax like `[1; _]` is
+    // ever supported, as proposed in https://github.com/rust-lang/rust/issues/85077
+    len: FfiOption<ConstExpr<'ast>>,
 }
 
 super::impl_ty_data!(SynArrayTy<'ast>, Array);
@@ -149,9 +147,19 @@ impl<'ast> SynArrayTy<'ast> {
         self.inner_ty
     }
 
-    pub fn len(&self) {
-        // FIXME: Add length expression
-        unimplemented!()
+    pub fn len(&self) -> Option<&ConstExpr<'ast>> {
+        self.len.get()
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SynArrayTy<'ast> {
+    pub fn new(data: CommonSynTyData<'ast>, inner_ty: SynTyKind<'ast>, len: Option<ConstExpr<'ast>>) -> Self {
+        Self {
+            data,
+            inner_ty,
+            len: len.into(),
+        }
     }
 }
 
@@ -167,6 +175,7 @@ impl<'ast> std::fmt::Display for SynArrayTy<'ast> {
 #[derive(Debug)]
 pub struct SemArrayTy<'ast> {
     inner_ty: SemTyKind<'ast>,
+    len: ConstValue<'ast>,
 }
 
 impl<'ast> SemArrayTy<'ast> {
@@ -174,16 +183,15 @@ impl<'ast> SemArrayTy<'ast> {
         self.inner_ty
     }
 
-    pub fn len(&self) {
-        // FIXME: Add length expression
-        unimplemented!()
+    pub fn len(&self) -> &ConstValue<'ast> {
+        &self.len
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> SemArrayTy<'ast> {
-    pub fn new(inner_ty: SemTyKind<'ast>) -> Self {
-        Self { inner_ty }
+    pub fn new(inner_ty: SemTyKind<'ast>, len: ConstValue<'ast>) -> Self {
+        Self { inner_ty, len }
     }
 }
 

@@ -200,7 +200,7 @@ pub fn traverse_expr<'ast, B>(
                 traverse_expr(cx, visitor, *el)?;
             }
             if let Some(len) = e.len() {
-                traverse_expr(cx, visitor, len)?;
+                traverse_expr(cx, visitor, len.expr())?;
             }
         },
         ExprKind::Tuple(e) => {

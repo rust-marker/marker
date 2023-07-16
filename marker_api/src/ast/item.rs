@@ -264,10 +264,16 @@ impl<'ast> CommonItemData<'ast> {
 /// rust-marker/marker#26 tracks the task of implementing this. You're welcome to
 /// leave any comments in that issue.
 #[repr(C)]
-#[derive(Debug)]
 pub struct Visibility<'ast> {
     _lifetime: PhantomData<&'ast ()>,
     _item_id: ItemId,
+}
+
+impl<'ast> Debug for Visibility<'ast> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Visibility {{ /* WIP: See rust-marker/marker#26 */}}")
+            .finish()
+    }
 }
 
 #[cfg(feature = "driver-api")]

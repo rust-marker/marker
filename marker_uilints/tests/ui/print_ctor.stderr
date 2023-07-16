@@ -98,7 +98,7 @@ warning: print test
                            },
                        ),
                    ],
-                   len_expr: None,
+                   len: None,
                },
            )
 
@@ -128,18 +128,20 @@ warning: print test
                            },
                        ),
                    ],
-                   len_expr: Some(
-                       IntLit(
-                           IntLitExpr {
-                               data: CommonExprData {
-                                   _lifetime: PhantomData<&()>,
-                                   id: ExprId(..),
-                                   span: SpanId(..),
+                   len: Some(
+                       ConstExpr {
+                           expr: IntLit(
+                               IntLitExpr {
+                                   data: CommonExprData {
+                                       _lifetime: PhantomData<&()>,
+                                       id: ExprId(..),
+                                       span: SpanId(..),
+                                   },
+                                   value: 3,
+                                   suffix: None,
                                },
-                               value: 3,
-                               suffix: None,
-                           },
-                       ),
+                           ),
+                       },
                    ),
                },
            )
