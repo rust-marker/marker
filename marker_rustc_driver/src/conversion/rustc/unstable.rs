@@ -7,7 +7,7 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
         self.lints.borrow_mut().entry(api_lint).or_insert_with(|| {
             // Not extracted to an extra function, as it's very specific
             let report_in_external_macro = match api_lint.report_in_macro {
-                MacroReport::No | MacroReport::Local => false,
+                MacroReport::No => false,
                 MacroReport::All => true,
                 _ => unreachable!(),
             };

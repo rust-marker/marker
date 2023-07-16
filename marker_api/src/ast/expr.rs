@@ -103,6 +103,14 @@ pub enum LitExprKind<'ast> {
     Str(&'ast StrLitExpr<'ast>),
     Char(&'ast CharLitExpr<'ast>),
     Bool(&'ast BoolLitExpr<'ast>),
+    /// Rust represents negative numbers as positive literals with a unary
+    /// negation operator in front. This unary expression should therefore
+    /// be seen as a part of a literal, that it wraps.
+    ///
+    /// This variant is marked as `non_exhaustive` to ensure that it can only
+    /// be constructed by calling `try_into()` on a valid `ExprKind` instance.
+    #[non_exhaustive]
+    UnaryOp(&'ast UnaryOpExpr<'ast>),
 }
 
 impl<'ast> LitExprKind<'ast> {
@@ -120,6 +128,7 @@ impl<'ast> From<LitExprKind<'ast>> for ExprKind<'ast> {
             LitExprKind::Str(expr) => ExprKind::StrLit(expr),
             LitExprKind::Char(expr) => ExprKind::CharLit(expr),
             LitExprKind::Bool(expr) => ExprKind::BoolLit(expr),
+            LitExprKind::UnaryOp(expr) => ExprKind::UnaryOp(expr),
         }
     }
 }
@@ -134,6 +143,14 @@ impl<'ast> TryFrom<ExprKind<'ast>> for LitExprKind<'ast> {
             ExprKind::StrLit(expr) => Ok(LitExprKind::Str(expr)),
             ExprKind::CharLit(expr) => Ok(LitExprKind::Char(expr)),
             ExprKind::BoolLit(expr) => Ok(LitExprKind::Bool(expr)),
+            ExprKind::UnaryOp(expr) => {
+                // Only accept this conversion if this operation negates a literal.
+                if expr.kind() == UnaryOpKind::Neg && TryInto::<LitExprKind<'_>>::try_into(expr.expr()).is_ok() {
+                    Ok(LitExprKind::UnaryOp(expr))
+                } else {
+                    Err(())
+                }
+            },
             _ => Err(()),
         }
     }
@@ -244,7 +261,7 @@ macro_rules! impl_expr_kind_fn {
     };
     (LitExprKind: $method:ident () -> $return_ty:ty) => {
         impl_expr_kind_fn!((LitExprKind) $method() -> $return_ty,
-            Int, Float, Str, Char, Bool
+            Int, Float, Str, Char, Bool, UnaryOp
         );
     };
     (($self:ident) $method:ident () -> $return_ty:ty $(, $kind:ident)+) => {

@@ -758,10 +758,11 @@ warning: print test
   --> $DIR/print_cond_expr.rs:37:5
    |
 37 | /     let _print_match_with_path = match opt {
-38 | |         Some(1) => (),
-39 | |         Some(x) => (),
-40 | |         None => (),
-41 | |     };
+38 | |         Some(-1) => (),
+39 | |         Some(1) => (),
+40 | |         Some(x) => (),
+41 | |         None => (),
+42 | |     };
    | |______^
    |
    = note: Match(
@@ -846,6 +847,84 @@ warning: print test
                                            span: SpanId(..),
                                            ident: SymbolId(..),
                                            pat: Lit(
+                                               UnaryOp(
+                                                   UnaryOpExpr {
+                                                       data: CommonExprData {
+                                                           _lifetime: PhantomData<&()>,
+                                                           id: ExprId(..),
+                                                           span: SpanId(..),
+                                                       },
+                                                       expr: IntLit(
+                                                           IntLitExpr {
+                                                               data: CommonExprData {
+                                                                   _lifetime: PhantomData<&()>,
+                                                                   id: ExprId(..),
+                                                                   span: SpanId(..),
+                                                               },
+                                                               value: 1,
+                                                               suffix: None,
+                                                           },
+                                                       ),
+                                                       kind: Neg,
+                                                   },
+                                               ),
+                                           ),
+                                       },
+                                   ],
+                                   is_non_exhaustive: false,
+                               },
+                           ),
+                           guard: None,
+                           expr: Tuple(
+                               TupleExpr {
+                                   data: CommonExprData {
+                                       _lifetime: PhantomData<&()>,
+                                       id: ExprId(..),
+                                       span: SpanId(..),
+                                   },
+                                   elements: [],
+                               },
+                           ),
+                       },
+                       MatchArm {
+                           span: SpanId(..),
+                           pat: Struct(
+                               StructPat {
+                                   data: CommonPatData {
+                                       _lifetime: PhantomData<&()>,
+                                       span: SpanId(..),
+                                   },
+                                   path: AstQPath {
+                                       self_ty: None,
+                                       path_ty: None,
+                                       path: AstPath {
+                                           segments: [
+                                               AstPathSegment {
+                                                   ident: Ident {
+                                                       name: "Some",
+                                                       span: Span {
+                                                           source: File(
+                                                               "$DIR/print_cond_expr.rs",
+                                                           ),
+                                                           start: 807,
+                                                           end: 811,
+                                                       },
+                                                   },
+                                                   generics: GenericArgs {
+                                                       args: [],
+                                                   },
+                                               },
+                                           ],
+                                       },
+                                       target: Variant(
+                                           VariantId(..),
+                                       ),
+                                   },
+                                   fields: [
+                                       StructFieldPat {
+                                           span: SpanId(..),
+                                           ident: SymbolId(..),
+                                           pat: Lit(
                                                Int(
                                                    IntLitExpr {
                                                        data: CommonExprData {
@@ -895,8 +974,8 @@ warning: print test
                                                            source: File(
                                                                "$DIR/print_cond_expr.rs",
                                                            ),
-                                                           start: 806,
-                                                           end: 810,
+                                                           start: 830,
+                                                           end: 834,
                                                        },
                                                    },
                                                    generics: GenericArgs {
@@ -963,8 +1042,8 @@ warning: print test
                                                            source: File(
                                                                "$DIR/print_cond_expr.rs",
                                                            ),
-                                                           start: 829,
-                                                           end: 833,
+                                                           start: 853,
+                                                           end: 857,
                                                        },
                                                    },
                                                    generics: GenericArgs {
@@ -996,9 +1075,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_cond_expr.rs:47:9
+  --> $DIR/print_cond_expr.rs:48:9
    |
-47 |         let _print_option_match = x?;
+48 |         let _print_option_match = x?;
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: QuestionMark(
@@ -1031,11 +1110,12 @@ warning: print test
                                                    ident: Ident {
                                                        name: "Try::branch",
                                                        span: Span {
-                                                           source: File(
+                                                           source: Sugar(
                                                                "$DIR/print_cond_expr.rs",
+                                                               SpanSrcId(..),
                                                            ),
-                                                           start: 970,
-                                                           end: 972,
+                                                           start: 0,
+                                                           end: 2,
                                                        },
                                                    },
                                                    generics: GenericArgs {
@@ -1070,8 +1150,8 @@ warning: print test
                                                                source: File(
                                                                    "$DIR/print_cond_expr.rs",
                                                                ),
-                                                               start: 970,
-                                                               end: 971,
+                                                               start: 994,
+                                                               end: 995,
                                                            },
                                                        },
                                                        generics: GenericArgs {
@@ -1093,9 +1173,9 @@ warning: print test
            )
 
 warning: print test
-  --> $DIR/print_cond_expr.rs:53:9
+  --> $DIR/print_cond_expr.rs:54:9
    |
-53 |         let _print_option_match = x?;
+54 |         let _print_result_match = x?;
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: QuestionMark(
@@ -1128,11 +1208,12 @@ warning: print test
                                                    ident: Ident {
                                                        name: "Try::branch",
                                                        span: Span {
-                                                           source: File(
+                                                           source: Sugar(
                                                                "$DIR/print_cond_expr.rs",
+                                                               SpanSrcId(..),
                                                            ),
-                                                           start: 1114,
-                                                           end: 1116,
+                                                           start: 0,
+                                                           end: 2,
                                                        },
                                                    },
                                                    generics: GenericArgs {
@@ -1167,8 +1248,8 @@ warning: print test
                                                                source: File(
                                                                    "$DIR/print_cond_expr.rs",
                                                                ),
-                                                               start: 1114,
-                                                               end: 1115,
+                                                               start: 1138,
+                                                               end: 1139,
                                                            },
                                                        },
                                                        generics: GenericArgs {

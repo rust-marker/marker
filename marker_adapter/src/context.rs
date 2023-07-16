@@ -93,7 +93,7 @@ extern "C" fn span<'ast>(data: &(), owner: &SpanOwner) -> &'ast Span<'ast> {
     wrapper.driver_cx.span(owner)
 }
 
-extern "C" fn span_snippet<'ast>(data: &(), span: &Span) -> ffi::FfiOption<ffi::FfiStr<'ast>> {
+extern "C" fn span_snippet<'ast>(data: &(), span: &Span<'ast>) -> ffi::FfiOption<ffi::FfiStr<'ast>> {
     let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
     wrapper.driver_cx.span_snippet(span).map(Into::into).into()
 }
@@ -119,7 +119,7 @@ pub trait DriverContext<'ast> {
 
     fn expr_ty(&'ast self, expr: ExprId) -> SemTyKind<'ast>;
     fn span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast>;
-    fn span_snippet(&'ast self, span: &Span) -> Option<&'ast str>;
+    fn span_snippet(&'ast self, span: &Span<'ast>) -> Option<&'ast str>;
     fn symbol_str(&'ast self, api_id: SymbolId) -> &'ast str;
     fn resolve_method_target(&'ast self, id: ExprId) -> ItemId;
 }

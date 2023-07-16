@@ -1,0 +1,14 @@
+warning: async blocks and await expressions are currently not supported
+ --> $DIR/test_no_async_ice.rs:4:79
+  |
+4 |   pub async fn canonicalize(path: impl AsRef<Path>) -> std::io::Result<PathBuf> {
+  |  _______________________________________________________________________________^
+5 | |     let _path = path.as_ref().to_owned();
+6 | |     Ok(PathBuf::from("./duck"))
+7 | | }
+  | |_^
+  |
+  = note: see rust-marker/marker#174
+
+warning: 1 warning emitted
+

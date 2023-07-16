@@ -171,6 +171,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             (hir::LangItem::FormatAlignment, self.to_symbol_id(Symbol::intern("rustc_ast::format::FormatAlignment"))),
             (hir::LangItem::FormatCount, self.to_symbol_id(Symbol::intern("rustc_ast::format::FormatCount"))),
             (hir::LangItem::FormatUnsafeArg, self.to_symbol_id(Symbol::intern("core::fmt::rt::UnsafeArg"))),
+            (hir::LangItem::ResumeTy, self.to_symbol_id(Symbol::intern("lang_item::ResumeTy"))),
         ];
 
         self.lang_item_map.borrow_mut().extend(list);
@@ -218,5 +219,3 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         ))
     }
 }
-
-pub fn create_lang_item_map() {}

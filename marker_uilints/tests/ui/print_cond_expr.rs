@@ -35,6 +35,7 @@ fn matches(scrutinee: &[i32]) {
 
     let opt = Some(1);
     let _print_match_with_path = match opt {
+        Some(-1) => (),
         Some(1) => (),
         Some(x) => (),
         None => (),
@@ -50,7 +51,7 @@ mod question_mark {
 
     fn kanske_result() -> Result<i32, i32> {
         let x: Result<i32, i32> = Ok(1);
-        let _print_option_match = x?;
+        let _print_result_match = x?;
         Err(4)
     }
 }

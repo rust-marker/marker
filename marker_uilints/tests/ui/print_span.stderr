@@ -1,0 +1,33 @@
+warning: print span
+ --> $DIR/print_span.rs:9:5
+  |
+9 |     let _span_normal = 178;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Debug: Span {
+              source: File(
+                  "$DIR/print_span.rs",
+              ),
+              start: 134,
+              end: 137,
+          }
+  = note: Snippet: 178
+  = note: `#[warn(marker::print_span_lint)]` on by default
+
+warning: print span
+  --> $DIR/print_span.rs:11:5
+   |
+11 |     let _span_macro = magic_macro!();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Debug: Span {
+               source: Macro(
+                   SpanSrcId(..),
+               ),
+               start: 0,
+               end: 14,
+           }
+   = note: Snippet: magic_macro!()
+
+warning: 2 warnings emitted
+

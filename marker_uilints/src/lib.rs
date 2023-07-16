@@ -30,6 +30,16 @@ marker_api::declare_lint! {
 
 marker_api::declare_lint! {
     /// # What it does
+    /// A lint used for marker's uitests.
+    ///
+    /// It's used to print spans and is allowed to emit code in macros
+    PRINT_SPAN_LINT,
+    Warn,
+    marker_api::lint::MacroReport::All,
+}
+
+marker_api::declare_lint! {
+    /// # What it does
     /// A lint used for markers uitests.
     ///
     /// It warns about about item names starting with `FindMe`, `find_me` or `FIND_ME`.
@@ -109,6 +119,12 @@ impl LintPass for TestLintPass {
             if ident.name().starts_with("_print") {
                 cx.emit_lint(TEST_LINT, stmt.id(), "print test", stmt.span(), |diag| {
                     diag.note(format!("{expr:#?}"));
+                });
+            } else if ident.name().starts_with("_span") {
+                cx.emit_lint(PRINT_SPAN_LINT, stmt.id(), "print span", stmt.span(), |diag| {
+                    let span = expr.span();
+                    diag.note(format!("Debug: {:#?}", span));
+                    diag.note(format!("Snippet: {}", span.snippet_or("..")));
                 });
             } else if ident.name().starts_with("_ty") {
                 cx.emit_lint(TEST_LINT, stmt.id(), "print type test", stmt.span(), |diag| {

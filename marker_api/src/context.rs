@@ -12,7 +12,7 @@ use crate::{
     },
     diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
-    lint::{Level, Lint},
+    lint::{Level, Lint, MacroReport},
 };
 
 thread_local! {
@@ -126,6 +126,9 @@ impl<'ast> AstContext<'ast> {
     ) where
         F: FnOnce(&mut DiagnosticBuilder<'ast>),
     {
+        if matches!(lint.report_in_macro, MacroReport::No) && span.is_from_macro() {
+            return;
+        }
         let node = node.into();
         if self.lint_level_at(lint, node) != Level::Allow {
             let mut builder = DiagnosticBuilder::new(lint, node, msg.to_string(), span.clone());
@@ -182,7 +185,9 @@ impl<'ast> AstContext<'ast> {
         self.driver.call_expr_ty(expr)
     }
 
-    pub(crate) fn span_snipped(&self, span: &Span) -> Option<String> {
+    // FIXME: This function should probably be removed in favor of a better
+    // system to deal with spans. See rust-marker/marker#175
+    pub(crate) fn span_snipped(&self, span: &Span<'ast>) -> Option<String> {
         self.driver.call_span_snippet(span)
     }
 
@@ -237,7 +242,7 @@ struct DriverCallbacks<'ast> {
     // Internal utility
     pub expr_ty: extern "C" fn(&'ast (), ExprId) -> SemTyKind<'ast>,
     pub span: extern "C" fn(&'ast (), &SpanOwner) -> &'ast Span<'ast>,
-    pub span_snippet: extern "C" fn(&'ast (), &Span) -> ffi::FfiOption<ffi::FfiStr<'ast>>,
+    pub span_snippet: extern "C" fn(&'ast (), &Span<'ast>) -> ffi::FfiOption<ffi::FfiStr<'ast>>,
     pub symbol_str: extern "C" fn(&'ast (), SymbolId) -> ffi::FfiStr<'ast>,
     pub resolve_method_target: extern "C" fn(&'ast (), ExprId) -> ItemId,
 }
@@ -264,7 +269,7 @@ impl<'ast> DriverCallbacks<'ast> {
     fn call_span(&self, span_owner: &SpanOwner) -> &'ast Span<'ast> {
         (self.span)(self.driver_context, span_owner)
     }
-    fn call_span_snippet(&self, span: &Span) -> Option<String> {
+    fn call_span_snippet(&self, span: &Span<'ast>) -> Option<String> {
         let result: Option<ffi::FfiStr> = (self.span_snippet)(self.driver_context, span).into();
         result.map(|x| x.to_string())
     }

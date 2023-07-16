@@ -184,9 +184,9 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
     }
 
     pub fn to_span(&self, api_span: &Span<'ast>) -> rustc_span::Span {
-        let src_info = self
+        let (_, src_info) = self
             .storage
-            .span_src_info(api_span.source())
+            .get_span_src_info(api_span.source())
             .expect("all driver created `SpanSources` have a matching info");
 
         #[expect(clippy::cast_possible_truncation, reason = "`u32` is set by rustc and will be fine")]

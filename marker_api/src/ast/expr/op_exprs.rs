@@ -203,7 +203,7 @@ impl<'ast> UnaryOpExpr<'ast> {
 
 #[repr(C)]
 #[non_exhaustive]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum UnaryOpKind {
     /// The arithmetic negation `-` operator, like `-2`
     Neg,

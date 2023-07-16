@@ -1,21 +1,21 @@
 warning: hey there is a static item here
- --> $DIR/find_item.rs:1:1
+ --> $DIR/find_item.rs:8:5
   |
-1 | static FIND_ITEM: u32 = 4;
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `duck`
+8 |     static FIND_ITEM: u32 = 4;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `duck`
   |
   = note: a note
   = help: a help
 note: a spanned note
- --> $DIR/find_item.rs:1:1
+ --> $DIR/find_item.rs:8:5
   |
-1 | static FIND_ITEM: u32 = 4;
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+8 |     static FIND_ITEM: u32 = 4;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
 help: a spanned help
- --> $DIR/find_item.rs:1:1
+ --> $DIR/find_item.rs:8:5
   |
-1 | static FIND_ITEM: u32 = 4;
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+8 |     static FIND_ITEM: u32 = 4;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
   = note: `#[warn(marker::test_lint)]` on by default
 
 warning: 1 warning emitted
