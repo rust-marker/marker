@@ -98,6 +98,15 @@ impl LintPass for TestLintPass {
                 emit_item_with_test_name_lint(cx, item.id(), format!("a `{msg}` item"), item.span());
             }
         }
+
+        if matches!(
+            item.ident().map(marker_api::ast::Ident::name),
+            Some(name) if name.starts_with("PrintMe") || name.starts_with("PRINT_ME") || name.starts_with("print_me")
+        ) {
+            cx.emit_lint(TEST_LINT, item.id(), "printing item", item.span(), |diag| {
+                diag.note(format!("{item:#?}"));
+            })
+        }
     }
 
     fn check_field<'ast>(&mut self, cx: &'ast AstContext<'ast>, field: &'ast Field<'ast>) {
