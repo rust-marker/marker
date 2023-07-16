@@ -386,6 +386,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             ));
         }
 
+        // The stack push and pop should be identical with the `expr::to_const_expr` function.
+
         // Body-Translation-Stack push
         let prev_rustc_body_id = self.rustc_body.replace(Some(body.id()));
         let prev_rustc_ty_check = self.rustc_ty_check.take();

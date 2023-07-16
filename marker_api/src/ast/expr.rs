@@ -361,5 +361,7 @@ impl<'ast> ConstExpr<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> ConstExpr<'ast> {
-    pub fn new(expr: ExprKind<'ast>) -> Self { Self { expr } }
+    pub fn new(expr: ExprKind<'ast>) -> Self {
+        Self { expr }
+    }
 }

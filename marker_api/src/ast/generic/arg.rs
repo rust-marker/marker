@@ -2,8 +2,9 @@ use std::marker::PhantomData;
 
 use crate::{
     ast::{
+        expr::ConstExpr,
         ty::{SemTyKind, SynTyKind},
-        GenericId, ItemId, Span, SpanId, SymbolId, expr::ConstExpr,
+        GenericId, ItemId, Span, SpanId, SymbolId,
     },
     context::with_cx,
     ffi::FfiOption,
@@ -163,14 +164,14 @@ impl<'ast> BindingGenericArg<'ast> {
 /// struct Vec<const N: usize> {
 ///     data: [f32; N],
 /// }
-/// 
+///
 /// // An integer literal as a const generic argument
 /// //               v
 /// fn vec3() -> Vec<3> {
 ///     // [...]
 ///     # todo!()
 /// }
-/// 
+///
 /// // A const generic parameter as an const generic argument
 /// //                       v
 /// impl<const N: usize> Vec<N> {
@@ -179,6 +180,7 @@ impl<'ast> BindingGenericArg<'ast> {
 /// ```
 #[derive(Debug)]
 pub struct SynConstGenericArg<'ast> {
+    span: SpanId,
     expr: ConstExpr<'ast>,
 }
 
@@ -187,11 +189,17 @@ impl<'ast> SynConstGenericArg<'ast> {
     pub fn expr(&self) -> &ConstExpr<'ast> {
         &self.expr
     }
+
+    pub fn span(&self) -> &Span<'ast> {
+        with_cx(self, |cx| cx.span(self.span))
+    }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> SynConstGenericArg<'ast> {
-    pub fn new(expr: ConstExpr<'ast>) -> Self { Self { expr } }
+    pub fn new(span: SpanId, expr: ConstExpr<'ast>) -> Self {
+        Self { span, expr }
+    }
 }
 
 /// A semantic generic bound in the form `<identifier=type>`. For example,

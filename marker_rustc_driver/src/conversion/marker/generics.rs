@@ -1,8 +1,8 @@
 use marker_api::ast::{
     generic::{
         BindingGenericArg, GenericArgKind, GenericArgs, GenericParamKind, GenericParams, Lifetime, LifetimeClause,
-        LifetimeKind, LifetimeParam, SemGenericArgKind, SemGenericArgs, SemTraitBound, SemTyBindingArg, TraitBound,
-        TyClause, TyParam, TyParamBound, WhereClauseKind,
+        LifetimeKind, LifetimeParam, SemGenericArgKind, SemGenericArgs, SemTraitBound, SemTyBindingArg,
+        SynConstGenericArg, TraitBound, TyClause, TyParam, TyParamBound, WhereClauseKind,
     },
     TraitRef,
 };
@@ -119,7 +119,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     .to_lifetime(rust_lt)
                     .map(|lifetime| GenericArgKind::Lifetime(self.alloc(lifetime))),
                 rustc_hir::GenericArg::Type(r_ty) => Some(GenericArgKind::Ty(self.alloc(self.to_ty(*r_ty)))),
-                rustc_hir::GenericArg::Const(_) => todo!("{rustc_arg:#?}"),
+                rustc_hir::GenericArg::Const(arg) => Some(GenericArgKind::Const(self.alloc(SynConstGenericArg::new(
+                    self.to_span_id(arg.span),
+                    self.to_const_expr(arg.value),
+                )))),
                 rustc_hir::GenericArg::Infer(_) => todo!(),
             })
             .collect();
