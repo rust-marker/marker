@@ -1,0 +1,114 @@
+warning: printing item
+ --> $DIR/print_adt_item.rs:1:1
+  |
+1 | / pub enum PrintMeEnum {
+2 | |     H = -1,
+3 | |     E = 0,
+4 | |     R = 17,
+5 | | }
+  | |_^
+  |
+  = note: Enum(
+              EnumItem {
+                  data: CommonItemData {
+                      id: ItemId(..),
+                      vis: Visibility {
+                          _lifetime: PhantomData<&()>,
+                          _item_id: ItemId(..),
+                      },
+                      ident: Ident {
+                          name: "PrintMeEnum",
+                          span: Span {
+                              source: File(
+                                  "$DIR/print_adt_item.rs",
+                              ),
+                              start: 9,
+                              end: 20,
+                          },
+                      },
+                  },
+                  generics: GenericParams {
+                      params: [],
+                      clauses: [],
+                  },
+                  variants: [
+                      EnumVariant {
+                          id: VariantId(..),
+                          ident: SymbolId(..),
+                          span: SpanId(..),
+                          kind: Unit,
+                          discriminant: Some(
+                              ConstExpr {
+                                  expr: UnaryOp(
+                                      UnaryOpExpr {
+                                          data: CommonExprData {
+                                              _lifetime: PhantomData<&()>,
+                                              id: ExprId(..),
+                                              span: SpanId(..),
+                                          },
+                                          expr: IntLit(
+                                              IntLitExpr {
+                                                  data: CommonExprData {
+                                                      _lifetime: PhantomData<&()>,
+                                                      id: ExprId(..),
+                                                      span: SpanId(..),
+                                                  },
+                                                  value: 1,
+                                                  suffix: None,
+                                              },
+                                          ),
+                                          kind: Neg,
+                                      },
+                                  ),
+                              },
+                          ),
+                      },
+                      EnumVariant {
+                          id: VariantId(..),
+                          ident: SymbolId(..),
+                          span: SpanId(..),
+                          kind: Unit,
+                          discriminant: Some(
+                              ConstExpr {
+                                  expr: IntLit(
+                                      IntLitExpr {
+                                          data: CommonExprData {
+                                              _lifetime: PhantomData<&()>,
+                                              id: ExprId(..),
+                                              span: SpanId(..),
+                                          },
+                                          value: 0,
+                                          suffix: None,
+                                      },
+                                  ),
+                              },
+                          ),
+                      },
+                      EnumVariant {
+                          id: VariantId(..),
+                          ident: SymbolId(..),
+                          span: SpanId(..),
+                          kind: Unit,
+                          discriminant: Some(
+                              ConstExpr {
+                                  expr: IntLit(
+                                      IntLitExpr {
+                                          data: CommonExprData {
+                                              _lifetime: PhantomData<&()>,
+                                              id: ExprId(..),
+                                              span: SpanId(..),
+                                          },
+                                          value: 17,
+                                          suffix: None,
+                                      },
+                                  ),
+                              },
+                          ),
+                      },
+                  ],
+              },
+          )
+  = note: `#[warn(marker::test_lint)]` on by default
+
+warning: 1 warning emitted
+
