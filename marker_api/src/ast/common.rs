@@ -33,7 +33,7 @@ pub enum Abi {
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct TraitRef<'ast> {
     item_id: ItemId,
     generics: GenericArgs<'ast>,

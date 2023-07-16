@@ -276,7 +276,7 @@ macro_rules! impl_expr_kind_fn {
 use impl_expr_kind_fn;
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 struct CommonExprData<'ast> {
     /// The lifetime is not needed right now, but it's safer to include it for
@@ -340,3 +340,26 @@ macro_rules! impl_expr_data {
 }
 
 use impl_expr_data;
+
+/// An expression that is evaluated at compile time. These show up in array
+/// indices and constant generics.
+///
+/// Marker currently doesn't provide a way to calculate the result of a constant
+/// expression.
+#[repr(C)]
+#[derive(Debug)]
+pub struct ConstExpr<'ast> {
+    expr: ExprKind<'ast>,
+}
+
+impl<'ast> ConstExpr<'ast> {
+    /// This returns the wrapped expression that will be evaluated at compile time.
+    pub fn expr(&self) -> ExprKind<'ast> {
+        self.expr
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> ConstExpr<'ast> {
+    pub fn new(expr: ExprKind<'ast>) -> Self { Self { expr } }
+}

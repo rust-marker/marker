@@ -59,7 +59,7 @@ pub trait CallableData<'ast>: Debug + Sealed {
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct Parameter<'ast> {
     // FIXME: This shouldn't be a name but a pattern...
     name: FfiOption<SymbolId>,
@@ -95,7 +95,7 @@ impl<'ast> Parameter<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) struct CommonCallableData<'ast> {
     pub(crate) constness: Constness,

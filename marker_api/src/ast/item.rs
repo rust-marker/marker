@@ -258,7 +258,7 @@ impl<'ast> CommonItemData<'ast> {
 /// FIXME: Add function as discussed in <https://github.com/rust-marker/design/issues/22>
 /// this will require new driver callback functions
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct Visibility<'ast> {
     _lifetime: PhantomData<&'ast ()>,
     _item_id: ItemId,

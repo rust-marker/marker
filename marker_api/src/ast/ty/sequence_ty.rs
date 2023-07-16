@@ -4,7 +4,7 @@ use super::{CommonSynTyData, SemTyKind, SynTyKind};
 
 /// The syntactic representation of a tuple type like [`()`](prim@tuple) or [`(T, U)`](prim@tuple)
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SynTupleTy<'ast> {
     data: CommonSynTyData<'ast>,
     types: FfiSlice<'ast, SynTyKind<'ast>>,
@@ -74,7 +74,7 @@ impl<'ast> std::fmt::Display for SemTupleTy<'ast> {
 
 /// The syntactic representation of a variable length slice like [`[T]`](prim@slice)
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SynSliceTy<'ast> {
     data: CommonSynTyData<'ast>,
     inner_ty: SynTyKind<'ast>,
@@ -129,7 +129,7 @@ impl<'ast> std::fmt::Debug for SemSliceTy<'ast> {
 /// The syntactic representation of an array with a known size like: [`[T; N]`](prim@array)
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SynArrayTy<'ast> {
     data: CommonSynTyData<'ast>,
     inner_ty: SynTyKind<'ast>,

@@ -24,7 +24,7 @@ use crate::private::Sealed;
 ///
 /// See: <https://doc.rust-lang.org/reference/items/generics.html>
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub enum GenericParamKind<'ast> {
     Ty(&'ast TyParam<'ast>),
@@ -70,7 +70,7 @@ pub trait GenericParamData<'ast>: Debug + Sealed {
 /// //        ^^^^^^^^^^^^^^^^^
 /// ```
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct TyParam<'ast> {
     _data: PhantomData<&'ast ()>,
     id: GenericId,
@@ -122,7 +122,7 @@ impl<'ast> From<&'ast TyParam<'ast>> for GenericParamKind<'ast> {
 /// //             ^^^^^^^^^^^^
 /// ```
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct LifetimeParam<'ast> {
     _data: PhantomData<&'ast ()>,
     id: GenericId,

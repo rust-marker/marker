@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use crate::{
     ast::{
         ty::{SemTyKind, SynTyKind},
-        GenericId, ItemId, Span, SpanId, SymbolId,
+        GenericId, ItemId, Span, SpanId, SymbolId, expr::ConstExpr,
     },
     context::with_cx,
     ffi::FfiOption,
@@ -28,7 +28,7 @@ use crate::{
 /// # }
 /// ```
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct Lifetime<'ast> {
     _lifetime: PhantomData<&'ast ()>,
     span: FfiOption<SpanId>,
@@ -36,7 +36,7 @@ pub struct Lifetime<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 #[allow(clippy::exhaustive_enums)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) enum LifetimeKind {
@@ -108,7 +108,7 @@ impl<'ast> Lifetime<'ast> {
 /// See [paths in expressions](https://doc.rust-lang.org/reference/paths.html#paths-in-expressions)
 /// for more information.
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct BindingGenericArg<'ast> {
     span: FfiOption<SpanId>,
     ident: SymbolId,
@@ -155,6 +155,43 @@ impl<'ast> BindingGenericArg<'ast> {
             ty,
         }
     }
+}
+
+/// A constant expression as an argument for a constant generic.
+///
+/// ```
+/// struct Vec<const N: usize> {
+///     data: [f32; N],
+/// }
+/// 
+/// // An integer literal as a const generic argument
+/// //               v
+/// fn vec3() -> Vec<3> {
+///     // [...]
+///     # todo!()
+/// }
+/// 
+/// // A const generic parameter as an const generic argument
+/// //                       v
+/// impl<const N: usize> Vec<N> {
+///     // ...
+/// }
+/// ```
+#[derive(Debug)]
+pub struct SynConstGenericArg<'ast> {
+    expr: ConstExpr<'ast>,
+}
+
+impl<'ast> SynConstGenericArg<'ast> {
+    /// The [`ConstExpr`] that is used as an argument.
+    pub fn expr(&self) -> &ConstExpr<'ast> {
+        &self.expr
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SynConstGenericArg<'ast> {
+    pub fn new(expr: ConstExpr<'ast>) -> Self { Self { expr } }
 }
 
 /// A semantic generic bound in the form `<identifier=type>`. For example,

@@ -9,7 +9,7 @@ use super::{CommonSynTyData, SemTyKind, SynTyKind};
 /// or [`&mut T`](prim@reference)
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SynRefTy<'ast> {
     data: CommonSynTyData<'ast>,
     lifetime: FfiOption<Lifetime<'ast>>,
@@ -85,7 +85,7 @@ impl<'ast> SemRefTy<'ast> {
 /// The syntactic representation of a raw pointer like [`*const T`](prim@pointer)
 /// or [`*mut T`](prim@pointer)
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SynRawPtrTy<'ast> {
     data: CommonSynTyData<'ast>,
     mutability: Mutability,
@@ -143,7 +143,7 @@ impl<'ast> SemRawPtrTy<'ast> {
 
 /// The semantic representation of a function pointer, like [`fn (T) -> U`](prim@fn)
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SynFnPtrTy<'ast> {
     data: CommonSynTyData<'ast>,
     callable_data: CommonCallableData<'ast>,

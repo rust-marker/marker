@@ -4,7 +4,7 @@ use super::CommonSynTyData;
 
 /// The syntactic representation of the [`bool`] type.
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SynBoolTy<'ast> {
     data: CommonSynTyData<'ast>,
 }
@@ -45,7 +45,7 @@ impl<'ast> std::fmt::Display for SemBoolTy<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SynNumTy<'ast> {
     data: CommonSynTyData<'ast>,
     numeric_kind: NumKind,
@@ -90,7 +90,7 @@ impl<'ast> std::fmt::Display for SynNumTy<'ast> {
 
 /// The semantic representation of a numeric type like [`u32`], [`i32`], [`f64`].
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SemNumTy<'ast> {
     _ast: PhantomData<&'ast ()>,
     numeric_kind: NumKind,
@@ -205,7 +205,7 @@ impl std::fmt::Display for NumKind {
 
 /// The syntactic representation of a textual type like [`char`] or [`str`].
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SynTextTy<'ast> {
     data: CommonSynTyData<'ast>,
     textual_kind: TextKind,
@@ -296,7 +296,6 @@ impl std::fmt::Display for TextKind {
 
 /// The syntactic representation of the never type [`!`](prim@never).
 #[repr(C)]
-#[derive(PartialEq, Eq, Hash)]
 pub struct SynNeverTy<'ast> {
     data: CommonSynTyData<'ast>,
 }

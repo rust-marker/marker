@@ -3,7 +3,7 @@ use crate::{ast::SymbolId, context::with_cx};
 use super::{CommonTyData, TyKind};
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct RelativeTy<'ast> {
     data: CommonTyData<'ast>,
     ty: TyKind<'ast>,

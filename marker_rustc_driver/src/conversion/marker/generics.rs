@@ -119,7 +119,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     .to_lifetime(rust_lt)
                     .map(|lifetime| GenericArgKind::Lifetime(self.alloc(lifetime))),
                 rustc_hir::GenericArg::Type(r_ty) => Some(GenericArgKind::Ty(self.alloc(self.to_ty(*r_ty)))),
-                rustc_hir::GenericArg::Const(_) => todo!(),
+                rustc_hir::GenericArg::Const(_) => todo!("{rustc_arg:#?}"),
                 rustc_hir::GenericArg::Infer(_) => todo!(),
             })
             .collect();

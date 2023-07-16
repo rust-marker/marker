@@ -7,7 +7,7 @@ use crate::context::with_cx;
 use super::Lifetime;
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub enum TyParamBound<'ast> {
     Lifetime(&'ast Lifetime<'ast>),
@@ -15,7 +15,7 @@ pub enum TyParamBound<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct TraitBound<'ast> {
     /// This is used for relaxed type bounds like `?Size`. This is probably not
     /// the best representation. Rustc uses a `TraitBoundModifier` enum which
