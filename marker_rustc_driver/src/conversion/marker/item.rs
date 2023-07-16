@@ -67,14 +67,19 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 self.to_ty(*rustc_ty),
                 Some(self.to_body_id(*rustc_body_id)),
             ))),
-            hir::ItemKind::Fn(fn_sig, generics, body_id) => ItemKind::Fn(self.alloc({
-                FnItem::new(
+            hir::ItemKind::Fn(fn_sig, generics, body_id) => {
+                #[cfg(debug_assertions)]
+                if rustc_item.ident.name.as_str() == "rustc_driver_please_ice_on_this" {
+                    panic!("this is your captain talking, we are about to ICE");
+                }
+
+                ItemKind::Fn(self.alloc(FnItem::new(
                     data,
                     self.to_generic_params(generics),
                     self.to_callable_data_from_fn_sig(fn_sig, false),
                     Some(self.to_body_id(*body_id)),
-                )
-            })),
+                )))
+            },
             hir::ItemKind::Mod(rustc_mod) => {
                 ItemKind::Mod(self.alloc(ModItem::new(data, self.to_items(rustc_mod.item_ids))))
             },

@@ -67,6 +67,8 @@ impl LintPass for TestLintPass {
             if let Some(ident) = item.ident() {
                 if ident.name() == "test_ty_id_resolution_trigger" {
                     test_ty_id_resolution(cx);
+                } else if ident.name() == "uilints_please_ice_on_this" {
+                    panic!("free ice cream for everyone!!!");
                 }
             }
         }
