@@ -2,8 +2,9 @@ use std::marker::PhantomData;
 
 use crate::{
     ast::{
+        expr::ConstExpr,
         ty::{SemTyKind, SynTyKind},
-        GenericId, ItemId, Span, SpanId, SymbolId,
+        ConstValue, GenericId, ItemId, Span, SpanId, SymbolId,
     },
     context::with_cx,
     ffi::FfiOption,
@@ -28,7 +29,7 @@ use crate::{
 /// # }
 /// ```
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct Lifetime<'ast> {
     _lifetime: PhantomData<&'ast ()>,
     span: FfiOption<SpanId>,
@@ -36,7 +37,7 @@ pub struct Lifetime<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 #[allow(clippy::exhaustive_enums)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) enum LifetimeKind {
@@ -108,7 +109,7 @@ impl<'ast> Lifetime<'ast> {
 /// See [paths in expressions](https://doc.rust-lang.org/reference/paths.html#paths-in-expressions)
 /// for more information.
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct BindingGenericArg<'ast> {
     span: FfiOption<SpanId>,
     ident: SymbolId,
@@ -157,6 +158,50 @@ impl<'ast> BindingGenericArg<'ast> {
     }
 }
 
+/// A constant expression as an argument for a constant generic.
+///
+/// ```
+/// struct Vec<const N: usize> {
+///     data: [f32; N],
+/// }
+///
+/// // An integer literal as a const generic argument
+/// //               v
+/// fn vec3() -> Vec<3> {
+///     // [...]
+///     # todo!()
+/// }
+///
+/// // A const generic parameter as an const generic argument
+/// //                       v
+/// impl<const N: usize> Vec<N> {
+///     // ...
+/// }
+/// ```
+#[derive(Debug)]
+pub struct SynConstGenericArg<'ast> {
+    span: SpanId,
+    expr: ConstExpr<'ast>,
+}
+
+impl<'ast> SynConstGenericArg<'ast> {
+    /// The [`ConstExpr`] that is used as an argument.
+    pub fn expr(&self) -> &ConstExpr<'ast> {
+        &self.expr
+    }
+
+    pub fn span(&self) -> &Span<'ast> {
+        with_cx(self, |cx| cx.span(self.span))
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SynConstGenericArg<'ast> {
+    pub fn new(span: SpanId, expr: ConstExpr<'ast>) -> Self {
+        Self { span, expr }
+    }
+}
+
 /// A semantic generic bound in the form `<identifier=type>`. For example,
 /// `Item=i32` would be the generic binding here:
 ///
@@ -194,5 +239,25 @@ impl<'ast> SemTyBindingArg<'ast> {
 impl<'ast> SemTyBindingArg<'ast> {
     pub fn new(binding_target: ItemId, ty: SemTyKind<'ast>) -> Self {
         Self { binding_target, ty }
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct SemConstArg<'ast> {
+    value: ConstValue<'ast>,
+}
+
+impl<'ast> SemConstArg<'ast> {
+    /// The value that is used as an argument.
+    pub fn value(&self) -> &ConstValue<'ast> {
+        &self.value
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> SemConstArg<'ast> {
+    pub fn new(value: ConstValue<'ast>) -> Self {
+        Self { value }
     }
 }

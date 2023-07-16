@@ -18,7 +18,7 @@ impl<'ast> SemUnstableTy<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SynInferredTy<'ast> {
     data: CommonSynTyData<'ast>,
 }

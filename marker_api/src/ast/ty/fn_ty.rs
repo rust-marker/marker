@@ -33,7 +33,7 @@ impl<'ast> SemFnTy<'ast> {
 /// The syntactic representation of a
 /// [closure type](https://doc.rust-lang.org/reference/types/closure.html).
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SynClosureTy<'ast> {
     data: CommonSynTyData<'ast>,
     callable_data: CommonCallableData<'ast>,

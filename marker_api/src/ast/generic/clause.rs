@@ -18,7 +18,7 @@ use super::{GenericParams, Lifetime, TyParamBound};
 /// {}
 /// ```
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub enum WhereClauseKind<'ast> {
     Lifetime(&'ast LifetimeClause<'ast>),
@@ -26,7 +26,7 @@ pub enum WhereClauseKind<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct LifetimeClause<'ast> {
     lifetime: Lifetime<'ast>,
     bounds: FfiSlice<'ast, Lifetime<'ast>>,
@@ -53,7 +53,7 @@ impl<'ast> LifetimeClause<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct TyClause<'ast> {
     params: FfiOption<GenericParams<'ast>>,
     ty: SynTyKind<'ast>,

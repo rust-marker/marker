@@ -1,6 +1,8 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
+use crate::ast::expr::ConstExpr;
+use crate::ast::ty::SynTyKind;
 use crate::ast::{GenericId, Span, SpanId, SymbolId};
 use crate::context::with_cx;
 use crate::ffi::FfiOption;
@@ -24,11 +26,12 @@ use crate::private::Sealed;
 ///
 /// See: <https://doc.rust-lang.org/reference/items/generics.html>
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub enum GenericParamKind<'ast> {
     Ty(&'ast TyParam<'ast>),
     Lifetime(&'ast LifetimeParam<'ast>),
+    Const(&'ast ConstParam<'ast>),
     // FIXME: Add const `ConstParam`
 }
 
@@ -39,6 +42,7 @@ impl<'ast> GenericParamKind<'ast> {
         match self {
             GenericParamKind::Lifetime(lt) => lt.span(),
             GenericParamKind::Ty(ty) => ty.span(),
+            GenericParamKind::Const(con) => con.span(),
         }
     }
 
@@ -46,6 +50,7 @@ impl<'ast> GenericParamKind<'ast> {
         match self {
             GenericParamKind::Ty(param) => param.id(),
             GenericParamKind::Lifetime(param) => param.id(),
+            GenericParamKind::Const(param) => param.id(),
         }
     }
 }
@@ -70,7 +75,7 @@ pub trait GenericParamData<'ast>: Debug + Sealed {
 /// //        ^^^^^^^^^^^^^^^^^
 /// ```
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct TyParam<'ast> {
     _data: PhantomData<&'ast ()>,
     id: GenericId,
@@ -122,7 +127,7 @@ impl<'ast> From<&'ast TyParam<'ast>> for GenericParamKind<'ast> {
 /// //             ^^^^^^^^^^^^
 /// ```
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct LifetimeParam<'ast> {
     _data: PhantomData<&'ast ()>,
     id: GenericId,
@@ -163,5 +168,66 @@ impl Sealed for LifetimeParam<'_> {}
 impl<'ast> From<&'ast LifetimeParam<'ast>> for GenericParamKind<'ast> {
     fn from(src: &'ast LifetimeParam<'ast>) -> Self {
         Self::Lifetime(src)
+    }
+}
+
+/// A constant parameter with an optional constant value, like this:
+///
+/// ```
+/// struct Matrix<const N: usize = 3> {}
+/// //            ^^^^^^^^^^^^^^^^^^
+/// ```
+#[repr(C)]
+#[derive(Debug)]
+pub struct ConstParam<'ast> {
+    id: GenericId,
+    name: SymbolId,
+    ty: SynTyKind<'ast>,
+    default: FfiOption<ConstExpr<'ast>>,
+    span: SpanId,
+}
+
+impl<'ast> ConstParam<'ast> {
+    pub fn id(&self) -> GenericId {
+        self.id
+    }
+
+    pub fn name(&self) -> &str {
+        with_cx(self, |cx| cx.symbol_str(self.name))
+    }
+
+    pub fn ty(&self) -> SynTyKind<'ast> {
+        self.ty
+    }
+
+    pub fn default(&self) -> Option<&ConstExpr<'ast>> {
+        self.default.get()
+    }
+}
+
+impl Sealed for ConstParam<'_> {}
+
+impl<'ast> GenericParamData<'ast> for ConstParam<'ast> {
+    fn span(&self) -> Option<&Span<'ast>> {
+        Some(with_cx(self, |cx| cx.span(self.span)))
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> ConstParam<'ast> {
+    pub fn new(
+        id: GenericId,
+        name: SymbolId,
+        ty: SynTyKind<'ast>,
+        default: Option<ConstExpr<'ast>>,
+        span: SpanId,
+    ) -> Self {
+        Self {
+            id,
+            name,
+            ty,
+            default: default.into(),
+            span,
+        }
     }
 }

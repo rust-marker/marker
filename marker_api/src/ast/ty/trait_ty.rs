@@ -6,7 +6,7 @@ use crate::{
 use super::CommonSynTyData;
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SynImplTraitTy<'ast> {
     data: CommonSynTyData<'ast>,
     trait_bound: FfiSlice<'ast, TyParamBound<'ast>>,
@@ -34,7 +34,7 @@ impl<'ast> SynImplTraitTy<'ast> {
 ///
 /// [trait object]: https://doc.rust-lang.org/reference/types/trait-object.html
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SynTraitObjTy<'ast> {
     data: CommonSynTyData<'ast>,
     trait_bound: FfiSlice<'ast, TyParamBound<'ast>>,

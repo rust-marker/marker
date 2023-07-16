@@ -123,19 +123,14 @@ Common options:
 
 Other options are the same as `cargo check`.
 
-To allow or deny a lint from the command line you can use `cargo marker --`
-with:
-
-    -W --warn OPT       Set lint warnings
-    -A --allow OPT      Set lint allowed
-    -D --deny OPT       Set lint denied
-    -F --forbid OPT     Set lint forbidden
+---
 
 This message belongs to a specific driver, if possible you should avoid
 interfacing with the driver directly and use `cargo marker` instead.
 "
     );
 }
+const BUG_REPORT_URL: &str = "https://github.com/rust-marker/marker/issues/new?template=panic.yml";
 
 fn main() {
     let handler = EarlyErrorHandler::new(ErrorOutputType::default());
@@ -145,6 +140,12 @@ fn main() {
     // ICEs have to be reported like in Clippy. For lint impl ICEs we should have
     // an extra ICE hook that identifies the lint impl and ideally continues with
     // other registered lints
+
+    rustc_driver::install_ice_hook(BUG_REPORT_URL, |handler| {
+        handler.note_without_error(format!("{}", rustc_tools_util::get_version_info!()));
+        handler.note_without_error("Achievement Unlocked: [Free Ice Cream]");
+    });
+
     exit(rustc_driver::catch_with_exit_code(|| {
         let mut orig_args: Vec<String> = env::args().collect();
 

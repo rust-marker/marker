@@ -1,7 +1,7 @@
 use marker_api::ast::{
     expr::{
         ArrayExpr, AsExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr, CallExpr,
-        CaptureKind, CharLitExpr, ClosureExpr, CommonExprData, ContinueExpr, CtorExpr, CtorField, ExprKind,
+        CaptureKind, CharLitExpr, ClosureExpr, CommonExprData, ConstExpr, ContinueExpr, CtorExpr, CtorField, ExprKind,
         ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr, IndexExpr, IntLitExpr, IntSuffix,
         LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, QuestionMarkExpr, RangeExpr, RefExpr, ReturnExpr,
         StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr, WhileExpr,
@@ -574,5 +574,23 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         unreachable!("for loop desugar always has the same structure")
+    }
+
+    pub fn to_const_expr(&self, anon: hir::AnonConst) -> ConstExpr<'ast> {
+        let body = self.rustc_cx.hir().body(anon.body);
+
+        // The stack push and pop should be identical with the `item::to_body` function.
+
+        // Body-Translation-Stack push
+        let prev_rustc_body_id = self.rustc_body.replace(Some(body.id()));
+        let prev_rustc_ty_check = self.rustc_ty_check.take();
+        self.fill_rustc_ty_check();
+
+        let expr = ConstExpr::new(self.to_expr(body.value));
+
+        // Body-Translation-Stack pop
+        self.rustc_body.replace(prev_rustc_body_id);
+        self.rustc_ty_check.replace(prev_rustc_ty_check);
+        expr
     }
 }

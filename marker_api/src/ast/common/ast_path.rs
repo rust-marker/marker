@@ -56,7 +56,7 @@ use crate::{
 /// Alternatively, the [`AstPath`] representation can be accessed via
 /// [`as_path_lossy()`](AstQPath::as_path_lossy) or the [`TryInto`] implementation.
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct AstQPath<'ast> {
     self_ty: FfiOption<SynTyKind<'ast>>,
     path_ty: FfiOption<SynTyKind<'ast>>,
@@ -202,7 +202,7 @@ impl<'ast> AstQPath<'ast> {
 
 #[repr(C)]
 #[non_exhaustive]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone)]
 pub enum AstPathTarget {
     /// The `Self` type, the [`ItemId`] points to the item,
     /// that the `Self` originates from. This will usually be an
@@ -226,7 +226,7 @@ pub enum AstPathTarget {
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct AstPath<'ast> {
     // FIXME: Add optional target ID for values, lifetimes, etc that is faster to compare
     segments: FfiSlice<'ast, AstPathSegment<'ast>>,
@@ -261,7 +261,7 @@ impl<'ast> AstPath<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 #[cfg_attr(feature = "driver-api", derive(Clone))]
 pub struct AstPathSegment<'ast> {
     ident: Ident<'ast>,

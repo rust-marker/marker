@@ -67,14 +67,20 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 self.to_ty(*rustc_ty),
                 Some(self.to_body_id(*rustc_body_id)),
             ))),
-            hir::ItemKind::Fn(fn_sig, generics, body_id) => ItemKind::Fn(self.alloc({
-                FnItem::new(
+            hir::ItemKind::Fn(fn_sig, generics, body_id) => {
+                #[cfg(debug_assertions)]
+                #[allow(clippy::manual_assert)]
+                if rustc_item.ident.name.as_str() == "rustc_driver_please_ice_on_this" {
+                    panic!("this is your captain talking, we are about to ICE");
+                }
+
+                ItemKind::Fn(self.alloc(FnItem::new(
                     data,
                     self.to_generic_params(generics),
                     self.to_callable_data_from_fn_sig(fn_sig, false),
                     Some(self.to_body_id(*body_id)),
-                )
-            })),
+                )))
+            },
             hir::ItemKind::Mod(rustc_mod) => {
                 ItemKind::Mod(self.alloc(ModItem::new(data, self.to_items(rustc_mod.item_ids))))
             },
@@ -359,15 +365,21 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         // Check for an async body
         if let Some(src) = body.generator_kind {
             match src {
-                hir::GeneratorKind::Async(_) => self
-                    .rustc_cx
-                    .sess
-                    .struct_span_warn(
-                        body.value.span,
-                        "async blocks and await expressions are currently not supported",
-                    )
-                    .note("see rust-marker/marker#174")
-                    .emit(),
+                hir::GeneratorKind::Async(_) => {
+                    if std::env::var("MARKER_DISABLE_ASYNC_WARNING").is_err() {
+                        self.rustc_cx
+                            .sess
+                            .struct_span_warn(
+                                body.value.span,
+                                "async blocks and await expressions are currently not supported",
+                            )
+                            .note("see rust-marker/marker#174")
+                            .note_once(
+                                "set the `MARKER_DISABLE_ASYNC_WARNING` environment value to disable this warning",
+                            )
+                            .emit();
+                    }
+                },
                 hir::GeneratorKind::Gen => {
                     // Yield expressions are currently unstable anyways, so no need for a message
                 },
@@ -380,6 +392,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 ))),
             ));
         }
+
+        // The stack push and pop should be identical with the `expr::to_const_expr` function.
 
         // Body-Translation-Stack push
         let prev_rustc_body_id = self.rustc_body.replace(Some(body.id()));

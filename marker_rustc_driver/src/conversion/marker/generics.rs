@@ -1,10 +1,10 @@
 use marker_api::ast::{
     generic::{
-        BindingGenericArg, GenericArgKind, GenericArgs, GenericParamKind, GenericParams, Lifetime, LifetimeClause,
-        LifetimeKind, LifetimeParam, SemGenericArgKind, SemGenericArgs, SemTraitBound, SemTyBindingArg, TraitBound,
-        TyClause, TyParam, TyParamBound, WhereClauseKind,
+        BindingGenericArg, ConstParam, GenericArgKind, GenericArgs, GenericParamKind, GenericParams, Lifetime,
+        LifetimeClause, LifetimeKind, LifetimeParam, SemConstArg, SemGenericArgKind, SemGenericArgs, SemTraitBound,
+        SemTyBindingArg, SynConstGenericArg, TraitBound, TyClause, TyParam, TyParamBound, WhereClauseKind,
     },
-    TraitRef,
+    ConstValue, TraitRef,
 };
 use rustc_hir as hir;
 use rustc_middle as mid;
@@ -27,7 +27,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         match &arg.unpack() {
             mid::ty::GenericArgKind::Lifetime(_) => None,
             mid::ty::GenericArgKind::Type(ty) => Some(SemGenericArgKind::Ty(self.to_sem_ty(*ty))),
-            mid::ty::GenericArgKind::Const(_) => todo!(),
+            mid::ty::GenericArgKind::Const(_) => Some(SemGenericArgKind::Const(
+                self.alloc(SemConstArg::new(ConstValue::new())),
+            )),
         }
     }
 
@@ -119,7 +121,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     .to_lifetime(rust_lt)
                     .map(|lifetime| GenericArgKind::Lifetime(self.alloc(lifetime))),
                 rustc_hir::GenericArg::Type(r_ty) => Some(GenericArgKind::Ty(self.alloc(self.to_ty(*r_ty)))),
-                rustc_hir::GenericArg::Const(_) => todo!(),
+                rustc_hir::GenericArg::Const(arg) => Some(GenericArgKind::Const(self.alloc(SynConstGenericArg::new(
+                    self.to_span_id(arg.span),
+                    self.to_const_expr(arg.value),
+                )))),
                 rustc_hir::GenericArg::Infer(_) => todo!(),
             })
             .collect();
@@ -210,6 +215,15 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     )))),
                     hir::GenericParamKind::Type { synthetic: false, .. } => {
                         Some(GenericParamKind::Ty(self.alloc(TyParam::new(Some(span), name, id))))
+                    },
+                    hir::GenericParamKind::Const { ty, default } => {
+                        Some(GenericParamKind::Const(self.alloc(ConstParam::new(
+                            id,
+                            name,
+                            self.to_ty(ty),
+                            default.map(|anon| self.to_const_expr(anon)),
+                            span,
+                        ))))
                     },
                     _ => None,
                 }

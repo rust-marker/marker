@@ -38,7 +38,7 @@ pub trait SynTyData<'ast>: Debug + Sealed {
 
 #[repr(C)]
 #[non_exhaustive]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone)]
 pub enum SynTyKind<'ast> {
     // ================================
     // Primitive types
@@ -169,7 +169,7 @@ macro_rules! impl_syn_ty_data_fn {
 use impl_syn_ty_data_fn;
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) struct CommonSynTyData<'ast> {
     _lifetime: PhantomData<&'ast ()>,

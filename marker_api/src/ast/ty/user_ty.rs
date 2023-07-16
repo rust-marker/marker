@@ -14,7 +14,7 @@ use super::CommonSynTyData;
 /// * User defined types like [Structs](https://doc.rust-lang.org/reference/types/struct.html), [Enums](https://doc.rust-lang.org/reference/types/enum.html)
 ///   and [Unions](https://doc.rust-lang.org/reference/types/union.html)
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct SynPathTy<'ast> {
     data: CommonSynTyData<'ast>,
     path: AstQPath<'ast>,

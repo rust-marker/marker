@@ -128,7 +128,7 @@ impl<'ast> PatData<'ast> for ExprKind<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 struct CommonPatData<'ast> {
     /// The lifetime is not needed right now, but it's safer to include it for

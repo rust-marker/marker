@@ -129,12 +129,26 @@ impl<T> From<Option<T>> for FfiOption<T> {
 }
 
 #[repr(C)]
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct FfiSlice<'a, T> {
     _lifetime: PhantomData<&'a ()>,
     /// Not really *const, but it should have the lifetime of at least `'a`
     data: *const T,
     len: usize,
+}
+
+impl<'a, T: Eq> Eq for FfiSlice<'a, T> {}
+
+impl<'a, T: PartialEq> PartialEq for FfiSlice<'a, T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.get().eq(other.get())
+    }
+}
+
+impl<'a, T: std::hash::Hash> std::hash::Hash for FfiSlice<'a, T> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.get().hash(state);
+    }
 }
 
 impl<'a, T> FfiSlice<'a, T> {

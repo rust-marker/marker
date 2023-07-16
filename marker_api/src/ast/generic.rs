@@ -32,7 +32,7 @@ pub use clause::*;
 /// See:
 /// * [`GenericParams`]
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 #[cfg_attr(feature = "driver-api", derive(Clone))]
 pub struct GenericArgs<'ast> {
     args: FfiSlice<'ast, GenericArgKind<'ast>>,
@@ -60,7 +60,7 @@ impl<'ast> GenericArgs<'ast> {
 /// See: <https://doc.rust-lang.org/stable/reference/paths.html>
 #[repr(C)]
 #[non_exhaustive]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 #[cfg_attr(feature = "driver-api", derive(Clone))]
 pub enum GenericArgKind<'ast> {
     /// A lifetime as a generic argument, like this:
@@ -78,7 +78,7 @@ pub enum GenericArgKind<'ast> {
     /// A type as a generic argument, like this:
     ///
     /// ```
-    /// let _bar: Vec<String> = vec!();
+    /// let _bar: Vec<String> = vec![];
     /// //            ^^^^^^
     /// ```
     Ty(&'ast SynTyKind<'ast>),
@@ -89,7 +89,17 @@ pub enum GenericArgKind<'ast> {
     /// //                      ^^^^^^^^^^^
     /// ```
     Binding(&'ast BindingGenericArg<'ast>),
-    // FIXME: Add GenericArgsConst
+    /// A constant expression as a generic argument, like this:
+    ///
+    /// ```ignore
+    /// # struct Vec<const N: usize> {
+    /// #     data: [f32; N],
+    /// # }
+    /// #
+    /// let _bat: Vec<3> = todo!();
+    /// //            ^
+    /// ```
+    Const(&'ast SynConstGenericArg<'ast>),
 }
 
 /// This represents the semantic generic arguments for a type.
@@ -156,7 +166,17 @@ pub enum SemGenericArgKind<'ast> {
     /// //                      ^^^^^^^^^^^
     /// ```
     TyBinding(&'ast SemTyBindingArg<'ast>),
-    // FIXME: Add GenericArgsConst
+    /// A constant expression as a generic argument, like this:
+    ///
+    /// ```ignore
+    /// # struct Vec<const N: usize> {
+    /// #     data: [f32; N],
+    /// # }
+    /// #
+    /// let _bat: Vec<3> = todo!();
+    /// //            ^
+    /// ```
+    Const(&'ast SemConstArg<'ast>),
 }
 
 /// This represents the generic parameters of a generic item. The bounds applied
@@ -179,7 +199,7 @@ pub enum SemGenericArgKind<'ast> {
 /// See
 /// * [`GenericArgs`]
 #[repr(C)]
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub struct GenericParams<'ast> {
     params: FfiSlice<'ast, GenericParamKind<'ast>>,
     clauses: FfiSlice<'ast, WhereClauseKind<'ast>>,

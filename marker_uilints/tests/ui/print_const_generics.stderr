@@ -1,0 +1,211 @@
+warning: printing item
+ --> $DIR/print_const_generics.rs:2:1
+  |
+2 | / struct PrintMeConstGenerics<const N: usize> {
+3 | |     data: [f32; N],
+4 | | }
+  | |_^
+  |
+  = note: Struct(
+              StructItem {
+                  data: CommonItemData {
+                      id: ItemId(..),
+                      vis: Visibility {
+                          _lifetime: PhantomData<&()>,
+                          _item_id: ItemId(..),
+                      },
+                      ident: Ident {
+                          name: "PrintMeConstGenerics",
+                          span: Span {
+                              source: File(
+                                  "$DIR/print_const_generics.rs",
+                              ),
+                              start: 8,
+                              end: 28,
+                          },
+                      },
+                  },
+                  generics: GenericParams {
+                      params: [
+                          Const(
+                              ConstParam {
+                                  id: GenericId(..),
+                                  name: SymbolId(..),
+                                  ty: Num(
+                                      SynNumTy {
+                                          data: CommonSynTyData {
+                                              _lifetime: PhantomData<&()>,
+                                              span: SpanId(..),
+                                          },
+                                          numeric_kind: Usize,
+                                      },
+                                  ),
+                                  default: None,
+                                  span: SpanId(..),
+                              },
+                          ),
+                      ],
+                      clauses: [],
+                  },
+                  kind: Field(
+                      [
+                          Field {
+                              id: FieldId(..),
+                              vis: Visibility {
+                                  _lifetime: PhantomData<&()>,
+                                  _item_id: ItemId(..),
+                              },
+                              ident: SymbolId(..),
+                              ty: Array(
+                                  SynArrayTy {
+                                      data: CommonSynTyData {
+                                          _lifetime: PhantomData<&()>,
+                                          span: SpanId(..),
+                                      },
+                                      inner_ty: Num(
+                                          SynNumTy {
+                                              data: CommonSynTyData {
+                                                  _lifetime: PhantomData<&()>,
+                                                  span: SpanId(..),
+                                              },
+                                              numeric_kind: F32,
+                                          },
+                                      ),
+                                  },
+                              ),
+                              span: SpanId(..),
+                          },
+                      ],
+                  ),
+              },
+          )
+  = note: `#[warn(marker::test_lint)]` on by default
+
+warning: printing item
+ --> $DIR/print_const_generics.rs:6:1
+  |
+6 | / fn print_me() -> PrintMeConstGenerics<3> {
+7 | |     todo!()
+8 | | }
+  | |_^
+  |
+  = note: Fn(
+              FnItem {
+                  data: CommonItemData {
+                      id: ItemId(..),
+                      vis: Visibility {
+                          _lifetime: PhantomData<&()>,
+                          _item_id: ItemId(..),
+                      },
+                      ident: Ident {
+                          name: "print_me",
+                          span: Span {
+                              source: File(
+                                  "$DIR/print_const_generics.rs",
+                              ),
+                              start: 73,
+                              end: 81,
+                          },
+                      },
+                  },
+                  generics: GenericParams {
+                      params: [],
+                      clauses: [],
+                  },
+                  callable_data: CommonCallableData {
+                      constness: NotConst,
+                      syncness: Sync,
+                      safety: Safe,
+                      is_extern: false,
+                      abi: Default,
+                      has_self: false,
+                      params: [],
+                      return_ty: Some(
+                          Path(
+                              SynPathTy {
+                                  data: CommonSynTyData {
+                                      _lifetime: PhantomData<&()>,
+                                      span: SpanId(..),
+                                  },
+                                  path: AstQPath {
+                                      self_ty: None,
+                                      path_ty: None,
+                                      path: AstPath {
+                                          segments: [
+                                              AstPathSegment {
+                                                  ident: Ident {
+                                                      name: "PrintMeConstGenerics",
+                                                      span: Span {
+                                                          source: File(
+                                                              "$DIR/print_const_generics.rs",
+                                                          ),
+                                                          start: 87,
+                                                          end: 107,
+                                                      },
+                                                  },
+                                                  generics: GenericArgs {
+                                                      args: [
+                                                          Const(
+                                                              SynConstGenericArg {
+                                                                  span: SpanId(..),
+                                                                  expr: ConstExpr {
+                                                                      expr: IntLit(
+                                                                          IntLitExpr {
+                                                                              data: CommonExprData {
+                                                                                  _lifetime: PhantomData<&()>,
+                                                                                  id: ExprId(..),
+                                                                                  span: SpanId(..),
+                                                                              },
+                                                                              value: 3,
+                                                                              suffix: None,
+                                                                          },
+                                                                      ),
+                                                                  },
+                                                              },
+                                                          ),
+                                                      ],
+                                                  },
+                                              },
+                                          ],
+                                      },
+                                      target: Item(
+                                          ItemId(..),
+                                      ),
+                                  },
+                              },
+                          ),
+                      ),
+                  },
+                  body_id: Some(
+                      BodyId(..),
+                  ),
+              },
+          )
+
+warning: print type test
+  --> $DIR/print_const_generics.rs:13:5
+   |
+13 | /     let _ty: PrintMeConstGenerics<3> = PrintMeConstGenerics {
+14 | |         data: [1.0, 1.5, 2.0],
+15 | |     };
+   | |______^
+   |
+   = note: Adt(
+               SemAdtTy {
+                   def_id: TyDefId(..),
+                   generics: SemGenericArgs {
+                       args: [
+                           Const(
+                               SemConstArg {
+                                   value: ConstValue {
+                                       _lifetime: PhantomData<&()>,
+                                   },
+                               },
+                           ),
+                       ],
+                   },
+               },
+           )
+
+warning: 3 warnings emitted
+

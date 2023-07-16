@@ -67,6 +67,8 @@ impl LintPass for TestLintPass {
             if let Some(ident) = item.ident() {
                 if ident.name() == "test_ty_id_resolution_trigger" {
                     test_ty_id_resolution(cx);
+                } else if ident.name() == "uilints_please_ice_on_this" {
+                    panic!("free ice cream for everyone!!!");
                 }
             }
         }
@@ -95,6 +97,15 @@ impl LintPass for TestLintPass {
             if let Some(msg) = msg {
                 emit_item_with_test_name_lint(cx, item.id(), format!("a `{msg}` item"), item.span());
             }
+        }
+
+        if matches!(
+            item.ident().map(marker_api::ast::Ident::name),
+            Some(name) if name.starts_with("PrintMe") || name.starts_with("PRINT_ME") || name.starts_with("print_me")
+        ) {
+            cx.emit_lint(TEST_LINT, item.id(), "printing item", item.span(), |diag| {
+                diag.note(format!("{item:#?}"));
+            });
         }
     }
 
