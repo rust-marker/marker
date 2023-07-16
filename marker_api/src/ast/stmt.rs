@@ -29,6 +29,13 @@ impl<'ast> StmtKind<'ast> {
             StmtKind::Expr(node) => node.span(),
         }
     }
+
+    /// Returns the attributes attached to this statement.
+    ///
+    /// Currently, it's only a placeholder until a proper representation is implemented.
+    /// rust-marker/marker#51 tracks the task of implementing this. You're welcome to
+    /// leave any comments in that issue.
+    pub fn attrs(&self) {}
 }
 
 #[repr(C)]
