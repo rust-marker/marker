@@ -91,7 +91,7 @@ pub enum GenericArgKind<'ast> {
     Binding(&'ast BindingGenericArg<'ast>),
     /// A constant expression as a generic argument, like this:
     ///
-    /// ```
+    /// ```ignore
     /// # struct Vec<const N: usize> {
     /// #     data: [f32; N],
     /// # }
@@ -168,7 +168,7 @@ pub enum SemGenericArgKind<'ast> {
     TyBinding(&'ast SemTyBindingArg<'ast>),
     /// A constant expression as a generic argument, like this:
     ///
-    /// ```
+    /// ```ignore
     /// # struct Vec<const N: usize> {
     /// #     data: [f32; N],
     /// # }

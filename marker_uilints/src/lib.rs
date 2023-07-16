@@ -105,7 +105,7 @@ impl LintPass for TestLintPass {
         ) {
             cx.emit_lint(TEST_LINT, item.id(), "printing item", item.span(), |diag| {
                 diag.note(format!("{item:#?}"));
-            })
+            });
         }
     }
 

@@ -9,6 +9,7 @@ warning: async blocks and await expressions are currently not supported
   | |_^
   |
   = note: see rust-marker/marker#174
+  = note: set the `MARKER_DISABLE_ASYNC_WARNING` environment value to disable this warning
 
 warning: 1 warning emitted
 
