@@ -31,7 +31,7 @@ And more to come, see Marker's goals and limitations below.
 
 <!-- FIXME(xFrednet): Update the link to link to `crates.io` once the first version was released-->
 [cargo_marker]: https://github.com/rust-marker/marker/tree/master/cargo-marker
-[rustc]: https://github.com/rust-lang/rustc/
+[rustc]: https://github.com/rust-lang/rust/
 
 ## Usage
 
@@ -117,10 +117,10 @@ The used nightly version will be updated every 6 weeks, when a new version of Ru
 
 Contributions are highly appreciated! If you encounter any issues or have suggestions for improvements, please don't hesitate to [open an issue]. If you have an idea for a lint you want to implement with Marker, please share it by creating a [user story].
 
-Still reading? Interested in helping out? Wonderful! Check out Marker's [open issues] or reach out to @xFrednet via E-Mail or on [Zulip]
+Still reading? Interested in helping out? Wonderful! Check out Marker's [open issues] or reach out to me on Discord or [Zulip] @xFrednet.
 
 [open an issue]: https://github.com/rust-marker/marker/issues/new
-[user story]: https://github.com/rust-marker/design/issues/new?assignees=&labels=A-user-story&template=user-story.md&title=
+[user story]: https://github.com/rust-marker/design/issues/new?template=user-story.md
 [open issues]: https://github.com/rust-marker/marker/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc
 [Zulip]: https://rust-lang.zulipchat.com/
 

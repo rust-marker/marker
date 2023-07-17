@@ -1,34 +1,32 @@
-# Marker Utils
+# Marker Lints
 
-[![Crates.io](https://img.shields.io/crates/v/marker_utils.svg)](https://crates.io/crates/marker_utils)
-
+[![Crates.io](https://img.shields.io/crates/v/marker_lints.svg)](https://crates.io/crates/marker_lints)
 <!--
 FIXME(xFrednet): Add license shield, once crates.io also says:
-[![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/marker_utils.svg)](#license)
+[![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/marker_lints.svg)](#license)
 -->
 
-Marker utils aims to be the standard library for the development of lint crates for [Marker], an experimental linting interface for Rust. This crate contains all additional functionality needed to work swiftly with the [marker_api] crate
+A collection of lints for the development of lint crates with the [marker_api] and [marker_utils] crates.
 
 > **Note**
 >
-> Marker is in the early stages of development, this crate is very limited, some things are still missing and the API is still unstable.
+> Marker is in the early stages of development, some things are still missing and the API is still unstable.
 >
 > A list of limitations and planned features can be found in [Marker's Readme].
 
 [Marker]: https://github.com/rust-marker/marker
 [Marker's Readme]: https://github.com/rust-marker/marker/blob/master/README.md
 [marker_api]: https://crates.io/crates/marker_api
+[marker_utils]: https://crates.io/crates/marker_utils
+
+## Lints:
+
+This crate currently provides the following lints:
+* `marker::diag_msg_uppercase_start`
 
 ## Usage
 
-To get started, just include *marker_utils* as a dependency:
-
-```toml
-[dependencies]
-marker_api = "<version>"
-```
-
-You can also add [marker_lints] as a lint crate, designed for this crate:
+To use `marker_lints` in your project, simply add it to your `Cargo.toml` under the `[workspace.metadata.marker.lints]` section. [cargo_marker] will then automatically fetch the crate and include is when running `cargo marker`.
 
 ```toml
 [workspace.metadata.marker.lints]
@@ -39,8 +37,6 @@ If you want to develop something with Marker, you might want to check out the [l
 
 [cargo_marker]: https://github.com/rust-marker/marker/tree/master/cargo-marker
 [lint crate template]: https://github.com/rust-marker/lint-crate-template
-[marker_api]: https://crates.io/crates/marker_api
-[marker_lints]: https://crates.io/crates/marker_lints
 
 ## Contributing
 
