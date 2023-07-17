@@ -1,4 +1,7 @@
-use marker_api::ast::stmt::{LetStmt, StmtKind};
+use marker_api::{
+    ast::stmt::{LetStmt, StmtKind},
+    CtorBlocker,
+};
 use rustc_hir as hir;
 
 use super::MarkerConverterInner;
@@ -16,15 +19,19 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     local.els.map(|els| self.to_expr_from_block(els)),
                 )))),
                 hir::LocalSource::AssignDesugar(_) => {
-                    unreachable!("this will be handled by the block expr wrapping wrapping the desugar")
+                    unreachable!("this will be handled by the block expr wrapping the desugar")
                 },
                 hir::LocalSource::AsyncFn | hir::LocalSource::AwaitDesugar => {
                     eprintln!("skipping not implemented statement at: {:?}", stmt.span);
                     None
                 },
             },
-            hir::StmtKind::Item(item) => self.to_item_from_id(*item).map(StmtKind::Item),
-            hir::StmtKind::Expr(expr) | hir::StmtKind::Semi(expr) => Some(StmtKind::Expr(self.to_expr(expr))),
+            hir::StmtKind::Item(item) => self
+                .to_item_from_id(*item)
+                .map(|item| StmtKind::Item(self.alloc(item), CtorBlocker::new())),
+            hir::StmtKind::Expr(expr) | hir::StmtKind::Semi(expr) => {
+                Some(StmtKind::Expr(self.alloc(self.to_expr(expr)), CtorBlocker::new()))
+            },
         }
     }
 }

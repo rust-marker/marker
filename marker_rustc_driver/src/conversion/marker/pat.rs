@@ -1,9 +1,12 @@
-use marker_api::ast::{
-    expr::ExprKind,
-    pat::{
-        CommonPatData, IdentPat, OrPat, PatKind, PathPat, RangePat, RefPat, RestPat, SlicePat, StructFieldPat,
-        StructPat, TuplePat, UnstablePat, WildcardPat,
+use marker_api::{
+    ast::{
+        expr::ExprKind,
+        pat::{
+            CommonPatData, IdentPat, OrPat, PatKind, PathPat, RangePat, RefPat, RestPat, SlicePat, StructFieldPat,
+            StructPat, TuplePat, UnstablePat, WildcardPat,
+        },
     },
+    CtorBlocker,
 };
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
@@ -38,7 +41,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 let lhs = lhs_map.get(id);
                 #[allow(clippy::unnecessary_unwrap, reason = "if let sadly breaks rustfmt")]
                 if pat.is_none() && matches!(mutab, rustc_ast::Mutability::Not) && lhs.is_some() {
-                    PatKind::Place(*lhs.unwrap())
+                    PatKind::Place(*lhs.unwrap(), CtorBlocker::new())
                 } else {
                     PatKind::Ident(self.alloc({
                         IdentPat::new(
@@ -124,7 +127,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 let lit_expr = expr
                     .try_into()
                     .unwrap_or_else(|_| panic!("this should be a literal expression {lit:#?}"));
-                PatKind::Lit(lit_expr)
+                PatKind::Lit(lit_expr, CtorBlocker::new())
             },
             hir::PatKind::Range(start, end, kind) => PatKind::Range(self.alloc(RangePat::new(
                 data,

@@ -1,4 +1,4 @@
-thread 'rustc' panicked at 'this is your captain talking, we are about to ICE', marker_rustc_driver/src/conversion/marker/item.rs:74:21
+thread 'rustc' panicked at 'this is your captain talking, we are about to ICE', marker_rustc_driver/src/conversion/marker/item.rs
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 
 error: the compiler unexpectedly panicked. this is a bug.

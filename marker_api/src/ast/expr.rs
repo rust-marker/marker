@@ -1,4 +1,4 @@
-use crate::private::Sealed;
+use crate::{private::Sealed, CtorBlocker};
 
 use super::{ty::SemTyKind, ExprId, Span, SpanId};
 
@@ -106,11 +106,7 @@ pub enum LitExprKind<'ast> {
     /// Rust represents negative numbers as positive literals with a unary
     /// negation operator in front. This unary expression should therefore
     /// be seen as a part of a literal, that it wraps.
-    ///
-    /// This variant is marked as `non_exhaustive` to ensure that it can only
-    /// be constructed by calling `try_into()` on a valid `ExprKind` instance.
-    #[non_exhaustive]
-    UnaryOp(&'ast UnaryOpExpr<'ast>),
+    UnaryOp(&'ast UnaryOpExpr<'ast>, CtorBlocker),
 }
 
 impl<'ast> LitExprKind<'ast> {
@@ -128,7 +124,7 @@ impl<'ast> From<LitExprKind<'ast>> for ExprKind<'ast> {
             LitExprKind::Str(expr) => ExprKind::StrLit(expr),
             LitExprKind::Char(expr) => ExprKind::CharLit(expr),
             LitExprKind::Bool(expr) => ExprKind::BoolLit(expr),
-            LitExprKind::UnaryOp(expr) => ExprKind::UnaryOp(expr),
+            LitExprKind::UnaryOp(expr, ..) => ExprKind::UnaryOp(expr),
         }
     }
 }
@@ -146,7 +142,7 @@ impl<'ast> TryFrom<ExprKind<'ast>> for LitExprKind<'ast> {
             ExprKind::UnaryOp(expr) => {
                 // Only accept this conversion if this operation negates a literal.
                 if expr.kind() == UnaryOpKind::Neg && TryInto::<LitExprKind<'_>>::try_into(expr.expr()).is_ok() {
-                    Ok(LitExprKind::UnaryOp(expr))
+                    Ok(LitExprKind::UnaryOp(expr, CtorBlocker::new()))
                 } else {
                     Err(())
                 }
@@ -267,7 +263,7 @@ macro_rules! impl_expr_kind_fn {
     (($self:ident) $method:ident () -> $return_ty:ty $(, $kind:ident)+) => {
         pub fn $method(&self) -> $return_ty {
             match self {
-                $($self::$kind(data) => data.$method(),)*
+                $($self::$kind(data, ..) => data.$method(),)*
             }
         }
     };
@@ -363,5 +359,49 @@ impl<'ast> ConstExpr<'ast> {
 impl<'ast> ConstExpr<'ast> {
     pub fn new(expr: ExprKind<'ast>) -> Self {
         Self { expr }
+    }
+}
+
+#[cfg(all(test, target_arch = "x86_64", target_pointer_width = "64"))]
+mod test {
+    use super::*;
+    use std::mem::size_of;
+
+    #[test]
+    fn test_expr_struct_size() {
+        // These sizes are allowed to change, this is just a check to have a
+        // general overview and to prevent accidental changes
+        assert_eq!(40, size_of::<IntLitExpr<'_>>(), "IntLitExpr<'_>");
+        assert_eq!(32, size_of::<FloatLitExpr<'_>>(), "FloatLitExpr<'_>");
+        assert_eq!(48, size_of::<StrLitExpr<'_>>(), "StrLitExpr<'_>");
+        assert_eq!(24, size_of::<CharLitExpr<'_>>(), "CharLitExpr<'_>");
+        assert_eq!(24, size_of::<BoolLitExpr<'_>>(), "BoolLitExpr<'_>");
+        assert_eq!(88, size_of::<BlockExpr<'_>>(), "BlockExpr<'_>");
+        assert_eq!(88, size_of::<ClosureExpr<'_>>(), "ClosureExpr<'_>");
+        assert_eq!(40, size_of::<UnaryOpExpr<'_>>(), "UnaryOpExpr<'_>");
+        assert_eq!(40, size_of::<RefExpr<'_>>(), "RefExpr<'_>");
+        assert_eq!(56, size_of::<BinaryOpExpr<'_>>(), "BinaryOpExpr<'_>");
+        assert_eq!(32, size_of::<QuestionMarkExpr<'_>>(), "QuestionMarkExpr<'_>");
+        assert_eq!(80, size_of::<AssignExpr<'_>>(), "AssignExpr<'_>");
+        assert_eq!(48, size_of::<AsExpr<'_>>(), "AsExpr<'_>");
+        assert_eq!(96, size_of::<PathExpr<'_>>(), "PathExpr<'_>");
+        assert_eq!(48, size_of::<CallExpr<'_>>(), "CallExpr<'_>");
+        assert_eq!(80, size_of::<MethodExpr<'_>>(), "MethodExpr<'_>");
+        assert_eq!(56, size_of::<ArrayExpr<'_>>(), "ArrayExpr<'_>");
+        assert_eq!(32, size_of::<TupleExpr<'_>>(), "TupleExpr<'_>");
+        assert_eq!(136, size_of::<CtorExpr<'_>>(), "CtorExpr<'_>");
+        assert_eq!(72, size_of::<RangeExpr<'_>>(), "RangeExpr<'_>");
+        assert_eq!(48, size_of::<IndexExpr<'_>>(), "IndexExpr<'_>");
+        assert_eq!(48, size_of::<FieldExpr<'_>>(), "FieldExpr<'_>");
+        assert_eq!(72, size_of::<IfExpr<'_>>(), "IfExpr<'_>");
+        assert_eq!(72, size_of::<LetExpr<'_>>(), "LetExpr<'_>");
+        assert_eq!(48, size_of::<MatchExpr<'_>>(), "MatchExpr<'_>");
+        assert_eq!(72, size_of::<BreakExpr<'_>>(), "BreakExpr<'_>");
+        assert_eq!(40, size_of::<ReturnExpr<'_>>(), "ReturnExpr<'_>");
+        assert_eq!(48, size_of::<ContinueExpr<'_>>(), "ContinueExpr<'_>");
+        assert_eq!(112, size_of::<ForExpr<'_>>(), "ForExpr<'_>");
+        assert_eq!(56, size_of::<LoopExpr<'_>>(), "LoopExpr<'_>");
+        assert_eq!(72, size_of::<WhileExpr<'_>>(), "WhileExpr<'_>");
+        assert_eq!(24, size_of::<UnstableExpr<'_>>(), "UnstableExpr<'_>");
     }
 }
