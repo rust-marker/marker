@@ -11,8 +11,8 @@ build = "build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-marker_api = { path = "../marker_api", features = ["driver-api"] }
-marker_adapter = { path = "../marker_adapter" }
+marker_api = { path = "../marker_api", version = "0.1.0", features = ["driver-api"] }
+marker_adapter = { path = "../marker_adapter", version = "0.1.0" }
 
 rustc_tools_util = "0.3"
 bumpalo = "3.12"

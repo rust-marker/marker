@@ -13,11 +13,11 @@ The easiest way to test lints, is simply to run them on examples and look at the
 
 ## Prerequisites
 
-*marker_uitest* requires *[Cargo]*, *[rustup]* and [`cargo_marker`] to be installed.
+*marker_uitest* requires *[Cargo]*, *[rustup]* and [cargo_marker] to be installed.
 
 [Cargo]: https://github.com/rust-lang/cargo/
 [rustup]: https://github.com/rust-lang/rustup/
-[`cargo_marker`]: https://crates.io/crates/cargo-marker
+[cargo_marker]: https://crates.io/crates/cargo-marker
 
 ## Usage
 

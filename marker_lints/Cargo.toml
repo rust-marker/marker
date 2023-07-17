@@ -12,7 +12,7 @@ repository = "https://github.com/rust-marker/marker"
 crate-type = ["cdylib"]
 
 [dependencies]
-marker_api = { path = "../marker_api" }
+marker_api = { path = "../marker_api", version = "0.1.0" }
 
 [dev-dependencies]
 marker_uitest = { path = "../marker_uitest", features = ["dev-build"] }
