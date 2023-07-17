@@ -33,7 +33,7 @@ const HELP_MISSING_DRIVER: &str = r#"Driver not found
     cargo marker setup --auto-install-toolchain
     ```
     "#;
-    
+
 const HELP_INSTALL_DRIVER_FAILED: &str = r#"Installing the driver failed
 
 * Make sure that you have the `rustc-dev` and `llvm-tools` components installed. Try:
@@ -86,7 +86,11 @@ impl Debug for ExitStatus {
             Self::InvalidToolchain => write!(f, "InvalidToolchain"),
             Self::ToolExecutionFailed => write!(f, "ToolExecutionFailed"),
             Self::MissingDriver => write!(f, "{HELP_MISSING_DRIVER}"),
-            Self::DriverInstallationFailed => write!(f, "{}", HELP_INSTALL_DRIVER_FAILED.replace("{{toolchain}}", &DEFAULT_DRIVER_INFO.toolchain)),
+            Self::DriverInstallationFailed => write!(
+                f,
+                "{}",
+                HELP_INSTALL_DRIVER_FAILED.replace("{{toolchain}}", &DEFAULT_DRIVER_INFO.toolchain)
+            ),
             Self::DriverFailed => write!(f, "DriverFailed"),
             Self::LintCrateBuildFail => write!(f, "LintCrateBuildFail"),
             Self::LintCrateNotFound => write!(f, "LintCrateNotFound"),
