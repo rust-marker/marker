@@ -6,10 +6,7 @@
 <br/>
 
 [![Crates.io](https://img.shields.io/crates/v/marker_api.svg)](https://crates.io/crates/marker_api)
-<!--
-FIXME(xFrednet): Add license shield, once crates.io also says:
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/marker_api.svg)](#license)
--->
 
 Marker is an experimental code analysis interface, with the goal to create a stable and user-friendly linting framework for the Rust programming language. Creating custom lints should be a straightforward process, and using them should be as simple as declaring a new dependency.
 
@@ -29,8 +26,7 @@ Let's make custom lints and code analysis a reality!
 
 And more to come, see Marker's goals and limitations below.
 
-<!-- FIXME(xFrednet): Update the link to link to `crates.io` once the first version was released-->
-[cargo_marker]: https://github.com/rust-marker/marker/tree/master/cargo-marker
+[cargo_marker]: https://crates.io/crates/cargo_marker
 [rustc]: https://github.com/rust-lang/rust/
 
 ## Usage

@@ -1,10 +1,7 @@
 # Cargo Marker
 
 [![Crates.io](https://img.shields.io/crates/v/cargo_marker.svg)](https://crates.io/crates/cargo_marker)
-<!--
-FIXME(xFrednet): Add license shield, once crates.io also says:
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/cargo_marker.svg)](#license)
--->
 
 *cargo_marker* is the CLI tool for [Marker], an experimental linting interface for Rust. It seamlessly integrates with the Rust compiler to provide custom linting capabilities for your Rust projects.
 

@@ -1,10 +1,7 @@
 # Marker Adapter 🔌
 
 [![Crates.io](https://img.shields.io/crates/v/marker_adapter.svg)](https://crates.io/crates/marker_adapter)
-<!--
-FIXME(xFrednet): Add license shield, once crates.io also says:
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/marker_adapter.svg)](#license)
--->
 
 This crate provides a common interface for drivers to communicate with lint crates for [Marker]. It does some heavy lifting which would otherwise need to be done by each individual driver. You're welcome to check out [Marker's Readme] if you're interested in the project.
 

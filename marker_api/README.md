@@ -1,10 +1,7 @@
 # Marker API
 
 [![Crates.io](https://img.shields.io/crates/v/marker_api.svg)](https://crates.io/crates/marker_api)
-<!--
-FIXME(xFrednet): Add license shield, once crates.io also says:
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/marker_api.svg)](#license)
--->
 
 *marker_api* provides a representation of the AST and all connected types needed to create custom *lint crates* for [Marker], an experimental linting interface for Rust.
 

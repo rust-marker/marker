@@ -1,10 +1,7 @@
 # Marker's driver for rustc
 
 [![Crates.io](https://img.shields.io/crates/v/marker_rustc_driver.svg)](https://crates.io/crates/marker_rustc_driver)
-<!--
-FIXME(xFrednet): Add license shield, once crates.io also says:
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/marker_rustc_driver.svg)](#license)
--->
 
 The rustc driver for [Marker], an experimental linting interface for Rust. This crate wraps around rustc, translates everything into Marker's AST representation, and passes everything to registered lint crates.
 
@@ -16,7 +13,7 @@ The rustc driver for [Marker], an experimental linting interface for Rust. This 
 
 [Marker]: https://github.com/rust-marker/marker
 [Marker's Readme]: https://github.com/rust-marker/marker/blob/master/README.md
-[cargo_marker]: https://github.com/rust-marker/marker/tree/master/cargo-marker
+[cargo_marker]: https://crates.io/crates/cargo_marker
 
 ## Toolchain
 
