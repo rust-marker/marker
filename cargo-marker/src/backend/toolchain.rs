@@ -170,6 +170,20 @@ pub(crate) fn rustup_which(toolchain: &str, tool: &str, verbose: bool) -> Result
         println!("Searching for `{tool}` with rustup for toolchain `{toolchain}`");
     }
 
+    // Check if the toolchain is installed. We don't want to install it accidentally
+    if let Ok(output) = Command::new("rustup")
+        .args(["toolchain", "list"])
+        .output()
+    {
+        let text = to_os_str(output.stdout).expect("`Command` output should always be a valid `OsString`");
+        if !text.to_string_lossy().contains(toolchain) {
+            return Err(ExitStatus::MissingDriver);
+        }
+    } else {
+        return Err(ExitStatus::ToolExecutionFailed);
+    }
+
+    // Check if the driver is installed
     if let Ok(output) = Command::new("rustup")
         .env("RUSTUP_TOOLCHAIN", toolchain)
         .args(["which", tool])

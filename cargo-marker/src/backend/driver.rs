@@ -88,7 +88,7 @@ pub fn install_driver(
         } else {
             eprintln!("Error: The required toolchain `{toolchain}` can't be found");
             eprintln!();
-            eprintln!("You can install the toolchain by running: `rustup toolchain install {toolchain}`");
+            eprintln!("You can install the toolchain by running: `rustup toolchain install {toolchain} --component rustc-dev llvm-tools`");
             eprintln!("Or by adding the `--auto-install-toolchain` flag");
             return Err(ExitStatus::InvalidToolchain);
         }
@@ -105,7 +105,7 @@ pub fn install_driver(
 fn install_toolchain(toolchain: &str) -> Result<(), ExitStatus> {
     let mut cmd = Command::new("rustup");
 
-    cmd.args(["toolchain", "install", toolchain]);
+    cmd.args(["toolchain", "install", toolchain, "--component", "rustc-dev", "llvm-tools"]);
 
     let status = cmd
         .spawn()
