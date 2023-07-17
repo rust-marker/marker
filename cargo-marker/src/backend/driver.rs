@@ -15,8 +15,8 @@ pub const MARKER_DRIVER_BIN_NAME: &str = "marker_rustc_driver.exe";
 /// to install the driver.
 pub static DEFAULT_DRIVER_INFO: Lazy<DriverVersionInfo> = Lazy::new(|| DriverVersionInfo {
     toolchain: "nightly-2023-07-13".to_string(),
-    version: "0.1.0".to_string(),
-    api_version: "0.1.0".to_string(),
+    version: "0.1.1".to_string(),
+    api_version: "0.1.1".to_string(),
 });
 
 /// The version info of one specific driver
@@ -80,18 +80,22 @@ pub fn install_driver(
     // However, that will require more prototyping and has a low priority rn.
     // See #60
 
-    // Prerequisites
     let toolchain = &DEFAULT_DRIVER_INFO.toolchain;
+
+    // If `auto-install-toolchain` is set, we want to run it regardless
+    if auto_install_toolchain {
+        install_toolchain(toolchain)?;
+    }
+
+    // Prerequisites
     if rustup_which(toolchain, "cargo", false).is_err() {
-        if auto_install_toolchain {
-            install_toolchain(toolchain)?;
-        } else {
-            eprintln!("Error: The required toolchain `{toolchain}` can't be found");
-            eprintln!();
-            eprintln!("You can install the toolchain by running: `rustup toolchain install {toolchain}`");
-            eprintln!("Or by adding the `--auto-install-toolchain` flag");
-            return Err(ExitStatus::InvalidToolchain);
-        }
+        eprintln!("Error: The required toolchain `{toolchain}` can't be found");
+        eprintln!();
+        eprintln!(
+            "You can install the toolchain by running: `rustup toolchain install {toolchain} --component rustc-dev llvm-tools`"
+        );
+        eprintln!("Or by adding the `--auto-install-toolchain` flag");
+        return Err(ExitStatus::InvalidToolchain);
     }
 
     build_driver(
@@ -105,7 +109,14 @@ pub fn install_driver(
 fn install_toolchain(toolchain: &str) -> Result<(), ExitStatus> {
     let mut cmd = Command::new("rustup");
 
-    cmd.args(["toolchain", "install", toolchain]);
+    cmd.args([
+        "toolchain",
+        "install",
+        toolchain,
+        "--component",
+        "rustc-dev",
+        "llvm-tools",
+    ]);
 
     let status = cmd
         .spawn()

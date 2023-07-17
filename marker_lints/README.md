@@ -1,10 +1,7 @@
 # Marker Lints
 
 [![Crates.io](https://img.shields.io/crates/v/marker_lints.svg)](https://crates.io/crates/marker_lints)
-<!--
-FIXME(xFrednet): Add license shield, once crates.io also says:
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/marker_lints.svg)](#license)
--->
 
 A collection of lints for the development of lint crates with the [marker_api] and [marker_utils] crates.
 
@@ -30,12 +27,12 @@ To use `marker_lints` in your project, simply add it to your `Cargo.toml` under 
 
 ```toml
 [workspace.metadata.marker.lints]
-marker_lints = "0.1.0"
+marker_lints = "0.1.1"
 ```
 
 If you want to develop something with Marker, you might want to check out the [lint crate template] which already contains everything you need to get started.
 
-[cargo_marker]: https://github.com/rust-marker/marker/tree/master/cargo-marker
+[cargo_marker]: https://crates.io/crates/cargo_marker
 [lint crate template]: https://github.com/rust-marker/lint-crate-template
 
 ## Contributing

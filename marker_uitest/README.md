@@ -1,10 +1,7 @@
 # Marker UI-test
 
 [![Crates.io](https://img.shields.io/crates/v/marker_uitest.svg)](https://crates.io/crates/marker_uitest)
-<!--
-FIXME(xFrednet): Add license shield, once crates.io also says:
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/marker_uitest.svg)](#license)
--->
 
 The easiest way to test lints, is simply to run them on examples and look at the generated output. We are programmers, which means that we have tools to automate this process. *marker_uitest* is a thin wrapper around the [ui_test] crate for [Marker]. It performs all the common setup magic required to run ui-tests.
 
@@ -17,7 +14,7 @@ The easiest way to test lints, is simply to run them on examples and look at the
 
 [Cargo]: https://github.com/rust-lang/cargo/
 [rustup]: https://github.com/rust-lang/rustup/
-[cargo_marker]: https://crates.io/crates/cargo-marker
+[cargo_marker]: https://crates.io/crates/cargo_marker
 
 ## Usage
 
@@ -26,8 +23,6 @@ The [`ui_test`] crate runs Marker on every `.rs`-file in the `tests/ui` folder a
 For a full list of supported features and magic comments, please refer to the documentation of the [ui_test] crate.
 
 ## Setup
-
-<!-- FIXME(xFrednet) Link to the lint-crate template, with the already setup ui tests -->
 
 ### Manifest
 
