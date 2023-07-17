@@ -10,7 +10,7 @@ FIXME(xFrednet): Add license shield, once crates.io also says:
 
 > **Note**
 >
-> The project is in the early stages of development, some things are still missing and the API is not stable yet.
+> Marker is in the early stages of development, some things are still missing and the API still unstable.
 >
 > A list of limitations and planned features can be found in [Marker's Readme].
 

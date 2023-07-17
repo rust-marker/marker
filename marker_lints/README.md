@@ -10,7 +10,7 @@ A collection of lints for the development of lint crates with the [marker_api] a
 
 > **Note**
 >
-> [Marker] is in the early stages of development, some things are still missing and the API is not stable yet.
+> Marker is in the early stages of development, some things are still missing and the API is still unstable.
 >
 > A list of limitations and planned features can be found in [Marker's Readme].
 

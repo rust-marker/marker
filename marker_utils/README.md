@@ -2,16 +2,49 @@
 
 [![Crates.io](https://img.shields.io/crates/v/marker_utils.svg)](https://crates.io/crates/marker_utils)
 
-The ultimate toolbox for [Marker], an experimental linting interface for Rust. *marker_utils* provides all the utility required to efficiently write create lint crates.
+<!--
+FIXME(xFrednet): Add license shield, once crates.io also says:
+[![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/marker_utils.svg)](#license)
+-->
+
+Marker utils aims to be the standard library for the development of lint crates for [Marker], an experimental linting interface for Rust. This crate contains all additional functionality needed to work swiftly with the [marker_api] crate
 
 > **Note**
 >
-> The project is in the early stages of development, some things are still missing and the API is not stable yet.
+> Marker is in the early stages of development, this crate is very limited, some things are still missing and the API is still unstable.
 >
 > A list of limitations and planned features can be found in [Marker's Readme].
 
 [Marker]: https://github.com/rust-marker/marker
 [Marker's Readme]: https://github.com/rust-marker/marker/blob/master/README.md
+[marker_api]: https://crates.io/crates/marker_api
+
+## Usage
+
+To get started, just include *marker_utils* as a dependency:
+
+```toml
+[dependencies]
+marker_api = "<version>"
+```
+
+You can also add [marker_lints] as a lint crate, designed for this crate:
+
+```toml
+[workspace.metadata.marker.lints]
+marker_lints = "0.1.0"
+```
+
+If you want to develop something with Marker, you might want to check out the [lint crate template] which already contains everything you need to get started.
+
+[cargo_marker]: https://github.com/rust-marker/marker/tree/master/cargo-marker
+[lint crate template]: https://github.com/rust-marker/lint-crate-template
+[marker_api]: https://crates.io/crates/marker_api
+[marker_lints]: https://crates.io/crates/marker_lints
+
+## Contributing
+
+Contributions are highly appreciated! If you encounter any issues or have suggestions for improvements, please don't hesitate to open an issue or submit a pull request on [Marker's GitHub repository](https://github.com/rust-marker/marker).
 
 ## License
 
