@@ -169,7 +169,7 @@ UI tests require `cargo-marker` to be installed
 
     ```
     # Update `cargo-marker` first
-    cargo install cargo-marker
+    cargo install cargo_marker
 
     # Now update the driver
     cargo marker setup --auto-install-toolchain
@@ -218,7 +218,7 @@ Error: API versions mismatch, the lint crate uses a newer version
 
     ```
     # Update `cargo-marker` first
-    cargo install cargo-marker
+    cargo install cargo_marker
 
     # Now update the driver
     cargo marker setup --auto-install-toolchain
