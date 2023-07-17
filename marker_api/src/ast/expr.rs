@@ -365,3 +365,47 @@ impl<'ast> ConstExpr<'ast> {
         Self { expr }
     }
 }
+
+#[cfg(all(test, target_arch = "x86_64", target_pointer_width = "64"))]
+mod test {
+    use super::*;
+    use std::mem::size_of;
+
+    #[test]
+    fn test_expr_struct_size() {
+        // These sizes are allowed to change, this is just a check to have a
+        // general overview and to prevent accidental changes
+        assert_eq!(40, size_of::<IntLitExpr<'_>>(), "IntLitExpr<'_>");
+        assert_eq!(32, size_of::<FloatLitExpr<'_>>(), "FloatLitExpr<'_>");
+        assert_eq!(48, size_of::<StrLitExpr<'_>>(), "StrLitExpr<'_>");
+        assert_eq!(24, size_of::<CharLitExpr<'_>>(), "CharLitExpr<'_>");
+        assert_eq!(24, size_of::<BoolLitExpr<'_>>(), "BoolLitExpr<'_>");
+        assert_eq!(88, size_of::<BlockExpr<'_>>(), "BlockExpr<'_>");
+        assert_eq!(88, size_of::<ClosureExpr<'_>>(), "ClosureExpr<'_>");
+        assert_eq!(40, size_of::<UnaryOpExpr<'_>>(), "UnaryOpExpr<'_>");
+        assert_eq!(40, size_of::<RefExpr<'_>>(), "RefExpr<'_>");
+        assert_eq!(56, size_of::<BinaryOpExpr<'_>>(), "BinaryOpExpr<'_>");
+        assert_eq!(32, size_of::<QuestionMarkExpr<'_>>(), "QuestionMarkExpr<'_>");
+        assert_eq!(80, size_of::<AssignExpr<'_>>(), "AssignExpr<'_>");
+        assert_eq!(48, size_of::<AsExpr<'_>>(), "AsExpr<'_>");
+        assert_eq!(96, size_of::<PathExpr<'_>>(), "PathExpr<'_>");
+        assert_eq!(48, size_of::<CallExpr<'_>>(), "CallExpr<'_>");
+        assert_eq!(80, size_of::<MethodExpr<'_>>(), "MethodExpr<'_>");
+        assert_eq!(56, size_of::<ArrayExpr<'_>>(), "ArrayExpr<'_>");
+        assert_eq!(32, size_of::<TupleExpr<'_>>(), "TupleExpr<'_>");
+        assert_eq!(136, size_of::<CtorExpr<'_>>(), "CtorExpr<'_>");
+        assert_eq!(72, size_of::<RangeExpr<'_>>(), "RangeExpr<'_>");
+        assert_eq!(48, size_of::<IndexExpr<'_>>(), "IndexExpr<'_>");
+        assert_eq!(48, size_of::<FieldExpr<'_>>(), "FieldExpr<'_>");
+        assert_eq!(72, size_of::<IfExpr<'_>>(), "IfExpr<'_>");
+        assert_eq!(56, size_of::<LetExpr<'_>>(), "LetExpr<'_>");
+        assert_eq!(48, size_of::<MatchExpr<'_>>(), "MatchExpr<'_>");
+        assert_eq!(72, size_of::<BreakExpr<'_>>(), "BreakExpr<'_>");
+        assert_eq!(40, size_of::<ReturnExpr<'_>>(), "ReturnExpr<'_>");
+        assert_eq!(48, size_of::<ContinueExpr<'_>>(), "ContinueExpr<'_>");
+        assert_eq!(96, size_of::<ForExpr<'_>>(), "ForExpr<'_>");
+        assert_eq!(56, size_of::<LoopExpr<'_>>(), "LoopExpr<'_>");
+        assert_eq!(72, size_of::<WhileExpr<'_>>(), "WhileExpr<'_>");
+        assert_eq!(24, size_of::<UnstableExpr<'_>>(), "UnstableExpr<'_>");
+    }
+}
