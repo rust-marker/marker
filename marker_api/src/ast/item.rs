@@ -56,6 +56,11 @@ pub trait ItemData<'ast>: Debug + Sealed {
     /// as a bound to support all items and `ItemKind<'ast>` as parameters.
     fn as_item(&'ast self) -> ItemKind<'ast>;
 
+    /// The attributes attached to this item.
+    ///
+    /// Currently, it's only a placeholder until a proper representation is implemented.
+    /// rust-marker/marker#51 tracks the task of implementing this. You're welcome to
+    /// leave any comments in that issue.
     fn attrs(&self); // FIXME: Add return type: -> &'ast [&'ast dyn Attribute<'ast>];
 }
 
@@ -227,9 +232,7 @@ macro_rules! impl_item_data {
                 $crate::ast::item::ItemKind::$enum_name(self)
             }
 
-            fn attrs(&self) {
-                todo!()
-            }
+            fn attrs(&self) {}
         }
 
         impl $crate::private::Sealed for $self_name<'_> {}
@@ -255,13 +258,22 @@ impl<'ast> CommonItemData<'ast> {
     }
 }
 
-/// FIXME: Add function as discussed in <https://github.com/rust-marker/design/issues/22>
-/// this will require new driver callback functions
+/// This struct represents the visibility of an item.
+///
+/// Currently, it's only a placeholder until a proper representation is implemented.
+/// rust-marker/marker#26 tracks the task of implementing this. You're welcome to
+/// leave any comments in that issue.
 #[repr(C)]
-#[derive(Debug)]
 pub struct Visibility<'ast> {
     _lifetime: PhantomData<&'ast ()>,
     _item_id: ItemId,
+}
+
+impl<'ast> Debug for Visibility<'ast> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Visibility {{ /* WIP: See rust-marker/marker#26 */}}")
+            .finish()
+    }
 }
 
 #[cfg(feature = "driver-api")]

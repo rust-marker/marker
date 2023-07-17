@@ -108,6 +108,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                         self.to_symbol_id(variant.ident.name),
                         self.to_span_id(variant.span),
                         self.to_adt_kind(&variant.data),
+                        variant.disr_expr.map(|anon| self.to_const_expr(anon)),
                     )
                 }));
                 ItemKind::Enum(self.alloc(EnumItem::new(data, self.to_generic_params(generics), variants)))
@@ -232,7 +233,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 None,
                 self.to_ty(*ty),
             ))),
-            hir::ForeignItemKind::Type => todo!(),
+            hir::ForeignItemKind::Type => {
+                todo!("foreign type are currently sadly not supported. See rust-marker/marker#182")
+            },
         };
 
         self.items.borrow_mut().insert(id, item.as_item());

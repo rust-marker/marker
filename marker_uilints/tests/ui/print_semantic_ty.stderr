@@ -255,6 +255,7 @@ warning: print type test
                            numeric_kind: U32,
                        },
                    ),
+                   len: ConstValue {{ /* WIP: See rust-marker/marker#179 */}},
                },
            )
 

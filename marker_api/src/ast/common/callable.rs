@@ -61,7 +61,6 @@ pub trait CallableData<'ast>: Debug + Sealed {
 #[repr(C)]
 #[derive(Debug)]
 pub struct Parameter<'ast> {
-    // FIXME: This shouldn't be a name but a pattern...
     name: FfiOption<SymbolId>,
     ty: FfiOption<SynTyKind<'ast>>,
     span: FfiOption<SpanId>,
@@ -79,8 +78,8 @@ impl<'ast> Parameter<'ast> {
 }
 
 impl<'ast> Parameter<'ast> {
-    // Function items actually use patterns and not names. Patterns are not yet
-    // implemented though. A name should be good enough for now.
+    /// FIXME(xFrednet): This function returns the name of the parameter, if it's a
+    /// single value. It should be replaced with a pattern instead, see rust-marker/marker#181
     pub fn name(&self) -> Option<&str> {
         self.name.get().map(|sym| with_cx(self, |cx| cx.symbol_str(*sym)))
     }

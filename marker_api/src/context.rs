@@ -199,6 +199,7 @@ impl<'ast> AstContext<'ast> {
         self.driver.call_symbol_str(sym)
     }
 
+    #[allow(unused)] // Will be used later(or removed)
     pub(crate) fn resolve_method_target(&self, expr: ExprId) -> ItemId {
         self.driver.resolve_method_target(expr)
     }

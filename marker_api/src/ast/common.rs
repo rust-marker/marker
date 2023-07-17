@@ -129,9 +129,15 @@ impl Syncness {
 ///
 /// See: rust-marker/marker#179
 #[repr(C)]
-#[derive(Debug)]
 pub struct ConstValue<'ast> {
     _lifetime: PhantomData<&'ast ()>,
+}
+
+impl<'ast> Debug for ConstValue<'ast> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ConstValue {{ /* WIP: See rust-marker/marker#179 */}}")
+            .finish()
+    }
 }
 
 #[cfg(feature = "driver-api")]

@@ -94,11 +94,11 @@ Marker is still growing up, and that's a good thing. We can still shape the API 
 
 * **Nightly**: Internally, Marker has to rely on nightly versions of rustc. However, you, as an end-user, should not notice this dependency.
 * **AST Limitations**: Marker's API is still missing a few elements to represent everything required for linting. The API is still incomplete when it comes to:
-    * `async` expressions
+    * `async`/`await` expressions [#174](https://github.com/rust-marker/marker/issues/174)
     * Higher order types
-    * Array types
-    * Attributes
+    * Attributes [#51](https://github.com/rust-marker/marker/issues/51)
     * Macros
+    * Item visibility [#26](https://github.com/rust-marker/marker/issues/26)
 * **Utility**: The API is currently lacking a lot of utility functions, to handle edge cases and make linting more pleasant.
 * **Documentation**: Marker still requires a lot of documentation, in the form of doc comments and a book, which explains the basic concept and works as a guide for end-users, lint- and marker-devs alike.
 

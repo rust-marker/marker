@@ -1,8 +1,9 @@
+use crate::ast::expr::ConstExpr;
 use crate::ast::generic::GenericParams;
 use crate::ast::ty::SynTyKind;
 use crate::ast::{FieldId, Span, SpanId, SymbolId, VariantId};
 use crate::context::with_cx;
-use crate::ffi::FfiSlice;
+use crate::ffi::{FfiOption, FfiSlice};
 
 use super::{CommonItemData, Visibility};
 
@@ -97,7 +98,7 @@ pub struct EnumVariant<'ast> {
     ident: SymbolId,
     span: SpanId,
     kind: AdtKind<'ast>,
-    // FIXME: Add <discriminant: FfiOption<ExprKind<'ast>>>
+    discriminant: FfiOption<ConstExpr<'ast>>,
 }
 
 impl<'ast> EnumVariant<'ast> {
@@ -109,7 +110,7 @@ impl<'ast> EnumVariant<'ast> {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
 
-    // FIXME: Add `fn attrs() -> ??? {}`
+    // FIXME(xFrednet): Add `fn attrs() -> ??? {}`, see rust-marker/marker#51
 
     /// Returns `true` if this is a unit variant like:
     ///
@@ -159,12 +160,29 @@ impl<'ast> EnumVariant<'ast> {
     pub fn span(&self) -> &Span<'ast> {
         with_cx(self, |cx| cx.span(self.span))
     }
+
+    /// The discriminant of this variant, if one has been defined
+    pub fn discriminant(&self) -> Option<&ConstExpr<'ast>> {
+        self.discriminant.get()
+    }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> EnumVariant<'ast> {
-    pub fn new(id: VariantId, ident: SymbolId, span: SpanId, kind: AdtKind<'ast>) -> Self {
-        Self { id, ident, span, kind }
+    pub fn new(
+        id: VariantId,
+        ident: SymbolId,
+        span: SpanId,
+        kind: AdtKind<'ast>,
+        discriminant: Option<ConstExpr<'ast>>,
+    ) -> Self {
+        Self {
+            id,
+            ident,
+            span,
+            kind,
+            discriminant: discriminant.into(),
+        }
     }
 }
 
@@ -294,7 +312,7 @@ impl<'ast> Field<'ast> {
         with_cx(self, |cx| cx.span(self.span))
     }
 
-    // FIXME: Add `fn attrs() -> ??? {}`
+    // FIXME(xFrednet): Add `fn attrs() -> ??? {}`, see rust-marker/marker#51
 }
 
 #[cfg(feature = "driver-api")]

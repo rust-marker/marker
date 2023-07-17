@@ -8,6 +8,8 @@ use super::{ItemId, SpanId, SpanSrcId, SymbolId};
 // the more information about macros and their expansion etc. This covers the
 // basic use case of checking if a span comes from a macro or a file. The rest
 // will come in due time. Luckily it's not a public enum right now.
+//
+// See: rust-marker/marker#175
 #[repr(C)]
 #[doc(hidden)]
 #[allow(clippy::exhaustive_enums)]

@@ -6,7 +6,7 @@ use crate::{
     ffi::{FfiOption, FfiSlice},
 };
 
-use super::{CommonExprData, ExprKind, ExprPrecedence};
+use super::{CommonExprData, ConstExpr, ExprKind, ExprPrecedence};
 
 /// An expression constructing an array.
 ///
@@ -21,7 +21,9 @@ use super::{CommonExprData, ExprKind, ExprPrecedence};
 pub struct ArrayExpr<'ast> {
     data: CommonExprData<'ast>,
     elements: FfiSlice<'ast, ExprKind<'ast>>,
-    len_expr: FfiOption<ExprKind<'ast>>,
+    // FIXME(xFrednet): This might need to change, if a syntax like `[1; _]` is
+    // ever supported, as proposed in https://github.com/rust-lang/rust/issues/85077
+    len: FfiOption<ConstExpr<'ast>>,
 }
 
 impl<'ast> ArrayExpr<'ast> {
@@ -29,8 +31,8 @@ impl<'ast> ArrayExpr<'ast> {
         self.elements.get()
     }
 
-    pub fn len(&self) -> Option<ExprKind<'ast>> {
-        self.len_expr.copy()
+    pub fn len(&self) -> Option<&ConstExpr<'ast>> {
+        self.len.get()
     }
 }
 
@@ -44,15 +46,11 @@ super::impl_expr_data!(
 
 #[cfg(feature = "driver-api")]
 impl<'ast> ArrayExpr<'ast> {
-    pub fn new(
-        data: CommonExprData<'ast>,
-        elem_exprs: &'ast [ExprKind<'ast>],
-        len_expr: Option<ExprKind<'ast>>,
-    ) -> Self {
+    pub fn new(data: CommonExprData<'ast>, elem_exprs: &'ast [ExprKind<'ast>], len: Option<ConstExpr<'ast>>) -> Self {
         Self {
             data,
             elements: elem_exprs.into(),
-            len_expr: len_expr.into(),
+            len: len.into(),
         }
     }
 }
