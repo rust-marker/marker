@@ -16,7 +16,7 @@ const HELP_FOR_NO_LINTS: &str = r#"No lints where specified.
     # An external crate via git
     marker_lints = { git = "https://github.com/rust-marker/marker" }
     # An external crate from a registry
-    marker_lints = "0.1.0"
+    marker_lints = "0.1.1"
     ```
 
 * Try specifying them with the `--lints` argument

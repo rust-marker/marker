@@ -1,6 +1,6 @@
 [package]
 name = "marker_adapter"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 keywords = ["marker"]
@@ -10,8 +10,8 @@ description = "Marker's adapter for common functions shared among lint drivers"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-marker_api = { path = "../marker_api", version = "0.1.0", features = ["driver-api"] }
-marker_utils = { path = "../marker_utils", version = "0.1.0" }
+marker_api = { path = "../marker_api", version = "0.1.1", features = ["driver-api"] }
+marker_utils = { path = "../marker_utils", version = "0.1.1" }
 
 libloading = "0.8.0"
 cfg-if = "1.0.0"

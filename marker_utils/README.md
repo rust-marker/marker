@@ -28,7 +28,7 @@ You can also add [marker_lints] as a lint crate, designed for this crate:
 
 ```toml
 [workspace.metadata.marker.lints]
-marker_lints = "0.1.0"
+marker_lints = "0.1.1"
 ```
 
 If you want to develop something with Marker, you might want to check out the [lint crate template] which already contains everything you need to get started.

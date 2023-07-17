@@ -1,6 +1,6 @@
 [package]
 name = "marker_utils"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 keywords = ["marker", "linting"]
@@ -11,4 +11,4 @@ description = "Marker's standard library for creating lints"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-marker_api = { path = "../marker_api", version = "0.1.0" }
+marker_api = { path = "../marker_api", version = "0.1.1" }
