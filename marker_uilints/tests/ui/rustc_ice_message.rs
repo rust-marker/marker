@@ -2,6 +2,7 @@
 //@normalize-stderr-test: "rustc 1\..* running on .*" -> "rustc <version> running on <target>"
 //@normalize-stderr-test: "(?ms)query stack during panic:\n.*end of query stack\n" -> ""
 //@normalize-stderr-test: "marker_rustc_driver .*" -> "marker_rustc_driver bar"
+//@normalize-stderr-test: "item.rs:.*" -> "item.rs"
 
 // This function will trigger a panic in rustc's driver.
 // I want to see how the ICE message looks and make sure that it

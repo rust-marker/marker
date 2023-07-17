@@ -43,6 +43,44 @@ pub(crate) mod private {
     /// A private super trait, to prevent other creates from implementing Marker's
     /// API traits.
     ///
-    /// See [Sealed traits](https://rust-lang.github.io/api-guidelines/future-proofing.html)
+    /// See: [Sealed traits](https://rust-lang.github.io/api-guidelines/future-proofing.html)
     pub trait Sealed {}
+}
+
+/// This struct blocks the construction of enum variants, similar to the `#[non_exhaustive]`
+/// attribute.
+///
+/// Marker uses enums extensively, like [`ItemKind`][ast::item::ItemKind] and
+/// [`ExprKind`](ast::expr::ExprKind). There can be `*Kind` enums that wrap other
+/// `*Kind` enums. In those cases, this struct is used, to block the user from
+/// constructing the variant manually. This allows tools to handle the variants
+/// confidently without additional verification. An example for this would be the
+/// [`PatKind::Place`](ast::pat::PatKind::Place) variant.
+///
+/// This basically acts like a `#[non_exhaustive]` attribute, with the difference
+/// that it also works on tuple variants. Attaching `#[non_exhaustive]` to a tuple
+/// variant would make it private, which we don't want.
+///
+/// As a normal user, you can just ignore this instance as it holds no relevant
+/// information for linting.
+#[repr(C)]
+#[non_exhaustive]
+#[derive(Copy, Clone)]
+pub struct CtorBlocker {
+    /// `#[repr(C)]` requires a field, to make this a proper type. This is just
+    /// the smallest one.
+    _data: u8,
+}
+
+impl std::fmt::Debug for CtorBlocker {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("..").finish()
+    }
+}
+
+impl CtorBlocker {
+    #[cfg_attr(feature = "driver-api", visibility::make(pub))]
+    pub(crate) fn new() -> Self {
+        Self { _data: 255 }
+    }
 }

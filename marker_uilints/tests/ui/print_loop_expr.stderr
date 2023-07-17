@@ -70,6 +70,7 @@ warning: print test
                                                           expr: None,
                                                       },
                                                   ),
+                                                  ..,
                                               ),
                                           ],
                                           expr: None,
@@ -79,6 +80,7 @@ warning: print test
                                   ),
                               },
                           ),
+                          ..,
                       ),
                   ],
                   expr: Some(
@@ -191,6 +193,7 @@ warning: print test
                                    ),
                                },
                            ),
+                           ..,
                        ),
                    ],
                    expr: Some(
@@ -347,6 +350,7 @@ warning: print test
                                                                    },
                                                                },
                                                            ),
+                                                           ..,
                                                        ),
                                                        value: Ctor(
                                                            CtorExpr {
@@ -388,6 +392,7 @@ warning: print test
                                                        op: None,
                                                    },
                                                ),
+                                               ..,
                                            ),
                                        ],
                                        expr: None,
@@ -491,6 +496,7 @@ warning: print test
                                    ),
                                },
                            ),
+                           ..,
                        ),
                    ],
                    expr: Some(
@@ -625,6 +631,7 @@ warning: print test
                                                                    },
                                                                },
                                                            ),
+                                                           ..,
                                                        ),
                                                        value: BinaryOp(
                                                            BinaryOpExpr {
@@ -711,6 +718,7 @@ warning: print test
                                                        ),
                                                    },
                                                ),
+                                               ..,
                                            ),
                                        ],
                                        expr: None,

@@ -1,4 +1,4 @@
-use crate::{context::with_cx, ffi::FfiOption};
+use crate::{context::with_cx, ffi::FfiOption, CtorBlocker};
 
 use super::{
     expr::ExprKind, item::ItemKind, pat::PatKind, ty::SynTyKind, LetStmtId, Span, SpanId, StmtId, StmtIdInner,
@@ -8,25 +8,25 @@ use super::{
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
 pub enum StmtKind<'ast> {
-    Item(ItemKind<'ast>),
+    Item(&'ast ItemKind<'ast>, CtorBlocker),
     Let(&'ast LetStmt<'ast>),
-    Expr(ExprKind<'ast>),
+    Expr(&'ast ExprKind<'ast>, CtorBlocker),
 }
 
 impl<'ast> StmtKind<'ast> {
     pub fn id(&self) -> StmtId {
         match self {
-            StmtKind::Item(node) => StmtId::ast_new(StmtIdInner::Item(node.id())),
-            StmtKind::Let(node) => node.id(),
-            StmtKind::Expr(node) => StmtId::ast_new(StmtIdInner::Expr(node.id())),
+            StmtKind::Item(node, ..) => StmtId::ast_new(StmtIdInner::Item(node.id())),
+            StmtKind::Let(node, ..) => node.id(),
+            StmtKind::Expr(node, ..) => StmtId::ast_new(StmtIdInner::Expr(node.id())),
         }
     }
 
     pub fn span(&self) -> &Span<'ast> {
         match self {
-            StmtKind::Item(node) => node.span(),
-            StmtKind::Let(node) => node.span(),
-            StmtKind::Expr(node) => node.span(),
+            StmtKind::Item(node, ..) => node.span(),
+            StmtKind::Let(node, ..) => node.span(),
+            StmtKind::Expr(node, ..) => node.span(),
         }
     }
 

@@ -1,11 +1,14 @@
-use marker_api::ast::{
-    expr,
-    item::{
-        AdtKind, AssocItemKind, Body, CommonItemData, ConstItem, EnumItem, EnumVariant, ExternBlockItem,
-        ExternCrateItem, ExternItemKind, Field, FnItem, ImplItem, ItemKind, ModItem, StaticItem, StructItem, TraitItem,
-        TyAliasItem, UnionItem, UnstableItem, UseItem, UseKind, Visibility,
+use marker_api::{
+    ast::{
+        expr,
+        item::{
+            AdtKind, AssocItemKind, Body, CommonItemData, ConstItem, EnumItem, EnumVariant, ExternBlockItem,
+            ExternCrateItem, ExternItemKind, Field, FnItem, ImplItem, ItemKind, ModItem, StaticItem, StructItem,
+            TraitItem, TyAliasItem, UnionItem, UnstableItem, UseItem, UseKind, Visibility,
+        },
+        Abi, CommonCallableData, Constness, Parameter, Safety, Syncness,
     },
-    Abi, CommonCallableData, Constness, Parameter, Safety, Syncness,
+    CtorBlocker,
 };
 use rustc_hir as hir;
 
@@ -213,26 +216,37 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     fn to_external_item(&self, rustc_item: &'tcx hir::ForeignItemRef, abi: Abi) -> ExternItemKind<'ast> {
         let id = self.to_item_id(rustc_item.id.owner_id);
         if let Some(item) = self.items.borrow().get(&id) {
-            return (*item).try_into().unwrap();
+            return match item {
+                ItemKind::Static(data) => ExternItemKind::Static(data, CtorBlocker::new()),
+                ItemKind::Fn(data) => ExternItemKind::Fn(data, CtorBlocker::new()),
+                #[expect(non_exhaustive_omitted_patterns)]
+                _ => unreachable!("only static and `Static` and `Fn` items can be found a foreign item id"),
+            };
         }
 
         let foreign_item = self.rustc_cx.hir().foreign_item(rustc_item.id);
         let data = CommonItemData::new(id, self.to_ident(rustc_item.ident));
         let item = match &foreign_item.kind {
-            hir::ForeignItemKind::Fn(fn_sig, idents, generics) => ExternItemKind::Fn(self.alloc({
-                FnItem::new(
+            hir::ForeignItemKind::Fn(fn_sig, idents, generics) => ExternItemKind::Fn(
+                self.alloc({
+                    FnItem::new(
+                        data,
+                        self.to_syn_generic_params(generics),
+                        self.to_callable_data_from_fn_decl(fn_sig, idents, true, abi),
+                        None,
+                    )
+                }),
+                CtorBlocker::new(),
+            ),
+            hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(
+                self.alloc(StaticItem::new(
                     data,
-                    self.to_syn_generic_params(generics),
-                    self.to_callable_data_from_fn_decl(fn_sig, idents, true, abi),
+                    self.to_mutability(*rustc_mut),
                     None,
-                )
-            })),
-            hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(self.alloc(StaticItem::new(
-                data,
-                self.to_mutability(*rustc_mut),
-                None,
-                self.to_syn_ty(ty),
-            ))),
+                    self.to_syn_ty(ty),
+                )),
+                CtorBlocker::new(),
+            ),
             hir::ForeignItemKind::Type => {
                 todo!("foreign type are currently sadly not supported. See rust-marker/marker#182")
             },
@@ -281,38 +295,53 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     fn to_assoc_item(&self, rustc_item: &hir::TraitItemRef) -> AssocItemKind<'ast> {
         let id = self.to_item_id(rustc_item.id.owner_id);
         if let Some(item) = self.items.borrow().get(&id) {
-            return item.try_into().unwrap();
+            return match item {
+                ItemKind::TyAlias(item) => AssocItemKind::TyAlias(item, CtorBlocker::new()),
+                ItemKind::Const(item) => AssocItemKind::Const(item, CtorBlocker::new()),
+                ItemKind::Fn(item) => AssocItemKind::Fn(item, CtorBlocker::new()),
+                #[expect(non_exhaustive_omitted_patterns)]
+                _ => unreachable!("only static and `TyAlias`, `Const` and `Fn` items can be found as an assoc item"),
+            };
         }
 
         let trait_item = self.rustc_cx.hir().trait_item(rustc_item.id);
         let data = CommonItemData::new(id, self.to_ident(rustc_item.ident));
 
         let item = match &trait_item.kind {
-            hir::TraitItemKind::Const(ty, body_id) => AssocItemKind::Const(self.alloc(ConstItem::new(
-                data,
-                self.to_syn_ty(ty),
-                body_id.map(|id| self.to_body_id(id)),
-            ))),
-            hir::TraitItemKind::Fn(fn_sig, trait_fn) => AssocItemKind::Fn(self.alloc({
-                let body = match trait_fn {
-                    hir::TraitFn::Provided(body_id) => Some(self.to_body_id(*body_id)),
-                    hir::TraitFn::Required(_) => None,
-                };
-                FnItem::new(
+            hir::TraitItemKind::Const(ty, body_id) => AssocItemKind::Const(
+                self.alloc(ConstItem::new(
                     data,
-                    self.to_syn_generic_params(trait_item.generics),
-                    self.to_callable_data_from_fn_sig(fn_sig, false),
-                    body,
-                )
-            })),
-            hir::TraitItemKind::Type(bounds, ty) => AssocItemKind::TyAlias(self.alloc({
-                TyAliasItem::new(
-                    data,
-                    self.to_syn_generic_params(trait_item.generics),
-                    self.to_syn_ty_param_bound(bounds),
-                    ty.map(|ty| self.to_syn_ty(ty)),
-                )
-            })),
+                    self.to_syn_ty(ty),
+                    body_id.map(|id| self.to_body_id(id)),
+                )),
+                CtorBlocker::new(),
+            ),
+            hir::TraitItemKind::Fn(fn_sig, trait_fn) => AssocItemKind::Fn(
+                self.alloc({
+                    let body = match trait_fn {
+                        hir::TraitFn::Provided(body_id) => Some(self.to_body_id(*body_id)),
+                        hir::TraitFn::Required(_) => None,
+                    };
+                    FnItem::new(
+                        data,
+                        self.to_syn_generic_params(trait_item.generics),
+                        self.to_callable_data_from_fn_sig(fn_sig, false),
+                        body,
+                    )
+                }),
+                CtorBlocker::new(),
+            ),
+            hir::TraitItemKind::Type(bounds, ty) => AssocItemKind::TyAlias(
+                self.alloc({
+                    TyAliasItem::new(
+                        data,
+                        self.to_syn_generic_params(trait_item.generics),
+                        self.to_syn_ty_param_bound(bounds),
+                        ty.map(|ty| self.to_syn_ty(ty)),
+                    )
+                }),
+                CtorBlocker::new(),
+            ),
         };
 
         self.items.borrow_mut().insert(id, item.as_item());
@@ -326,34 +355,49 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     fn to_assoc_item_from_impl(&self, rustc_item: &hir::ImplItemRef) -> AssocItemKind<'ast> {
         let id = self.to_item_id(rustc_item.id.owner_id);
         if let Some(item) = self.items.borrow().get(&id) {
-            return item.try_into().unwrap();
+            return match item {
+                ItemKind::TyAlias(item) => AssocItemKind::TyAlias(item, CtorBlocker::new()),
+                ItemKind::Const(item) => AssocItemKind::Const(item, CtorBlocker::new()),
+                ItemKind::Fn(item) => AssocItemKind::Fn(item, CtorBlocker::new()),
+                #[expect(non_exhaustive_omitted_patterns)]
+                _ => unreachable!("only static and `TyAlias`, `Const` and `Fn` items can be found by an impl ref item"),
+            };
         }
 
         let impl_item = self.rustc_cx.hir().impl_item(rustc_item.id);
         let data = CommonItemData::new(id, self.to_ident(rustc_item.ident));
 
         let item = match &impl_item.kind {
-            hir::ImplItemKind::Const(ty, body_id) => AssocItemKind::Const(self.alloc(ConstItem::new(
-                data,
-                self.to_syn_ty(ty),
-                Some(self.to_body_id(*body_id)),
-            ))),
-            hir::ImplItemKind::Fn(fn_sig, body_id) => AssocItemKind::Fn(self.alloc({
-                FnItem::new(
+            hir::ImplItemKind::Const(ty, body_id) => AssocItemKind::Const(
+                self.alloc(ConstItem::new(
                     data,
-                    self.to_syn_generic_params(impl_item.generics),
-                    self.to_callable_data_from_fn_sig(fn_sig, false),
+                    self.to_syn_ty(ty),
                     Some(self.to_body_id(*body_id)),
-                )
-            })),
-            hir::ImplItemKind::Type(ty) => AssocItemKind::TyAlias(self.alloc({
-                TyAliasItem::new(
-                    data,
-                    self.to_syn_generic_params(impl_item.generics),
-                    &[],
-                    Some(self.to_syn_ty(ty)),
-                )
-            })),
+                )),
+                CtorBlocker::new(),
+            ),
+            hir::ImplItemKind::Fn(fn_sig, body_id) => AssocItemKind::Fn(
+                self.alloc({
+                    FnItem::new(
+                        data,
+                        self.to_syn_generic_params(impl_item.generics),
+                        self.to_callable_data_from_fn_sig(fn_sig, false),
+                        Some(self.to_body_id(*body_id)),
+                    )
+                }),
+                CtorBlocker::new(),
+            ),
+            hir::ImplItemKind::Type(ty) => AssocItemKind::TyAlias(
+                self.alloc({
+                    TyAliasItem::new(
+                        data,
+                        self.to_syn_generic_params(impl_item.generics),
+                        &[],
+                        Some(self.to_syn_ty(ty)),
+                    )
+                }),
+                CtorBlocker::new(),
+            ),
         };
 
         self.items.borrow_mut().insert(id, item.as_item());

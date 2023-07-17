@@ -1,6 +1,7 @@
 use std::{fmt::Debug, marker::PhantomData};
 
 use crate::private::Sealed;
+use crate::CtorBlocker;
 
 use super::expr::ExprKind;
 use super::{Ident, ItemId, Span};
@@ -95,9 +96,9 @@ impl<'ast> ItemKind<'ast> {
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum AssocItemKind<'ast> {
-    TyAlias(&'ast TyAliasItem<'ast>),
-    Const(&'ast ConstItem<'ast>),
-    Fn(&'ast FnItem<'ast>),
+    TyAlias(&'ast TyAliasItem<'ast>, CtorBlocker),
+    Const(&'ast ConstItem<'ast>, CtorBlocker),
+    Fn(&'ast FnItem<'ast>, CtorBlocker),
 }
 
 impl<'ast> AssocItemKind<'ast> {
@@ -113,22 +114,9 @@ impl<'ast> AssocItemKind<'ast> {
 impl<'ast> From<AssocItemKind<'ast>> for ItemKind<'ast> {
     fn from(value: AssocItemKind<'ast>) -> Self {
         match value {
-            AssocItemKind::TyAlias(item) => ItemKind::TyAlias(item),
-            AssocItemKind::Const(item) => ItemKind::Const(item),
-            AssocItemKind::Fn(item) => ItemKind::Fn(item),
-        }
-    }
-}
-
-impl<'ast> TryFrom<&ItemKind<'ast>> for AssocItemKind<'ast> {
-    type Error = ();
-
-    fn try_from(value: &ItemKind<'ast>) -> Result<Self, Self::Error> {
-        match value {
-            ItemKind::TyAlias(item) => Ok(AssocItemKind::TyAlias(item)),
-            ItemKind::Const(item) => Ok(AssocItemKind::Const(item)),
-            ItemKind::Fn(item) => Ok(AssocItemKind::Fn(item)),
-            _ => Err(()),
+            AssocItemKind::TyAlias(item, ..) => ItemKind::TyAlias(item),
+            AssocItemKind::Const(item, ..) => ItemKind::Const(item),
+            AssocItemKind::Fn(item, ..) => ItemKind::Fn(item),
         }
     }
 }
@@ -136,8 +124,8 @@ impl<'ast> TryFrom<&ItemKind<'ast>> for AssocItemKind<'ast> {
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum ExternItemKind<'ast> {
-    Static(&'ast StaticItem<'ast>),
-    Fn(&'ast FnItem<'ast>),
+    Static(&'ast StaticItem<'ast>, CtorBlocker),
+    Fn(&'ast FnItem<'ast>, CtorBlocker),
 }
 
 impl<'ast> ExternItemKind<'ast> {
@@ -152,20 +140,8 @@ impl<'ast> ExternItemKind<'ast> {
 impl<'ast> From<ExternItemKind<'ast>> for ItemKind<'ast> {
     fn from(value: ExternItemKind<'ast>) -> Self {
         match value {
-            ExternItemKind::Static(item) => ItemKind::Static(item),
-            ExternItemKind::Fn(item) => ItemKind::Fn(item),
-        }
-    }
-}
-
-impl<'ast> TryFrom<ItemKind<'ast>> for ExternItemKind<'ast> {
-    type Error = ();
-
-    fn try_from(value: ItemKind<'ast>) -> Result<Self, Self::Error> {
-        match value {
-            ItemKind::Static(item) => Ok(ExternItemKind::Static(item)),
-            ItemKind::Fn(item) => Ok(ExternItemKind::Fn(item)),
-            _ => Err(()),
+            ExternItemKind::Static(item, ..) => ItemKind::Static(item),
+            ExternItemKind::Fn(item, ..) => ItemKind::Fn(item),
         }
     }
 }
@@ -192,7 +168,7 @@ macro_rules! impl_item_type_fn {
     (($self:ident) $method:ident () -> $return_ty:ty $(, $item:ident)+) => {
         pub fn $method(&self) -> $return_ty {
             match self {
-                $($self::$item(data) => data.$method(),)*
+                $($self::$item(data, ..) => data.$method(),)*
             }
         }
     };

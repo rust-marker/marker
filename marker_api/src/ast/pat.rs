@@ -1,4 +1,4 @@
-use crate::private::Sealed;
+use crate::{private::Sealed, CtorBlocker};
 
 use super::{
     expr::{ExprKind, LitExprKind},
@@ -37,12 +37,6 @@ pub use wildcard_pat::*;
 pub trait PatData<'ast>: Debug + Sealed {
     /// Returns the [`Span`] of this pattern.
     fn span(&self) -> &Span<'ast>;
-
-    /// Returns this expression wrapped in it's [`PatKind`] variant.
-    ///
-    /// In function parameters, it's recommended to use `Into<PatKind<'ast>>`
-    /// as a bound to support all patterns and `PatKind<'ast>` as parameters.
-    fn as_pat(&'ast self) -> PatKind<'ast>;
 }
 
 #[repr(C)]
@@ -88,8 +82,8 @@ pub enum PatKind<'ast> {
     /// Static paths identifying [`ConstItem`](super::item::ConstItem)s or
     /// [`EnumItem`](super::item::EnumItem) variants are expressed with the
     /// [`PatKind::Path`] variant.
-    Place(ExprKind<'ast>),
-    Lit(LitExprKind<'ast>),
+    Place(ExprKind<'ast>, CtorBlocker),
+    Lit(LitExprKind<'ast>, CtorBlocker),
     Path(&'ast PathPat<'ast>),
     Range(&'ast RangePat<'ast>),
     Unstable(&'ast UnstablePat<'ast>),
@@ -109,7 +103,7 @@ macro_rules! impl_pat_data_fn {
     ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
         pub fn $method(&self) -> $return_ty {
             match self {
-                $(PatKind::$item(data) => data.$method(),)*
+                $(PatKind::$item(data, ..) => data.$method(),)*
             }
         }
     };
@@ -120,10 +114,6 @@ use impl_pat_data_fn;
 impl<'ast> PatData<'ast> for ExprKind<'ast> {
     fn span(&self) -> &Span<'ast> {
         self.span()
-    }
-
-    fn as_pat(&'ast self) -> PatKind<'ast> {
-        PatKind::Place(*self)
     }
 }
 
@@ -155,10 +145,6 @@ macro_rules! impl_pat_data {
         impl<'ast> super::PatData<'ast> for $self_ty {
             fn span(&self) -> &crate::ast::Span<'ast> {
                 $crate::context::with_cx(self, |cx| cx.span(self.data.span))
-            }
-
-            fn as_pat(&'ast self) -> crate::ast::pat::PatKind<'ast> {
-                $crate::ast::pat::PatKind::$enum_name(self)
             }
         }
 
