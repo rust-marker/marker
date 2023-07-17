@@ -59,12 +59,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     data,
                     self.to_mutability(*rustc_mut),
                     Some(self.to_body_id(*rustc_body_id)),
-                    self.to_ty(*rustc_ty),
+                    self.to_syn_ty(rustc_ty),
                 )
             })),
             hir::ItemKind::Const(rustc_ty, rustc_body_id) => ItemKind::Const(self.alloc(ConstItem::new(
                 data,
-                self.to_ty(*rustc_ty),
+                self.to_syn_ty(rustc_ty),
                 Some(self.to_body_id(*rustc_body_id)),
             ))),
             hir::ItemKind::Fn(fn_sig, generics, body_id) => {
@@ -76,7 +76,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
                 ItemKind::Fn(self.alloc(FnItem::new(
                     data,
-                    self.to_generic_params(generics),
+                    self.to_syn_generic_params(generics),
                     self.to_callable_data_from_fn_sig(fn_sig, false),
                     Some(self.to_body_id(*body_id)),
                 )))
@@ -92,9 +92,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ItemKind::TyAlias(rustc_ty, rustc_generics) => ItemKind::TyAlias(self.alloc({
                 TyAliasItem::new(
                     data,
-                    self.to_generic_params(rustc_generics),
+                    self.to_syn_generic_params(rustc_generics),
                     &[],
-                    Some(self.to_ty(*rustc_ty)),
+                    Some(self.to_syn_ty(rustc_ty)),
                 )
             })),
             hir::ItemKind::OpaqueTy(_) => ItemKind::Unstable(self.alloc(UnstableItem::new(
@@ -111,17 +111,17 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                         variant.disr_expr.map(|anon| self.to_const_expr(anon)),
                     )
                 }));
-                ItemKind::Enum(self.alloc(EnumItem::new(data, self.to_generic_params(generics), variants)))
+                ItemKind::Enum(self.alloc(EnumItem::new(data, self.to_syn_generic_params(generics), variants)))
             },
             hir::ItemKind::Struct(var_data, generics) => ItemKind::Struct(self.alloc(StructItem::new(
                 data,
-                self.to_generic_params(generics),
+                self.to_syn_generic_params(generics),
                 self.to_adt_kind(var_data),
             ))),
             hir::ItemKind::Union(var_data, generics) => ItemKind::Union(self.alloc({
                 UnionItem::new(
                     data,
-                    self.to_generic_params(generics),
+                    self.to_syn_generic_params(generics),
                     self.to_adt_kind(var_data).fields(),
                 )
             })),
@@ -129,8 +129,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 TraitItem::new(
                     data,
                     matches!(unsafety, hir::Unsafety::Unsafe),
-                    self.to_generic_params(generics),
-                    self.to_ty_param_bound(bounds),
+                    self.to_syn_generic_params(generics),
+                    self.to_syn_ty_param_bound(bounds),
                     self.to_assoc_items(items),
                 )
             })),
@@ -144,8 +144,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     matches!(imp.unsafety, hir::Unsafety::Unsafe),
                     matches!(imp.polarity, rustc_ast::ImplPolarity::Positive),
                     imp.of_trait.as_ref().map(|trait_ref| self.to_trait_ref(trait_ref)),
-                    self.to_generic_params(imp.generics),
-                    self.to_ty(imp.self_ty),
+                    self.to_syn_generic_params(imp.generics),
+                    self.to_syn_ty(imp.self_ty),
                     self.to_assoc_items_from_impl(imp.items),
                 )
             })),
@@ -162,13 +162,13 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 // retrieved from the body. For now this is kind of blocked
                 // by #50
                 None,
-                Some(self.to_ty(input_ty)),
+                Some(self.to_syn_ty(input_ty)),
                 Some(self.to_span_id(input_ty.span)),
             )
         }));
         let header = fn_sig.header;
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_sig.decl.output {
-            Some(self.to_ty(rust_ty))
+            Some(self.to_syn_ty(rust_ty))
         } else {
             None
         };
@@ -200,7 +200,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 self.to_field_id(field.hir_id),
                 Visibility::new(self.to_item_id(field.def_id)),
                 self.to_symbol_id(field.ident.name),
-                self.to_ty(field.ty),
+                self.to_syn_ty(field.ty),
                 self.to_span_id(field.span),
             )
         }))
@@ -222,7 +222,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ForeignItemKind::Fn(fn_sig, idents, generics) => ExternItemKind::Fn(self.alloc({
                 FnItem::new(
                     data,
-                    self.to_generic_params(generics),
+                    self.to_syn_generic_params(generics),
                     self.to_callable_data_from_fn_decl(fn_sig, idents, true, abi),
                     None,
                 )
@@ -231,7 +231,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 data,
                 self.to_mutability(*rustc_mut),
                 None,
-                self.to_ty(*ty),
+                self.to_syn_ty(ty),
             ))),
             hir::ForeignItemKind::Type => {
                 todo!("foreign type are currently sadly not supported. See rust-marker/marker#182")
@@ -253,12 +253,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let params = self.alloc_slice(idents.iter().zip(fn_decl.inputs.iter()).map(|(ident, ty)| {
             Parameter::new(
                 Some(self.to_symbol_id(ident.name)),
-                Some(self.to_ty(ty)),
+                Some(self.to_syn_ty(ty)),
                 Some(self.to_span_id(ident.span.to(ty.span))),
             )
         }));
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_decl.output {
-            Some(self.to_ty(rust_ty))
+            Some(self.to_syn_ty(rust_ty))
         } else {
             None
         };
@@ -290,7 +290,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let item = match &trait_item.kind {
             hir::TraitItemKind::Const(ty, body_id) => AssocItemKind::Const(self.alloc(ConstItem::new(
                 data,
-                self.to_ty(*ty),
+                self.to_syn_ty(ty),
                 body_id.map(|id| self.to_body_id(id)),
             ))),
             hir::TraitItemKind::Fn(fn_sig, trait_fn) => AssocItemKind::Fn(self.alloc({
@@ -300,7 +300,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 };
                 FnItem::new(
                     data,
-                    self.to_generic_params(trait_item.generics),
+                    self.to_syn_generic_params(trait_item.generics),
                     self.to_callable_data_from_fn_sig(fn_sig, false),
                     body,
                 )
@@ -308,9 +308,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::TraitItemKind::Type(bounds, ty) => AssocItemKind::TyAlias(self.alloc({
                 TyAliasItem::new(
                     data,
-                    self.to_generic_params(trait_item.generics),
-                    self.to_ty_param_bound(bounds),
-                    ty.map(|ty| self.to_ty(ty)),
+                    self.to_syn_generic_params(trait_item.generics),
+                    self.to_syn_ty_param_bound(bounds),
+                    ty.map(|ty| self.to_syn_ty(ty)),
                 )
             })),
         };
@@ -333,13 +333,15 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let data = CommonItemData::new(id, self.to_ident(rustc_item.ident));
 
         let item = match &impl_item.kind {
-            hir::ImplItemKind::Const(ty, body_id) => {
-                AssocItemKind::Const(self.alloc(ConstItem::new(data, self.to_ty(*ty), Some(self.to_body_id(*body_id)))))
-            },
+            hir::ImplItemKind::Const(ty, body_id) => AssocItemKind::Const(self.alloc(ConstItem::new(
+                data,
+                self.to_syn_ty(ty),
+                Some(self.to_body_id(*body_id)),
+            ))),
             hir::ImplItemKind::Fn(fn_sig, body_id) => AssocItemKind::Fn(self.alloc({
                 FnItem::new(
                     data,
-                    self.to_generic_params(impl_item.generics),
+                    self.to_syn_generic_params(impl_item.generics),
                     self.to_callable_data_from_fn_sig(fn_sig, false),
                     Some(self.to_body_id(*body_id)),
                 )
@@ -347,9 +349,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ImplItemKind::Type(ty) => AssocItemKind::TyAlias(self.alloc({
                 TyAliasItem::new(
                     data,
-                    self.to_generic_params(impl_item.generics),
+                    self.to_syn_generic_params(impl_item.generics),
                     &[],
-                    Some(self.to_ty(*ty)),
+                    Some(self.to_syn_ty(ty)),
                 )
             })),
         };

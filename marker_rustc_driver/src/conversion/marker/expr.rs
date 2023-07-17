@@ -238,7 +238,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             },
             hir::ExprKind::Closure(closure) => ExprKind::Closure(self.alloc(self.to_closure_expr(data, closure))),
             hir::ExprKind::Cast(expr, ty) => {
-                ExprKind::As(self.alloc(AsExpr::new(data, self.to_expr(expr), self.to_ty(*ty))))
+                ExprKind::As(self.alloc(AsExpr::new(data, self.to_expr(expr), self.to_syn_ty(ty))))
             },
             // `DropTemps` is an rustc internal construct to tweak the drop
             // order during HIR lowering. Marker can for now ignore this and
@@ -395,10 +395,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let params = self.alloc_slice(fn_decl.inputs.iter().map(|ty| {
             // FIXME(xFrednet): The name should be a pattern retrieved from the body, but
             // that requires adjustments in `Parameter`. rust-marker/marker#181
-            Parameter::new(None, Some(self.to_ty(ty)), None)
+            Parameter::new(None, Some(self.to_syn_ty(ty)), None)
         }));
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_decl.output {
-            Some(self.to_ty(rust_ty))
+            Some(self.to_syn_ty(rust_ty))
         } else {
             None
         };

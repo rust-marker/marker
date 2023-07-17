@@ -1,6 +1,6 @@
 use std::mem::{size_of, transmute};
 
-use marker_api::ast::generic::GenericArgs;
+use marker_api::ast::generic::SynGenericArgs;
 use marker_api::ast::ty::SynTyKind;
 use marker_api::ast::{
     Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, Constness, CrateId, ExprId, FieldId, GenericId,
@@ -205,14 +205,14 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     {
         match qpath {
             hir::QPath::Resolved(self_ty, path) => AstQPath::new(
-                self_ty.map(|ty| self.to_ty(ty)),
+                self_ty.map(|ty| self.to_syn_ty(ty)),
                 None,
                 self.to_path(path),
                 self.to_path_target(&path.res),
             ),
             hir::QPath::TypeRelative(rustc_ty, segment) => {
                 // Segment and type conversion
-                let marker_ty = self.to_ty(*rustc_ty);
+                let marker_ty = self.to_syn_ty(rustc_ty);
                 let mut segments = if let SynTyKind::Path(ty_path) = marker_ty {
                     ty_path.path().segments().to_vec()
                 } else {
@@ -261,7 +261,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                             }),
                             self.to_span_id(*span),
                         ),
-                        GenericArgs::new(&[]),
+                        SynGenericArgs::new(&[]),
                     )])),
                     AstPathTarget::Item(self.to_item_id(id)),
                 )
@@ -379,7 +379,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
     #[must_use]
     pub fn to_path_segment(&self, segment: &hir::PathSegment<'tcx>) -> AstPathSegment<'ast> {
-        AstPathSegment::new(self.to_ident(segment.ident), self.to_generic_args(segment.args))
+        AstPathSegment::new(self.to_ident(segment.ident), self.to_syn_generic_args(segment.args))
     }
 
     pub fn to_trait_ref(&self, trait_ref: &rustc_hir::TraitRef<'tcx>) -> TraitRef<'ast> {
@@ -389,7 +389,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             },
             _ => unreachable!("reached `PolyTraitRef` which can't be translated {trait_ref:#?}"),
         };
-        TraitRef::new(trait_id, self.to_generic_args_from_path(trait_ref.path))
+        TraitRef::new(trait_id, self.to_syn_generic_args_from_path(trait_ref.path))
     }
 
     pub fn to_span(&self, rustc_span: rustc_span::Span) -> Span<'ast> {

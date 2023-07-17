@@ -164,7 +164,7 @@ warning: print test
                                                                    end: 214,
                                                                },
                                                            },
-                                                           generics: GenericArgs {
+                                                           generics: SynGenericArgs {
                                                                args: [],
                                                            },
                                                        },
@@ -231,7 +231,7 @@ warning: print test
                                                                        end: 241,
                                                                    },
                                                                },
-                                                               generics: GenericArgs {
+                                                               generics: SynGenericArgs {
                                                                    args: [],
                                                                },
                                                            },
@@ -281,7 +281,7 @@ warning: print test
                                                                        end: 250,
                                                                    },
                                                                },
-                                                               generics: GenericArgs {
+                                                               generics: SynGenericArgs {
                                                                    args: [],
                                                                },
                                                            },
@@ -335,7 +335,7 @@ warning: print test
                                                                                            end: 268,
                                                                                        },
                                                                                    },
-                                                                                   generics: GenericArgs {
+                                                                                   generics: SynGenericArgs {
                                                                                        args: [],
                                                                                    },
                                                                                },
@@ -371,7 +371,7 @@ warning: print test
                                                                                        end: 275,
                                                                                    },
                                                                                },
-                                                                               generics: GenericArgs {
+                                                                               generics: SynGenericArgs {
                                                                                    args: [],
                                                                                },
                                                                            },
@@ -561,7 +561,7 @@ warning: print test
                                                                end: 439,
                                                            },
                                                        },
-                                                       generics: GenericArgs {
+                                                       generics: SynGenericArgs {
                                                            args: [],
                                                        },
                                                    },
@@ -613,7 +613,7 @@ warning: print test
                                                                                            end: 455,
                                                                                        },
                                                                                    },
-                                                                                   generics: GenericArgs {
+                                                                                   generics: SynGenericArgs {
                                                                                        args: [],
                                                                                    },
                                                                                },
@@ -656,7 +656,7 @@ warning: print test
                                                                                                end: 460,
                                                                                            },
                                                                                        },
-                                                                                       generics: GenericArgs {
+                                                                                       generics: SynGenericArgs {
                                                                                            args: [],
                                                                                        },
                                                                                    },
@@ -691,7 +691,7 @@ warning: print test
                                                                                                end: 464,
                                                                                            },
                                                                                        },
-                                                                                       generics: GenericArgs {
+                                                                                       generics: SynGenericArgs {
                                                                                            args: [],
                                                                                        },
                                                                                    },

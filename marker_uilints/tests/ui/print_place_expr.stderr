@@ -34,7 +34,7 @@ warning: print test
                                                    end: 198,
                                                },
                                            },
-                                           generics: GenericArgs {
+                                           generics: SynGenericArgs {
                                                args: [],
                                            },
                                        },
@@ -96,7 +96,7 @@ warning: print test
                                                    end: 236,
                                                },
                                            },
-                                           generics: GenericArgs {
+                                           generics: SynGenericArgs {
                                                args: [],
                                            },
                                        },
@@ -157,7 +157,7 @@ warning: print test
                                                    end: 274,
                                                },
                                            },
-                                           generics: GenericArgs {
+                                           generics: SynGenericArgs {
                                                args: [],
                                            },
                                        },

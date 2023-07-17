@@ -34,7 +34,7 @@ warning: print test
                                                    end: 363,
                                                },
                                            },
-                                           generics: GenericArgs {
+                                           generics: SynGenericArgs {
                                                args: [],
                                            },
                                        },
@@ -108,18 +108,20 @@ warning: print test
                                                                    end: 393,
                                                                },
                                                            },
-                                                           generics: GenericArgs {
+                                                           generics: SynGenericArgs {
                                                                args: [
                                                                    Ty(
-                                                                       Num(
-                                                                           SynNumTy {
-                                                                               data: CommonSynTyData {
-                                                                                   _lifetime: PhantomData<&()>,
-                                                                                   span: SpanId(..),
+                                                                       SynTyArg {
+                                                                           ty: Num(
+                                                                               SynNumTy {
+                                                                                   data: CommonSynTyData {
+                                                                                       _lifetime: PhantomData<&()>,
+                                                                                       span: SpanId(..),
+                                                                                   },
+                                                                                   numeric_kind: U32,
                                                                                },
-                                                                               numeric_kind: U32,
-                                                                           },
-                                                                       ),
+                                                                           ),
+                                                                       },
                                                                    ),
                                                                ],
                                                            },
@@ -146,18 +148,20 @@ warning: print test
                                                    end: 393,
                                                },
                                            },
-                                           generics: GenericArgs {
+                                           generics: SynGenericArgs {
                                                args: [
                                                    Ty(
-                                                       Num(
-                                                           SynNumTy {
-                                                               data: CommonSynTyData {
-                                                                   _lifetime: PhantomData<&()>,
-                                                                   span: SpanId(..),
+                                                       SynTyArg {
+                                                           ty: Num(
+                                                               SynNumTy {
+                                                                   data: CommonSynTyData {
+                                                                       _lifetime: PhantomData<&()>,
+                                                                       span: SpanId(..),
+                                                                   },
+                                                                   numeric_kind: U32,
                                                                },
-                                                               numeric_kind: U32,
-                                                           },
-                                                       ),
+                                                           ),
+                                                       },
                                                    ),
                                                ],
                                            },
@@ -173,7 +177,7 @@ warning: print test
                                                    end: 405,
                                                },
                                            },
-                                           generics: GenericArgs {
+                                           generics: SynGenericArgs {
                                                args: [],
                                            },
                                        },
@@ -242,7 +246,7 @@ warning: print test
                                                                                    end: 437,
                                                                                },
                                                                            },
-                                                                           generics: GenericArgs {
+                                                                           generics: SynGenericArgs {
                                                                                args: [],
                                                                            },
                                                                        },
@@ -269,7 +273,7 @@ warning: print test
                                                                    end: 442,
                                                                },
                                                            },
-                                                           generics: GenericArgs {
+                                                           generics: SynGenericArgs {
                                                                args: [],
                                                            },
                                                        },
@@ -284,7 +288,7 @@ warning: print test
                                                                    end: 451,
                                                                },
                                                            },
-                                                           generics: GenericArgs {
+                                                           generics: SynGenericArgs {
                                                                args: [],
                                                            },
                                                        },
@@ -310,7 +314,7 @@ warning: print test
                                                    end: 442,
                                                },
                                            },
-                                           generics: GenericArgs {
+                                           generics: SynGenericArgs {
                                                args: [],
                                            },
                                        },
@@ -325,7 +329,7 @@ warning: print test
                                                    end: 451,
                                                },
                                            },
-                                           generics: GenericArgs {
+                                           generics: SynGenericArgs {
                                                args: [],
                                            },
                                        },
@@ -340,7 +344,7 @@ warning: print test
                                                    end: 454,
                                                },
                                            },
-                                           generics: GenericArgs {
+                                           generics: SynGenericArgs {
                                                args: [],
                                            },
                                        },
@@ -408,7 +412,7 @@ warning: print test
                                                                                    end: 487,
                                                                                },
                                                                            },
-                                                                           generics: GenericArgs {
+                                                                           generics: SynGenericArgs {
                                                                                args: [],
                                                                            },
                                                                        },
@@ -435,7 +439,7 @@ warning: print test
                                                                    end: 492,
                                                                },
                                                            },
-                                                           generics: GenericArgs {
+                                                           generics: SynGenericArgs {
                                                                args: [],
                                                            },
                                                        },
@@ -450,7 +454,7 @@ warning: print test
                                                                    end: 501,
                                                                },
                                                            },
-                                                           generics: GenericArgs {
+                                                           generics: SynGenericArgs {
                                                                args: [],
                                                            },
                                                        },
@@ -477,7 +481,7 @@ warning: print test
                                                    end: 506,
                                                },
                                            },
-                                           generics: GenericArgs {
+                                           generics: SynGenericArgs {
                                                args: [],
                                            },
                                        },
@@ -492,7 +496,7 @@ warning: print test
                                                    end: 510,
                                                },
                                            },
-                                           generics: GenericArgs {
+                                           generics: SynGenericArgs {
                                                args: [],
                                            },
                                        },
@@ -537,7 +541,7 @@ warning: print test
                                            end: 557,
                                        },
                                    },
-                                   generics: GenericArgs {
+                                   generics: SynGenericArgs {
                                        args: [],
                                    },
                                },

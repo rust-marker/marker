@@ -13,26 +13,6 @@ use rustc_middle as mid;
 
 use super::MarkerConverterInner;
 
-pub enum TySource<'tcx> {
-    Syn(&'tcx hir::Ty<'tcx>),
-}
-
-impl<'tcx> From<&'tcx hir::Ty<'tcx>> for TySource<'tcx> {
-    fn from(value: &'tcx hir::Ty<'tcx>) -> Self {
-        TySource::Syn(value)
-    }
-}
-
-impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
-    #[must_use]
-    pub fn to_ty(&self, source: impl Into<TySource<'tcx>>) -> SynTyKind<'ast> {
-        let source: TySource<'tcx> = source.into();
-        match source {
-            TySource::Syn(syn_ty) => self.to_syn_ty(syn_ty),
-        }
-    }
-}
-
 impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_sem_ty(&self, rustc_ty: mid::ty::Ty<'tcx>) -> SemTyKind<'ast> {
@@ -155,7 +135,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
 impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
-    fn to_syn_ty(&self, rustc_ty: &'tcx hir::Ty<'tcx>) -> SynTyKind<'ast> {
+    pub fn to_syn_ty(&self, rustc_ty: &'tcx hir::Ty<'tcx>) -> SynTyKind<'ast> {
         let data = CommonSynTyData::new_syntactic(self.to_span_id(rustc_ty.span));
 
         // Note: Here we can't reuse allocated nodes, as each one contains
@@ -202,12 +182,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 let hir::ItemKind::OpaqueTy(opty) = &item.kind else {
                     unreachable!("the item of a `OpaqueDef` should be `OpaqueTy` {item:#?}");
                 };
-                let rust_bound = self.to_ty_param_bound(opty.bounds);
+                let rust_bound = self.to_syn_ty_param_bound(opty.bounds);
                 // FIXME: Generics are a bit weird with opaque types
                 SynTyKind::ImplTrait(self.alloc(SynImplTraitTy::new(data, rust_bound)))
             },
             hir::TyKind::TraitObject(rust_bounds, rust_lt, _syntax) => SynTyKind::TraitObj(self.alloc(
-                SynTraitObjTy::new(data, self.to_ty_param_bound_from_hir(rust_bounds, rust_lt)),
+                SynTraitObjTy::new(data, self.to_syn_ty_param_bound_from_hir(rust_bounds, rust_lt)),
             )),
             hir::TyKind::Infer => SynTyKind::Inferred(self.alloc(SynInferredTy::new(data))),
         }

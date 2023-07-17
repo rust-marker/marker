@@ -208,7 +208,7 @@ warning: print test
                                                   end: 206,
                                               },
                                           },
-                                          generics: GenericArgs {
+                                          generics: SynGenericArgs {
                                               args: [],
                                           },
                                       },

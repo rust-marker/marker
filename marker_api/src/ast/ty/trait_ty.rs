@@ -1,5 +1,5 @@
 use crate::{
-    ast::generic::{SemTraitBound, TyParamBound},
+    ast::generic::{SemTraitBound, SynTyParamBound},
     ffi::FfiSlice,
 };
 
@@ -9,20 +9,20 @@ use super::CommonSynTyData;
 #[derive(Debug)]
 pub struct SynImplTraitTy<'ast> {
     data: CommonSynTyData<'ast>,
-    trait_bound: FfiSlice<'ast, TyParamBound<'ast>>,
+    trait_bound: FfiSlice<'ast, SynTyParamBound<'ast>>,
 }
 
 super::impl_ty_data!(SynImplTraitTy<'ast>, ImplTrait);
 
 impl<'ast> SynImplTraitTy<'ast> {
-    pub fn trait_bounds(&self) -> &[TyParamBound<'ast>] {
+    pub fn trait_bounds(&self) -> &[SynTyParamBound<'ast>] {
         self.trait_bound.get()
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> SynImplTraitTy<'ast> {
-    pub fn new(data: CommonSynTyData<'ast>, trait_bound: &'ast [TyParamBound<'ast>]) -> Self {
+    pub fn new(data: CommonSynTyData<'ast>, trait_bound: &'ast [SynTyParamBound<'ast>]) -> Self {
         Self {
             data,
             trait_bound: trait_bound.into(),
@@ -37,12 +37,12 @@ impl<'ast> SynImplTraitTy<'ast> {
 #[derive(Debug)]
 pub struct SynTraitObjTy<'ast> {
     data: CommonSynTyData<'ast>,
-    trait_bound: FfiSlice<'ast, TyParamBound<'ast>>,
+    trait_bound: FfiSlice<'ast, SynTyParamBound<'ast>>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> SynTraitObjTy<'ast> {
-    pub fn new(data: CommonSynTyData<'ast>, trait_bound: &'ast [TyParamBound<'ast>]) -> Self {
+    pub fn new(data: CommonSynTyData<'ast>, trait_bound: &'ast [SynTyParamBound<'ast>]) -> Self {
         Self {
             data,
             trait_bound: trait_bound.into(),
@@ -53,7 +53,7 @@ impl<'ast> SynTraitObjTy<'ast> {
 super::impl_ty_data!(SynTraitObjTy<'ast>, TraitObj);
 
 impl<'ast> SynTraitObjTy<'ast> {
-    pub fn trait_bounds(&self) -> &[TyParamBound<'ast>] {
+    pub fn trait_bounds(&self) -> &[SynTyParamBound<'ast>] {
         self.trait_bound.get()
     }
 }

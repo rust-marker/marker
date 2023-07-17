@@ -1,5 +1,5 @@
 use crate::ast::expr::ConstExpr;
-use crate::ast::generic::GenericParams;
+use crate::ast::generic::SynGenericParams;
 use crate::ast::ty::SynTyKind;
 use crate::ast::{FieldId, Span, SpanId, SymbolId, VariantId};
 use crate::context::with_cx;
@@ -19,14 +19,14 @@ use super::{CommonItemData, Visibility};
 #[derive(Debug)]
 pub struct UnionItem<'ast> {
     data: CommonItemData<'ast>,
-    generics: GenericParams<'ast>,
+    generics: SynGenericParams<'ast>,
     fields: FfiSlice<'ast, Field<'ast>>,
 }
 
 super::impl_item_data!(UnionItem, Union);
 
 impl<'ast> UnionItem<'ast> {
-    pub fn generics(&self) -> &GenericParams<'ast> {
+    pub fn generics(&self) -> &SynGenericParams<'ast> {
         &self.generics
     }
 
@@ -37,7 +37,7 @@ impl<'ast> UnionItem<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> UnionItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, generics: GenericParams<'ast>, fields: &'ast [Field<'ast>]) -> Self {
+    pub fn new(data: CommonItemData<'ast>, generics: SynGenericParams<'ast>, fields: &'ast [Field<'ast>]) -> Self {
         Self {
             data,
             generics,
@@ -64,14 +64,14 @@ impl<'ast> UnionItem<'ast> {
 #[derive(Debug)]
 pub struct EnumItem<'ast> {
     data: CommonItemData<'ast>,
-    generics: GenericParams<'ast>,
+    generics: SynGenericParams<'ast>,
     variants: FfiSlice<'ast, EnumVariant<'ast>>,
 }
 
 super::impl_item_data!(EnumItem, Enum);
 
 impl<'ast> EnumItem<'ast> {
-    pub fn generics(&self) -> &GenericParams<'ast> {
+    pub fn generics(&self) -> &SynGenericParams<'ast> {
         &self.generics
     }
 
@@ -82,7 +82,11 @@ impl<'ast> EnumItem<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> EnumItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, generics: GenericParams<'ast>, variants: &'ast [EnumVariant<'ast>]) -> Self {
+    pub fn new(
+        data: CommonItemData<'ast>,
+        generics: SynGenericParams<'ast>,
+        variants: &'ast [EnumVariant<'ast>],
+    ) -> Self {
         Self {
             data,
             generics,
@@ -200,14 +204,14 @@ impl<'ast> EnumVariant<'ast> {
 #[derive(Debug)]
 pub struct StructItem<'ast> {
     data: CommonItemData<'ast>,
-    generics: GenericParams<'ast>,
+    generics: SynGenericParams<'ast>,
     kind: AdtKind<'ast>,
 }
 
 super::impl_item_data!(StructItem, Struct);
 
 impl<'ast> StructItem<'ast> {
-    pub fn generics(&self) -> &GenericParams<'ast> {
+    pub fn generics(&self) -> &SynGenericParams<'ast> {
         &self.generics
     }
 
@@ -251,7 +255,7 @@ impl<'ast> StructItem<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> StructItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, generics: GenericParams<'ast>, kind: AdtKind<'ast>) -> Self {
+    pub fn new(data: CommonItemData<'ast>, generics: SynGenericParams<'ast>, kind: AdtKind<'ast>) -> Self {
         Self { data, generics, kind }
     }
 }
