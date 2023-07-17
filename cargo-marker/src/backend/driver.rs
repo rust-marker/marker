@@ -80,20 +80,22 @@ pub fn install_driver(
     // However, that will require more prototyping and has a low priority rn.
     // See #60
 
-    // Prerequisites
     let toolchain = &DEFAULT_DRIVER_INFO.toolchain;
+
+    // If `auto-install-toolchain` is set, we want to run it regardless
+    if auto_install_toolchain {
+        install_toolchain(toolchain)?;
+    }
+
+    // Prerequisites
     if rustup_which(toolchain, "cargo", false).is_err() {
-        if auto_install_toolchain {
-            install_toolchain(toolchain)?;
-        } else {
-            eprintln!("Error: The required toolchain `{toolchain}` can't be found");
-            eprintln!();
-            eprintln!(
-                "You can install the toolchain by running: `rustup toolchain install {toolchain} --component rustc-dev llvm-tools`"
-            );
-            eprintln!("Or by adding the `--auto-install-toolchain` flag");
-            return Err(ExitStatus::InvalidToolchain);
-        }
+        eprintln!("Error: The required toolchain `{toolchain}` can't be found");
+        eprintln!();
+        eprintln!(
+            "You can install the toolchain by running: `rustup toolchain install {toolchain} --component rustc-dev llvm-tools`"
+        );
+        eprintln!("Or by adding the `--auto-install-toolchain` flag");
+        return Err(ExitStatus::InvalidToolchain);
     }
 
     build_driver(
