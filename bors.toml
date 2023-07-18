@@ -4,5 +4,8 @@ status = [
   "rust (windows-latest)",
   "rust (macos-latest)",
   "rust-crates-build-stable",
+  "toml",
+  "typos",
+  "rust-unused-dependencies",
 ]
 timeout_sec = 1200 # 20 min
