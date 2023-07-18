@@ -1,7 +1,7 @@
-max_width = 120
-comment_width = 100
+comment_width              = 100
+edition                    = "2021"
+error_on_line_overflow     = true
 match_block_trailing_comma = true
-wrap_comments = true
-edition = "2021"
-error_on_line_overflow = true
-version = "Two"
+max_width                  = 120
+version                    = "Two"
+wrap_comments              = true

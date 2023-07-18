@@ -1,13 +1,13 @@
 [workspace]
 members = [
-    "cargo-marker",
-    "marker_adapter",
-    "marker_api",
-    "marker_rustc_driver",
-    "marker_utils",
-    "marker_lints",
-    "marker_uitest",
-    "marker_uilints",
+  "cargo-marker",
+  "marker_adapter",
+  "marker_api",
+  "marker_rustc_driver",
+  "marker_utils",
+  "marker_lints",
+  "marker_uitest",
+  "marker_uilints",
 ]
 resolver = "2"
 

@@ -1,8 +1,8 @@
 [alias]
+bless   = "test --test uitest -- -- --bless"
 dogfood = "run --features dev-build --bin cargo-marker -- --forward-rust-flags"
-uitest = "test --test uitest"
-bless = "test --test uitest -- -- --bless"
 uilints = "test -p marker_uilints --test uitest"
+uitest  = "test --test uitest"
 
 [profile.dev]
 split-debuginfo = "unpacked"

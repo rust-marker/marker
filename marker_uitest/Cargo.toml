@@ -1,18 +1,18 @@
 [package]
-name = "marker_uitest"
-version = "0.1.1"
-edition = "2021"
-license = "MIT OR Apache-2.0"
-keywords = ["marker", "linting"]
-repository = "https://github.com/rust-marker/marker"
 description = "A thin wrapper around the ui_test crate for Marker"
+edition     = "2021"
+keywords    = ["marker", "linting"]
+license     = "MIT OR Apache-2.0"
+name        = "marker_uitest"
+repository  = "https://github.com/rust-marker/marker"
+version     = "0.1.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ui_test = "0.11.7"
+semver   = "1.0"
 tempfile = "3.6.0"
-semver = "1.0"
+ui_test  = "0.11.7"
 
 [features]
 default = []
