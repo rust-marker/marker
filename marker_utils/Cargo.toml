@@ -1,12 +1,13 @@
 [package]
+name    = "marker_utils"
+version = "0.1.1"
+
 categories  = ["development-tools"]
 description = "Marker's standard library for creating lints"
 edition     = "2021"
 keywords    = ["marker", "linting"]
 license     = "MIT OR Apache-2.0"
-name        = "marker_utils"
 repository  = "https://github.com/rust-marker/marker"
-version     = "0.1.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

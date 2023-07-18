@@ -1,12 +1,13 @@
 [package]
+name    = "marker_rustc_driver"
+version = "0.1.1"
+
 build       = "build.rs"
 description = "Marker's lint driver for rustc"
 edition     = "2021"
 keywords    = ["marker", "linting"]
 license     = "MIT OR Apache-2.0"
-name        = "marker_rustc_driver"
 repository  = "https://github.com/rust-marker/marker"
-version     = "0.1.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

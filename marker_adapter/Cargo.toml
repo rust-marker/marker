@@ -1,11 +1,12 @@
 [package]
+name    = "marker_adapter"
+version = "0.1.1"
+
 description = "Marker's adapter for common functions shared among lint drivers"
 edition     = "2021"
 keywords    = ["marker"]
 license     = "MIT OR Apache-2.0"
-name        = "marker_adapter"
 repository  = "https://github.com/rust-marker/marker"
-version     = "0.1.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
