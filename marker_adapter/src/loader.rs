@@ -58,7 +58,7 @@ impl LintCrateRegistry {
 
         let pass = LoadedLintCrate::try_from_lib(lib)?;
 
-        // FIXME: Create issue for lifetimes and fix droping and pointer decl stuff
+        // FIXME: Create issue for lifetimes and fix dropping and pointer decl stuff
 
         Ok(pass)
     }
