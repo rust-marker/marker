@@ -580,19 +580,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
     pub fn to_const_expr(&self, anon: hir::AnonConst) -> ConstExpr<'ast> {
         let body = self.rustc_cx.hir().body(anon.body);
+        let expr;
 
-        // The stack push and pop should be identical with the `item::to_body` function.
+        super::with_body!(self, body.id(), {
+            expr = ConstExpr::new(self.to_expr(body.value));
+        });
 
-        // Body-Translation-Stack push
-        let prev_rustc_body_id = self.rustc_body.replace(Some(body.id()));
-        let prev_rustc_ty_check = self.rustc_ty_check.take();
-        self.fill_rustc_ty_check();
-
-        let expr = ConstExpr::new(self.to_expr(body.value));
-
-        // Body-Translation-Stack pop
-        self.rustc_body.replace(prev_rustc_body_id);
-        self.rustc_ty_check.replace(prev_rustc_ty_check);
         expr
     }
 }

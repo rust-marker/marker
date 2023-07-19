@@ -3,10 +3,11 @@ use marker_api::{
         expr,
         item::{
             AdtKind, AssocItemKind, Body, CommonItemData, ConstItem, EnumItem, EnumVariant, ExternBlockItem,
-            ExternCrateItem, ExternItemKind, Field, FnItem, ImplItem, ItemKind, ModItem, StaticItem, StructItem,
-            TraitItem, TyAliasItem, UnionItem, UnstableItem, UseItem, UseKind, Visibility,
+            ExternCrateItem, ExternItemKind, Field, FnItem, FnParam, ImplItem, ItemKind, ModItem, StaticItem,
+            StructItem, TraitItem, TyAliasItem, UnionItem, UnstableItem, UseItem, UseKind, Visibility,
         },
-        Abi, CommonCallableData, Constness, Parameter, Safety, Syncness,
+        pat::{CommonPatData, IdentPat, PatKind},
+        Abi, Constness, Mutability, Safety, Syncness,
     },
     CtorBlocker,
 };
@@ -77,11 +78,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     panic!("this is your captain talking, we are about to ICE");
                 }
 
-                ItemKind::Fn(self.alloc(FnItem::new(
+                ItemKind::Fn(self.alloc(self.to_fn_item(
                     data,
-                    self.to_syn_generic_params(generics),
-                    self.to_callable_data_from_fn_sig(fn_sig, false),
-                    Some(self.to_body_id(*body_id)),
+                    generics,
+                    fn_sig,
+                    false,
+                    hir::TraitFn::Provided(*body_id),
                 )))
             },
             hir::ItemKind::Mod(rustc_mod) => {
@@ -158,33 +160,70 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         Some(item)
     }
 
-    fn to_callable_data_from_fn_sig(&self, fn_sig: &hir::FnSig<'tcx>, is_extern: bool) -> CommonCallableData<'ast> {
-        let params = self.alloc_slice(fn_sig.decl.inputs.iter().map(|input_ty| {
-            Parameter::new(
-                // FIXME: This should actually be a pattern, that can be
-                // retrieved from the body. For now this is kind of blocked
-                // by #50
-                None,
-                Some(self.to_syn_ty(input_ty)),
-                Some(self.to_span_id(input_ty.span)),
-            )
-        }));
+    fn to_fn_item(
+        &self,
+        data: CommonItemData<'ast>,
+        generics: &hir::Generics<'tcx>,
+        fn_sig: &hir::FnSig<'tcx>,
+        is_extern: bool,
+        body_info: hir::TraitFn<'_>,
+    ) -> FnItem<'ast> {
+        let api_body = match &body_info {
+            hir::TraitFn::Provided(id) => Some(self.to_body_id(*id)),
+            hir::TraitFn::Required(_) => None,
+        };
+        let params = self.to_fn_params(fn_sig.decl, body_info);
         let header = fn_sig.header;
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_sig.decl.output {
             Some(self.to_syn_ty(rust_ty))
         } else {
             None
         };
-        CommonCallableData::new(
+
+        FnItem::new(
+            data,
+            self.to_syn_generic_params(generics),
             self.to_constness(header.constness),
             self.to_syncness(header.asyncness),
             self.to_safety(header.unsafety),
             is_extern,
-            self.to_abi(header.abi),
             fn_sig.decl.implicit_self.has_implicit_self(),
+            self.to_abi(header.abi),
             params,
             return_ty,
+            api_body,
         )
+    }
+
+    fn to_fn_params(&self, decl: &hir::FnDecl<'tcx>, body_info: hir::TraitFn<'_>) -> &'ast [FnParam<'ast>] {
+        let params;
+        match body_info {
+            hir::TraitFn::Required(idents) => {
+                params = self.alloc_slice(idents.iter().zip(decl.inputs.iter()).map(|(ident, ty)| {
+                    FnParam::new(
+                        self.to_span_id(ident.span.to(ty.span)),
+                        PatKind::Ident(self.alloc(IdentPat::new(
+                            CommonPatData::new(self.to_span_id(ident.span)),
+                            self.to_symbol_id(ident.name),
+                            self.to_var_id(hir::HirId::INVALID),
+                            Mutability::Unmut,
+                            false,
+                            None,
+                        ))),
+                        self.to_syn_ty(ty),
+                    )
+                }));
+            },
+            hir::TraitFn::Provided(body_id) => {
+                let body = self.rustc_cx.hir().body(body_id);
+                super::with_body!(self, body_id, {
+                    params = self.alloc_slice(body.params.iter().zip(decl.inputs.iter()).map(|(param, ty)| {
+                        FnParam::new(self.to_span_id(param.span), self.to_pat(param.pat), self.to_syn_ty(ty))
+                    }));
+                });
+            },
+        }
+        params
     }
 
     fn to_adt_kind(&self, var_data: &'tcx hir::VariantData) -> AdtKind<'ast> {
@@ -227,17 +266,29 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let foreign_item = self.rustc_cx.hir().foreign_item(rustc_item.id);
         let data = CommonItemData::new(id, self.to_ident(rustc_item.ident));
         let item = match &foreign_item.kind {
-            hir::ForeignItemKind::Fn(fn_sig, idents, generics) => ExternItemKind::Fn(
-                self.alloc({
-                    FnItem::new(
+            hir::ForeignItemKind::Fn(decl, idents, generics) => {
+                let return_ty = if let hir::FnRetTy::Return(rust_ty) = decl.output {
+                    Some(self.to_syn_ty(rust_ty))
+                } else {
+                    None
+                };
+                ExternItemKind::Fn(
+                    self.alloc(FnItem::new(
                         data,
                         self.to_syn_generic_params(generics),
-                        self.to_callable_data_from_fn_decl(fn_sig, idents, true, abi),
+                        Constness::NotConst,
+                        Syncness::Sync,
+                        Safety::Safe,
+                        true,
+                        decl.implicit_self.has_implicit_self(),
+                        abi,
+                        self.to_fn_params(decl, hir::TraitFn::Required(idents)),
+                        return_ty,
                         None,
-                    )
-                }),
-                CtorBlocker::new(),
-            ),
+                    )),
+                    CtorBlocker::new(),
+                )
+            },
             hir::ForeignItemKind::Static(ty, rustc_mut) => ExternItemKind::Static(
                 self.alloc(StaticItem::new(
                     data,
@@ -254,38 +305,6 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
         self.items.borrow_mut().insert(id, item.as_item());
         item
-    }
-
-    fn to_callable_data_from_fn_decl(
-        &self,
-        fn_decl: &'tcx hir::FnDecl,
-        idents: &[rustc_span::symbol::Ident],
-        is_extern: bool,
-        abi: Abi,
-    ) -> CommonCallableData<'ast> {
-        assert_eq!(fn_decl.inputs.len(), idents.len());
-        let params = self.alloc_slice(idents.iter().zip(fn_decl.inputs.iter()).map(|(ident, ty)| {
-            Parameter::new(
-                Some(self.to_symbol_id(ident.name)),
-                Some(self.to_syn_ty(ty)),
-                Some(self.to_span_id(ident.span.to(ty.span))),
-            )
-        }));
-        let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_decl.output {
-            Some(self.to_syn_ty(rust_ty))
-        } else {
-            None
-        };
-        CommonCallableData::new(
-            Constness::NotConst,
-            Syncness::Sync,
-            Safety::Safe,
-            is_extern,
-            abi,
-            fn_decl.implicit_self.has_implicit_self(),
-            params,
-            return_ty,
-        )
     }
 
     fn to_assoc_items(&self, items: &[hir::TraitItemRef]) -> &'ast [AssocItemKind<'ast>] {
@@ -317,18 +336,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 CtorBlocker::new(),
             ),
             hir::TraitItemKind::Fn(fn_sig, trait_fn) => AssocItemKind::Fn(
-                self.alloc({
-                    let body = match trait_fn {
-                        hir::TraitFn::Provided(body_id) => Some(self.to_body_id(*body_id)),
-                        hir::TraitFn::Required(_) => None,
-                    };
-                    FnItem::new(
-                        data,
-                        self.to_syn_generic_params(trait_item.generics),
-                        self.to_callable_data_from_fn_sig(fn_sig, false),
-                        body,
-                    )
-                }),
+                self.alloc(self.to_fn_item(data, trait_item.generics, fn_sig, false, *trait_fn)),
                 CtorBlocker::new(),
             ),
             hir::TraitItemKind::Type(bounds, ty) => AssocItemKind::TyAlias(
@@ -377,14 +385,13 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 CtorBlocker::new(),
             ),
             hir::ImplItemKind::Fn(fn_sig, body_id) => AssocItemKind::Fn(
-                self.alloc({
-                    FnItem::new(
-                        data,
-                        self.to_syn_generic_params(impl_item.generics),
-                        self.to_callable_data_from_fn_sig(fn_sig, false),
-                        Some(self.to_body_id(*body_id)),
-                    )
-                }),
+                self.alloc(self.to_fn_item(
+                    data,
+                    impl_item.generics,
+                    fn_sig,
+                    false,
+                    hir::TraitFn::Provided(*body_id),
+                )),
                 CtorBlocker::new(),
             ),
             hir::ImplItemKind::Type(ty) => AssocItemKind::TyAlias(
@@ -442,20 +449,13 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             ));
         }
 
-        // The stack push and pop should be identical with the `expr::to_const_expr` function.
+        let api_body;
+        super::with_body!(self, body.id(), {
+            let owner = self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id()));
+            api_body = self.alloc(Body::new(owner, self.to_expr(body.value)));
+            self.bodies.borrow_mut().insert(id, api_body);
+        });
 
-        // Body-Translation-Stack push
-        let prev_rustc_body_id = self.rustc_body.replace(Some(body.id()));
-        let prev_rustc_ty_check = self.rustc_ty_check.take();
-        self.fill_rustc_ty_check();
-
-        let owner = self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id()));
-        let api_body = self.alloc(Body::new(owner, self.to_expr(body.value)));
-        self.bodies.borrow_mut().insert(id, api_body);
-
-        // Body-Translation-Stack pop
-        self.rustc_body.replace(prev_rustc_body_id);
-        self.rustc_ty_check.replace(prev_rustc_ty_check);
         api_body
     }
 }

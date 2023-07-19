@@ -22,7 +22,7 @@ use super::CommonItemData;
 ///
 /// pub trait SomeTrait {
 ///     // A function without a body
-///     pub fn baz(_: i32);
+///     fn baz(_: i32);
 /// }
 /// ```
 ///
@@ -112,6 +112,7 @@ impl<'ast> FnItem<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> FnItem<'ast> {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         data: CommonItemData<'ast>,
         generics: SynGenericParams<'ast>,

@@ -12,6 +12,8 @@ fn main() -> color_eyre::Result<()> {
     let filters = [
         // Normalization for windows...
         (r"ui//", "ui/"),
+        (r"item//", "item/"),
+        (r"expr//", "expr/"),
     ];
     for (pat, repl) in filters {
         config.stderr_filter(pat, repl);

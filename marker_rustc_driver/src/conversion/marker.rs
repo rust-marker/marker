@@ -219,3 +219,20 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         ))
     }
 }
+
+macro_rules! with_body {
+    ($cx:expr, $id:expr, $with:expr) => {
+        // Body-Translation-Stack push
+        let prev_rustc_body_id = $cx.rustc_body.replace(Some($id));
+        let prev_rustc_ty_check = $cx.rustc_ty_check.take();
+        $cx.fill_rustc_ty_check();
+
+        // Operation
+        $with
+
+        // Body-Translation-Stack pop
+        $cx.rustc_body.replace(prev_rustc_body_id);
+        $cx.rustc_ty_check.replace(prev_rustc_ty_check);
+    };
+}
+use with_body;
