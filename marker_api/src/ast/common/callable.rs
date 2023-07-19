@@ -16,21 +16,17 @@ use super::{Abi, Constness, Safety, Span, SpanId, SymbolId, Syncness};
 /// This trait is only meant to be implemented inside this crate. The `Sealed`
 /// super trait prevents external implementations.
 pub trait CallableData<'ast>: Debug + Sealed {
-    /// Returns `true`, if this callable is `const`.
-    ///
-    /// Defaults to `false` if unspecified.
+    /// Returns the [`Constness`] of this callable
     fn constness(&self) -> Constness;
 
-    /// Returns `true`, if this callable is `async`.
+    /// Returns the [`Syncness`] of this callable.
     ///
-    /// Defaults to `false` if unspecified.
+    /// Use this to check if the function is async.
     fn syncness(&self) -> Syncness;
 
-    /// Returns `true`, if this callable is marked as `unsafe`.
+    /// Returns the [`Safety`] of this callable.
     ///
-    /// Defaults to `false` if unspecified. `extern` functions will
-    /// also return `false` by default, even if they require `unsafe`
-    /// by default.
+    /// Use this to check if the function is unsafe.
     fn safety(&self) -> Safety;
 
     /// Returns `true`, if this callable is marked as `extern`. Bare functions
@@ -41,7 +37,7 @@ pub trait CallableData<'ast>: Debug + Sealed {
     /// Defaults to `false` if unspecified.
     fn is_extern(&self) -> bool;
 
-    /// Returns the [`Abi`] of the callable, if specified.
+    /// Returns the [`Abi`] of the callable.
     fn abi(&self) -> Abi;
 
     /// Returns `true`, if this callable has a specified `self` argument. The
@@ -54,7 +50,7 @@ pub trait CallableData<'ast>: Debug + Sealed {
     /// [`has_self()`](`Self::has_self`) to determine if the first argument is `self`.
     fn params(&self) -> &[Parameter<'ast>];
 
-    /// Returns the return type, if specified.
+    /// The return type of this callable, if specified.
     fn return_ty(&self) -> Option<&SynTyKind<'ast>>;
 }
 
