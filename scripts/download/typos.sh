@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-script_dir=$(readlink -f $(dirname $0))
+script_dir=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
 
 . $script_dir/lib.sh
 
