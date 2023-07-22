@@ -1,6 +1,4 @@
-set -euo pipefail
-
-script_dir=$(readlink -f $(dirname $0))
+script_dir=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
 
 . $script_dir/../lib.sh
 
@@ -47,7 +45,7 @@ function try_download_and_decompress {
         with_log tar --extract --xz --file $archive "$@"
     elif [[ $url == *.gz ]]
     then
-        with_log gzip --decompress $archive > $(basename $url .gz)
+        with_log gzip --decompress --stdout $archive > $(basename $url .gz)
     else
         echo "Unknown file type: $url"
         exit 1

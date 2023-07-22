@@ -1,8 +1,6 @@
 # This file is meant to be sourced by other scripts, not executed directly.
 # It contains a bunch of helper functions for writing bash scripts.
 
-set -euo pipefail
-
 # This output stream is used by subshells to send their output to the
 # global build process stdout. This is needed e.g. for writing special commands
 # to the shells actual stdout instead of the command's stdout to let the github

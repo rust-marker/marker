@@ -6,8 +6,14 @@ script_dir=$(readlink -f $(dirname $0))
 
 . $script_dir/lib.sh
 
-version=0.7.0
+version=0.8.1
 
-base_url=https://github.com/tamasfe/taplo/releases/download/release-taplo-cli-$version
+base_url=https://github.com/tamasfe/taplo/releases/download/$version
 
-download_and_decompress $base_url/taplo-$arch_rust-unknown-linux-gnu.tar.gz taplo
+file_stem=taplo-linux-$arch_rust
+
+download_and_decompress $base_url/$file_stem.gz
+
+mv $file_stem taplo
+
+chmod +x ./taplo
