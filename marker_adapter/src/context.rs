@@ -7,7 +7,7 @@ use marker_api::{
     ast::{
         item::{Body, ItemKind},
         ty::SemTyKind,
-        BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId, TyDefId,
+        BodyId, ExprId, ItemId, Span, SpanId, SymbolId, TyDefId,
     },
     context::DriverCallbacks,
     diagnostic::{Diagnostic, EmissionNode},
@@ -88,9 +88,9 @@ extern "C" fn expr_ty<'ast>(data: &(), expr: ExprId) -> SemTyKind<'ast> {
     wrapper.driver_cx.expr_ty(expr)
 }
 
-extern "C" fn span<'ast>(data: &(), owner: &SpanOwner) -> &'ast Span<'ast> {
+extern "C" fn span<'ast>(data: &(), span_id: SpanId) -> &'ast Span<'ast> {
     let wrapper = unsafe { &*(data as *const ()).cast::<DriverContextWrapper>() };
-    wrapper.driver_cx.span(owner)
+    wrapper.driver_cx.span(span_id)
 }
 
 extern "C" fn span_snippet<'ast>(data: &(), span: &Span<'ast>) -> ffi::FfiOption<ffi::FfiStr<'ast>> {
@@ -118,7 +118,7 @@ pub trait DriverContext<'ast> {
     fn resolve_ty_ids(&'ast self, path: &str) -> &'ast [TyDefId];
 
     fn expr_ty(&'ast self, expr: ExprId) -> SemTyKind<'ast>;
-    fn span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast>;
+    fn span(&'ast self, owner: SpanId) -> &'ast Span<'ast>;
     fn span_snippet(&'ast self, span: &Span<'ast>) -> Option<&'ast str>;
     fn symbol_str(&'ast self, api_id: SymbolId) -> &'ast str;
     fn resolve_method_target(&'ast self, id: ExprId) -> ItemId;
