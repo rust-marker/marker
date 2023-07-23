@@ -1,5 +1,6 @@
 use crate::{
-    ast::{impl_callable_data_trait, stmt::StmtKind, BodyId, CommonCallableData, Ident},
+    ast::{pat::PatKind, stmt::StmtKind, ty::SynTyKind, BodyId, Ident, Span, SpanId},
+    context::with_cx,
     ffi::{FfiOption, FfiSlice},
 };
 
@@ -101,9 +102,10 @@ impl<'ast> BlockExpr<'ast> {
 #[derive(Debug)]
 pub struct ClosureExpr<'ast> {
     data: CommonExprData<'ast>,
-    callable_data: CommonCallableData<'ast>,
     capture_kind: CaptureKind,
-    body: BodyId,
+    params: FfiSlice<'ast, ClosureParam<'ast>>,
+    return_ty: FfiOption<SynTyKind<'ast>>,
+    body_id: BodyId,
 }
 
 impl<'ast> ClosureExpr<'ast> {
@@ -111,28 +113,36 @@ impl<'ast> ClosureExpr<'ast> {
         self.capture_kind
     }
 
+    pub fn params(&self) -> &'ast [ClosureParam<'ast>] {
+        self.params.get()
+    }
+
+    pub fn return_ty(&self) -> Option<SynTyKind<'_>> {
+        self.return_ty.copy()
+    }
+
     pub fn body_id(&self) -> BodyId {
-        self.body
+        self.body_id
     }
 }
 
 super::impl_expr_data!(ClosureExpr<'ast>, Closure);
 
-impl_callable_data_trait!(ClosureExpr<'ast>);
-
 #[cfg(feature = "driver-api")]
 impl<'ast> ClosureExpr<'ast> {
     pub fn new(
         data: CommonExprData<'ast>,
-        callable_data: CommonCallableData<'ast>,
         capture_kind: CaptureKind,
-        body: BodyId,
+        params: &'ast [ClosureParam<'ast>],
+        return_ty: Option<SynTyKind<'ast>>,
+        body_id: BodyId,
     ) -> Self {
         Self {
             data,
-            callable_data,
             capture_kind,
-            body,
+            params: params.into(),
+            return_ty: return_ty.into(),
+            body_id,
         }
     }
 }
@@ -143,4 +153,54 @@ impl<'ast> ClosureExpr<'ast> {
 pub enum CaptureKind {
     Default,
     Move,
+}
+
+/// A parameter for a [`ClosureExpr`], with a pattern and an optional type, like:
+///
+/// ```
+/// # let _: fn(u32) -> () =
+/// // A simple parameter
+/// //   v
+///     |x| { /*...*/ };
+///
+/// // A parameter with a type
+/// //   vvvvvv
+///     |y: u32| { /*...*/ };
+///
+/// # let _: fn((u32, u32, u32)) -> () =
+/// // A parameter with a complex pattern
+/// //   vvvvvvvv
+///     |(a, b, c)| { /*...*/ };
+/// ```
+#[repr(C)]
+#[derive(Debug)]
+pub struct ClosureParam<'ast> {
+    span: SpanId,
+    pat: PatKind<'ast>,
+    ty: FfiOption<SynTyKind<'ast>>,
+}
+
+impl<'ast> ClosureParam<'ast> {
+    pub fn span(&self) -> &Span<'ast> {
+        with_cx(self, |cx| cx.span(self.span))
+    }
+
+    pub fn pat(&self) -> PatKind<'ast> {
+        self.pat
+    }
+
+    pub fn ty(&self) -> Option<SynTyKind<'ast>> {
+        self.ty.copy()
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> ClosureParam<'ast> {
+    pub fn new(span: SpanId, pat: PatKind<'ast>, ty: Option<SynTyKind<'ast>>) -> Self {
+        Self {
+            span,
+            pat,
+            ty: ty.into(),
+        }
+    }
 }
