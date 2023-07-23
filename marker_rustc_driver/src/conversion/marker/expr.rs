@@ -2,13 +2,14 @@ use marker_api::{
     ast::{
         expr::{
             ArrayExpr, AsExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr, CallExpr,
-            CaptureKind, CharLitExpr, ClosureExpr, CommonExprData, ConstExpr, ContinueExpr, CtorExpr, CtorField,
-            ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr, IndexExpr, IntLitExpr,
-            IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, QuestionMarkExpr, RangeExpr,
-            RefExpr, ReturnExpr, StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr, WhileExpr,
+            CaptureKind, CharLitExpr, ClosureExpr, ClosureParam, CommonExprData, ConstExpr, ContinueExpr, CtorExpr,
+            CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr, IndexExpr,
+            IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, QuestionMarkExpr,
+            RangeExpr, RefExpr, ReturnExpr, StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
+            WhileExpr,
         },
         pat::PatKind,
-        CommonCallableData, Constness, Ident, Parameter, Safety, Syncness,
+        Ident,
     },
     CtorBlocker,
 };
@@ -395,32 +396,33 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     fn to_closure_expr(&self, data: CommonExprData<'ast>, closure: &hir::Closure<'tcx>) -> ClosureExpr<'ast> {
         let fn_decl = closure.fn_decl;
 
-        let params = self.alloc_slice(fn_decl.inputs.iter().map(|ty| {
-            // FIXME(xFrednet): The name should be a pattern retrieved from the body, but
-            // that requires adjustments in `Parameter`. rust-marker/marker#181
-            Parameter::new(None, Some(self.to_syn_ty(ty)), None)
-        }));
+        let body_id = closure.body;
+        let params;
+        let body = self.rustc_cx.hir().body(body_id);
+        super::with_body!(self, body_id, {
+            params = self.alloc_slice(body.params.iter().zip(fn_decl.inputs.iter()).map(|(param, ty)| {
+                // Rustc automatically substitutes the infer type, if a closure
+                // parameter has no type declaration.
+                let param_ty = if matches!(ty.kind, hir::TyKind::Infer) && param.pat.span.contains(ty.span) {
+                    None
+                } else {
+                    Some(self.to_syn_ty(ty))
+                };
+                ClosureParam::new(self.to_span_id(param.span), self.to_pat(param.pat), param_ty)
+            }));
+        });
+
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_decl.output {
             Some(self.to_syn_ty(rust_ty))
         } else {
             None
         };
 
-        let call = CommonCallableData::new(
-            Constness::NotConst,
-            Syncness::Sync,
-            Safety::Safe,
-            false,
-            marker_api::ast::Abi::Default,
-            false,
-            params,
-            return_ty,
-        );
-
         ClosureExpr::new(
             data,
-            call,
             self.to_capture_kind(closure.capture_clause),
+            params,
+            return_ty,
             self.to_body_id(closure.body),
         )
     }
