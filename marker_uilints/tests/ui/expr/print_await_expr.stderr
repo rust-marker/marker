@@ -1,29 +1,3 @@
-warning: async blocks and await expressions are currently not supported
- --> $DIR/print_await_expr.rs:1:22
-  |
-1 |   async fn foo() -> u8 {
-  |  ______________________^
-2 | |     16
-3 | | }
-  | |_^
-  |
-  = note: see rust-marker/marker#174
-  = note: set the `MARKER_DISABLE_ASYNC_WARNING` environment value to disable this warning
-
-warning: async blocks and await expressions are currently not supported
-  --> $DIR/print_await_expr.rs:5:16
-   |
-5  |   async fn bar() {
-   |  ________________^
-6  | |     let _print_await = foo().await;
-7  | |
-8  | |     let future = foo();
-9  | |     let _print_await = future.await;
-10 | | }
-   | |_^
-   |
-   = note: see rust-marker/marker#174
-
 warning: print test
  --> $DIR/print_await_expr.rs:6:5
   |
@@ -118,8 +92,8 @@ warning: print test
                                                   source: File(
                                                       "$DIR/print_await_expr.rs",
                                                   ),
-                                                  start: 134,
-                                                  end: 140,
+                                                  start: 138,
+                                                  end: 144,
                                               },
                                           },
                                           generics: SynGenericArgs {
@@ -137,5 +111,46 @@ warning: print test
               },
           )
 
-warning: 4 warnings emitted
+warning: print test
+  --> $DIR/print_await_expr.rs:11:5
+   |
+11 |     let _print_await = async { 18 }.await;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Await(
+               AwaitExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   expr: Block(
+                       BlockExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           stmts: [],
+                           expr: Some(
+                               IntLit(
+                                   IntLitExpr {
+                                       data: CommonExprData {
+                                           _lifetime: PhantomData<&()>,
+                                           id: ExprId(..),
+                                           span: SpanId(..),
+                                       },
+                                       value: 18,
+                                       suffix: None,
+                                   },
+                               ),
+                           ),
+                           label: None,
+                           is_unsafe: false,
+                       },
+                   ),
+               },
+           )
+
+warning: 3 warnings emitted
 

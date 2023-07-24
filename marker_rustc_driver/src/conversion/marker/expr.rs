@@ -243,7 +243,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 hir::LoopSource::While => ExprKind::While(self.alloc(self.to_while_loop_from_desugar(expr))),
                 hir::LoopSource::ForLoop => unreachable!("is desugared at a higher node level"),
             },
-            hir::ExprKind::Closure(closure) => ExprKind::Closure(self.alloc(self.to_closure_expr(data, closure))),
+            hir::ExprKind::Closure(closure) => self.to_expr_from_closure(data, expr, closure),
             hir::ExprKind::Cast(expr, ty) => {
                 ExprKind::As(self.alloc(AsExpr::new(data, self.to_expr(expr), self.to_syn_ty(ty))))
             },
@@ -394,6 +394,51 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             guard,
             self.to_expr(arm.body),
         )
+    }
+
+    fn to_expr_from_closure(
+        &self,
+        data: CommonExprData<'ast>,
+        _expr: &hir::Expr<'tcx>,
+        closure: &hir::Closure<'tcx>,
+    ) -> ExprKind<'ast> {
+        let body_id = closure.body;
+        let body = self.rustc_cx.hir().body(body_id);
+        match body.generator_kind {
+            Some(hir::GeneratorKind::Async(hir::AsyncGeneratorKind::Fn)) => {
+                if let hir::ExprKind::Block(block, None) = body.value.kind
+                    && let Some(temp_drop) = block.expr
+                    && let hir::ExprKind::DropTemps(inner_block) = temp_drop.kind
+                {
+                    let api_expr;
+                    super::with_body!(self, body_id, {
+                        api_expr = self.to_expr(inner_block)
+                    });
+                    return api_expr
+                }
+
+                unreachable!("`async fn` body desugar always has the same structure")
+            },
+            Some(hir::GeneratorKind::Async(hir::AsyncGeneratorKind::Block)) => {
+                let block_expr = body.value;
+                if let hir::ExprKind::Block(block, None) = block_expr.kind {
+                    let api_block_expr;
+                    super::with_body!(self, body_id, {
+                        api_block_expr = self.to_block_expr(
+                            CommonExprData::new(self.to_expr_id(block_expr.hir_id), self.to_span_id(block_expr.span)),
+                            block,
+                            None,
+                        );
+                    });
+                    return ExprKind::Block(self.alloc(api_block_expr));
+                }
+                unreachable!("`async` block desugar always has the same structure")
+            },
+            Some(hir::GeneratorKind::Async(hir::AsyncGeneratorKind::Closure) | hir::GeneratorKind::Gen) => {
+                ExprKind::Unstable(self.alloc(UnstableExpr::new(data, ExprPrecedence::Closure)))
+            },
+            None => ExprKind::Closure(self.alloc(self.to_closure_expr(data, closure))),
+        }
     }
 
     fn to_closure_expr(&self, data: CommonExprData<'ast>, closure: &hir::Closure<'tcx>) -> ClosureExpr<'ast> {

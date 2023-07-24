@@ -1,0 +1,486 @@
+warning: printing item with body
+ --> $DIR/async_block_2.rs:5:10
+  |
+5 | async fn print_with_body_bar() -> u8 {
+  |          ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Item: Fn(
+              FnItem {
+                  data: CommonItemData {
+                      id: ItemId(..),
+                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      ident: Ident {
+                          name: "print_with_body_bar",
+                          span: Span {
+                              source: File(
+                                  "$DIR/async_block_2.rs",
+                              ),
+                              start: 42,
+                              end: 61,
+                          },
+                      },
+                  },
+                  generics: SynGenericParams {
+                      params: [],
+                      clauses: [],
+                  },
+                  constness: NotConst,
+                  syncness: Async,
+                  safety: Safe,
+                  is_extern: false,
+                  has_self: false,
+                  abi: Default,
+                  params: [],
+                  return_ty: Some(
+                      ImplTrait(
+                          SynImplTraitTy {
+                              data: CommonSynTyData {
+                                  _lifetime: PhantomData<&()>,
+                                  span: SpanId(..),
+                              },
+                              trait_bound: [
+                                  TraitBound(
+                                      SynTraitBound {
+                                          is_relaxed: false,
+                                          trait_ref: TraitRef {
+                                              item_id: ItemId(..),
+                                              generics: SynGenericArgs {
+                                                  args: [
+                                                      Binding(
+                                                          SynBindingArg {
+                                                              span: SpanId(..),
+                                                              ident: SymbolId(..),
+                                                              ty: Num(
+                                                                  SynNumTy {
+                                                                      data: CommonSynTyData {
+                                                                          _lifetime: PhantomData<&()>,
+                                                                          span: SpanId(..),
+                                                                      },
+                                                                      numeric_kind: U8,
+                                                                  },
+                                                              ),
+                                                          },
+                                                      ),
+                                                  ],
+                                              },
+                                          },
+                                          span: SpanId(..),
+                                      },
+                                  ),
+                              ],
+                          },
+                      ),
+                  ),
+                  body_id: Some(
+                      BodyId(..),
+                  ),
+              },
+          )
+  = note: Body: Body {
+              owner: ItemId(..),
+              expr: Block(
+                  BlockExpr {
+                      data: CommonExprData {
+                          _lifetime: PhantomData<&()>,
+                          id: ExprId(..),
+                          span: SpanId(..),
+                      },
+                      stmts: [
+                          Let(
+                              LetStmt {
+                                  id: LetStmtId(..),
+                                  span: SpanId(..),
+                                  pat: Ident(
+                                      IdentPat {
+                                          data: CommonPatData {
+                                              _lifetime: PhantomData<&()>,
+                                              span: SpanId(..),
+                                          },
+                                          name: SymbolId(..),
+                                          var: VarId(..),
+                                          mutability: Unmut,
+                                          is_ref: false,
+                                          binding_pat: None,
+                                      },
+                                  ),
+                                  ty: Some(
+                                      Num(
+                                          SynNumTy {
+                                              data: CommonSynTyData {
+                                                  _lifetime: PhantomData<&()>,
+                                                  span: SpanId(..),
+                                              },
+                                              numeric_kind: U8,
+                                          },
+                                      ),
+                                  ),
+                                  init: Some(
+                                      Await(
+                                          AwaitExpr {
+                                              data: CommonExprData {
+                                                  _lifetime: PhantomData<&()>,
+                                                  id: ExprId(..),
+                                                  span: SpanId(..),
+                                              },
+                                              expr: Call(
+                                                  CallExpr {
+                                                      data: CommonExprData {
+                                                          _lifetime: PhantomData<&()>,
+                                                          id: ExprId(..),
+                                                          span: SpanId(..),
+                                                      },
+                                                      operand: Path(
+                                                          PathExpr {
+                                                              data: CommonExprData {
+                                                                  _lifetime: PhantomData<&()>,
+                                                                  id: ExprId(..),
+                                                                  span: SpanId(..),
+                                                              },
+                                                              path: AstQPath {
+                                                                  self_ty: None,
+                                                                  path_ty: None,
+                                                                  path: AstPath {
+                                                                      segments: [
+                                                                          AstPathSegment {
+                                                                              ident: Ident {
+                                                                                  name: "foo",
+                                                                                  span: Span {
+                                                                                      source: File(
+                                                                                          "$DIR/async_block_2.rs",
+                                                                                      ),
+                                                                                      start: 88,
+                                                                                      end: 91,
+                                                                                  },
+                                                                              },
+                                                                              generics: SynGenericArgs {
+                                                                                  args: [],
+                                                                              },
+                                                                          },
+                                                                      ],
+                                                                  },
+                                                                  target: Item(
+                                                                      ItemId(..),
+                                                                  ),
+                                                              },
+                                                          },
+                                                      ),
+                                                      args: [],
+                                                  },
+                                              ),
+                                          },
+                                      ),
+                                  ),
+                                  els: None,
+                              },
+                          ),
+                          Let(
+                              LetStmt {
+                                  id: LetStmtId(..),
+                                  span: SpanId(..),
+                                  pat: Ident(
+                                      IdentPat {
+                                          data: CommonPatData {
+                                              _lifetime: PhantomData<&()>,
+                                              span: SpanId(..),
+                                          },
+                                          name: SymbolId(..),
+                                          var: VarId(..),
+                                          mutability: Unmut,
+                                          is_ref: false,
+                                          binding_pat: None,
+                                      },
+                                  ),
+                                  ty: Some(
+                                      Num(
+                                          SynNumTy {
+                                              data: CommonSynTyData {
+                                                  _lifetime: PhantomData<&()>,
+                                                  span: SpanId(..),
+                                              },
+                                              numeric_kind: U8,
+                                          },
+                                      ),
+                                  ),
+                                  init: Some(
+                                      Await(
+                                          AwaitExpr {
+                                              data: CommonExprData {
+                                                  _lifetime: PhantomData<&()>,
+                                                  id: ExprId(..),
+                                                  span: SpanId(..),
+                                              },
+                                              expr: Call(
+                                                  CallExpr {
+                                                      data: CommonExprData {
+                                                          _lifetime: PhantomData<&()>,
+                                                          id: ExprId(..),
+                                                          span: SpanId(..),
+                                                      },
+                                                      operand: Path(
+                                                          PathExpr {
+                                                              data: CommonExprData {
+                                                                  _lifetime: PhantomData<&()>,
+                                                                  id: ExprId(..),
+                                                                  span: SpanId(..),
+                                                              },
+                                                              path: AstQPath {
+                                                                  self_ty: None,
+                                                                  path_ty: None,
+                                                                  path: AstPath {
+                                                                      segments: [
+                                                                          AstPathSegment {
+                                                                              ident: Ident {
+                                                                                  name: "foo",
+                                                                                  span: Span {
+                                                                                      source: File(
+                                                                                          "$DIR/async_block_2.rs",
+                                                                                      ),
+                                                                                      start: 117,
+                                                                                      end: 120,
+                                                                                  },
+                                                                              },
+                                                                              generics: SynGenericArgs {
+                                                                                  args: [],
+                                                                              },
+                                                                          },
+                                                                      ],
+                                                                  },
+                                                                  target: Item(
+                                                                      ItemId(..),
+                                                                  ),
+                                                              },
+                                                          },
+                                                      ),
+                                                      args: [],
+                                                  },
+                                              ),
+                                          },
+                                      ),
+                                  ),
+                                  els: None,
+                              },
+                          ),
+                          Let(
+                              LetStmt {
+                                  id: LetStmtId(..),
+                                  span: SpanId(..),
+                                  pat: Ident(
+                                      IdentPat {
+                                          data: CommonPatData {
+                                              _lifetime: PhantomData<&()>,
+                                              span: SpanId(..),
+                                          },
+                                          name: SymbolId(..),
+                                          var: VarId(..),
+                                          mutability: Unmut,
+                                          is_ref: false,
+                                          binding_pat: None,
+                                      },
+                                  ),
+                                  ty: Some(
+                                      Num(
+                                          SynNumTy {
+                                              data: CommonSynTyData {
+                                                  _lifetime: PhantomData<&()>,
+                                                  span: SpanId(..),
+                                              },
+                                              numeric_kind: U8,
+                                          },
+                                      ),
+                                  ),
+                                  init: Some(
+                                      Await(
+                                          AwaitExpr {
+                                              data: CommonExprData {
+                                                  _lifetime: PhantomData<&()>,
+                                                  id: ExprId(..),
+                                                  span: SpanId(..),
+                                              },
+                                              expr: Call(
+                                                  CallExpr {
+                                                      data: CommonExprData {
+                                                          _lifetime: PhantomData<&()>,
+                                                          id: ExprId(..),
+                                                          span: SpanId(..),
+                                                      },
+                                                      operand: Path(
+                                                          PathExpr {
+                                                              data: CommonExprData {
+                                                                  _lifetime: PhantomData<&()>,
+                                                                  id: ExprId(..),
+                                                                  span: SpanId(..),
+                                                              },
+                                                              path: AstQPath {
+                                                                  self_ty: None,
+                                                                  path_ty: None,
+                                                                  path: AstPath {
+                                                                      segments: [
+                                                                          AstPathSegment {
+                                                                              ident: Ident {
+                                                                                  name: "foo",
+                                                                                  span: Span {
+                                                                                      source: File(
+                                                                                          "$DIR/async_block_2.rs",
+                                                                                      ),
+                                                                                      start: 146,
+                                                                                      end: 149,
+                                                                                  },
+                                                                              },
+                                                                              generics: SynGenericArgs {
+                                                                                  args: [],
+                                                                              },
+                                                                          },
+                                                                      ],
+                                                                  },
+                                                                  target: Item(
+                                                                      ItemId(..),
+                                                                  ),
+                                                              },
+                                                          },
+                                                      ),
+                                                      args: [],
+                                                  },
+                                              ),
+                                          },
+                                      ),
+                                  ),
+                                  els: None,
+                              },
+                          ),
+                      ],
+                      expr: Some(
+                          BinaryOp(
+                              BinaryOpExpr {
+                                  data: CommonExprData {
+                                      _lifetime: PhantomData<&()>,
+                                      id: ExprId(..),
+                                      span: SpanId(..),
+                                  },
+                                  left: BinaryOp(
+                                      BinaryOpExpr {
+                                          data: CommonExprData {
+                                              _lifetime: PhantomData<&()>,
+                                              id: ExprId(..),
+                                              span: SpanId(..),
+                                          },
+                                          left: Path(
+                                              PathExpr {
+                                                  data: CommonExprData {
+                                                      _lifetime: PhantomData<&()>,
+                                                      id: ExprId(..),
+                                                      span: SpanId(..),
+                                                  },
+                                                  path: AstQPath {
+                                                      self_ty: None,
+                                                      path_ty: None,
+                                                      path: AstPath {
+                                                          segments: [
+                                                              AstPathSegment {
+                                                                  ident: Ident {
+                                                                      name: "a",
+                                                                      span: Span {
+                                                                          source: File(
+                                                                              "$DIR/async_block_2.rs",
+                                                                          ),
+                                                                          start: 163,
+                                                                          end: 164,
+                                                                      },
+                                                                  },
+                                                                  generics: SynGenericArgs {
+                                                                      args: [],
+                                                                  },
+                                                              },
+                                                          ],
+                                                      },
+                                                      target: Var(
+                                                          VarId(..),
+                                                      ),
+                                                  },
+                                              },
+                                          ),
+                                          right: Path(
+                                              PathExpr {
+                                                  data: CommonExprData {
+                                                      _lifetime: PhantomData<&()>,
+                                                      id: ExprId(..),
+                                                      span: SpanId(..),
+                                                  },
+                                                  path: AstQPath {
+                                                      self_ty: None,
+                                                      path_ty: None,
+                                                      path: AstPath {
+                                                          segments: [
+                                                              AstPathSegment {
+                                                                  ident: Ident {
+                                                                      name: "b",
+                                                                      span: Span {
+                                                                          source: File(
+                                                                              "$DIR/async_block_2.rs",
+                                                                          ),
+                                                                          start: 167,
+                                                                          end: 168,
+                                                                      },
+                                                                  },
+                                                                  generics: SynGenericArgs {
+                                                                      args: [],
+                                                                  },
+                                                              },
+                                                          ],
+                                                      },
+                                                      target: Var(
+                                                          VarId(..),
+                                                      ),
+                                                  },
+                                              },
+                                          ),
+                                          kind: Add,
+                                      },
+                                  ),
+                                  right: Path(
+                                      PathExpr {
+                                          data: CommonExprData {
+                                              _lifetime: PhantomData<&()>,
+                                              id: ExprId(..),
+                                              span: SpanId(..),
+                                          },
+                                          path: AstQPath {
+                                              self_ty: None,
+                                              path_ty: None,
+                                              path: AstPath {
+                                                  segments: [
+                                                      AstPathSegment {
+                                                          ident: Ident {
+                                                              name: "c",
+                                                              span: Span {
+                                                                  source: File(
+                                                                      "$DIR/async_block_2.rs",
+                                                                  ),
+                                                                  start: 171,
+                                                                  end: 172,
+                                                              },
+                                                          },
+                                                          generics: SynGenericArgs {
+                                                              args: [],
+                                                          },
+                                                      },
+                                                  ],
+                                              },
+                                              target: Var(
+                                                  VarId(..),
+                                              ),
+                                          },
+                                      },
+                                  ),
+                                  kind: Add,
+                              },
+                          ),
+                      ),
+                      label: None,
+                      is_unsafe: false,
+                  },
+              ),
+          }
+  = note: `#[warn(marker::test_lint)]` on by default
+
+warning: 1 warning emitted
+
