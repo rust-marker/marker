@@ -28,7 +28,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         let data = CommonExprData::new(id, self.to_span_id(block.span));
-        let expr = ExprKind::Block(self.alloc(self.to_block_expr(data, block, None)));
+        let expr = ExprKind::Block(self.alloc(self.to_block_expr(data, block, None, Syncness::Sync)));
 
         self.exprs.borrow_mut().insert(id, expr);
         expr
@@ -76,7 +76,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 if let Some(e) = e {
                     e
                 } else {
-                    ExprKind::Block(self.alloc(self.to_block_expr(data, block, *label)))
+                    ExprKind::Block(self.alloc(self.to_block_expr(data, block, *label, Syncness::Sync)))
                 }
             },
             hir::ExprKind::Call(operand, args) => match &operand.kind {
@@ -274,15 +274,21 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         data: CommonExprData<'ast>,
         block: &hir::Block<'tcx>,
         label: Option<rustc_ast::Label>,
+        syncness: Syncness,
     ) -> BlockExpr<'ast> {
         let stmts: Vec<_> = block.stmts.iter().filter_map(|stmt| self.to_stmt(stmt)).collect();
         let stmts = self.alloc_slice(stmts);
+        let safety = match block.rules {
+            hir::BlockCheckMode::DefaultBlock => Safety::Safe,
+            hir::BlockCheckMode::UnsafeBlock(_) => Safety::Unsafe,
+        };
         BlockExpr::new(
             data,
             stmts,
             block.expr.map(|expr| self.to_expr(expr)),
             label.map(|label| self.to_ident(label.ident)),
-            matches!(block.rules, hir::BlockCheckMode::UnsafeBlock(_)),
+            safety,
+            syncness,
         )
     }
 
@@ -428,6 +434,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                             CommonExprData::new(self.to_expr_id(block_expr.hir_id), self.to_span_id(block_expr.span)),
                             block,
                             None,
+                            Syncness::Async,
                         );
                     });
                     return ExprKind::Block(self.alloc(api_block_expr));

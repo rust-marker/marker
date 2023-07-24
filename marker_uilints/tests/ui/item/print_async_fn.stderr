@@ -1,7 +1,116 @@
 warning: printing item with body
- --> $DIR/async_block_2.rs:5:10
+ --> $DIR/print_async_fn.rs:1:10
   |
-5 | async fn print_with_body_bar() -> u8 {
+1 | async fn print_with_body_foo() -> u8 {
+  |          ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Item: Fn(
+              FnItem {
+                  data: CommonItemData {
+                      id: ItemId(..),
+                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      ident: Ident {
+                          name: "print_with_body_foo",
+                          span: Span {
+                              source: File(
+                                  "$DIR/print_async_fn.rs",
+                              ),
+                              start: 9,
+                              end: 28,
+                          },
+                      },
+                  },
+                  generics: SynGenericParams {
+                      params: [],
+                      clauses: [],
+                  },
+                  constness: NotConst,
+                  syncness: Async,
+                  safety: Safe,
+                  is_extern: false,
+                  has_self: false,
+                  abi: Default,
+                  params: [],
+                  return_ty: Some(
+                      ImplTrait(
+                          SynImplTraitTy {
+                              data: CommonSynTyData {
+                                  _lifetime: PhantomData<&()>,
+                                  span: SpanId(..),
+                              },
+                              trait_bound: [
+                                  TraitBound(
+                                      SynTraitBound {
+                                          is_relaxed: false,
+                                          trait_ref: TraitRef {
+                                              item_id: ItemId(..),
+                                              generics: SynGenericArgs {
+                                                  args: [
+                                                      Binding(
+                                                          SynBindingArg {
+                                                              span: SpanId(..),
+                                                              ident: SymbolId(..),
+                                                              ty: Num(
+                                                                  SynNumTy {
+                                                                      data: CommonSynTyData {
+                                                                          _lifetime: PhantomData<&()>,
+                                                                          span: SpanId(..),
+                                                                      },
+                                                                      numeric_kind: U8,
+                                                                  },
+                                                              ),
+                                                          },
+                                                      ),
+                                                  ],
+                                              },
+                                          },
+                                          span: SpanId(..),
+                                      },
+                                  ),
+                              ],
+                          },
+                      ),
+                  ),
+                  body_id: Some(
+                      BodyId(..),
+                  ),
+              },
+          )
+  = note: Body: Body {
+              owner: ItemId(..),
+              expr: Block(
+                  BlockExpr {
+                      data: CommonExprData {
+                          _lifetime: PhantomData<&()>,
+                          id: ExprId(..),
+                          span: SpanId(..),
+                      },
+                      stmts: [],
+                      expr: Some(
+                          IntLit(
+                              IntLitExpr {
+                                  data: CommonExprData {
+                                      _lifetime: PhantomData<&()>,
+                                      id: ExprId(..),
+                                      span: SpanId(..),
+                                  },
+                                  value: 16,
+                                  suffix: None,
+                              },
+                          ),
+                      ),
+                      label: None,
+                      safety: Safe,
+                      syncness: Sync,
+                  },
+              ),
+          }
+  = note: `#[warn(marker::test_lint)]` on by default
+
+warning: printing item with body
+ --> $DIR/print_async_fn.rs:9:10
+  |
+9 | async fn print_with_body_bar() -> u8 {
   |          ^^^^^^^^^^^^^^^^^^^
   |
   = note: Item: Fn(
@@ -13,10 +122,10 @@ warning: printing item with body
                           name: "print_with_body_bar",
                           span: Span {
                               source: File(
-                                  "$DIR/async_block_2.rs",
+                                  "$DIR/print_async_fn.rs",
                               ),
-                              start: 42,
-                              end: 61,
+                              start: 91,
+                              end: 110,
                           },
                       },
                   },
@@ -146,10 +255,10 @@ warning: printing item with body
                                                                                   name: "foo",
                                                                                   span: Span {
                                                                                       source: File(
-                                                                                          "$DIR/async_block_2.rs",
+                                                                                          "$DIR/print_async_fn.rs",
                                                                                       ),
-                                                                                      start: 88,
-                                                                                      end: 91,
+                                                                                      start: 137,
+                                                                                      end: 140,
                                                                                   },
                                                                               },
                                                                               generics: SynGenericArgs {
@@ -233,10 +342,10 @@ warning: printing item with body
                                                                                   name: "foo",
                                                                                   span: Span {
                                                                                       source: File(
-                                                                                          "$DIR/async_block_2.rs",
+                                                                                          "$DIR/print_async_fn.rs",
                                                                                       ),
-                                                                                      start: 117,
-                                                                                      end: 120,
+                                                                                      start: 166,
+                                                                                      end: 169,
                                                                                   },
                                                                               },
                                                                               generics: SynGenericArgs {
@@ -320,10 +429,10 @@ warning: printing item with body
                                                                                   name: "foo",
                                                                                   span: Span {
                                                                                       source: File(
-                                                                                          "$DIR/async_block_2.rs",
+                                                                                          "$DIR/print_async_fn.rs",
                                                                                       ),
-                                                                                      start: 146,
-                                                                                      end: 149,
+                                                                                      start: 195,
+                                                                                      end: 198,
                                                                                   },
                                                                               },
                                                                               generics: SynGenericArgs {
@@ -380,10 +489,10 @@ warning: printing item with body
                                                                       name: "a",
                                                                       span: Span {
                                                                           source: File(
-                                                                              "$DIR/async_block_2.rs",
+                                                                              "$DIR/print_async_fn.rs",
                                                                           ),
-                                                                          start: 163,
-                                                                          end: 164,
+                                                                          start: 212,
+                                                                          end: 213,
                                                                       },
                                                                   },
                                                                   generics: SynGenericArgs {
@@ -415,10 +524,10 @@ warning: printing item with body
                                                                       name: "b",
                                                                       span: Span {
                                                                           source: File(
-                                                                              "$DIR/async_block_2.rs",
+                                                                              "$DIR/print_async_fn.rs",
                                                                           ),
-                                                                          start: 167,
-                                                                          end: 168,
+                                                                          start: 216,
+                                                                          end: 217,
                                                                       },
                                                                   },
                                                                   generics: SynGenericArgs {
@@ -453,10 +562,10 @@ warning: printing item with body
                                                               name: "c",
                                                               span: Span {
                                                                   source: File(
-                                                                      "$DIR/async_block_2.rs",
+                                                                      "$DIR/print_async_fn.rs",
                                                                   ),
-                                                                  start: 171,
-                                                                  end: 172,
+                                                                  start: 220,
+                                                                  end: 221,
                                                               },
                                                           },
                                                           generics: SynGenericArgs {
@@ -476,11 +585,11 @@ warning: printing item with body
                           ),
                       ),
                       label: None,
-                      is_unsafe: false,
+                      safety: Safe,
+                      syncness: Sync,
                   },
               ),
           }
-  = note: `#[warn(marker::test_lint)]` on by default
 
-warning: 1 warning emitted
+warning: 2 warnings emitted
 
