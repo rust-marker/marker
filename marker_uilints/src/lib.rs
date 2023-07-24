@@ -103,9 +103,15 @@ impl LintPass for TestLintPass {
             item.ident().map(marker_api::ast::Ident::name),
             Some(name) if name.starts_with("PrintMe") || name.starts_with("PRINT_ME") || name.starts_with("print_me")
         ) {
-            cx.emit_lint(TEST_LINT, item.id(), "printing item", item.span(), |diag| {
-                diag.note(format!("{item:#?}"));
-            });
+            cx.emit_lint(
+                TEST_LINT,
+                item.id(),
+                "printing item",
+                item.ident().unwrap().span(),
+                |diag| {
+                    diag.note(format!("{item:#?}"));
+                },
+            );
         }
     }
 
