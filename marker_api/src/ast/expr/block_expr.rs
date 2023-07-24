@@ -1,5 +1,5 @@
 use crate::{
-    ast::{pat::PatKind, stmt::StmtKind, ty::SynTyKind, BodyId, Ident, Span, SpanId},
+    ast::{pat::PatKind, stmt::StmtKind, ty::SynTyKind, BodyId, Ident, Span, SpanId, Syncness, Safety},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
 };
@@ -38,7 +38,8 @@ pub struct BlockExpr<'ast> {
     stmts: FfiSlice<'ast, StmtKind<'ast>>,
     expr: FfiOption<ExprKind<'ast>>,
     label: FfiOption<Ident<'ast>>,
-    is_unsafe: bool,
+    safety: Safety,
+    syncness: Syncness,
 }
 
 impl<'ast> BlockExpr<'ast> {
@@ -58,8 +59,12 @@ impl<'ast> BlockExpr<'ast> {
         self.label.get()
     }
 
-    pub fn is_unsafe(&self) -> bool {
-        self.is_unsafe
+    pub fn safety(&self) -> Safety {
+        self.safety
+    }
+
+    pub fn syncness(&self) -> Syncness {
+        self.syncness
     }
 }
 
@@ -72,14 +77,16 @@ impl<'ast> BlockExpr<'ast> {
         stmts: &'ast [StmtKind<'ast>],
         expr: Option<ExprKind<'ast>>,
         label: Option<Ident<'ast>>,
-        is_unsafe: bool,
+        safety: Safety,
+        syncness: Syncness,
     ) -> Self {
         Self {
             data,
             stmts: stmts.into(),
             expr: expr.into(),
             label: label.into(),
-            is_unsafe,
+            safety,
+            syncness,
         }
     }
 }
