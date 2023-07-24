@@ -275,6 +275,9 @@ pub fn traverse_expr<'ast, B>(
             traverse_expr(cx, visitor, e.condition())?;
             traverse_expr(cx, visitor, e.block())?;
         },
+        ExprKind::Await(e) => {
+            traverse_expr(cx, visitor, e.expr())?;
+        },
         ExprKind::IntLit(_)
         | ExprKind::FloatLit(_)
         | ExprKind::StrLit(_)

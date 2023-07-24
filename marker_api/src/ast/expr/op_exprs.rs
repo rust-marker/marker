@@ -302,3 +302,26 @@ impl<'ast> AssignExpr<'ast> {
         }
     }
 }
+
+/// TODO: Docs!
+#[repr(C)]
+#[derive(Debug)]
+pub struct AwaitExpr<'ast> {
+    data: CommonExprData<'ast>,
+    expr: ExprKind<'ast>,
+}
+
+impl<'ast> AwaitExpr<'ast> {
+    pub fn expr(&self) -> ExprKind<'ast> {
+        self.expr
+    }
+}
+
+super::impl_expr_data!(AwaitExpr<'ast>, Await);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> AwaitExpr<'ast> {
+    pub fn new(data: CommonExprData<'ast>, expr: ExprKind<'ast>) -> Self {
+        Self { data, expr }
+    }
+}
