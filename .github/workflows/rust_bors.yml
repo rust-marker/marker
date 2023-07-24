@@ -25,20 +25,20 @@ jobs:
     # Setup
     steps:
     - uses: actions/checkout@v3
-    - uses: actions-rs/toolchain@v1
+    - uses: dtolnay/rust-toolchain@master
       with:
-          toolchain: nightly-2023-07-13
-          components: cargo, clippy, rustfmt
+        toolchain: nightly-2023-07-13
+        components: rustfmt, clippy
+
     - run: rustc -vV
-    - run: cargo build
-  
+
     # Tests
     - run: cargo test
     - run: cargo clippy
     - run: cargo fmt --check
-    - run: cargo doc
+    - run: cargo doc --no-deps
 
-  # This task ensures, required packages can be build with a stable toolchain
+  # This task ensures, required packages can be built with a stable toolchain
   # the only package requiring nightly should be `marker_rustc_driver` and
   # optionally `marker_adapter`
   rust-crates-build-stable:
@@ -48,10 +48,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - run: rm rust-toolchain
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        components: cargo
+    - uses: dtolnay/rust-toolchain@stable
+
     - run: rustc -vV
 
     # Test
@@ -60,3 +58,28 @@ jobs:
     - run: cargo build --package marker_utils
     - run: cargo build --package marker_uitest
     - run: cargo build --package marker_uilints
+
+  # Check the formatting of TOML files in the repository
+  toml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: ./scripts/download/taplo.sh
+      - run: ./taplo fmt --check
+
+  # Check for typos in the repository based on a static dictionary
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: ./scripts/download/typos.sh
+      - run: ./typos
+
+  # Check for unused dependencies that uses simple regex search,
+  # meaning it's ⚡️ blazingly ⚡️ fast
+  rust-unused-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: ./scripts/download/cargo-machete.sh
+      - run: ./cargo-machete

@@ -79,7 +79,7 @@ pub enum Level {
     /// The `deny` level will produce an error and stop further execution after the lint
     /// pass is complete.
     Deny,
-    /// The `forbid` level will produce an error and cannot be overriden by the user.
+    /// The `forbid` level will produce an error and cannot be overridden by the user.
     ///
     /// Choosing this diagnostic level should require heavy consideration, because should a lint
     /// with this level produce a false-positive, the user won't have an option to `allow` the lint

@@ -134,7 +134,7 @@ impl LintPass for TestLintPass {
             } else if ident.name().starts_with("_span") {
                 cx.emit_lint(PRINT_SPAN_LINT, stmt.id(), "print span", stmt.span(), |diag| {
                     let span = expr.span();
-                    diag.note(format!("Debug: {:#?}", span));
+                    diag.note(format!("Debug: {span:#?}"));
                     diag.note(format!("Snippet: {}", span.snippet_or("..")));
                 });
             } else if ident.name().starts_with("_ty") {

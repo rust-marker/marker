@@ -1,0 +1,65 @@
+script_dir=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
+
+. $script_dir/../lib.sh
+
+# Produces Rust-style arch names, e.g. x86_64, aarch64, etc.
+export arch_rust=$(uname -m)
+
+function download_and_decompress {
+    with_backoff try_download_and_decompress "$@"
+}
+
+function try_download_and_decompress {
+    local hash_algo=""
+    while [[ "$#" -gt 0 ]]; do
+        case $1 in
+        --check-hash)
+            hash_algo="$2"
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+        esac
+    done
+
+    local url="$1"
+    shift
+
+    local archive=$(basename $url)
+
+    curl_with_retry $url --remote-name
+
+    # Check the hash of the downloaded file if it was requested
+    if [[ "$hash_algo" != "" ]]
+    then
+        hash=$(curl_with_retry $url.$hash_algo)
+        echo "$hash $archive" | with_log ${hash_algo}sum --check
+    fi
+
+    if [[ $url == *.tar.gz || $url == *.tgz ]]
+    then
+        with_log tar --extract --gzip --file $archive "$@"
+    elif [[ $url == *.tar.xz ]]
+    then
+        with_log tar --extract --xz --file $archive "$@"
+    elif [[ $url == *.gz ]]
+    then
+        with_log gzip --decompress --stdout $archive > $(basename $url .gz)
+    else
+        echo "Unknown file type: $url"
+        exit 1
+    fi
+
+    rm $archive
+}
+
+function curl_with_retry {
+    with_log curl \
+        --silent \
+        --location \
+        --retry 5 \
+        --retry-connrefused \
+        --retry-delay 30 \
+        "$@"
+}

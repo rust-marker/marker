@@ -1,12 +1,13 @@
 [package]
-name = "cargo_marker"
+name    = "cargo_marker"
 version = "0.1.1"
-edition = "2021"
-license = "MIT OR Apache-2.0"
-keywords = ["marker", "linting", "cli", "cargo", "cargo-subcommand"]
-categories = ["development-tools::cargo-plugins"]
-repository = "https://github.com/rust-marker/marker"
+
+categories  = ["development-tools::cargo-plugins"]
 description = "Marker's CLI interface to automatically compile and run lint crates"
+edition     = "2021"
+keywords    = ["marker", "linting", "cli", "cargo", "cargo-subcommand"]
+license     = "MIT OR Apache-2.0"
+repository  = "https://github.com/rust-marker/marker"
 
 # Crate names in Rust are fun. I reserved `cargo_marker` as a crate name. However,
 # Cargo requires it's subcommands to use a dash like `cargo-marker`. Unable to rename
@@ -16,11 +17,11 @@ name = "cargo-marker"
 path = "src/main.rs"
 
 [dependencies]
-clap = { version = "4.0", features = ["string"] }
-serde = { version = "1.0", features = ["derive"] }
-toml = { version = "0.7" }
-once_cell = "1.17.0"
 cargo_metadata = "0.15.4"
+clap           = { version = "4.0", features = ["string"] }
+once_cell      = "1.17.0"
+serde          = { version = "1.0", features = ["derive"] }
+toml           = { version = "0.7" }
 
 [features]
 default = []
