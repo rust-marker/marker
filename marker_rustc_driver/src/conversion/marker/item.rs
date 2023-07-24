@@ -418,38 +418,15 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             return body;
         }
 
-        // Check for an async body
-        if let Some(src) = body.generator_kind {
-            match src {
-                hir::GeneratorKind::Async(_) => {
-                    if std::env::var("MARKER_DISABLE_ASYNC_WARNING").is_err() {
-                        self.rustc_cx
-                            .sess
-                            .struct_span_warn(
-                                body.value.span,
-                                "async blocks and await expressions are currently not supported",
-                            )
-                            .note("see rust-marker/marker#174")
-                            .note_once(
-                                "set the `MARKER_DISABLE_ASYNC_WARNING` environment value to disable this warning",
-                            )
-                            .emit();
-                    }
-                },
-                hir::GeneratorKind::Gen => {
-                    // Yield expressions are currently unstable anyways, so no need for a message
-                    return self.alloc(Body::new(
-                        self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id())),
-                        expr::ExprKind::Unstable(self.alloc(expr::UnstableExpr::new(
-                            expr::CommonExprData::new(
-                                self.to_expr_id(body.value.hir_id),
-                                self.to_span_id(body.value.span),
-                            ),
-                            expr::ExprPrecedence::Unstable(0),
-                        ))),
-                    ));
-                },
-            }
+        // Yield expressions are currently unstable
+        if let Some(hir::GeneratorKind::Gen) = body.generator_kind {
+            return self.alloc(Body::new(
+                self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id())),
+                expr::ExprKind::Unstable(self.alloc(expr::UnstableExpr::new(
+                    expr::CommonExprData::new(self.to_expr_id(body.value.hir_id), self.to_span_id(body.value.span)),
+                    expr::ExprPrecedence::Unstable(0),
+                ))),
+            ));
         }
 
         let api_body;

@@ -418,7 +418,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 {
                     let api_expr;
                     super::with_body!(self, body_id, {
-                        api_expr = self.to_expr(inner_block)
+                        api_expr = self.to_expr(inner_block);
                     });
                     return api_expr
                 }
