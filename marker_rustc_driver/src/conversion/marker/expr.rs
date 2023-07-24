@@ -1,12 +1,12 @@
 use marker_api::{
     ast::{
         expr::{
-            ArrayExpr, AsExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr, CallExpr,
-            CaptureKind, CharLitExpr, ClosureExpr, ClosureParam, CommonExprData, ConstExpr, ContinueExpr, CtorExpr,
-            CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr, IndexExpr,
-            IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, QuestionMarkExpr,
-            RangeExpr, RefExpr, ReturnExpr, StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
-            WhileExpr,
+            ArrayExpr, AsExpr, AssignExpr, AwaitExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr,
+            CallExpr, CaptureKind, CharLitExpr, ClosureExpr, ClosureParam, CommonExprData, ConstExpr, ContinueExpr,
+            CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr,
+            IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr,
+            QuestionMarkExpr, RangeExpr, RefExpr, ReturnExpr, StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr,
+            UnaryOpKind, UnstableExpr, WhileExpr,
         },
         pat::PatKind,
         Ident,
@@ -204,6 +204,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             },
             hir::ExprKind::Match(scrutinee, [_early_return, _continue], hir::MatchSource::TryDesugar) => {
                 ExprKind::QuestionMark(self.alloc(QuestionMarkExpr::new(data, self.to_expr(scrutinee))))
+            },
+            hir::ExprKind::Match(_scrutinee, [_awaitee_arm], hir::MatchSource::AwaitDesugar) => {
+                ExprKind::Await(self.alloc(self.to_await_expr_from_desugar(expr)))
             },
             hir::ExprKind::Assign(assignee, value, _span) => ExprKind::Assign(self.alloc(AssignExpr::new(
                 data,
@@ -578,6 +581,53 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         unreachable!("for loop desugar always has the same structure")
+    }
+
+    /// The "Show HIR" option on the [Playground] is a great resource to
+    /// understand how this desugaring works. This desugar looks super scary
+    /// and it is, but luckily, marker only needs to extract the argument for
+    /// the `IntoFuture::into_future(<arg>)` call.
+    ///
+    /// ```ignore
+    /// # async fn foo() -> u8 {
+    /// #     16
+    /// # }
+    /// async fn bar() -> u8 {
+    ///     foo().await;
+    /// }
+    ///
+    /// async fn desugar_bar() -> /* [TODO: trait?] */ {
+    ///     match IntoFuture::into_future(foo()) {
+    ///         mut __awaitee => loop {
+    ///             match unsafe {
+    ///                 core::future::poll(core::pin::Pin::new_unchecked(&mut __awaitee))
+    ///                 core::future::get_context(_task_context)
+    ///             } {
+    ///                 core::task::pool::Pool::Ready {  0: result } => break result,
+    ///                 core::task::pool::Pool::Pending {} => {},
+    ///             }
+    ///             _task_context = yield ()
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=9589cb3ee8264bace959c3dbd9759d98
+    #[must_use]
+    fn to_await_expr_from_desugar(&self, await_expr: &hir::Expr<'tcx>) -> AwaitExpr<'ast> {
+        if let hir::ExprKind::Match(into_scrutinee, [_awaitee_arm], hir::MatchSource::AwaitDesugar) = await_expr.kind
+            && let hir::ExprKind::Call(_into_future_path, [future_expr]) = &into_scrutinee.kind
+        {
+            return AwaitExpr::new(
+                CommonExprData::new(
+                    self.to_expr_id(await_expr.hir_id),
+                    self.to_span_id(await_expr.span),
+                ),
+                self.to_expr(future_expr),
+            );
+        }
+
+        unreachable!("await desugar always has the same structure")
     }
 
     pub fn to_const_expr(&self, anon: hir::AnonConst) -> ConstExpr<'ast> {

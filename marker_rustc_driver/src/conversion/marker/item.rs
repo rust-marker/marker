@@ -438,15 +438,18 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 },
                 hir::GeneratorKind::Gen => {
                     // Yield expressions are currently unstable anyways, so no need for a message
+                    return self.alloc(Body::new(
+                        self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id())),
+                        expr::ExprKind::Unstable(self.alloc(expr::UnstableExpr::new(
+                            expr::CommonExprData::new(
+                                self.to_expr_id(body.value.hir_id),
+                                self.to_span_id(body.value.span),
+                            ),
+                            expr::ExprPrecedence::Unstable(0),
+                        ))),
+                    ));
                 },
             }
-            return self.alloc(Body::new(
-                self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id())),
-                expr::ExprKind::Unstable(self.alloc(expr::UnstableExpr::new(
-                    expr::CommonExprData::new(self.to_expr_id(body.value.hir_id), self.to_span_id(body.value.span)),
-                    expr::ExprPrecedence::Unstable(0),
-                ))),
-            ));
         }
 
         let api_body;
