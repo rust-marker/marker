@@ -286,13 +286,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         rust_lt: &rustc_hir::Lifetime,
     ) -> &'ast [SynTyParamBound<'ast>] {
         let traits = rust_bounds.iter().map(|rust_trait_ref| {
-            SynTyParamBound::TraitBound(self.storage.alloc({
-                SynTraitBound::new(
-                    false,
-                    self.to_trait_ref(&rust_trait_ref.trait_ref),
-                    self.to_span_id(rust_trait_ref.span),
-                )
-            }))
+            SynTyParamBound::TraitBound(self.storage.alloc(SynTraitBound::new(
+                false,
+                self.to_trait_ref(&rust_trait_ref.trait_ref),
+                self.to_span_id(rust_trait_ref.span),
+            )))
         });
 
         if let Some(lt) = self.to_lifetime(rust_lt) {

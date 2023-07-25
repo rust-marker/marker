@@ -12,3 +12,7 @@ async fn print_with_body_bar() -> u8 {
     let c: u8 = foo().await;
     a + b + c
 }
+
+async fn print_with_body_with_lifetime(x: &u8) -> u8 {
+    *x
+}
