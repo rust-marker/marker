@@ -148,6 +148,7 @@ warning: print test
                            label: None,
                            safety: Safe,
                            syncness: Async,
+                           capture_kind: Default,
                        },
                    ),
                },

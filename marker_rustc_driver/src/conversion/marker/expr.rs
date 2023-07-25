@@ -28,7 +28,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         let data = CommonExprData::new(id, self.to_span_id(block.span));
-        let expr = ExprKind::Block(self.alloc(self.to_block_expr(data, block, None, Syncness::Sync)));
+        let expr =
+            ExprKind::Block(self.alloc(self.to_block_expr(data, block, None, Syncness::Sync, CaptureKind::Default)));
 
         self.exprs.borrow_mut().insert(id, expr);
         expr
@@ -76,7 +77,13 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 if let Some(e) = e {
                     e
                 } else {
-                    ExprKind::Block(self.alloc(self.to_block_expr(data, block, *label, Syncness::Sync)))
+                    ExprKind::Block(self.alloc(self.to_block_expr(
+                        data,
+                        block,
+                        *label,
+                        Syncness::Sync,
+                        CaptureKind::Default,
+                    )))
                 }
             },
             hir::ExprKind::Call(operand, args) => match &operand.kind {
@@ -275,6 +282,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         block: &hir::Block<'tcx>,
         label: Option<rustc_ast::Label>,
         syncness: Syncness,
+        capture_kind: CaptureKind,
     ) -> BlockExpr<'ast> {
         let stmts: Vec<_> = block.stmts.iter().filter_map(|stmt| self.to_stmt(stmt)).collect();
         let stmts = self.alloc_slice(stmts);
@@ -289,6 +297,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             label.map(|label| self.to_ident(label.ident)),
             safety,
             syncness,
+            capture_kind,
         )
     }
 
@@ -429,12 +438,14 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 let block_expr = body.value;
                 if let hir::ExprKind::Block(block, None) = block_expr.kind {
                     let api_block_expr;
+                    let capture_kind = self.to_capture_kind(closure.capture_clause);
                     super::with_body!(self, body_id, {
                         api_block_expr = self.to_block_expr(
                             CommonExprData::new(self.to_expr_id(block_expr.hir_id), self.to_span_id(block_expr.span)),
                             block,
                             None,
                             Syncness::Async,
+                            capture_kind,
                         );
                     });
                     return ExprKind::Block(self.alloc(api_block_expr));

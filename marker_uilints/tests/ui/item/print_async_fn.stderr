@@ -73,6 +73,7 @@ warning: printing item with body
                       label: None,
                       safety: Safe,
                       syncness: Sync,
+                      capture_kind: Default,
                   },
               ),
           }
@@ -529,6 +530,7 @@ warning: printing item with body
                       label: None,
                       safety: Safe,
                       syncness: Sync,
+                      capture_kind: Default,
                   },
               ),
           }
@@ -678,6 +680,7 @@ warning: printing item with body
                        label: None,
                        safety: Safe,
                        syncness: Sync,
+                       capture_kind: Default,
                    },
                ),
            }

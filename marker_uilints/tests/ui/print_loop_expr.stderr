@@ -77,6 +77,7 @@ warning: print test
                                           label: None,
                                           safety: Safe,
                                           syncness: Sync,
+                                          capture_kind: Default,
                                       },
                                   ),
                               },
@@ -105,6 +106,7 @@ warning: print test
                                       label: None,
                                       safety: Safe,
                                       syncness: Sync,
+                                      capture_kind: Default,
                                   },
                               ),
                           },
@@ -113,6 +115,7 @@ warning: print test
                   label: None,
                   safety: Safe,
                   syncness: Sync,
+                  capture_kind: Default,
               },
           )
   = note: `#[warn(marker::test_lint)]` on by default
@@ -193,6 +196,7 @@ warning: print test
                                            label: None,
                                            safety: Safe,
                                            syncness: Sync,
+                                           capture_kind: Default,
                                        },
                                    ),
                                },
@@ -403,6 +407,7 @@ warning: print test
                                        label: None,
                                        safety: Safe,
                                        syncness: Sync,
+                                       capture_kind: Default,
                                    },
                                ),
                            },
@@ -411,6 +416,7 @@ warning: print test
                    label: None,
                    safety: Safe,
                    syncness: Sync,
+                   capture_kind: Default,
                },
            )
 
@@ -499,6 +505,7 @@ warning: print test
                                            label: None,
                                            safety: Safe,
                                            syncness: Sync,
+                                           capture_kind: Default,
                                        },
                                    ),
                                },
@@ -732,6 +739,7 @@ warning: print test
                                        label: None,
                                        safety: Safe,
                                        syncness: Sync,
+                                       capture_kind: Default,
                                    },
                                ),
                            },
@@ -740,6 +748,7 @@ warning: print test
                    label: None,
                    safety: Safe,
                    syncness: Sync,
+                   capture_kind: Default,
                },
            )
 

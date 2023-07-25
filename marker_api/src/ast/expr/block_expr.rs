@@ -23,6 +23,9 @@ use super::{CommonExprData, ExprKind};
 ///
 /// //      vvvvvv An optional label to be targeted by break expressions
 /// let _ = 'label: {
+///     let _ = 18;
+/// //  ^^^^^^^^^^^
+/// // A statement in the block
 ///     12
 /// };
 /// ```
@@ -40,6 +43,7 @@ pub struct BlockExpr<'ast> {
     label: FfiOption<Ident<'ast>>,
     safety: Safety,
     syncness: Syncness,
+    capture_kind: CaptureKind,
 }
 
 impl<'ast> BlockExpr<'ast> {
@@ -66,6 +70,25 @@ impl<'ast> BlockExpr<'ast> {
     pub fn syncness(&self) -> Syncness {
         self.syncness
     }
+
+    /// The capture kind of this block. For normal blocks, this will always be
+    /// [`CaptureKind::Default`], which in this context means no capture at all.
+    /// Async blocks are special, as they can capture values by move, indicated
+    /// by the `move` keyword, like in this:
+    ///
+    /// ```
+    /// # use std::future::Future;
+    /// # fn foo<'a>(x: &'a u8) -> impl Future<Output = u8> + 'a {
+    /// // The whole block expression
+    /// //  vvvvvvvvvvvvvvvvv
+    ///     async move { *x }
+    /// //        ^^^^
+    /// // The move keyword defining the capture kind
+    /// # }
+    /// ```
+    pub fn capture_kind(&self) -> CaptureKind {
+        self.capture_kind
+    }
 }
 
 super::impl_expr_data!(BlockExpr<'ast>, Block);
@@ -79,6 +102,7 @@ impl<'ast> BlockExpr<'ast> {
         label: Option<Ident<'ast>>,
         safety: Safety,
         syncness: Syncness,
+        capture_kind: CaptureKind,
     ) -> Self {
         Self {
             data,
@@ -87,6 +111,7 @@ impl<'ast> BlockExpr<'ast> {
             label: label.into(),
             safety,
             syncness,
+            capture_kind,
         }
     }
 }
