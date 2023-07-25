@@ -303,7 +303,25 @@ impl<'ast> AssignExpr<'ast> {
     }
 }
 
-/// TODO: Docs!
+/// An `.await` expression on a future, like:
+///
+/// ```
+/// # async fn foo() -> u8 {
+/// #     16
+/// # }
+/// # async fn wrapper() {
+/// // The await expression
+/// //  vvvvvvvvvvv
+///     foo().await;
+/// //  ^^^^^
+/// // The future, that will be awaited
+/// # }
+/// ```
+///
+/// Marker specificity hides the desugar of `.await` expressions. The [Rust Reference]
+/// contains more information how rustc desugars `.await` expressions.
+///
+/// [Rust Reference]: <https://doc.rust-lang.org/reference/expressions/await-expr.html>
 #[repr(C)]
 #[derive(Debug)]
 pub struct AwaitExpr<'ast> {

@@ -379,7 +379,7 @@ mod test {
         assert_eq!(48, size_of::<StrLitExpr<'_>>(), "StrLitExpr<'_>");
         assert_eq!(24, size_of::<CharLitExpr<'_>>(), "CharLitExpr<'_>");
         assert_eq!(24, size_of::<BoolLitExpr<'_>>(), "BoolLitExpr<'_>");
-        assert_eq!(88, size_of::<BlockExpr<'_>>(), "BlockExpr<'_>");
+        assert_eq!(96, size_of::<BlockExpr<'_>>(), "BlockExpr<'_>");
         assert_eq!(72, size_of::<ClosureExpr<'_>>(), "ClosureExpr<'_>");
         assert_eq!(40, size_of::<UnaryOpExpr<'_>>(), "UnaryOpExpr<'_>");
         assert_eq!(40, size_of::<RefExpr<'_>>(), "RefExpr<'_>");

@@ -9,7 +9,7 @@ use marker_api::{
             UnaryOpKind, UnstableExpr, WhileExpr,
         },
         pat::PatKind,
-        Ident,
+        Ident, Safety, Syncness,
     },
     CtorBlocker,
 };
@@ -525,7 +525,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     /// // Note that both `lhs` have different IDs
     /// ```
     ///
-    /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=aea16a442e31ca5e7bed1040e8960d4e
+    /// [Playground]: <https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=aea16a442e31ca5e7bed1040e8960d4e>
     #[must_use]
     fn to_assign_expr_from_desugar(&self, block: &hir::Block<'tcx>) -> AssignExpr<'ast> {
         let lhs_map: FxHashMap<_, _> = block
@@ -659,7 +659,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     ///     foo().await;
     /// }
     ///
-    /// async fn desugar_bar() -> /* [TODO: trait?] */ {
+    /// async fn bar() -> u8 {
     ///     match IntoFuture::into_future(foo()) {
     ///         mut __awaitee => loop {
     ///             match unsafe {
@@ -675,7 +675,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     /// }
     /// ```
     ///
-    /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=9589cb3ee8264bace959c3dbd9759d98
+    /// [Playground]: <https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=9589cb3ee8264bace959c3dbd9759d98>
     #[must_use]
     fn to_await_expr_from_desugar(&self, await_expr: &hir::Expr<'tcx>) -> AwaitExpr<'ast> {
         if let hir::ExprKind::Match(into_scrutinee, [_awaitee_arm], hir::MatchSource::AwaitDesugar) = await_expr.kind

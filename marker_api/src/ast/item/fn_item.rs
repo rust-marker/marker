@@ -24,7 +24,19 @@ use super::CommonItemData;
 ///     // A function without a body
 ///     fn baz(_: i32);
 /// }
+///
+/// // An async function.
+/// async fn foo_async() -> u8 {
+///     // ...
+///     # 16
+/// }
 /// ```
+///
+/// Async functions in Rustc actually return a future with the defined output type.
+/// The return type `-> u8` gets desugared to `impl Future<Output = u8>`. Marker will
+/// resugar the type to what the user had originally written. In this case it would
+/// just return `u8`. The semantic return type of an async function can be retrieved
+/// from the expression of the [`Body`][super::Body].
 ///
 /// See: <https://doc.rust-lang.org/reference/items/functions.html>
 #[repr(C)]

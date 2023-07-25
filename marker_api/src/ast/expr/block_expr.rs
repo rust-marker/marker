@@ -1,5 +1,5 @@
 use crate::{
-    ast::{pat::PatKind, stmt::StmtKind, ty::SynTyKind, BodyId, Ident, Span, SpanId, Syncness, Safety},
+    ast::{pat::PatKind, stmt::StmtKind, ty::SynTyKind, BodyId, Ident, Safety, Span, SpanId, Syncness},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
 };
@@ -34,6 +34,9 @@ use super::{CommonExprData, ExprKind};
 /// expression at the end of a block is called *block expression*. The meaning
 /// depends on the context. Marker's documentation will try to make the meaning
 /// clear by linking directly to the [`BlockExpr`] struct or calling it a *block*.
+///
+/// This expression also represents async blocks, the internal desugar used by
+/// rustc is resugared for this.
 #[repr(C)]
 #[derive(Debug)]
 pub struct BlockExpr<'ast> {
