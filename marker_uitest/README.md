@@ -68,3 +68,15 @@ fn main() -> color_eyre::Result<()> {
 }
 ```
 
+## Contributing
+
+Contributions are highly appreciated! If you encounter any issues or have suggestions for improvements, please check out [Marker's GitHub repository](https://github.com/rust-marker/marker).
+
+## License
+
+Copyright (c) 2022-2023 Rust-Marker
+
+Rust-marker is distributed under the terms of the MIT license or the Apache License (Version 2.0).
+
+See [LICENSE-APACHE](https://github.com/rust-marker/marker/blob/master/LICENSE-APACHE), [LICENSE-MIT](https://github.com/rust-marker/marker/blob/master/LICENSE-MIT).
+
