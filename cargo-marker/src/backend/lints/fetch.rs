@@ -17,7 +17,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use cargo_metadata::{Metadata, MetadataCommand};
+use cargo_metadata::Metadata;
 
 use crate::{backend::Config, config::LintDependencyEntry, ExitStatus};
 
@@ -141,10 +141,7 @@ fn call_cargo_fetch(manifest: &Path, config: &Config) -> Result<(), ExitStatus> 
 }
 
 fn call_cargo_metadata(manifest: &PathBuf, config: &Config) -> Result<Metadata, ExitStatus> {
-    let res = MetadataCommand::new()
-        .cargo_path(&config.toolchain.cargo_path)
-        .manifest_path(manifest)
-        .exec();
+    let res = config.toolchain.cargo_metadata_command().manifest_path(manifest).exec();
 
     // FIXME(xFrednet): Handle errors properly.
     res.map_err(|_| ExitStatus::LintCrateFetchFailed)

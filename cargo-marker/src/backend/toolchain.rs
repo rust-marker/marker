@@ -78,10 +78,19 @@ impl Toolchain {
         cmd
     }
 
+    pub fn cargo_metadata_command(&self) -> MetadataCommand {
+        let mut command = MetadataCommand::new();
+        command.cargo_path(&self.cargo_path);
+        if let Some(toolchain) = self.toolchain.as_ref() {
+            command.env("RUSTUP_TOOLCHAIN", toolchain);
+        }
+        command
+    }
+
     pub fn find_target_dir(&self) -> Result<PathBuf, ExitStatus> {
         // FIXME(xFrednet): Handle errors properly.
-        let metadata = MetadataCommand::new()
-            .cargo_path(&self.cargo_path)
+        let metadata = self
+            .cargo_metadata_command()
             .exec()
             .map_err(|_| ExitStatus::NoTargetDir)?;
 
