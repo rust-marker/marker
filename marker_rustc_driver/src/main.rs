@@ -60,13 +60,13 @@ impl rustc_driver::Callbacks for MarkerCallback {
         config.register_lints = Some(Box::new(|_sess, lint_store| {
             // Register lints from lint crates. This is required to have rustc track
             // the lint level correctly.
-            let lints: Vec<_> = lint_pass::MarkerLintPass::marker_lints()
+            let lints: Vec<_> = lint_pass::RustcLintPass::marker_lints()
                 .into_iter()
                 .map(RustcConverter::static_to_lint)
                 .collect();
             lint_store.register_lints(&lints);
 
-            lint_store.register_late_pass(|_| Box::new(lint_pass::MarkerLintPass));
+            lint_store.register_late_pass(|_| Box::new(lint_pass::RustcLintPass));
         }));
     }
 }

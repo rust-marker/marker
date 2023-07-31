@@ -7,10 +7,7 @@
 pub mod context;
 mod loader;
 
-use std::{
-    cell::{RefCell, RefMut},
-    ops::ControlFlow,
-};
+use std::{cell::RefCell, ops::ControlFlow};
 
 use loader::LintCrateRegistry;
 use marker_api::{
@@ -56,17 +53,13 @@ impl Adapter {
     }
 
     pub fn process_krate<'ast>(&self, cx: &'ast AstContext<'ast>, krate: &Crate<'ast>) {
-        // `RefMut::map` is used to get a *pure* mutable reference, which can
-        // then be used in the visitor. It might not be super pretty, but it works :)
-        RefMut::map(self.inner.borrow_mut(), |inner| {
-            inner.external_lint_crates.set_ast_context(cx);
+        let inner = &mut *self.inner.borrow_mut();
 
-            for item in krate.items() {
-                visitor::traverse_item::<()>(cx, inner, *item);
-            }
+        inner.external_lint_crates.set_ast_context(cx);
 
-            inner
-        });
+        for item in krate.items() {
+            visitor::traverse_item::<()>(cx, inner, *item);
+        }
     }
 }
 

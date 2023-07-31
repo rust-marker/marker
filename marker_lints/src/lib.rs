@@ -18,11 +18,11 @@ marker_api::declare_lint!(
 );
 
 #[derive(Debug, Default)]
-struct MarkerLintPass;
+struct MarkerLintsLintPass;
 
-marker_api::export_lint_pass!(MarkerLintPass);
+marker_api::export_lint_pass!(MarkerLintsLintPass);
 
-impl LintPass for MarkerLintPass {
+impl LintPass for MarkerLintsLintPass {
     fn info(&self) -> LintPassInfo {
         LintPassInfoBuilder::new(Box::new([DIAG_MSG_UPPERCASE_START])).build()
     }
