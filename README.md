@@ -14,7 +14,7 @@ Let's make custom lints and code analysis a reality!
 
 > **Note**
 >
-> The project is in the early stages of development, some things are still missing and the API is not stable yet.
+> The project is in the early stages of development, some things are still missing and the API is still unstable.
 >
 > A collection of features, goals and current limitations is available below.
 
@@ -113,12 +113,11 @@ The used nightly version will be updated every 6 weeks, when a new version of Ru
 
 Contributions are highly appreciated! If you encounter any issues or have suggestions for improvements, please don't hesitate to [open an issue]. If you have an idea for a lint you want to implement with Marker, please share it by creating a [user story].
 
-Still reading? Interested in helping out? Wonderful! Check out Marker's [open issues] or reach out to me on Discord or [Zulip] @xFrednet.
+Still reading? Interested in helping out? Wonderful! Check out Marker's [contributor documentation]
 
 [open an issue]: https://github.com/rust-marker/marker/issues/new
 [user story]: https://github.com/rust-marker/design/issues/new?template=user-story.md
-[open issues]: https://github.com/rust-marker/marker/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc
-[Zulip]: https://rust-lang.zulipchat.com/
+[contributor documentation]: ./CONTRIBUTING.md
 
 ## License
 
