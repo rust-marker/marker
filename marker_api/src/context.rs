@@ -8,7 +8,7 @@ use crate::{
     ast::{
         item::{Body, ItemKind},
         ty::SemTyKind,
-        BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId, TyDefId,
+        BodyId, ExprId, ItemId, Span, SpanId, SymbolId, TyDefId,
     },
     diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
@@ -191,8 +191,8 @@ impl<'ast> AstContext<'ast> {
         self.driver.call_span_snippet(span)
     }
 
-    pub(crate) fn span<T: Into<SpanOwner>>(&self, span_owner: T) -> &'ast Span<'ast> {
-        self.driver.call_span(&span_owner.into())
+    pub(crate) fn span(&self, span_id: SpanId) -> &'ast Span<'ast> {
+        self.driver.call_span(span_id)
     }
 
     pub(crate) fn symbol_str(&self, sym: SymbolId) -> &'ast str {
@@ -242,7 +242,7 @@ struct DriverCallbacks<'ast> {
 
     // Internal utility
     pub expr_ty: extern "C" fn(&'ast (), ExprId) -> SemTyKind<'ast>,
-    pub span: extern "C" fn(&'ast (), &SpanOwner) -> &'ast Span<'ast>,
+    pub span: extern "C" fn(&'ast (), SpanId) -> &'ast Span<'ast>,
     pub span_snippet: extern "C" fn(&'ast (), &Span<'ast>) -> ffi::FfiOption<ffi::FfiStr<'ast>>,
     pub symbol_str: extern "C" fn(&'ast (), SymbolId) -> ffi::FfiStr<'ast>,
     pub resolve_method_target: extern "C" fn(&'ast (), ExprId) -> ItemId,
@@ -267,8 +267,8 @@ impl<'ast> DriverCallbacks<'ast> {
     fn call_expr_ty(&self, expr: ExprId) -> SemTyKind<'ast> {
         (self.expr_ty)(self.driver_context, expr)
     }
-    fn call_span(&self, span_owner: &SpanOwner) -> &'ast Span<'ast> {
-        (self.span)(self.driver_context, span_owner)
+    fn call_span(&self, span_id: SpanId) -> &'ast Span<'ast> {
+        (self.span)(self.driver_context, span_id)
     }
     fn call_span_snippet(&self, span: &Span<'ast>) -> Option<String> {
         let result: Option<ffi::FfiStr> = (self.span_snippet)(self.driver_context, span).into();

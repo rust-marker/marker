@@ -4,7 +4,7 @@ use crate::private::Sealed;
 use crate::CtorBlocker;
 
 use super::expr::ExprKind;
-use super::{Ident, ItemId, Span};
+use super::{Ident, ItemId, Span, SpanId};
 
 // Item implementations
 mod extern_crate_item;
@@ -181,6 +181,7 @@ use impl_item_type_fn;
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 struct CommonItemData<'ast> {
     id: ItemId,
+    span: SpanId,
     vis: Visibility<'ast>,
     ident: Ident<'ast>,
 }
@@ -193,7 +194,7 @@ macro_rules! impl_item_data {
             }
 
             fn span(&self) -> &crate::ast::Span<'ast> {
-                $crate::context::with_cx(self, |cx| cx.span(self.data.id))
+                $crate::context::with_cx(self, |cx| cx.span(self.data.span))
             }
 
             fn visibility(&self) -> &crate::ast::item::Visibility<'ast> {
@@ -225,9 +226,10 @@ use impl_item_data;
 
 #[cfg(feature = "driver-api")]
 impl<'ast> CommonItemData<'ast> {
-    pub fn new(id: ItemId, ident: Ident<'ast>) -> Self {
+    pub fn new(id: ItemId, span: SpanId, ident: Ident<'ast>) -> Self {
         Self {
             id,
+            span,
             vis: Visibility::new(id),
             ident,
         }
@@ -304,19 +306,19 @@ mod test {
     fn test_item_struct_size() {
         // These sizes are allowed to change, this is just a check to have a
         // general overview and to prevent accidental changes
-        assert_eq!(48, size_of::<ModItem<'_>>(), "ModItem");
-        assert_eq!(40, size_of::<ExternCrateItem<'_>>(), "ExternCrateItem");
-        assert_eq!(56, size_of::<UseItem<'_>>(), "UseItem");
-        assert_eq!(72, size_of::<StaticItem<'_>>(), "StaticItem");
-        assert_eq!(64, size_of::<ConstItem<'_>>(), "ConstItem");
-        assert_eq!(136, size_of::<FnItem<'_>>(), "FnItem");
-        assert_eq!(104, size_of::<TyAliasItem<'_>>(), "TyAliasItem");
-        assert_eq!(88, size_of::<StructItem<'_>>(), "StructItem");
-        assert_eq!(80, size_of::<EnumItem<'_>>(), "EnumItem");
-        assert_eq!(80, size_of::<UnionItem<'_>>(), "UnionItem");
-        assert_eq!(104, size_of::<TraitItem<'_>>(), "TraitItem");
-        assert_eq!(136, size_of::<ImplItem<'_>>(), "ImplItem");
-        assert_eq!(56, size_of::<ExternBlockItem<'_>>(), "ExternBlockItem");
-        assert_eq!(40, size_of::<UnstableItem<'_>>(), "UnstableItem");
+        assert_eq!(56, size_of::<ModItem<'_>>(), "ModItem");
+        assert_eq!(48, size_of::<ExternCrateItem<'_>>(), "ExternCrateItem");
+        assert_eq!(64, size_of::<UseItem<'_>>(), "UseItem");
+        assert_eq!(80, size_of::<StaticItem<'_>>(), "StaticItem");
+        assert_eq!(72, size_of::<ConstItem<'_>>(), "ConstItem");
+        assert_eq!(144, size_of::<FnItem<'_>>(), "FnItem");
+        assert_eq!(112, size_of::<TyAliasItem<'_>>(), "TyAliasItem");
+        assert_eq!(96, size_of::<StructItem<'_>>(), "StructItem");
+        assert_eq!(88, size_of::<EnumItem<'_>>(), "EnumItem");
+        assert_eq!(88, size_of::<UnionItem<'_>>(), "UnionItem");
+        assert_eq!(112, size_of::<TraitItem<'_>>(), "TraitItem");
+        assert_eq!(144, size_of::<ImplItem<'_>>(), "ImplItem");
+        assert_eq!(64, size_of::<ExternBlockItem<'_>>(), "ExternBlockItem");
+        assert_eq!(48, size_of::<UnstableItem<'_>>(), "UnstableItem");
     }
 }

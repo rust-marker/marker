@@ -45,7 +45,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         let ident = self.to_ident(rustc_item.ident);
-        let data = CommonItemData::new(id, ident);
+        let data = CommonItemData::new(id, self.to_span_id(rustc_item.span), ident);
         let item = match &rustc_item.kind {
             hir::ItemKind::ExternCrate(original_name) => ItemKind::ExternCrate(self.alloc({
                 ExternCrateItem::new(data, self.to_symbol_id(original_name.unwrap_or(rustc_item.ident.name)))
@@ -264,7 +264,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         let foreign_item = self.rustc_cx.hir().foreign_item(rustc_item.id);
-        let data = CommonItemData::new(id, self.to_ident(rustc_item.ident));
+        let data = CommonItemData::new(id, self.to_span_id(rustc_item.span), self.to_ident(rustc_item.ident));
         let item = match &foreign_item.kind {
             hir::ForeignItemKind::Fn(decl, idents, generics) => {
                 let return_ty = if let hir::FnRetTy::Return(rust_ty) = decl.output {
@@ -324,7 +324,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         let trait_item = self.rustc_cx.hir().trait_item(rustc_item.id);
-        let data = CommonItemData::new(id, self.to_ident(rustc_item.ident));
+        let data = CommonItemData::new(id, self.to_span_id(rustc_item.span), self.to_ident(rustc_item.ident));
 
         let item = match &trait_item.kind {
             hir::TraitItemKind::Const(ty, body_id) => AssocItemKind::Const(
@@ -373,7 +373,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         let impl_item = self.rustc_cx.hir().impl_item(rustc_item.id);
-        let data = CommonItemData::new(id, self.to_ident(rustc_item.ident));
+        let data = CommonItemData::new(id, self.to_span_id(rustc_item.span), self.to_ident(rustc_item.ident));
 
         let item = match &impl_item.kind {
             hir::ImplItemKind::Const(ty, body_id) => AssocItemKind::Const(

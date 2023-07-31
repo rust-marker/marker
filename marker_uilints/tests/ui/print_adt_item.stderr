@@ -8,6 +8,7 @@ warning: printing item
               EnumItem {
                   data: CommonItemData {
                       id: ItemId(..),
+                      span: SpanId(..),
                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                       ident: Ident {
                           name: "PrintMeEnum",

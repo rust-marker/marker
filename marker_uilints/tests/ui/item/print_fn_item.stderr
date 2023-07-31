@@ -8,6 +8,7 @@ warning: printing item
               FnItem {
                   data: CommonItemData {
                       id: ItemId(..),
+                      span: SpanId(..),
                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                       ident: Ident {
                           name: "print_me_simple",
@@ -49,6 +50,7 @@ warning: printing item
               FnItem {
                   data: CommonItemData {
                       id: ItemId(..),
+                      span: SpanId(..),
                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                       ident: Ident {
                           name: "print_me_special",
@@ -89,6 +91,7 @@ warning: printing item
               FnItem {
                   data: CommonItemData {
                       id: ItemId(..),
+                      span: SpanId(..),
                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                       ident: Ident {
                           name: "print_me_params",
@@ -257,6 +260,7 @@ warning: printing item
                FnItem {
                    data: CommonItemData {
                        id: ItemId(..),
+                       span: SpanId(..),
                        vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                        ident: Ident {
                            name: "print_me_trait_with_body",
@@ -425,6 +429,7 @@ warning: printing item
                FnItem {
                    data: CommonItemData {
                        id: ItemId(..),
+                       span: SpanId(..),
                        vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                        ident: Ident {
                            name: "print_me_trait_no_body",

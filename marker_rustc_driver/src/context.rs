@@ -4,7 +4,7 @@ use marker_adapter::context::{DriverContext, DriverContextWrapper};
 use marker_api::{
     ast::{
         item::{Body, ItemKind},
-        BodyId, ExprId, ItemId, Span, SpanOwner, SymbolId, TyDefId,
+        BodyId, ExprId, ItemId, Span, SpanId, SymbolId, TyDefId,
     },
     context::AstContext,
     diagnostic::{Diagnostic, EmissionNode},
@@ -214,11 +214,8 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         self.marker_converter.expr_ty(hir_id)
     }
 
-    fn span(&'ast self, owner: &SpanOwner) -> &'ast Span<'ast> {
-        let rustc_span = match owner {
-            SpanOwner::Item(item) => self.rustc_cx.hir().item(self.rustc_converter.to_item_id(*item)).span,
-            SpanOwner::SpecificSpan(span_id) => self.rustc_converter.to_span_from_id(*span_id),
-        };
+    fn span(&'ast self, span_id: SpanId) -> &'ast Span<'ast> {
+        let rustc_span = self.rustc_converter.to_span_from_id(span_id);
         self.storage.alloc(self.marker_converter.to_span(rustc_span))
     }
 

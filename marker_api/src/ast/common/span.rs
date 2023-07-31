@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use crate::{context::with_cx, diagnostic::Applicability, ffi};
 
-use super::{ItemId, SpanId, SpanSrcId, SymbolId};
+use super::{SpanId, SpanSrcId, SymbolId};
 
 // FIXME(xFrednet): This enum is "limited" to say it lightly, it should contain
 // the more information about macros and their expansion etc. This covers the
@@ -129,33 +129,6 @@ impl<'ast> Span<'ast> {
 
     pub fn source(&self) -> &'ast SpanSource<'ast> {
         self.source
-    }
-}
-
-/// **Unstable**
-///
-/// This enum is used to request a [`Span`] instance from the driver context.
-/// it is only an internal type to avoid mapping every [`Span`], since they are
-/// most often not needed.
-#[repr(C)]
-#[allow(clippy::exhaustive_enums)]
-#[cfg_attr(feature = "driver-api", visibility::make(pub))]
-pub(crate) enum SpanOwner {
-    /// This requests the [`Span`] belonging to the [`ItemId`].
-    Item(ItemId),
-    /// This requests the [`Span`] belonging to a driver generated [`SpanId`]
-    SpecificSpan(SpanId),
-}
-
-impl From<ItemId> for SpanOwner {
-    fn from(id: ItemId) -> Self {
-        Self::Item(id)
-    }
-}
-
-impl From<SpanId> for SpanOwner {
-    fn from(id: SpanId) -> Self {
-        Self::SpecificSpan(id)
     }
 }
 
