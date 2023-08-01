@@ -8,6 +8,7 @@ warning: printing item with body
               FnItem {
                   data: CommonItemData {
                       id: ItemId(..),
+                      span: SpanId(..),
                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                       ident: Ident {
                           name: "print_with_body_foo",
@@ -89,6 +90,7 @@ warning: printing item with body
               FnItem {
                   data: CommonItemData {
                       id: ItemId(..),
+                      span: SpanId(..),
                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                       ident: Ident {
                           name: "print_with_body_bar",
@@ -545,6 +547,7 @@ warning: printing item with body
                FnItem {
                    data: CommonItemData {
                        id: ItemId(..),
+                       span: SpanId(..),
                        vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                        ident: Ident {
                            name: "print_with_body_with_lifetime",

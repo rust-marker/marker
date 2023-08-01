@@ -425,11 +425,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     && let Some(temp_drop) = block.expr
                     && let hir::ExprKind::DropTemps(inner_block) = temp_drop.kind
                 {
-                    let api_expr;
-                    super::with_body!(self, body_id, {
-                        api_expr = self.to_expr(inner_block);
-                    });
-                    return api_expr
+                    return self.with_body(body_id, || self.to_expr(inner_block));
                 }
 
                 unreachable!("`async fn` body desugar always has the same structure")
@@ -437,16 +433,14 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             Some(hir::GeneratorKind::Async(hir::AsyncGeneratorKind::Block)) => {
                 let block_expr = body.value;
                 if let hir::ExprKind::Block(block, None) = block_expr.kind {
-                    let api_block_expr;
-                    let capture_kind = self.to_capture_kind(closure.capture_clause);
-                    super::with_body!(self, body_id, {
-                        api_block_expr = self.to_block_expr(
+                    let api_block_expr = self.with_body(body_id, || {
+                        self.to_block_expr(
                             CommonExprData::new(self.to_expr_id(block_expr.hir_id), self.to_span_id(block_expr.span)),
                             block,
                             None,
                             Syncness::Async,
-                            capture_kind,
-                        );
+                            self.to_capture_kind(closure.capture_clause),
+                        )
                     });
                     return ExprKind::Block(self.alloc(api_block_expr));
                 }
@@ -463,10 +457,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let fn_decl = closure.fn_decl;
 
         let body_id = closure.body;
-        let params;
         let body = self.rustc_cx.hir().body(body_id);
-        super::with_body!(self, body_id, {
-            params = self.alloc_slice(body.params.iter().zip(fn_decl.inputs.iter()).map(|(param, ty)| {
+        let params = self.with_body(body_id, || {
+            self.alloc_slice(body.params.iter().zip(fn_decl.inputs.iter()).map(|(param, ty)| {
                 // Rustc automatically substitutes the infer type, if a closure
                 // parameter has no type declaration.
                 let param_ty = if matches!(ty.kind, hir::TyKind::Infer) && param.pat.span.contains(ty.span) {
@@ -475,7 +468,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     Some(self.to_syn_ty(ty))
                 };
                 ClosureParam::new(self.to_span_id(param.span), self.to_pat(param.pat), param_ty)
-            }));
+            }))
         });
 
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_decl.output {
@@ -655,11 +648,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     /// # async fn foo() -> u8 {
     /// #     16
     /// # }
-    /// async fn bar() -> u8 {
+    /// # async fn bar() -> u8 {
     ///     foo().await;
-    /// }
+    /// # }
     ///
-    /// async fn bar() -> u8 {
+    /// # async fn bar() -> u8 {
     ///     match IntoFuture::into_future(foo()) {
     ///         mut __awaitee => loop {
     ///             match unsafe {
@@ -672,7 +665,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     ///             _task_context = yield ()
     ///         }
     ///     }
-    /// }
+    /// # }
     /// ```
     ///
     /// [Playground]: <https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=9589cb3ee8264bace959c3dbd9759d98>
@@ -695,12 +688,6 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
     pub fn to_const_expr(&self, anon: hir::AnonConst) -> ConstExpr<'ast> {
         let body = self.rustc_cx.hir().body(anon.body);
-        let expr;
-
-        super::with_body!(self, body.id(), {
-            expr = ConstExpr::new(self.to_expr(body.value));
-        });
-
-        expr
+        self.with_body(body.id(), || ConstExpr::new(self.to_expr(body.value)))
     }
 }

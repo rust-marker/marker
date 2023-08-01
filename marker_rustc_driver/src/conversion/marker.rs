@@ -204,6 +204,26 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     {
         self.storage.alloc_slice(iter)
     }
+
+    pub fn with_body<U, F>(&self, rustc_body_id: hir::BodyId, f: F) -> U
+    where
+        F: FnOnce() -> U,
+    {
+        // Body-Translation-Stack push
+        let prev_rustc_body_id = self.rustc_body.replace(Some(rustc_body_id));
+        let prev_rustc_ty_check = self.rustc_ty_check.take();
+        self.fill_rustc_ty_check();
+
+        // Operation
+        let res = f();
+
+        // Body-Translation-Stack pop
+        self.rustc_body.replace(prev_rustc_body_id);
+        self.rustc_ty_check.replace(prev_rustc_ty_check);
+
+        // Return result
+        res
+    }
 }
 
 impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
@@ -219,20 +239,3 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         ))
     }
 }
-
-macro_rules! with_body {
-    ($cx:expr, $id:expr, $with:expr) => {
-        // Body-Translation-Stack push
-        let prev_rustc_body_id = $cx.rustc_body.replace(Some($id));
-        let prev_rustc_ty_check = $cx.rustc_ty_check.take();
-        $cx.fill_rustc_ty_check();
-
-        // Operation
-        $with
-
-        // Body-Translation-Stack pop
-        $cx.rustc_body.replace(prev_rustc_body_id);
-        $cx.rustc_ty_check.replace(prev_rustc_ty_check);
-    };
-}
-use with_body;

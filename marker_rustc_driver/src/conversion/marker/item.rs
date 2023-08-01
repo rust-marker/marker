@@ -176,7 +176,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let header = fn_sig.header;
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_sig.decl.output {
             // Unwrap `impl Future<Output = <ty>>` for async
-            if matches!(header.asyncness, hir::IsAsync::Async)
+            if let hir::IsAsync::Async = header.asyncness
                 && let hir::TyKind::OpaqueDef(item_id, _bounds, _) = rust_ty.kind
                 && let item = self.rustc_cx.hir().item(item_id)
                 && let hir::ItemKind::OpaqueTy(opty) = &item.kind
@@ -208,10 +208,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     fn to_fn_params(&self, decl: &hir::FnDecl<'tcx>, body_info: hir::TraitFn<'_>) -> &'ast [FnParam<'ast>] {
-        let params;
         match body_info {
             hir::TraitFn::Required(idents) => {
-                params = self.alloc_slice(idents.iter().zip(decl.inputs.iter()).map(|(ident, ty)| {
+                self.alloc_slice(idents.iter().zip(decl.inputs.iter()).map(|(ident, ty)| {
                     FnParam::new(
                         self.to_span_id(ident.span.to(ty.span)),
                         PatKind::Ident(self.alloc(IdentPat::new(
@@ -224,18 +223,17 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                         ))),
                         self.to_syn_ty(ty),
                     )
-                }));
+                }))
             },
             hir::TraitFn::Provided(body_id) => {
                 let body = self.rustc_cx.hir().body(body_id);
-                super::with_body!(self, body_id, {
-                    params = self.alloc_slice(body.params.iter().zip(decl.inputs.iter()).map(|(param, ty)| {
+                self.with_body(body_id, || {
+                    self.alloc_slice(body.params.iter().zip(decl.inputs.iter()).map(|(param, ty)| {
                         FnParam::new(self.to_span_id(param.span), self.to_pat(param.pat), self.to_syn_ty(ty))
-                    }));
-                });
+                    }))
+                })
             },
         }
-        params
     }
 
     fn to_adt_kind(&self, var_data: &'tcx hir::VariantData) -> AdtKind<'ast> {
@@ -441,13 +439,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             ));
         }
 
-        let api_body;
-        super::with_body!(self, body.id(), {
+        self.with_body(body.id(), || {
             let owner = self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id()));
-            api_body = self.alloc(Body::new(owner, self.to_expr(body.value)));
+            let api_body = self.alloc(Body::new(owner, self.to_expr(body.value)));
             self.bodies.borrow_mut().insert(id, api_body);
-        });
-
-        api_body
+            api_body
+        })
     }
 }
