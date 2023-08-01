@@ -164,6 +164,16 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
 
     #[must_use]
     pub fn to_lint_level(&self, api_level: Level) -> rustc_lint::Level {
+        Self::static_to_lint_level(api_level)
+    }
+
+    /// This not being a method taking `&self` is a small hack, to allow the
+    /// creation of `&'static Lint` instances before the start of the `'ast`
+    /// lifetime, required by the [`RustcConverter`].
+    ///
+    /// When possible, please use [`RustcConverter::to_lint_level`] instead.
+    #[must_use]
+    pub fn static_to_lint_level(api_level: Level) -> rustc_lint::Level {
         match api_level {
             Level::Allow => rustc_lint::Level::Allow,
             Level::Warn => rustc_lint::Level::Warn,
@@ -173,6 +183,7 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
         }
     }
 
+    #[must_use]
     pub(crate) fn to_applicability(&self, app: Applicability) -> rustc_errors::Applicability {
         match app {
             Applicability::MachineApplicable => rustc_errors::Applicability::MachineApplicable,
@@ -183,6 +194,7 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
         }
     }
 
+    #[must_use]
     pub fn to_span(&self, api_span: &Span<'ast>) -> rustc_span::Span {
         let (_, src_info) = self
             .storage

@@ -1,25 +1,65 @@
+use std::cell::LazyCell;
+
 use marker_adapter::Adapter;
+use marker_api::lint::Lint;
 
 use crate::context::{storage::Storage, RustcContext};
 
-pub struct MarkerLintPass;
+thread_local! {
+    /// The [`Adapter`] loads the lint crates and is the general interface used
+    /// by drivers to communicate with lint crates.
+    ///
+    /// The lint crates have to be loaded before the instantiation of [`RustcLintPass`]
+    /// to allow this driver to register the lints before the lint pass starts.
+    /// (See [`super::MarkerCallback::config`]). Storing the `Adapter` in a `thread_local`
+    /// cell is the easiest solution I could come up with. It should be fine performance
+    /// wise.
+    ///
+    /// Storing the [`Adapter`] in a `thread_local` is safe, since rustc is currently
+    /// only single threaded. This cell will therefore only be constructed once, and
+    /// this driver will always use the same adapter.
+    static ADAPTER: LazyCell<Adapter> = LazyCell::new(|| {
+        Adapter::new_from_env()
+    });
+}
 
-rustc_lint_defs::impl_lint_pass!(MarkerLintPass => []);
+pub struct RustcLintPass;
 
-impl<'tcx> rustc_lint::LateLintPass<'tcx> for MarkerLintPass {
-    fn check_crate(&mut self, rustc_cx: &rustc_lint::LateContext<'tcx>) {
-        process_crate(rustc_cx);
+impl RustcLintPass {
+    pub fn marker_lints() -> Vec<&'static Lint> {
+        ADAPTER.with(|adapter| {
+            adapter
+                .lint_pass_infos()
+                .iter()
+                .flat_map(marker_api::LintPassInfo::lints)
+                .copied()
+                .collect()
+        })
     }
 }
 
-fn process_crate(rustc_cx: &rustc_lint::LateContext<'_>) {
+rustc_lint_defs::impl_lint_pass!(RustcLintPass => []);
+
+impl<'tcx> rustc_lint::LateLintPass<'tcx> for RustcLintPass {
+    fn check_crate(&mut self, rustc_cx: &rustc_lint::LateContext<'tcx>) {
+        ADAPTER.with(|adapter| {
+            process_crate(rustc_cx, adapter);
+        });
+    }
+}
+
+fn process_crate(rustc_cx: &rustc_lint::LateContext<'_>, adapter: &Adapter) {
     let storage = Storage::default();
-    process_crate_lifetime(rustc_cx, &storage);
+    process_crate_lifetime(rustc_cx, &storage, adapter);
 }
 
 /// This function marks the start of the `'ast` lifetime. The lifetime is defined
 /// by the [`Storage`] object.
-fn process_crate_lifetime<'ast, 'tcx: 'ast>(rustc_cx: &rustc_lint::LateContext<'tcx>, storage: &'ast Storage<'ast>) {
+fn process_crate_lifetime<'ast, 'tcx: 'ast>(
+    rustc_cx: &rustc_lint::LateContext<'tcx>,
+    storage: &'ast Storage<'ast>,
+    adapter: &Adapter,
+) {
     let driver_cx = RustcContext::new(rustc_cx.tcx, rustc_cx.lint_store, storage);
 
     // To support debug printing of AST nodes, as these might sometimes require the
@@ -31,6 +71,5 @@ fn process_crate_lifetime<'ast, 'tcx: 'ast>(rustc_cx: &rustc_lint::LateContext<'
         .marker_converter
         .to_crate(rustc_hir::def_id::LOCAL_CRATE, driver_cx.rustc_cx.hir().root_module());
 
-    let mut adapter = Adapter::new_from_env();
     adapter.process_krate(driver_cx.ast_cx(), krate);
 }

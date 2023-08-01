@@ -3,6 +3,7 @@
 #![feature(let_chains)]
 #![feature(lint_reasons)]
 #![feature(iter_collect_into)]
+#![feature(lazy_cell)]
 #![feature(non_exhaustive_omitted_patterns_lint)]
 #![warn(rustc::internal)]
 #![warn(clippy::pedantic)]
@@ -40,6 +41,8 @@ use std::process::{exit, Command};
 use rustc_session::config::ErrorOutputType;
 use rustc_session::EarlyErrorHandler;
 
+use crate::conversion::rustc::RustcConverter;
+
 const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-07-13";
 
 struct DefaultCallbacks;
@@ -49,13 +52,21 @@ struct MarkerCallback;
 
 impl rustc_driver::Callbacks for MarkerCallback {
     fn config(&mut self, config: &mut rustc_interface::Config) {
-        // Clippy explicitly calls any previous functions. This will not be
-        // done here to keep it simple and to ensure that only known code is
-        // executed.
+        // Clippy explicitly calls any previous `register_lints` functions. This
+        // will not be done here to keep it simple and to ensure that only known
+        // code is executed.
         assert!(config.register_lints.is_none());
 
         config.register_lints = Some(Box::new(|_sess, lint_store| {
-            lint_store.register_late_pass(|_| Box::new(lint_pass::MarkerLintPass));
+            // Register lints from lint crates. This is required to have rustc track
+            // the lint level correctly.
+            let lints: Vec<_> = lint_pass::RustcLintPass::marker_lints()
+                .into_iter()
+                .map(RustcConverter::static_to_lint)
+                .collect();
+            lint_store.register_lints(&lints);
+
+            lint_store.register_late_pass(|_| Box::new(lint_pass::RustcLintPass));
         }));
     }
 }

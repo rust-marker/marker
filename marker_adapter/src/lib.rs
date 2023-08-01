@@ -7,7 +7,7 @@
 pub mod context;
 mod loader;
 
-use std::ops::ControlFlow;
+use std::{cell::RefCell, ops::ControlFlow};
 
 use loader::LintCrateRegistry;
 use marker_api::{
@@ -22,9 +22,19 @@ use marker_api::{
 };
 use marker_utils::visitor::{self, Visitor};
 
-/// This struct is the interface used by lint drivers to pass transformed objects to
-/// external lint passes.
+/// This struct is the interface used by lint drivers to load lint crates, pass
+/// `marker_api` objects to external lint passes and all other magic you can think of.
 pub struct Adapter {
+    /// [`LintPass`] functions are called with a mutable `self` parameter as the
+    /// first argument. This `RefCell` acts as a wrapper to hide the internal
+    /// mutability from drivers.
+    ///
+    /// The effects of the mutability should never reach the driver anyways and
+    /// this just makes it way easier to handle the adapter in drivers.
+    inner: RefCell<AdapterInner>,
+}
+
+struct AdapterInner {
     external_lint_crates: LintCrateRegistry,
 }
 
@@ -32,24 +42,28 @@ impl Adapter {
     #[must_use]
     pub fn new_from_env() -> Self {
         let external_lint_crates = LintCrateRegistry::new_from_env();
-        Self { external_lint_crates }
+        Self {
+            inner: RefCell::new(AdapterInner { external_lint_crates }),
+        }
     }
 
     #[must_use]
-    pub fn registered_lints(&self) -> Vec<LintPassInfo> {
-        self.external_lint_crates.collect_lint_pass_info()
+    pub fn lint_pass_infos(&self) -> Vec<LintPassInfo> {
+        self.inner.borrow().external_lint_crates.collect_lint_pass_info()
     }
 
-    pub fn process_krate<'ast>(&mut self, cx: &'ast AstContext<'ast>, krate: &Crate<'ast>) {
-        self.external_lint_crates.set_ast_context(cx);
+    pub fn process_krate<'ast>(&self, cx: &'ast AstContext<'ast>, krate: &Crate<'ast>) {
+        let inner = &mut *self.inner.borrow_mut();
+
+        inner.external_lint_crates.set_ast_context(cx);
 
         for item in krate.items() {
-            visitor::traverse_item::<()>(cx, self, *item);
+            visitor::traverse_item::<()>(cx, inner, *item);
         }
     }
 }
 
-impl Visitor<()> for Adapter {
+impl Visitor<()> for AdapterInner {
     fn visit_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) -> ControlFlow<()> {
         self.external_lint_crates.check_item(cx, item);
         ControlFlow::Continue(())

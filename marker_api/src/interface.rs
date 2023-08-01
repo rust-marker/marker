@@ -169,3 +169,10 @@ impl LintPassInfoBuilder {
 pub struct LintPassInfo {
     lints: FfiSlice<'static, &'static Lint>,
 }
+
+#[cfg(feature = "driver-api")]
+impl LintPassInfo {
+    pub fn lints(&self) -> &[&'static Lint] {
+        self.lints.get()
+    }
+}
