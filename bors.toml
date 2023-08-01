@@ -7,5 +7,6 @@ status = [
   "toml",
   "typos",
   "rust-unused-dependencies",
+  "mdbook",
 ]
 timeout_sec = 1200 # 20 min
