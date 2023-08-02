@@ -1,13 +1,13 @@
 use std::{
     path::{Path, PathBuf},
     process::Command,
+    str::FromStr,
 };
 
-use cargo_metadata::MetadataCommand;
-
-use crate::{utils::to_os_str, ExitStatus};
+use crate::{utils::is_local_driver, ExitStatus};
 
 use super::{
+    cargo::Cargo,
     driver::{DEFAULT_DRIVER_INFO, MARKER_DRIVER_BIN_NAME},
     Config,
 };
@@ -15,40 +15,15 @@ use super::{
 #[derive(Debug)]
 pub struct Toolchain {
     pub(crate) driver_path: PathBuf,
-    /// The Cargo binary that should be used for all Cargo commands. Prefer this
-    /// over the `CARGO` environment value as this is the Cargo binary used for
-    /// the specified toolchain.
-    pub(crate) cargo_path: PathBuf,
-    /// The rustc toolchain this driver belongs to. This can be `None` during
-    /// custom builds where the driver was found but not the connected toolchain.
-    pub(crate) toolchain: Option<String>,
+    /// A type containing toolchain to which the driver belongs.
+    /// May not have a toolchain during custom builds when
+    /// a driver was found but not the connected toolchain.
+    pub(crate) cargo: Cargo,
 }
 
 impl Toolchain {
-    /// This returns a command, calling the Cargo instance of the selected toolchain.
-    /// It may add additional flags for verbose output.
-    ///
-    /// See also [`Self::cargo_build_command`] if the commands is intended to build
-    /// a crate.
-    pub fn cargo_command(&self) -> Command {
-        // Marker requires rustc's shared libraries to be available. These are
-        // added by rustup, when it acts like a proxy for cargo/rustc/etc.
-        // This also means that cargo needs to be invoked via rustup, to have
-        // the libraries available when Marker is invoked. This is such a mess...
-        // All of this would be so, so much simpler if marker was part of rustup :/
-        if let Some(toolchain) = &self.toolchain {
-            let mut cmd = Command::new("cargo");
-
-            cmd.env("RUSTUP_TOOLCHAIN", toolchain);
-
-            cmd
-        } else {
-            Command::new(&self.cargo_path)
-        }
-    }
-
     pub fn cargo_with_driver(&self) -> Command {
-        let mut cmd = self.cargo_command();
+        let mut cmd = self.cargo.command();
 
         cmd.env("RUSTC_WORKSPACE_WRAPPER", &self.driver_path);
 
@@ -56,7 +31,7 @@ impl Toolchain {
     }
 
     pub fn cargo_build_command(&self, config: &Config, manifest: &Path) -> Command {
-        let mut cmd = self.cargo_command();
+        let mut cmd = self.cargo.command();
         cmd.arg("build");
 
         // Manifest
@@ -78,40 +53,28 @@ impl Toolchain {
         cmd
     }
 
-    pub fn cargo_metadata_command(&self) -> MetadataCommand {
-        let mut command = MetadataCommand::new();
-        command.cargo_path(&self.cargo_path);
-        if let Some(toolchain) = self.toolchain.as_ref() {
-            command.env("RUSTUP_TOOLCHAIN", toolchain);
-        }
-        command
-    }
-
     pub fn find_target_dir(&self) -> Result<PathBuf, ExitStatus> {
         // FIXME(xFrednet): Handle errors properly.
-        let metadata = self
-            .cargo_metadata_command()
-            .exec()
-            .map_err(|_| ExitStatus::NoTargetDir)?;
+        let metadata = self.cargo.metadata().exec().map_err(|_| ExitStatus::NoTargetDir)?;
 
         Ok(metadata.target_directory.into())
     }
 
     pub fn try_find_toolchain(verbose: bool) -> Result<Toolchain, ExitStatus> {
-        if cfg!(debug_assertions) {
+        if is_local_driver() {
             Self::search_next_to_cargo_marker(verbose)
         } else {
             // First check if there is a rustc driver for the current toolchain. This
-            // allows the used to override the used toolchain with `+<toolchain>` or
+            // allows the user to override the used toolchain with `+<toolchain>` or
             // `rust-toolchain`
             if let Ok(toolchain) = std::env::var("RUSTUP_TOOLCHAIN") {
-                if let Ok(info) = Self::search_toolchain(&toolchain, verbose) {
+                if let Ok(info) = Self::search_driver(&toolchain, verbose) {
                     return Ok(info);
                 }
             }
 
             // Next we check, if we can find a driver for the linked marker toolchain.
-            if let Ok(info) = Self::search_toolchain(&DEFAULT_DRIVER_INFO.toolchain, verbose) {
+            if let Ok(info) = Self::search_driver(&DEFAULT_DRIVER_INFO.toolchain, verbose) {
                 return Ok(info);
             }
 
@@ -125,15 +88,12 @@ impl Toolchain {
         }
     }
 
-    fn search_toolchain(toolchain: &str, verbose: bool) -> Result<Toolchain, ExitStatus> {
+    fn search_driver(toolchain: &str, verbose: bool) -> Result<Toolchain, ExitStatus> {
         if let Ok(driver_path) = rustup_which(toolchain, "marker_rustc_driver", verbose) {
-            if let Ok(cargo_path) = rustup_which(toolchain, "cargo", verbose) {
-                return Ok(Toolchain {
-                    driver_path,
-                    cargo_path,
-                    toolchain: Some(toolchain.to_string()),
-                });
-            }
+            return Ok(Toolchain {
+                driver_path,
+                cargo: Cargo::with_toolchain(toolchain),
+            });
         }
 
         Err(ExitStatus::MissingDriver)
@@ -152,10 +112,7 @@ impl Toolchain {
                 }
                 return Ok(Toolchain {
                     driver_path,
-                    cargo_path: PathBuf::from(
-                        std::env::var_os("CARGO").expect("expected environment value `CARGO` to be set"),
-                    ),
-                    toolchain: None,
+                    cargo: Cargo::default(),
                 });
             }
         }
@@ -179,40 +136,25 @@ pub(crate) fn rustup_which(toolchain: &str, tool: &str, verbose: bool) -> Result
         println!("Searching for `{tool}` with rustup for toolchain `{toolchain}`");
     }
 
-    // Check if the toolchain is installed. We don't want to install it accidentally
-    if let Ok(output) = Command::new("rustup").args(["toolchain", "list"]).output() {
-        let text = to_os_str(output.stdout).expect("`Command` output should always be a valid `OsString`");
-        if !text.to_string_lossy().contains(toolchain) {
-            return Err(ExitStatus::MissingDriver);
-        }
-    } else {
-        return Err(ExitStatus::ToolExecutionFailed);
-    }
-
-    // Check if the driver is installed
-    if let Ok(output) = Command::new("rustup")
-        .env("RUSTUP_TOOLCHAIN", toolchain)
-        .args(["which", tool])
+    let output = Command::new("rustup")
+        .args(["which", "--toolchain", toolchain, tool])
         .output()
-    {
-        // rustup will error, if it can't find the binary file. Therefore,
-        // we know that it exists if this succeeds
-        if output.status.success() {
-            if let Some(path_str) = to_os_str(output.stdout) {
-                let path = PathBuf::from(path_str);
+        .map_err(|err| ExitStatus::fatal(err, "failed to execute rustup"))?;
 
-                // Remove the `\n` from the print output
-                let trimmed_name = path.file_name().unwrap().to_str().unwrap().trim();
-                let path = path.with_file_name(trimmed_name);
-
-                if verbose {
-                    println!("Found `{tool}` for `{toolchain}` at {}", path.to_string_lossy());
-                }
-
-                return Ok(path);
-            }
-        }
-        return Err(ExitStatus::MissingDriver);
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(ExitStatus::fatal(
+            stderr.trim(),
+            format!("failed to execute `rustup which` for `{tool}` with `{toolchain}` toolchain"),
+        ));
     }
-    Err(ExitStatus::ToolExecutionFailed)
+
+    let string_path = String::from_utf8(output.stdout).map_err(|err| ExitStatus::fatal(err, "incorrect bytes"))?;
+    let path = PathBuf::from_str(string_path.trim())
+        .map_err(|err| ExitStatus::fatal(err, format!("failed to parse path for `{tool}`")))?;
+
+    if verbose {
+        println!("Found `{tool}` for `{toolchain}` at {}", path.to_string_lossy());
+    }
+    Ok(path)
 }

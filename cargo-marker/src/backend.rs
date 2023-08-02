@@ -14,6 +14,7 @@ use crate::{config::LintDependencyEntry, ExitStatus};
 
 use self::{lints::LintCrate, toolchain::Toolchain};
 
+pub mod cargo;
 pub mod driver;
 pub mod lints;
 pub mod toolchain;
@@ -37,8 +38,6 @@ pub struct Config {
     pub build_rustc_flags: String,
     /// Indicates if this is a release or debug build.
     pub debug_build: bool,
-    /// Indicates if this is a development build.
-    pub dev_build: bool,
     pub toolchain: Toolchain,
 }
 
@@ -49,7 +48,6 @@ impl Config {
             lints: HashMap::default(),
             build_rustc_flags: String::new(),
             debug_build: false,
-            dev_build: cfg!(feature = "dev-build"),
             toolchain,
         })
     }
@@ -78,7 +76,7 @@ pub fn prepare_check(config: &Config) -> Result<CheckInfo, ExitStatus> {
         ("RUSTC_WORKSPACE_WRAPPER", config.toolchain.driver_path.as_os_str().to_os_string()),
         ("MARKER_LINT_CRATES", to_marker_lint_crates_env(&lints)),
     ];
-    if let Some(toolchain) = &config.toolchain.toolchain {
+    if let Some(toolchain) = &config.toolchain.cargo.toolchain {
         env.push(("RUSTUP_TOOLCHAIN", toolchain.into()));
     }
 

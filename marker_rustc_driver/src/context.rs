@@ -248,45 +248,45 @@ fn select_children_with_name(
     name: rustc_span::Symbol,
 ) -> Vec<hir::def::Res<hir::def_id::DefId>> {
     let mut next_search = vec![];
-    search
-        .iter()
-        .filter_map(rustc_hir::def::Res::mod_def_id)
-        .for_each(|id| {
-            if let Some(local_id) = id.as_local() {
-                let hir = tcx.hir();
 
-                let root_mod;
-                let item = match hir.find_by_def_id(local_id) {
-                    Some(hir::Node::Crate(r#mod)) => {
-                        root_mod = hir::ItemKind::Mod(r#mod);
-                        Some(&root_mod)
-                    },
-                    Some(hir::Node::Item(item)) => Some(&item.kind),
-                    _ => None,
-                };
+    let mod_def_ids = search.iter().filter_map(rustc_hir::def::Res::mod_def_id);
 
-                if let Some(hir::ItemKind::Mod(module)) = item {
-                    module
-                        .item_ids
-                        .iter()
-                        .filter_map(|&item_id| {
-                            if hir.item(item_id).ident.name == name {
-                                let def_id = item_id.owner_id.to_def_id();
-                                Some(hir::def::Res::Def(tcx.def_kind(def_id), def_id))
-                            } else {
-                                None
-                            }
-                        })
-                        .collect_into(&mut next_search);
-                }
-            } else if let hir::def::DefKind::Mod = tcx.def_kind(id) {
-                tcx.module_children(id)
+    for id in mod_def_ids {
+        if let Some(local_id) = id.as_local() {
+            let hir = tcx.hir();
+
+            let root_mod;
+            let item = match hir.find_by_def_id(local_id) {
+                Some(hir::Node::Crate(r#mod)) => {
+                    root_mod = hir::ItemKind::Mod(r#mod);
+                    Some(&root_mod)
+                },
+                Some(hir::Node::Item(item)) => Some(&item.kind),
+                _ => None,
+            };
+
+            if let Some(hir::ItemKind::Mod(module)) = item {
+                module
+                    .item_ids
                     .iter()
-                    .filter(|item| item.ident.name == name)
-                    .map(|child| child.res.expect_non_local())
+                    .filter_map(|&item_id| {
+                        if hir.item(item_id).ident.name == name {
+                            let def_id = item_id.owner_id.to_def_id();
+                            Some(hir::def::Res::Def(tcx.def_kind(def_id), def_id))
+                        } else {
+                            None
+                        }
+                    })
                     .collect_into(&mut next_search);
             }
-        });
+        } else if let hir::def::DefKind::Mod = tcx.def_kind(id) {
+            tcx.module_children(id)
+                .iter()
+                .filter(|item| item.ident.name == name)
+                .map(|child| child.res.expect_non_local())
+                .collect_into(&mut next_search);
+        }
+    }
 
     next_search
 }

@@ -66,11 +66,7 @@ impl LintCrateRegistry {
     }
 
     pub(crate) fn collect_lint_pass_info(&self) -> Vec<LintPassInfo> {
-        let mut info = vec![];
-        for pass in &self.passes {
-            info.push((pass.bindings.info)());
-        }
-        info
+        self.passes.iter().map(|pass| (pass.bindings.info)()).collect()
     }
 }
 

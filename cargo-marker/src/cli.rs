@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use camino::Utf8Path;
 use clap::{Args, Parser, Subcommand};
 
 /// Marker's CLI interface
@@ -89,7 +90,9 @@ pub fn collect_lint_deps(args: &CheckArgs) -> Result<HashMap<String, LintDepende
         virtual_manifest.push('\n');
     }
 
-    let Config { lints } = Config::try_from_str(&virtual_manifest).map_err(ConfigFetchError::emit_and_convert)?;
+    let path = Utf8Path::new(".");
+
+    let Config { lints } = Config::try_from_str(&virtual_manifest, path).map_err(ConfigFetchError::emit_and_convert)?;
     Ok(lints)
 }
 
