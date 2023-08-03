@@ -5,6 +5,9 @@ use marker_api::{interface::LintCrateBindings, AstContext};
 use marker_api::{LintPass, LintPassInfo};
 
 use std::ffi::{OsStr, OsString};
+use std::path::PathBuf;
+
+use super::{AdapterError, LINT_CRATES_ENV};
 
 /// Splits [`OsStr`] by an ascii character
 fn split_os_str(s: &OsStr, c: u8) -> Vec<OsString> {
@@ -40,47 +43,60 @@ fn windows_split_os_str(s: &OsStr, c: u8) -> Vec<OsString> {
     bytes.split(|v| *v == u16::from(c)).map(OsString::from_wide).collect()
 }
 
+/// A struct describing a lint crate that can be loaded
+#[derive(Debug, Clone)]
+pub struct LintCrateInfo {
+    /// The absolute path of the compiled dynamic library, which can be loaded as a lint crate.
+    pub path: PathBuf,
+}
+
+impl LintCrateInfo {
+    /// This function tries to load the list of [`LintCrateInfo`]s from the
+    /// [`LINT_CRATES_ENV`] environment value.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the value can't be read or the
+    /// content is malformed. The `README.md` of this adapter contains the
+    /// format definition.
+    pub fn list_from_env() -> Result<Vec<LintCrateInfo>, AdapterError> {
+        let Some(env_str) = std::env::var_os(LINT_CRATES_ENV) else {
+            return Err(AdapterError::LintCratesEnvUnset);
+        };
+
+        let mut list = vec![];
+        for entry_str in split_os_str(&env_str, b';') {
+            if entry_str.is_empty() {
+                return Err(AdapterError::LintCratesEnvMalformed);
+            }
+
+            list.push(LintCrateInfo {
+                path: PathBuf::from(entry_str),
+            });
+        }
+
+        Ok(list)
+    }
+}
+
 /// This struct loads external lint crates into memory and provides a safe API
 /// to call the respective methods on all of them.
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct LintCrateRegistry {
     passes: Vec<LoadedLintCrate>,
 }
 
 impl LintCrateRegistry {
-    /// # Errors
-    /// This can return errors if the library couldn't be found or if the
-    /// required symbols weren't provided.
-    fn load_external_lib(lib_path: &OsStr) -> Result<LoadedLintCrate, LoadingError> {
-        let lib: &'static Library = Box::leak(Box::new(
-            unsafe { Library::new(lib_path) }.map_err(|_| LoadingError::FileNotFound)?,
-        ));
-
-        let pass = LoadedLintCrate::try_from_lib(lib)?;
-
-        // FIXME: Create issue for lifetimes and fix dropping and pointer decl stuff
-
-        Ok(pass)
-    }
-
     /// # Panics
     ///
     /// Panics if a lint in the environment couldn't be loaded.
-    pub fn new_from_env() -> Self {
+    pub fn new(lint_crates: &[LintCrateInfo]) -> Self {
         let mut new_self = Self::default();
 
-        let Some((_, lint_crates_lst)) = std::env::vars_os().find(|(name, _val)| name == "MARKER_LINT_CRATES") else {
-            panic!("Adapter tried to find `MARKER_LINT_CRATES` env variable, but it was not present");
-        };
-
-        for lib in split_os_str(&lint_crates_lst, b';') {
-            if lib.is_empty() {
-                continue;
-            }
-
-            let lib = match Self::load_external_lib(&lib) {
+        for krate in lint_crates {
+            let lib = match LoadedLintCrate::try_from_info(krate.clone()) {
                 Ok(v) => v,
-                Err(err) => panic!("Unable to load `{}`, reason: {err:?}", lib.to_string_lossy()),
+                Err(err) => panic!("Unable to load `{}`, reason: {err:?}", krate.path.display()),
             };
 
             new_self.passes.push(lib);
@@ -153,11 +169,29 @@ impl LintPass for LintCrateRegistry {
 
 struct LoadedLintCrate {
     _lib: &'static Library,
+    info: LintCrateInfo,
     bindings: LintCrateBindings,
 }
 
+#[allow(clippy::missing_fields_in_debug)]
+impl std::fmt::Debug for LoadedLintCrate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("LoadedLintCrate").field("info", &self.info).finish()
+    }
+}
+
 impl LoadedLintCrate {
-    fn try_from_lib(lib: &'static Library) -> Result<Self, LoadingError> {
+    fn try_from_info(info: LintCrateInfo) -> Result<Self, LoadingError> {
+        let lib: &'static Library = Box::leak(Box::new(
+            unsafe { Library::new(&info.path) }.map_err(|_| LoadingError::FileNotFound)?,
+        ));
+
+        let pass = LoadedLintCrate::try_from_lib(lib, info)?;
+
+        Ok(pass)
+    }
+
+    fn try_from_lib(lib: &'static Library, info: LintCrateInfo) -> Result<Self, LoadingError> {
         // Check API version for verification
         let get_api_version = {
             unsafe {
@@ -176,7 +210,11 @@ impl LoadedLintCrate {
         };
         let bindings = get_lint_crate_bindings();
 
-        Ok(Self { _lib: lib, bindings })
+        Ok(Self {
+            _lib: lib,
+            info,
+            bindings,
+        })
     }
 }
 
