@@ -1,6 +1,6 @@
 use std::cell::OnceCell;
 
-use marker_adapter::{Adapter, LintCrateInfo};
+use marker_adapter::{Adapter, AdapterError, LintCrateInfo};
 use marker_api::lint::Lint;
 
 use crate::context::{storage::Storage, RustcContext};
@@ -24,9 +24,10 @@ thread_local! {
 pub struct RustcLintPass;
 
 impl RustcLintPass {
-    pub fn init_adapter(lint_crates: &[LintCrateInfo]) {
-        let adapter = Adapter::new(lint_crates);
+    pub fn init_adapter(lint_crates: &[LintCrateInfo]) -> Result<(), AdapterError> {
+        let adapter = Adapter::new(lint_crates)?;
         ADAPTER.with(move |cell| cell.set(adapter)).unwrap();
+        Ok(())
     }
 
     pub fn marker_lints() -> Vec<&'static Lint> {

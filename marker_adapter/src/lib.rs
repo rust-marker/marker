@@ -7,7 +7,7 @@
 pub mod context;
 mod loader;
 pub use loader::LintCrateInfo;
-use loader::LintCrateRegistry;
+use loader::{LintCrateRegistry, LoadingError};
 
 use marker_api::{
     ast::{
@@ -33,6 +33,8 @@ pub enum AdapterError {
     /// the `marker_adapter` crate.
     #[error("the content of the `{LINT_CRATES_ENV}` environment value is malformed")]
     LintCratesEnvMalformed,
+    #[error("error while loading the lint crate: {0:#?}")]
+    LoadingError(#[from] LoadingError),
 }
 
 /// This struct is the interface used by lint drivers to load lint crates, pass
@@ -54,12 +56,17 @@ struct AdapterInner {
 }
 
 impl Adapter {
-    #[must_use]
-    pub fn new(lint_crates: &[LintCrateInfo]) -> Self {
-        let external_lint_crates = LintCrateRegistry::new(lint_crates);
-        Self {
+    /// This creates a new [`Adapter`] instance
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if an error occurs during the lint
+    /// loading process.
+    pub fn new(lint_crates: &[LintCrateInfo]) -> Result<Self, AdapterError> {
+        let external_lint_crates = LintCrateRegistry::new(lint_crates)?;
+        Ok(Self {
             inner: RefCell::new(AdapterInner { external_lint_crates }),
-        }
+        })
     }
 
     #[must_use]

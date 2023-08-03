@@ -1,11 +1,10 @@
 use cfg_if::cfg_if;
 use libloading::Library;
-
 use marker_api::{interface::LintCrateBindings, AstContext};
-use marker_api::{LintPass, LintPassInfo};
-
+use marker_api::{LintPass, LintPassInfo, MARKER_API_VERSION};
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
+use thiserror::Error;
 
 use super::{AdapterError, LINT_CRATES_ENV};
 
@@ -87,22 +86,14 @@ pub struct LintCrateRegistry {
 }
 
 impl LintCrateRegistry {
-    /// # Panics
-    ///
-    /// Panics if a lint in the environment couldn't be loaded.
-    pub fn new(lint_crates: &[LintCrateInfo]) -> Self {
+    pub fn new(lint_crates: &[LintCrateInfo]) -> Result<Self, LoadingError> {
         let mut new_self = Self::default();
 
         for krate in lint_crates {
-            let lib = match LoadedLintCrate::try_from_info(krate.clone()) {
-                Ok(v) => v,
-                Err(err) => panic!("Unable to load `{}`, reason: {err:?}", krate.path.display()),
-            };
-
-            new_self.passes.push(lib);
+            new_self.passes.push(LoadedLintCrate::try_from_info(krate.clone())?);
         }
 
-        new_self
+        Ok(new_self)
     }
 
     pub(super) fn set_ast_context<'ast>(&self, cx: &'ast AstContext<'ast>) {
@@ -182,9 +173,7 @@ impl std::fmt::Debug for LoadedLintCrate {
 
 impl LoadedLintCrate {
     fn try_from_info(info: LintCrateInfo) -> Result<Self, LoadingError> {
-        let lib: &'static Library = Box::leak(Box::new(
-            unsafe { Library::new(&info.path) }.map_err(|_| LoadingError::FileNotFound)?,
-        ));
+        let lib: &'static Library = Box::leak(Box::new(unsafe { Library::new(&info.path) }?));
 
         let pass = LoadedLintCrate::try_from_lib(lib, info)?;
 
@@ -196,17 +185,20 @@ impl LoadedLintCrate {
         let get_api_version = {
             unsafe {
                 lib.get::<unsafe extern "C" fn() -> &'static str>(b"marker_api_version\0")
-                    .map_err(|_| LoadingError::MissingLintDeclaration)?
+                    .map_err(|_| LoadingError::MissingApiSymbol)?
             }
         };
-        if unsafe { get_api_version() } != marker_api::MARKER_API_VERSION {
-            return Err(LoadingError::IncompatibleVersion);
+        let krate_api_version = unsafe { get_api_version() };
+        if krate_api_version != MARKER_API_VERSION {
+            return Err(LoadingError::IncompatibleVersion {
+                krate_version: krate_api_version.to_string(),
+            });
         }
 
         // Load bindings
         let get_lint_crate_bindings = unsafe {
             lib.get::<extern "C" fn() -> LintCrateBindings>(b"marker_lint_crate_bindings\0")
-                .map_err(|_| LoadingError::MissingLintDeclaration)?
+                .map_err(|_| LoadingError::MissingBindingSymbol)?
         };
         let bindings = get_lint_crate_bindings();
 
@@ -218,9 +210,14 @@ impl LoadedLintCrate {
     }
 }
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum LoadingError {
-    FileNotFound,
-    IncompatibleVersion,
-    MissingLintDeclaration,
+    #[error("the lint crate could not be loaded: {0:#?}")]
+    LibLoading(#[from] libloading::Error),
+    #[error("the loaded crated doesn't contain the `marker_api_version` symbol")]
+    MissingApiSymbol,
+    #[error("the loaded crated doesn't contain the `marker_lint_crate_bindings` symbol")]
+    MissingBindingSymbol,
+    #[error("incompatible api version:\n- lint-crate api: {krate_version}\n- driver api: {MARKER_API_VERSION}")]
+    IncompatibleVersion { krate_version: String },
 }

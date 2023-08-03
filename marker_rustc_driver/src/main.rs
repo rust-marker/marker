@@ -65,7 +65,7 @@ struct MarkerCallback {
 
 impl rustc_driver::Callbacks for MarkerCallback {
     fn config(&mut self, config: &mut rustc_interface::Config) {
-        lint_pass::RustcLintPass::init_adapter(&self.lint_crates);
+        lint_pass::RustcLintPass::init_adapter(&self.lint_crates).unwrap();
 
         let env_vars = std::mem::take(&mut self.env_vars);
         let lint_crates = std::mem::take(&mut self.lint_crates);
