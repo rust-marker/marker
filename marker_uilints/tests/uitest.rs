@@ -35,9 +35,10 @@ fn test_name_filter() -> Box<dyn Fn(&Path) -> bool + Sync> {
         let filters: Vec<_> = filters.split(',').map(ToString::to_string).collect();
         Box::new(move |path| {
             filters.is_empty()
-                || filters
-                    .iter()
-                    .any(|f| path.file_stem().map_or(false, |stem| stem == f.as_str()))
+                || filters.iter().any(|f| {
+                    path.file_stem()
+                        .map_or(false, |stem| stem.to_string_lossy().contains(f))
+                })
         })
     } else {
         Box::new(|_| true)

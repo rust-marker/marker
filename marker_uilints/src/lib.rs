@@ -3,14 +3,12 @@
 
 use marker_api::{
     ast::{
-        item::{EnumVariant, Field, ItemData, ItemKind, StaticItem},
-        pat::PatKind,
-        stmt::StmtKind,
+        item::{EnumVariant, Field, StaticItem},
         ty::SemTyKind,
         Span,
     },
-    context::AstContext,
     diagnostic::{Applicability, EmissionNode},
+    prelude::*,
     LintPass, LintPassInfo, LintPassInfoBuilder,
 };
 
@@ -112,6 +110,24 @@ impl LintPass for TestLintPass {
                     diag.note(format!("{item:#?}"));
                 },
             );
+        }
+
+        if let ItemKind::Fn(func) = item {
+            if matches!(
+                item.ident().map(marker_api::ast::Ident::name),
+                Some(name) if name.starts_with("print_with_body")
+            ) {
+                cx.emit_lint(
+                    TEST_LINT,
+                    item.id(),
+                    "printing item with body",
+                    item.ident().unwrap().span(),
+                    |diag| {
+                        diag.note(format!("Item: {item:#?}"));
+                        diag.note(format!("Body: {:#?}", cx.body(func.body_id().unwrap())));
+                    },
+                );
+            }
         }
     }
 

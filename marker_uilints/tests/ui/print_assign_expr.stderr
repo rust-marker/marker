@@ -598,7 +598,9 @@ warning: print test
                        ),
                    ),
                    label: None,
-                   is_unsafe: false,
+                   safety: Safe,
+                   syncness: Sync,
+                   capture_kind: Default,
                },
            )
    = note: `#[warn(marker::test_lint)]` on by default

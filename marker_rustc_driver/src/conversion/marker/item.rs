@@ -175,7 +175,19 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let params = self.to_fn_params(fn_sig.decl, body_info);
         let header = fn_sig.header;
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_sig.decl.output {
-            Some(self.to_syn_ty(rust_ty))
+            // Unwrap `impl Future<Output = <ty>>` for async
+            if let hir::IsAsync::Async = header.asyncness
+                && let hir::TyKind::OpaqueDef(item_id, _bounds, _) = rust_ty.kind
+                && let item = self.rustc_cx.hir().item(item_id)
+                && let hir::ItemKind::OpaqueTy(opty) = &item.kind
+                && let [output_bound] = opty.bounds
+                && let hir::GenericBound::LangItemTrait(_lang_item, _span, _hir_id, rustc_args) = output_bound
+                && let [output_bound] = rustc_args.bindings
+            {
+                Some(self.to_syn_ty(output_bound.ty()))
+            } else {
+                Some(self.to_syn_ty(rust_ty))
+            }
         } else {
             None
         };
@@ -196,10 +208,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     fn to_fn_params(&self, decl: &hir::FnDecl<'tcx>, body_info: hir::TraitFn<'_>) -> &'ast [FnParam<'ast>] {
-        let params;
         match body_info {
             hir::TraitFn::Required(idents) => {
-                params = self.alloc_slice(idents.iter().zip(decl.inputs.iter()).map(|(ident, ty)| {
+                self.alloc_slice(idents.iter().zip(decl.inputs.iter()).map(|(ident, ty)| {
                     FnParam::new(
                         self.to_span_id(ident.span.to(ty.span)),
                         PatKind::Ident(self.alloc(IdentPat::new(
@@ -212,18 +223,17 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                         ))),
                         self.to_syn_ty(ty),
                     )
-                }));
+                }))
             },
             hir::TraitFn::Provided(body_id) => {
                 let body = self.rustc_cx.hir().body(body_id);
-                super::with_body!(self, body_id, {
-                    params = self.alloc_slice(body.params.iter().zip(decl.inputs.iter()).map(|(param, ty)| {
+                self.with_body(body_id, || {
+                    self.alloc_slice(body.params.iter().zip(decl.inputs.iter()).map(|(param, ty)| {
                         FnParam::new(self.to_span_id(param.span), self.to_pat(param.pat), self.to_syn_ty(ty))
-                    }));
-                });
+                    }))
+                })
             },
         }
-        params
     }
 
     fn to_adt_kind(&self, var_data: &'tcx hir::VariantData) -> AdtKind<'ast> {
@@ -418,28 +428,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             return body;
         }
 
-        // Check for an async body
-        if let Some(src) = body.generator_kind {
-            match src {
-                hir::GeneratorKind::Async(_) => {
-                    if std::env::var("MARKER_DISABLE_ASYNC_WARNING").is_err() {
-                        self.rustc_cx
-                            .sess
-                            .struct_span_warn(
-                                body.value.span,
-                                "async blocks and await expressions are currently not supported",
-                            )
-                            .note("see rust-marker/marker#174")
-                            .note_once(
-                                "set the `MARKER_DISABLE_ASYNC_WARNING` environment value to disable this warning",
-                            )
-                            .emit();
-                    }
-                },
-                hir::GeneratorKind::Gen => {
-                    // Yield expressions are currently unstable anyways, so no need for a message
-                },
-            }
+        // Yield expressions are currently unstable
+        if let Some(hir::GeneratorKind::Gen) = body.generator_kind {
             return self.alloc(Body::new(
                 self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id())),
                 expr::ExprKind::Unstable(self.alloc(expr::UnstableExpr::new(
@@ -449,13 +439,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             ));
         }
 
-        let api_body;
-        super::with_body!(self, body.id(), {
+        self.with_body(body.id(), || {
             let owner = self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id()));
-            api_body = self.alloc(Body::new(owner, self.to_expr(body.value)));
+            let api_body = self.alloc(Body::new(owner, self.to_expr(body.value)));
             self.bodies.borrow_mut().insert(id, api_body);
-        });
-
-        api_body
+            api_body
+        })
     }
 }

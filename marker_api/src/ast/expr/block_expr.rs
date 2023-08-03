@@ -1,5 +1,5 @@
 use crate::{
-    ast::{pat::PatKind, stmt::StmtKind, ty::SynTyKind, BodyId, Ident, Span, SpanId},
+    ast::{pat::PatKind, stmt::StmtKind, ty::SynTyKind, BodyId, Ident, Safety, Span, SpanId, Syncness},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
 };
@@ -23,6 +23,9 @@ use super::{CommonExprData, ExprKind};
 ///
 /// //      vvvvvv An optional label to be targeted by break expressions
 /// let _ = 'label: {
+///     let _ = 18;
+/// //  ^^^^^^^^^^^
+/// // A statement in the block
 ///     12
 /// };
 /// ```
@@ -31,6 +34,9 @@ use super::{CommonExprData, ExprKind};
 /// expression at the end of a block is called *block expression*. The meaning
 /// depends on the context. Marker's documentation will try to make the meaning
 /// clear by linking directly to the [`BlockExpr`] struct or calling it a *block*.
+///
+/// This expression also represents async blocks, the internal desugar used by
+/// rustc is resugared for this.
 #[repr(C)]
 #[derive(Debug)]
 pub struct BlockExpr<'ast> {
@@ -38,7 +44,9 @@ pub struct BlockExpr<'ast> {
     stmts: FfiSlice<'ast, StmtKind<'ast>>,
     expr: FfiOption<ExprKind<'ast>>,
     label: FfiOption<Ident<'ast>>,
-    is_unsafe: bool,
+    safety: Safety,
+    syncness: Syncness,
+    capture_kind: CaptureKind,
 }
 
 impl<'ast> BlockExpr<'ast> {
@@ -58,8 +66,31 @@ impl<'ast> BlockExpr<'ast> {
         self.label.get()
     }
 
-    pub fn is_unsafe(&self) -> bool {
-        self.is_unsafe
+    pub fn safety(&self) -> Safety {
+        self.safety
+    }
+
+    pub fn syncness(&self) -> Syncness {
+        self.syncness
+    }
+
+    /// The capture kind of this block. For normal blocks, this will always be
+    /// [`CaptureKind::Default`], which in this context means no capture at all.
+    /// Async blocks are special, as they can capture values by move, indicated
+    /// by the `move` keyword, like in this:
+    ///
+    /// ```
+    /// # use std::future::Future;
+    /// # fn foo<'a>(x: &'a u8) -> impl Future<Output = u8> + 'a {
+    /// // The whole block expression
+    /// //  vvvvvvvvvvvvvvvvv
+    ///     async move { *x }
+    /// //        ^^^^
+    /// // The move keyword defining the capture kind
+    /// # }
+    /// ```
+    pub fn capture_kind(&self) -> CaptureKind {
+        self.capture_kind
     }
 }
 
@@ -72,14 +103,18 @@ impl<'ast> BlockExpr<'ast> {
         stmts: &'ast [StmtKind<'ast>],
         expr: Option<ExprKind<'ast>>,
         label: Option<Ident<'ast>>,
-        is_unsafe: bool,
+        safety: Safety,
+        syncness: Syncness,
+        capture_kind: CaptureKind,
     ) -> Self {
         Self {
             data,
             stmts: stmts.into(),
             expr: expr.into(),
             label: label.into(),
-            is_unsafe,
+            safety,
+            syncness,
+            capture_kind,
         }
     }
 }

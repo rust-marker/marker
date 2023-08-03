@@ -1,15 +1,15 @@
 use marker_api::{
     ast::{
         expr::{
-            ArrayExpr, AsExpr, AssignExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr, CallExpr,
-            CaptureKind, CharLitExpr, ClosureExpr, ClosureParam, CommonExprData, ConstExpr, ContinueExpr, CtorExpr,
-            CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr, IndexExpr,
-            IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, QuestionMarkExpr,
-            RangeExpr, RefExpr, ReturnExpr, StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
-            WhileExpr,
+            ArrayExpr, AsExpr, AssignExpr, AwaitExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr,
+            CallExpr, CaptureKind, CharLitExpr, ClosureExpr, ClosureParam, CommonExprData, ConstExpr, ContinueExpr,
+            CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr,
+            IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr,
+            QuestionMarkExpr, RangeExpr, RefExpr, ReturnExpr, StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr,
+            UnaryOpKind, UnstableExpr, WhileExpr,
         },
         pat::PatKind,
-        Ident,
+        Ident, Safety, Syncness,
     },
     CtorBlocker,
 };
@@ -28,7 +28,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         let data = CommonExprData::new(id, self.to_span_id(block.span));
-        let expr = ExprKind::Block(self.alloc(self.to_block_expr(data, block, None)));
+        let expr =
+            ExprKind::Block(self.alloc(self.to_block_expr(data, block, None, Syncness::Sync, CaptureKind::Default)));
 
         self.exprs.borrow_mut().insert(id, expr);
         expr
@@ -76,7 +77,13 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 if let Some(e) = e {
                     e
                 } else {
-                    ExprKind::Block(self.alloc(self.to_block_expr(data, block, *label)))
+                    ExprKind::Block(self.alloc(self.to_block_expr(
+                        data,
+                        block,
+                        *label,
+                        Syncness::Sync,
+                        CaptureKind::Default,
+                    )))
                 }
             },
             hir::ExprKind::Call(operand, args) => match &operand.kind {
@@ -205,6 +212,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ExprKind::Match(scrutinee, [_early_return, _continue], hir::MatchSource::TryDesugar) => {
                 ExprKind::QuestionMark(self.alloc(QuestionMarkExpr::new(data, self.to_expr(scrutinee))))
             },
+            hir::ExprKind::Match(_scrutinee, [_awaitee_arm], hir::MatchSource::AwaitDesugar) => {
+                ExprKind::Await(self.alloc(self.to_await_expr_from_desugar(expr)))
+            },
             hir::ExprKind::Assign(assignee, value, _span) => ExprKind::Assign(self.alloc(AssignExpr::new(
                 data,
                 PatKind::Place(self.to_expr(assignee), CtorBlocker::new()),
@@ -240,7 +250,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 hir::LoopSource::While => ExprKind::While(self.alloc(self.to_while_loop_from_desugar(expr))),
                 hir::LoopSource::ForLoop => unreachable!("is desugared at a higher node level"),
             },
-            hir::ExprKind::Closure(closure) => ExprKind::Closure(self.alloc(self.to_closure_expr(data, closure))),
+            hir::ExprKind::Closure(closure) => self.to_expr_from_closure(data, expr, closure),
             hir::ExprKind::Cast(expr, ty) => {
                 ExprKind::As(self.alloc(AsExpr::new(data, self.to_expr(expr), self.to_syn_ty(ty))))
             },
@@ -271,15 +281,23 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         data: CommonExprData<'ast>,
         block: &hir::Block<'tcx>,
         label: Option<rustc_ast::Label>,
+        syncness: Syncness,
+        capture_kind: CaptureKind,
     ) -> BlockExpr<'ast> {
         let stmts: Vec<_> = block.stmts.iter().filter_map(|stmt| self.to_stmt(stmt)).collect();
         let stmts = self.alloc_slice(stmts);
+        let safety = match block.rules {
+            hir::BlockCheckMode::DefaultBlock => Safety::Safe,
+            hir::BlockCheckMode::UnsafeBlock(_) => Safety::Unsafe,
+        };
         BlockExpr::new(
             data,
             stmts,
             block.expr.map(|expr| self.to_expr(expr)),
             label.map(|label| self.to_ident(label.ident)),
-            matches!(block.rules, hir::BlockCheckMode::UnsafeBlock(_)),
+            safety,
+            syncness,
+            capture_kind,
         )
     }
 
@@ -393,14 +411,55 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         )
     }
 
+    fn to_expr_from_closure(
+        &self,
+        data: CommonExprData<'ast>,
+        _expr: &hir::Expr<'tcx>,
+        closure: &hir::Closure<'tcx>,
+    ) -> ExprKind<'ast> {
+        let body_id = closure.body;
+        let body = self.rustc_cx.hir().body(body_id);
+        match body.generator_kind {
+            Some(hir::GeneratorKind::Async(hir::AsyncGeneratorKind::Fn)) => {
+                if let hir::ExprKind::Block(block, None) = body.value.kind
+                    && let Some(temp_drop) = block.expr
+                    && let hir::ExprKind::DropTemps(inner_block) = temp_drop.kind
+                {
+                    return self.with_body(body_id, || self.to_expr(inner_block));
+                }
+
+                unreachable!("`async fn` body desugar always has the same structure")
+            },
+            Some(hir::GeneratorKind::Async(hir::AsyncGeneratorKind::Block)) => {
+                let block_expr = body.value;
+                if let hir::ExprKind::Block(block, None) = block_expr.kind {
+                    let api_block_expr = self.with_body(body_id, || {
+                        self.to_block_expr(
+                            CommonExprData::new(self.to_expr_id(block_expr.hir_id), self.to_span_id(block_expr.span)),
+                            block,
+                            None,
+                            Syncness::Async,
+                            self.to_capture_kind(closure.capture_clause),
+                        )
+                    });
+                    return ExprKind::Block(self.alloc(api_block_expr));
+                }
+                unreachable!("`async` block desugar always has the same structure")
+            },
+            Some(hir::GeneratorKind::Async(hir::AsyncGeneratorKind::Closure) | hir::GeneratorKind::Gen) => {
+                ExprKind::Unstable(self.alloc(UnstableExpr::new(data, ExprPrecedence::Closure)))
+            },
+            None => ExprKind::Closure(self.alloc(self.to_closure_expr(data, closure))),
+        }
+    }
+
     fn to_closure_expr(&self, data: CommonExprData<'ast>, closure: &hir::Closure<'tcx>) -> ClosureExpr<'ast> {
         let fn_decl = closure.fn_decl;
 
         let body_id = closure.body;
-        let params;
         let body = self.rustc_cx.hir().body(body_id);
-        super::with_body!(self, body_id, {
-            params = self.alloc_slice(body.params.iter().zip(fn_decl.inputs.iter()).map(|(param, ty)| {
+        let params = self.with_body(body_id, || {
+            self.alloc_slice(body.params.iter().zip(fn_decl.inputs.iter()).map(|(param, ty)| {
                 // Rustc automatically substitutes the infer type, if a closure
                 // parameter has no type declaration.
                 let param_ty = if matches!(ty.kind, hir::TyKind::Infer) && param.pat.span.contains(ty.span) {
@@ -409,7 +468,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     Some(self.to_syn_ty(ty))
                 };
                 ClosureParam::new(self.to_span_id(param.span), self.to_pat(param.pat), param_ty)
-            }));
+            }))
         });
 
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_decl.output {
@@ -459,7 +518,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     /// // Note that both `lhs` have different IDs
     /// ```
     ///
-    /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=aea16a442e31ca5e7bed1040e8960d4e
+    /// [Playground]: <https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=aea16a442e31ca5e7bed1040e8960d4e>
     #[must_use]
     fn to_assign_expr_from_desugar(&self, block: &hir::Block<'tcx>) -> AssignExpr<'ast> {
         let lhs_map: FxHashMap<_, _> = block
@@ -580,14 +639,55 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         unreachable!("for loop desugar always has the same structure")
     }
 
+    /// The "Show HIR" option on the [Playground] is a great resource to
+    /// understand how this desugaring works. This desugar looks super scary
+    /// and it is, but luckily, marker only needs to extract the argument for
+    /// the `IntoFuture::into_future(<arg>)` call.
+    ///
+    /// ```ignore
+    /// # async fn foo() -> u8 {
+    /// #     16
+    /// # }
+    /// # async fn bar() -> u8 {
+    ///     foo().await;
+    /// # }
+    ///
+    /// # async fn bar() -> u8 {
+    ///     match IntoFuture::into_future(foo()) {
+    ///         mut __awaitee => loop {
+    ///             match unsafe {
+    ///                 core::future::poll(core::pin::Pin::new_unchecked(&mut __awaitee))
+    ///                 core::future::get_context(_task_context)
+    ///             } {
+    ///                 core::task::pool::Pool::Ready {  0: result } => break result,
+    ///                 core::task::pool::Pool::Pending {} => {},
+    ///             }
+    ///             _task_context = yield ()
+    ///         }
+    ///     }
+    /// # }
+    /// ```
+    ///
+    /// [Playground]: <https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=9589cb3ee8264bace959c3dbd9759d98>
+    #[must_use]
+    fn to_await_expr_from_desugar(&self, await_expr: &hir::Expr<'tcx>) -> AwaitExpr<'ast> {
+        if let hir::ExprKind::Match(into_scrutinee, [_awaitee_arm], hir::MatchSource::AwaitDesugar) = await_expr.kind
+            && let hir::ExprKind::Call(_into_future_path, [future_expr]) = &into_scrutinee.kind
+        {
+            return AwaitExpr::new(
+                CommonExprData::new(
+                    self.to_expr_id(await_expr.hir_id),
+                    self.to_span_id(await_expr.span),
+                ),
+                self.to_expr(future_expr),
+            );
+        }
+
+        unreachable!("await desugar always has the same structure")
+    }
+
     pub fn to_const_expr(&self, anon: hir::AnonConst) -> ConstExpr<'ast> {
         let body = self.rustc_cx.hir().body(anon.body);
-        let expr;
-
-        super::with_body!(self, body.id(), {
-            expr = ConstExpr::new(self.to_expr(body.value));
-        });
-
-        expr
+        self.with_body(body.id(), || ConstExpr::new(self.to_expr(body.value)))
     }
 }

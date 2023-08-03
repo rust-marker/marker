@@ -302,3 +302,44 @@ impl<'ast> AssignExpr<'ast> {
         }
     }
 }
+
+/// An `.await` expression on a future, like:
+///
+/// ```
+/// # async fn foo() -> u8 {
+/// #     16
+/// # }
+/// # async fn wrapper() {
+/// // The await expression
+/// //  vvvvvvvvvvv
+///     foo().await;
+/// //  ^^^^^
+/// // The future, that will be awaited
+/// # }
+/// ```
+///
+/// Marker specificity hides the desugar of `.await` expressions. The [Rust Reference]
+/// contains more information how rustc desugars `.await` expressions.
+///
+/// [Rust Reference]: <https://doc.rust-lang.org/reference/expressions/await-expr.html>
+#[repr(C)]
+#[derive(Debug)]
+pub struct AwaitExpr<'ast> {
+    data: CommonExprData<'ast>,
+    expr: ExprKind<'ast>,
+}
+
+impl<'ast> AwaitExpr<'ast> {
+    pub fn expr(&self) -> ExprKind<'ast> {
+        self.expr
+    }
+}
+
+super::impl_expr_data!(AwaitExpr<'ast>, Await);
+
+#[cfg(feature = "driver-api")]
+impl<'ast> AwaitExpr<'ast> {
+    pub fn new(data: CommonExprData<'ast>, expr: ExprKind<'ast>) -> Self {
+        Self { data, expr }
+    }
+}

@@ -1,0 +1,71 @@
+warning: print test
+ --> $DIR/print_async_block.rs:2:5
+  |
+2 |     let _print_async_block = async move { *x };
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Block(
+              BlockExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  stmts: [],
+                  expr: Some(
+                      UnaryOp(
+                          UnaryOpExpr {
+                              data: CommonExprData {
+                                  _lifetime: PhantomData<&()>,
+                                  id: ExprId(..),
+                                  span: SpanId(..),
+                              },
+                              expr: Path(
+                                  PathExpr {
+                                      data: CommonExprData {
+                                          _lifetime: PhantomData<&()>,
+                                          id: ExprId(..),
+                                          span: SpanId(..),
+                                      },
+                                      path: AstQPath {
+                                          self_ty: None,
+                                          path_ty: None,
+                                          path: AstPath {
+                                              segments: [
+                                                  AstPathSegment {
+                                                      ident: Ident {
+                                                          name: "x",
+                                                          span: Span {
+                                                              source: File(
+                                                                  "$DIR/print_async_block.rs",
+                                                              ),
+                                                              start: 66,
+                                                              end: 67,
+                                                          },
+                                                      },
+                                                      generics: SynGenericArgs {
+                                                          args: [],
+                                                      },
+                                                  },
+                                              ],
+                                          },
+                                          target: Var(
+                                              VarId(..),
+                                          ),
+                                      },
+                                  },
+                              ),
+                              kind: Deref,
+                          },
+                      ),
+                  ),
+                  label: None,
+                  safety: Safe,
+                  syncness: Async,
+                  capture_kind: Move,
+              },
+          )
+  = note: `#[warn(marker::test_lint)]` on by default
+
+warning: 1 warning emitted
+

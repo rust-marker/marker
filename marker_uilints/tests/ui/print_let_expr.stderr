@@ -165,7 +165,9 @@ warning: print test
                       ),
                   ),
                   label: None,
-                  is_unsafe: false,
+                  safety: Safe,
+                  syncness: Sync,
+                  capture_kind: Default,
               },
           )
 
@@ -197,7 +199,9 @@ warning: print test
                        ),
                    ),
                    label: None,
-                   is_unsafe: true,
+                   safety: Unsafe,
+                   syncness: Sync,
+                   capture_kind: Default,
                },
            )
 
