@@ -25,9 +25,12 @@ pub struct RustcLintPass;
 
 impl RustcLintPass {
     pub fn init_adapter(lint_crates: &[LintCrateInfo]) -> Result<(), AdapterError> {
-        let adapter = Adapter::new(lint_crates)?;
-        ADAPTER.with(move |cell| cell.set(adapter)).unwrap();
-        Ok(())
+        ADAPTER.with(move |cell| {
+            if cell.get().is_none() {
+                cell.set(Adapter::new(lint_crates)?).unwrap();
+            };
+            Ok(())
+        })
     }
 
     pub fn marker_lints() -> Vec<&'static Lint> {

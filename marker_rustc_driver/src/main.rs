@@ -65,10 +65,8 @@ struct MarkerCallback {
 
 impl rustc_driver::Callbacks for MarkerCallback {
     fn config(&mut self, config: &mut rustc_interface::Config) {
-        lint_pass::RustcLintPass::init_adapter(&self.lint_crates).unwrap();
-
         let env_vars = std::mem::take(&mut self.env_vars);
-        let lint_crates = std::mem::take(&mut self.lint_crates);
+        let lint_crates = self.lint_crates.clone();
         config.parse_sess_created = Some(Box::new(move |sess| {
             register_tracked_env(sess, &env_vars);
             register_tracked_files(sess, &lint_crates);
@@ -78,7 +76,12 @@ impl rustc_driver::Callbacks for MarkerCallback {
         // will not be done here to keep it simple and to ensure that only known
         // code is executed.
         assert!(config.register_lints.is_none());
-        config.register_lints = Some(Box::new(|_sess, lint_store| {
+        let lint_crates = std::mem::take(&mut self.lint_crates);
+        config.register_lints = Some(Box::new(move |_sess, lint_store| {
+            // It looks like it can happen, that the `config` function is called
+            // with a different thread than the actual lint pass later, how interesting.
+            // This will not make sure that the adapter is always initiated.
+            lint_pass::RustcLintPass::init_adapter(&lint_crates).unwrap();
             // Register lints from lint crates. This is required to have rustc track
             // the lint level correctly.
             let lints: Vec<_> = lint_pass::RustcLintPass::marker_lints()
@@ -127,8 +130,8 @@ fn register_tracked_files(sess: &mut rustc_session::parse::ParseSess, lint_crate
     }
 
     // Track the driver executable in debug builds
-    if cfg!(debug_assertions)
-        && let Ok(current_exe) = env::current_exe()
+    #[cfg(debug_assertions)]
+    if let Ok(current_exe) = env::current_exe()
         && let Some(current_exe_str) = current_exe.to_str()
     {
         files.insert(Symbol::intern(current_exe_str));
@@ -289,10 +292,12 @@ fn main() {
         let enable_marker = !cap_lints_allow && (!no_deps || in_primary_package);
         let env_vars = vec![(LINT_CRATES_ENV, std::env::var(LINT_CRATES_ENV).unwrap_or_default())];
         if enable_marker {
-            let mut callback = MarkerCallback {
-                env_vars,
-                lint_crates: LintCrateInfo::list_from_env().unwrap(),
+            let lint_crates = match LintCrateInfo::list_from_env() {
+                Ok(lint_crates) => lint_crates,
+                Err(marker_adapter::AdapterError::LintCratesEnvUnset) => vec![],
+                Err(err) => panic!("Error while determining the lint crates to load: {err:#?}"),
             };
+            let mut callback = MarkerCallback { env_vars, lint_crates };
             rustc_driver::RunCompiler::new(&orig_args, &mut callback).run()
         } else {
             rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks { env_vars }).run()
