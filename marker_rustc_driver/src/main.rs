@@ -5,6 +5,7 @@
 #![feature(iter_collect_into)]
 #![feature(lazy_cell)]
 #![feature(non_exhaustive_omitted_patterns_lint)]
+#![feature(once_cell_try)]
 #![warn(rustc::internal)]
 #![warn(clippy::pedantic)]
 #![warn(non_exhaustive_omitted_patterns)]
@@ -131,10 +132,14 @@ fn register_tracked_files(sess: &mut rustc_session::parse::ParseSess, lint_crate
 
     // Track the driver executable in debug builds
     #[cfg(debug_assertions)]
-    if let Ok(current_exe) = env::current_exe()
-        && let Some(current_exe_str) = current_exe.to_str()
-    {
-        files.insert(Symbol::intern(current_exe_str));
+    match env::current_exe().as_ref().map(|path| path.to_str()) {
+        Ok(Some(current_exe)) => {
+            files.insert(Symbol::intern(current_exe));
+        },
+        Ok(None) => {
+            // The path is not valid UTF-8. We can simply ignore this case
+        },
+        Err(e) => eprintln!("getting the path of the current executable failed {e:#?}"),
     }
 }
 
@@ -201,7 +206,7 @@ Common options:
 
 ---
 
-This message belongs to a specific  marker driver, if possible you should avoid
+This message belongs to a specific marker driver, if possible you should avoid
 interfacing with the driver directly and use `cargo marker` instead.
 "
     );

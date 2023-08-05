@@ -1,46 +1,10 @@
-use cfg_if::cfg_if;
 use libloading::Library;
 use marker_api::{interface::LintCrateBindings, AstContext};
 use marker_api::{LintPass, LintPassInfo, MARKER_API_VERSION};
-use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 use thiserror::Error;
 
 use super::{AdapterError, LINT_CRATES_ENV};
-
-/// Splits [`OsStr`] by an ascii character
-fn split_os_str(s: &OsStr, c: u8) -> Vec<OsString> {
-    cfg_if! {
-        if #[cfg(unix)] {
-            unix_split_os_str(s, c)
-        } else if #[cfg(windows)] {
-            windows_split_os_str(s, c)
-        } else {
-            unimplemented!("`split_os_str` currently works only on unix and windows")
-        }
-    }
-}
-
-#[cfg(unix)]
-#[doc(hidden)]
-fn unix_split_os_str(s: &OsStr, c: u8) -> Vec<OsString> {
-    use std::os::unix::ffi::OsStrExt;
-
-    s.as_bytes()
-        .split(|byte| *byte == c)
-        .map(|bytes| OsStr::from_bytes(bytes).into())
-        .collect()
-}
-
-#[cfg(windows)]
-#[doc(hidden)]
-fn windows_split_os_str(s: &OsStr, c: u8) -> Vec<OsString> {
-    use std::os::windows::ffi::{OsStrExt, OsStringExt};
-
-    let bytes: Vec<u16> = s.encode_wide().collect();
-
-    bytes.split(|v| *v == u16::from(c)).map(OsString::from_wide).collect()
-}
 
 /// A struct describing a lint crate that can be loaded
 #[derive(Debug, Clone)]
@@ -59,22 +23,11 @@ impl LintCrateInfo {
     /// content is malformed. The `README.md` of this adapter contains the
     /// format definition.
     pub fn list_from_env() -> Result<Vec<LintCrateInfo>, AdapterError> {
-        let Some(env_str) = std::env::var_os(LINT_CRATES_ENV) else {
-            return Err(AdapterError::LintCratesEnvUnset);
-        };
+        let env_str = std::env::var_os(LINT_CRATES_ENV).ok_or(AdapterError::LintCratesEnvUnset)?;
 
-        let mut list = vec![];
-        for entry_str in split_os_str(&env_str, b';') {
-            if entry_str.is_empty() {
-                return Err(AdapterError::LintCratesEnvMalformed);
-            }
-
-            list.push(LintCrateInfo {
-                path: PathBuf::from(entry_str),
-            });
-        }
-
-        Ok(list)
+        Ok(std::env::split_paths(&env_str)
+            .map(|path| LintCrateInfo { path })
+            .collect())
     }
 }
 
@@ -214,9 +167,9 @@ impl LoadedLintCrate {
 pub enum LoadingError {
     #[error("the lint crate could not be loaded: {0:#?}")]
     LibLoading(#[from] libloading::Error),
-    #[error("the loaded crated doesn't contain the `marker_api_version` symbol")]
+    #[error("the loaded crate doesn't contain the `marker_api_version` symbol")]
     MissingApiSymbol,
-    #[error("the loaded crated doesn't contain the `marker_lint_crate_bindings` symbol")]
+    #[error("the loaded crate doesn't contain the `marker_lint_crate_bindings` symbol")]
     MissingBindingSymbol,
     #[error("incompatible api version:\n- lint-crate api: {krate_version}\n- driver api: {MARKER_API_VERSION}")]
     IncompatibleVersion { krate_version: String },

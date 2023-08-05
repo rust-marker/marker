@@ -26,9 +26,7 @@ pub struct RustcLintPass;
 impl RustcLintPass {
     pub fn init_adapter(lint_crates: &[LintCrateInfo]) -> Result<(), AdapterError> {
         ADAPTER.with(move |cell| {
-            if cell.get().is_none() {
-                cell.set(Adapter::new(lint_crates)?).unwrap();
-            };
+            cell.get_or_try_init(|| Adapter::new(lint_crates))?;
             Ok(())
         })
     }
