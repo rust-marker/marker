@@ -25,12 +25,9 @@
 
 <!-- Please keep this section in sync with the main readme -->
 
-### Prerequisites
+The following is an abbreviated guide. Check out [The Marker Book] for detailed instructions and additional information.
 
-*cargo_marker* requires *[Cargo]* and *[rustup]* to be installed. Currently, only Unix and Windows systems are supported. Linux, Windows, and macOS are actively tested in the CI.
-
-[Cargo]: https://github.com/rust-lang/cargo/
-[rustup]: https://github.com/rust-lang/rustup/
+[The Marker Book]: rust-marker.github.io/marker/book
 
 ### Installation
 
