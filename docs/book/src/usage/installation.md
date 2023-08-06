@@ -2,6 +2,8 @@
 
 Marker is split into several components. This section covers the installation of the `cargo marker` sub-command and the installation of a driver, which is the backend needed to parse the source code.
 
+<!-- toc -->
+
 ## Prerequisite
 
 The marker sub-command is provided by the *cargo_marker* crate. This crate requires *[Cargo]* and *[rustup]* to be installed. Currently, only Unix and Windows systems are supported. Ubuntu, Windows, and macOS are actively tested in the CI.
@@ -59,14 +61,14 @@ By default, the driver is stored with the toolchain that it was built with. This
 
 ```sh
 # Fill in the $toolchain variable
-rustup +toolchain which cargo
+rustup +$toolchain which cargo
 ```
 
 The driver should be located next to the cargo binary, whose path was given by the previous command. If you're not using rustup, you can store the driver binary next to the `cargo-marker` file. If you're invoking the driver directly, you have to make sure to provide the required libraries to run the driver.
 
 ## Driver Selection
 
-The `cargo marker` command searchs several locations for the driver and selects the first one it finds. The following locations are searched:
+The `cargo marker` command searches several locations for the driver and selects the first one it finds. The following locations are searched:
 1. The toolchain that was used for the `cargo marker` command.
 2. The toolchain that is hard coded in the `cargo-marker` binary. (Updated every six weeks with a new release of the driver and `cargo_marker` crate)
 3. Any driver stored next to the `cargo-marker` binary file.

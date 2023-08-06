@@ -7,3 +7,7 @@ title        = "The Marker Book"
 
 [output.html]
 git-repository-url = "https://github.com/rust-marker/marker"
+
+[preprocessor.toc]
+command  = "mdbook-toc"
+renderer = ["html"]
