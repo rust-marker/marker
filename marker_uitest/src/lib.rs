@@ -100,7 +100,7 @@ fn retrieve_test_setup(crate_name: &str, pkg_dir: &Path) -> TestSetup {
     #[cfg(not(feature = "dev-build"))]
     const CARGO_MARKER_INVOCATION: &[&str] = &["marker"];
     #[cfg(feature = "dev-build")]
-    const CARGO_MARKER_INVOCATION: &[&str] = &["run", "--bin", "cargo-marker", "--features", "dev-build", "--"];
+    const CARGO_MARKER_INVOCATION: &[&str] = &["run", "--bin", "cargo-marker", "--"];
 
     #[cfg(not(feature = "dev-build"))]
     let command_dir = pkg_dir;
@@ -113,9 +113,9 @@ fn retrieve_test_setup(crate_name: &str, pkg_dir: &Path) -> TestSetup {
     let output = cmd
         .current_dir(command_dir)
         .args(CARGO_MARKER_INVOCATION)
+        .arg("test-setup")
         .arg("-l")
         .arg(lint_spec)
-        .arg("--test-setup")
         .output()
         .expect("Unable to run the test setup using `cargo-marker`");
     let stdout = String::from_utf8(output.stdout).unwrap();

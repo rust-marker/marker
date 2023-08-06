@@ -97,8 +97,8 @@ impl Toolchain {
         Ok(metadata.target_directory.into())
     }
 
-    pub fn try_find_toolchain(dev_build: bool, verbose: bool) -> Result<Toolchain, ExitStatus> {
-        if dev_build {
+    pub fn try_find_toolchain(verbose: bool) -> Result<Toolchain, ExitStatus> {
+        if cfg!(debug_assertions) {
             Self::search_next_to_cargo_marker(verbose)
         } else {
             // First check if there is a rustc driver for the current toolchain. This
