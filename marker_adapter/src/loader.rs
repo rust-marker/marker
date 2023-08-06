@@ -1,92 +1,52 @@
-use cfg_if::cfg_if;
 use libloading::Library;
-
 use marker_api::{interface::LintCrateBindings, AstContext};
-use marker_api::{LintPass, LintPassInfo};
+use marker_api::{LintPass, LintPassInfo, MARKER_API_VERSION};
+use std::path::PathBuf;
+use thiserror::Error;
 
-use std::ffi::{OsStr, OsString};
+use super::{AdapterError, LINT_CRATES_ENV};
 
-/// Splits [`OsStr`] by an ascii character
-fn split_os_str(s: &OsStr, c: u8) -> Vec<OsString> {
-    cfg_if! {
-        if #[cfg(unix)] {
-            unix_split_os_str(s, c)
-        } else if #[cfg(windows)] {
-            windows_split_os_str(s, c)
-        } else {
-            unimplemented!("`split_os_str` currently works only on unix and windows")
-        }
+/// A struct describing a lint crate that can be loaded
+#[derive(Debug, Clone)]
+pub struct LintCrateInfo {
+    /// The absolute path of the compiled dynamic library, which can be loaded as a lint crate.
+    pub path: PathBuf,
+}
+
+impl LintCrateInfo {
+    /// This function tries to load the list of [`LintCrateInfo`]s from the
+    /// [`LINT_CRATES_ENV`] environment value.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the value can't be read or the
+    /// content is malformed. The `README.md` of this adapter contains the
+    /// format definition.
+    pub fn list_from_env() -> Result<Vec<LintCrateInfo>, AdapterError> {
+        let env_str = std::env::var_os(LINT_CRATES_ENV).ok_or(AdapterError::LintCratesEnvUnset)?;
+
+        Ok(std::env::split_paths(&env_str)
+            .map(|path| LintCrateInfo { path })
+            .collect())
     }
-}
-
-#[cfg(unix)]
-#[doc(hidden)]
-fn unix_split_os_str(s: &OsStr, c: u8) -> Vec<OsString> {
-    use std::os::unix::ffi::OsStrExt;
-
-    s.as_bytes()
-        .split(|byte| *byte == c)
-        .map(|bytes| OsStr::from_bytes(bytes).into())
-        .collect()
-}
-
-#[cfg(windows)]
-#[doc(hidden)]
-fn windows_split_os_str(s: &OsStr, c: u8) -> Vec<OsString> {
-    use std::os::windows::ffi::{OsStrExt, OsStringExt};
-
-    let bytes: Vec<u16> = s.encode_wide().collect();
-
-    bytes.split(|v| *v == u16::from(c)).map(OsString::from_wide).collect()
 }
 
 /// This struct loads external lint crates into memory and provides a safe API
 /// to call the respective methods on all of them.
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct LintCrateRegistry {
     passes: Vec<LoadedLintCrate>,
 }
 
 impl LintCrateRegistry {
-    /// # Errors
-    /// This can return errors if the library couldn't be found or if the
-    /// required symbols weren't provided.
-    fn load_external_lib(lib_path: &OsStr) -> Result<LoadedLintCrate, LoadingError> {
-        let lib: &'static Library = Box::leak(Box::new(
-            unsafe { Library::new(lib_path) }.map_err(|_| LoadingError::FileNotFound)?,
-        ));
-
-        let pass = LoadedLintCrate::try_from_lib(lib)?;
-
-        // FIXME: Create issue for lifetimes and fix dropping and pointer decl stuff
-
-        Ok(pass)
-    }
-
-    /// # Panics
-    ///
-    /// Panics if a lint in the environment couldn't be loaded.
-    pub fn new_from_env() -> Self {
+    pub fn new(lint_crates: &[LintCrateInfo]) -> Result<Self, LoadingError> {
         let mut new_self = Self::default();
 
-        let Some((_, lint_crates_lst)) = std::env::vars_os().find(|(name, _val)| name == "MARKER_LINT_CRATES") else {
-            panic!("Adapter tried to find `MARKER_LINT_CRATES` env variable, but it was not present");
-        };
-
-        for lib in split_os_str(&lint_crates_lst, b';') {
-            if lib.is_empty() {
-                continue;
-            }
-
-            let lib = match Self::load_external_lib(&lib) {
-                Ok(v) => v,
-                Err(err) => panic!("Unable to load `{}`, reason: {err:?}", lib.to_string_lossy()),
-            };
-
-            new_self.passes.push(lib);
+        for krate in lint_crates {
+            new_self.passes.push(LoadedLintCrate::try_from_info(krate.clone())?);
         }
 
-        new_self
+        Ok(new_self)
     }
 
     pub(super) fn set_ast_context<'ast>(&self, cx: &'ast AstContext<'ast>) {
@@ -153,36 +113,64 @@ impl LintPass for LintCrateRegistry {
 
 struct LoadedLintCrate {
     _lib: &'static Library,
+    info: LintCrateInfo,
     bindings: LintCrateBindings,
 }
 
+#[allow(clippy::missing_fields_in_debug)]
+impl std::fmt::Debug for LoadedLintCrate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("LoadedLintCrate").field("info", &self.info).finish()
+    }
+}
+
 impl LoadedLintCrate {
-    fn try_from_lib(lib: &'static Library) -> Result<Self, LoadingError> {
+    fn try_from_info(info: LintCrateInfo) -> Result<Self, LoadingError> {
+        let lib: &'static Library = Box::leak(Box::new(unsafe { Library::new(&info.path) }?));
+
+        let pass = LoadedLintCrate::try_from_lib(lib, info)?;
+
+        Ok(pass)
+    }
+
+    fn try_from_lib(lib: &'static Library, info: LintCrateInfo) -> Result<Self, LoadingError> {
         // Check API version for verification
         let get_api_version = {
             unsafe {
                 lib.get::<unsafe extern "C" fn() -> &'static str>(b"marker_api_version\0")
-                    .map_err(|_| LoadingError::MissingLintDeclaration)?
+                    .map_err(|_| LoadingError::MissingApiSymbol)?
             }
         };
-        if unsafe { get_api_version() } != marker_api::MARKER_API_VERSION {
-            return Err(LoadingError::IncompatibleVersion);
+        let krate_api_version = unsafe { get_api_version() };
+        if krate_api_version != MARKER_API_VERSION {
+            return Err(LoadingError::IncompatibleVersion {
+                krate_version: krate_api_version.to_string(),
+            });
         }
 
         // Load bindings
         let get_lint_crate_bindings = unsafe {
             lib.get::<extern "C" fn() -> LintCrateBindings>(b"marker_lint_crate_bindings\0")
-                .map_err(|_| LoadingError::MissingLintDeclaration)?
+                .map_err(|_| LoadingError::MissingBindingSymbol)?
         };
         let bindings = get_lint_crate_bindings();
 
-        Ok(Self { _lib: lib, bindings })
+        Ok(Self {
+            _lib: lib,
+            info,
+            bindings,
+        })
     }
 }
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum LoadingError {
-    FileNotFound,
-    IncompatibleVersion,
-    MissingLintDeclaration,
+    #[error("the lint crate could not be loaded: {0:#?}")]
+    LibLoading(#[from] libloading::Error),
+    #[error("the loaded crate doesn't contain the `marker_api_version` symbol")]
+    MissingApiSymbol,
+    #[error("the loaded crate doesn't contain the `marker_lint_crate_bindings` symbol")]
+    MissingBindingSymbol,
+    #[error("incompatible api version:\n- lint-crate api: {krate_version}\n- driver api: {MARKER_API_VERSION}")]
+    IncompatibleVersion { krate_version: String },
 }

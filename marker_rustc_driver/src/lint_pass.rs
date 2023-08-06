@@ -1,6 +1,6 @@
-use std::cell::LazyCell;
+use std::cell::OnceCell;
 
-use marker_adapter::Adapter;
+use marker_adapter::{Adapter, AdapterError, LintCrateInfo};
 use marker_api::lint::Lint;
 
 use crate::context::{storage::Storage, RustcContext};
@@ -18,17 +18,24 @@ thread_local! {
     /// Storing the [`Adapter`] in a `thread_local` is safe, since rustc is currently
     /// only single threaded. This cell will therefore only be constructed once, and
     /// this driver will always use the same adapter.
-    static ADAPTER: LazyCell<Adapter> = LazyCell::new(|| {
-        Adapter::new_from_env()
-    });
+    static ADAPTER: OnceCell<Adapter> = OnceCell::new();
 }
 
 pub struct RustcLintPass;
 
 impl RustcLintPass {
+    pub fn init_adapter(lint_crates: &[LintCrateInfo]) -> Result<(), AdapterError> {
+        ADAPTER.with(move |cell| {
+            cell.get_or_try_init(|| Adapter::new(lint_crates))?;
+            Ok(())
+        })
+    }
+
     pub fn marker_lints() -> Vec<&'static Lint> {
         ADAPTER.with(|adapter| {
             adapter
+                .get()
+                .unwrap()
                 .lint_pass_infos()
                 .iter()
                 .flat_map(marker_api::LintPassInfo::lints)
@@ -43,7 +50,7 @@ rustc_lint_defs::impl_lint_pass!(RustcLintPass => []);
 impl<'tcx> rustc_lint::LateLintPass<'tcx> for RustcLintPass {
     fn check_crate(&mut self, rustc_cx: &rustc_lint::LateContext<'tcx>) {
         ADAPTER.with(|adapter| {
-            process_crate(rustc_cx, adapter);
+            process_crate(rustc_cx, adapter.get().unwrap());
         });
     }
 }

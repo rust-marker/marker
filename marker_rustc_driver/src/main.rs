@@ -5,6 +5,7 @@
 #![feature(iter_collect_into)]
 #![feature(lazy_cell)]
 #![feature(non_exhaustive_omitted_patterns_lint)]
+#![feature(once_cell_try)]
 #![warn(rustc::internal)]
 #![warn(clippy::pedantic)]
 #![warn(non_exhaustive_omitted_patterns)]
@@ -38,6 +39,7 @@ use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command};
 
+use marker_adapter::{LintCrateInfo, LINT_CRATES_ENV};
 use rustc_session::config::ErrorOutputType;
 use rustc_session::EarlyErrorHandler;
 
@@ -45,19 +47,42 @@ use crate::conversion::rustc::RustcConverter;
 
 const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-07-13";
 
-struct DefaultCallbacks;
-impl rustc_driver::Callbacks for DefaultCallbacks {}
+struct DefaultCallbacks {
+    env_vars: Vec<(&'static str, String)>,
+}
+impl rustc_driver::Callbacks for DefaultCallbacks {
+    fn config(&mut self, config: &mut rustc_interface::Config) {
+        let env_vars = std::mem::take(&mut self.env_vars);
+        config.parse_sess_created = Some(Box::new(move |sess| {
+            register_tracked_env(sess, &env_vars);
+        }));
+    }
+}
 
-struct MarkerCallback;
+struct MarkerCallback {
+    env_vars: Vec<(&'static str, String)>,
+    lint_crates: Vec<LintCrateInfo>,
+}
 
 impl rustc_driver::Callbacks for MarkerCallback {
     fn config(&mut self, config: &mut rustc_interface::Config) {
+        let env_vars = std::mem::take(&mut self.env_vars);
+        let lint_crates = self.lint_crates.clone();
+        config.parse_sess_created = Some(Box::new(move |sess| {
+            register_tracked_env(sess, &env_vars);
+            register_tracked_files(sess, &lint_crates);
+        }));
+
         // Clippy explicitly calls any previous `register_lints` functions. This
         // will not be done here to keep it simple and to ensure that only known
         // code is executed.
         assert!(config.register_lints.is_none());
-
-        config.register_lints = Some(Box::new(|_sess, lint_store| {
+        let lint_crates = std::mem::take(&mut self.lint_crates);
+        config.register_lints = Some(Box::new(move |_sess, lint_store| {
+            // It looks like it can happen, that the `config` function is called
+            // with a different thread than the actual lint pass later, how interesting.
+            // This will not make sure that the adapter is always initiated.
+            lint_pass::RustcLintPass::init_adapter(&lint_crates).unwrap();
             // Register lints from lint crates. This is required to have rustc track
             // the lint level correctly.
             let lints: Vec<_> = lint_pass::RustcLintPass::marker_lints()
@@ -68,6 +93,53 @@ impl rustc_driver::Callbacks for MarkerCallback {
 
             lint_store.register_late_pass(|_| Box::new(lint_pass::RustcLintPass));
         }));
+    }
+}
+
+fn register_tracked_env(sess: &mut rustc_session::parse::ParseSess, vars: &[(&'static str, String)]) {
+    use rustc_span::Symbol;
+    let env = sess.env_depinfo.get_mut();
+
+    for (key, value) in vars {
+        env.insert((Symbol::intern(key), Some(Symbol::intern(value))));
+    }
+}
+
+fn register_tracked_files(sess: &mut rustc_session::parse::ParseSess, lint_crates: &[LintCrateInfo]) {
+    use rustc_span::Symbol;
+
+    let files = sess.file_depinfo.get_mut();
+
+    // Cargo sets the current directory, to the folder containing the `Cargo.toml`
+    // file of the compiled crate. Therefore, we can use the relative path.
+    let cargo_file = Path::new("./Cargo.toml");
+    if cargo_file.exists() {
+        files.insert(Symbol::intern("./Cargo.toml"));
+    }
+
+    // At this point, the lint crate paths should be absolute. Therefore, we
+    // can just throw it in the `files` set.
+    for lint_crate in lint_crates {
+        if let Some(name) = lint_crate.path.to_str() {
+            files.insert(Symbol::intern(name));
+        } else {
+            // The name is not a valid UTF-8 String. This is not ideal but at the
+            // same time not problematic enough to throw an error. It just means
+            // that the lint crate can't be tracked and the driver might reuse
+            // a cache if only that crate was changed.
+        }
+    }
+
+    // Track the driver executable in debug builds
+    #[cfg(debug_assertions)]
+    match env::current_exe().as_ref().map(|path| path.to_str()) {
+        Ok(Some(current_exe)) => {
+            files.insert(Symbol::intern(current_exe));
+        },
+        Ok(None) => {
+            // The path is not valid UTF-8. We can simply ignore this case
+        },
+        Err(e) => eprintln!("getting the path of the current executable failed {e:#?}"),
     }
 }
 
@@ -121,22 +193,20 @@ fn toolchain_path(home: Option<String>, toolchain: Option<String>) -> Option<Pat
 fn display_help() {
     println!(
         "\
-Checks a package to catch common mistakes and improve your Rust code.
+Marker's rustc driver to run your lint crates.
 
 Usage:
-    cargo marker [options] [--] [<opts>...]
+    marker_rustc_driver [options] [--] [<opts>...]
 
 Common options:
     -h, --help               Print this message
-        --rustc              Pass all args to rustc
-    -V, --version            Print version info and exit
-        --toolchain          Print the required nightly toolchain
-
-Other options are the same as `cargo check`.
+        --rustc              Pass all arguments to rustc
+    -V, --version            Print version information and exit
+        --toolchain          Print the required toolchain and API version
 
 ---
 
-This message belongs to a specific driver, if possible you should avoid
+This message belongs to a specific marker driver, if possible you should avoid
 interfacing with the driver directly and use `cargo marker` instead.
 "
     );
@@ -147,10 +217,11 @@ fn main() {
     let handler = EarlyErrorHandler::new(ErrorOutputType::default());
     rustc_driver::init_rustc_env_logger(&handler);
 
-    // FIXME: Add ICE hook. Ideally this would distinguish where the error happens.
-    // ICEs have to be reported like in Clippy. For lint impl ICEs we should have
-    // an extra ICE hook that identifies the lint impl and ideally continues with
-    // other registered lints
+    // FIXME(xFrednet): The ICE hook would ideally distinguish where the error
+    // happens. Panics from lint crates should probably not terminate Marker
+    // completely, but instead warn the user and continue linting with the other
+    // lint crate. It would also be cool if the ICE hook printed the node that
+    // caused the panic in the lint crate. rust-marker/marker#10
 
     rustc_driver::install_ice_hook(BUG_REPORT_URL, |handler| {
         handler.note_without_error(format!("{}", rustc_tools_util::get_version_info!()));
@@ -158,6 +229,10 @@ fn main() {
     });
 
     exit(rustc_driver::catch_with_exit_code(|| {
+        // Note: This driver has two different kinds of "arguments".
+        // 1. Normal arguments, passed directly to the binary. (Collected below)
+        // 2. Arguments provided to `cargo-marker` which are forwarded to this process as environment
+        //    values. These are usually driver-independent and handled by the adapter.
         let mut orig_args: Vec<String> = env::args().collect();
 
         let sys_root_arg = arg_value(&orig_args, "--sysroot", |_| true);
@@ -170,14 +245,14 @@ fn main() {
             orig_args.extend(vec!["--sysroot".into(), sys_root]);
         };
 
-        // make "marker-driver --rustc" work like a subcommand that passes further args to "rustc"
-        // for example `marker-driver --rustc --version` will print the rustc version that marker-driver
-        // uses
+        // make "marker_rustc_driver --rustc" work like a subcommand that passes
+        // all args to "rustc" for example `marker_rustc_driver --rustc --version`
+        // will print the rustc version that is used
         if let Some(pos) = orig_args.iter().position(|arg| arg == "--rustc") {
             orig_args.remove(pos);
             orig_args[0] = "rustc".to_string();
 
-            return rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks).run();
+            return rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks { env_vars: vec![] }).run();
         }
 
         if orig_args.iter().any(|a| a == "--version" || a == "-V") {
@@ -203,13 +278,14 @@ fn main() {
             orig_args.remove(1);
         }
 
+        // The `--rustc` argument has already been handled, therefore we can just
+        // check for this argument without caring about the position.
         if !wrapper_mode && orig_args.iter().any(|a| a == "--help" || a == "-h") {
             display_help();
             exit(0);
         }
 
         // We enable Marker if one of the following conditions is met
-        // - IF Marker is run on its test suite OR
         // - IF Marker is run on the main crate, not on deps (`!cap_lints_allow`) THEN
         //    - IF `--no-deps` is not set (`!no_deps`) OR
         //    - IF `--no-deps` is set and Marker is run on the specified primary package
@@ -219,10 +295,17 @@ fn main() {
         let in_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
 
         let enable_marker = !cap_lints_allow && (!no_deps || in_primary_package);
+        let env_vars = vec![(LINT_CRATES_ENV, std::env::var(LINT_CRATES_ENV).unwrap_or_default())];
         if enable_marker {
-            rustc_driver::RunCompiler::new(&orig_args, &mut MarkerCallback).run()
+            let lint_crates = match LintCrateInfo::list_from_env() {
+                Ok(lint_crates) => lint_crates,
+                Err(marker_adapter::AdapterError::LintCratesEnvUnset) => vec![],
+                Err(err) => panic!("Error while determining the lint crates to load: {err:#?}"),
+            };
+            let mut callback = MarkerCallback { env_vars, lint_crates };
+            rustc_driver::RunCompiler::new(&orig_args, &mut callback).run()
         } else {
-            rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks).run()
+            rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks { env_vars }).run()
         }
     }))
 }
