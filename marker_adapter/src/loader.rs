@@ -9,6 +9,8 @@ use super::{AdapterError, LINT_CRATES_ENV};
 /// A struct describing a lint crate that can be loaded
 #[derive(Debug, Clone)]
 pub struct LintCrateInfo {
+    /// The name of the lint crate
+    pub name: String,
     /// The absolute path of the compiled dynamic library, which can be loaded as a lint crate.
     pub path: PathBuf,
 }
@@ -25,9 +27,17 @@ impl LintCrateInfo {
     pub fn list_from_env() -> Result<Vec<LintCrateInfo>, AdapterError> {
         let env_str = std::env::var_os(LINT_CRATES_ENV).ok_or(AdapterError::LintCratesEnvUnset)?;
 
-        Ok(std::env::split_paths(&env_str)
-            .map(|path| LintCrateInfo { path })
-            .collect())
+        let mut lint_crates = vec![];
+        for item in env_str.to_str().ok_or(AdapterError::LintCratesEnvMalformed)?.split(';') {
+            let mut item_parts = item.splitn(2, ':');
+            let name = item_parts.next().ok_or(AdapterError::LintCratesEnvMalformed)?;
+            let path = item_parts.next().ok_or(AdapterError::LintCratesEnvMalformed)?;
+            lint_crates.push(LintCrateInfo {
+                name: name.to_string(),
+                path: PathBuf::from(path),
+            });
+        }
+        Ok(lint_crates)
     }
 }
 
