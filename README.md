@@ -63,6 +63,12 @@ marker_lints = { git = "https://github.com/rust-marker/marker" }
 marker_lints = "0.1.1"
 ```
 
+### Making Your Own Lints
+
+You can create your own lint crates if you want, the [lint-crate-template] has all the basics for you to get started writing your own lints.
+
+[lint-crate-template]: https://github.com/rust-marker/lint-crate-template 
+
 ### Running Marker
 
 Running Marker is as simple as running its sibling *[Clippy]*. Navigate to your Rust project directory and run the following command:
