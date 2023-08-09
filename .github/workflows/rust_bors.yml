@@ -91,7 +91,7 @@ jobs:
       - run: ./scripts/download/mdbook.sh
       - name: Build the book
         run: |
-          mv ./mdbook ./docs/book/mdbook
+          PATH="$PATH:`pwd`"
           cd ./docs/book/
-          ./mdbook build
+          mdbook build
           cd ../../
