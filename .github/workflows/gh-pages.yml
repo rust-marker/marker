@@ -39,7 +39,7 @@ jobs:
         run: |
           PATH="$PATH:`pwd`"
           cd ./docs/book/
-          mdbook build
+          mdbook build --dest-dir ../../deploy/book
           cd ../../
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
