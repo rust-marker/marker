@@ -100,7 +100,7 @@ fn retrieve_test_setup(crate_name: &str, pkg_dir: &Path) -> TestSetup {
     #[cfg(not(feature = "dev-build"))]
     const CARGO_MARKER_INVOCATION: &[&str] = &["marker"];
     #[cfg(feature = "dev-build")]
-    const CARGO_MARKER_INVOCATION: &[&str] = &["run", "--bin", "cargo-marker", "--"];
+    const CARGO_MARKER_INVOCATION: &[&str] = &["run", "--bin", "cargo-marker", "--", "marker"];
 
     #[cfg(not(feature = "dev-build"))]
     let command_dir = pkg_dir;

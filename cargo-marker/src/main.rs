@@ -22,7 +22,6 @@ use crate::backend::driver::DriverVersionInfo;
 #[allow(unreachable_code)]
 fn main() -> Result<(), ExitStatus> {
     let cli = MarkerCli::parse_args();
-    println!("{cli:#?}");
 
     let config = match Config::try_from_manifest() {
         Ok(v) => Some(v),
