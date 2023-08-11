@@ -27,12 +27,6 @@ pub struct HirIdLayout {
     pub index: u32,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct SpanSourceInfo {
-    pub rustc_span_cx: rustc_span::hygiene::SyntaxContext,
-    pub rustc_start_offset: usize,
-}
-
 #[macro_export]
 macro_rules! transmute_id {
     ($t1:ty as $t2:ty = $e:expr) => {

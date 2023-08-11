@@ -2,8 +2,8 @@ use std::mem::{size_of, transmute};
 
 use marker_api::{
     ast::{
-        BodyId, CrateId, ExprId, FieldId, GenericId, ItemId, LetStmtId, Span, SpanId, StmtIdInner, SymbolId, TyDefId,
-        VarId, VariantId,
+        BodyId, CrateId, ExprId, FieldId, GenericId, ItemId, LetStmtId, Span, SpanId, SpanSrcId, StmtIdInner, SymbolId,
+        TyDefId, VarId, VariantId,
     },
     diagnostic::{Applicability, EmissionNode},
     lint::Level,
@@ -163,6 +163,15 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
     }
 
     #[must_use]
+    pub fn to_syntax_context(&self, src: SpanSrcId) -> rustc_span::SyntaxContext {
+        // FIXME(xFrednet): This is unsound, since `SyntaxContext` doesn't have
+        // `#[repr(...)]`. See comment in `MarkerConverterInner::to_span_src_id`
+        transmute_id!(SpanSrcId as rustc_span::SyntaxContext = src)
+    }
+}
+
+impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
+    #[must_use]
     pub fn to_lint_level(&self, api_level: Level) -> rustc_lint::Level {
         Self::static_to_lint_level(api_level)
     }
@@ -196,15 +205,8 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
 
     #[must_use]
     pub fn to_span(&self, api_span: &Span<'ast>) -> rustc_span::Span {
-        let (_, src_info) = self
-            .storage
-            .get_span_src_info(api_span.source())
-            .expect("all driver created `SpanSources` have a matching info");
-
-        #[expect(clippy::cast_possible_truncation, reason = "`u32` is set by rustc and will be fine")]
-        let lo = rustc_span::BytePos((api_span.start() + src_info.rustc_start_offset) as u32);
-        #[expect(clippy::cast_possible_truncation, reason = "`u32` is set by rustc and will be fine")]
-        let hi = rustc_span::BytePos((api_span.end() + src_info.rustc_start_offset) as u32);
-        rustc_span::Span::new(lo, hi, src_info.rustc_span_cx, None)
+        let lo = rustc_span::BytePos(api_span.start().index());
+        let hi = rustc_span::BytePos(api_span.end().index());
+        rustc_span::Span::new(lo, hi, self.to_syntax_context(api_span.source_id()), None)
     }
 }

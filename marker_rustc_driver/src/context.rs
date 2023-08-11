@@ -53,7 +53,7 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
             lint_store,
             storage,
             marker_converter: MarkerConverter::new(rustc_cx, storage),
-            rustc_converter: RustcConverter::new(rustc_cx, storage),
+            rustc_converter: RustcConverter::new(rustc_cx),
             ast_cx: OnceCell::new(),
             resolved_ty_ids: RefCell::default(),
         });

@@ -190,7 +190,7 @@ impl<'ast> AstContext<'ast> {
     pub(crate) fn span_snipped(&self, span: &Span<'ast>) -> Option<&'ast str> {
         (self.driver.span_snippet)(self.driver.driver_context, span)
             .get()
-            .map(|s| s.get())
+            .map(ffi::FfiStr::get)
     }
 
     pub(crate) fn span(&self, span_id: SpanId) -> &'ast Span<'ast> {
