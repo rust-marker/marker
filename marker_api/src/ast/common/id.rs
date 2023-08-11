@@ -70,6 +70,11 @@ new_id! {
 }
 
 new_id! {
+    /// This ID uniquely identifies a user defined type during linting.
+    pub MacroId: u64
+}
+
+new_id! {
     /// This ID uniquely identifies a body during linting.
     pub BodyId: u64
 }

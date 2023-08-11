@@ -126,7 +126,7 @@ impl<'ast> AstContext<'ast> {
     ) where
         F: FnOnce(&mut DiagnosticBuilder<'ast>),
     {
-        if matches!(lint.report_in_macro, MacroReport::No) && span.is_from_macro() {
+        if matches!(lint.report_in_macro, MacroReport::No) && span.is_from_expansion() {
             return;
         }
         let node = node.into();
@@ -187,8 +187,10 @@ impl<'ast> AstContext<'ast> {
 
     // FIXME: This function should probably be removed in favor of a better
     // system to deal with spans. See rust-marker/marker#175
-    pub(crate) fn span_snipped(&self, span: &Span<'ast>) -> Option<String> {
-        self.driver.call_span_snippet(span)
+    pub(crate) fn span_snipped(&self, span: &Span<'ast>) -> Option<&'ast str> {
+        (self.driver.span_snippet)(self.driver.driver_context, span)
+            .get()
+            .map(|s| s.get())
     }
 
     pub(crate) fn span(&self, span_id: SpanId) -> &'ast Span<'ast> {
@@ -272,10 +274,6 @@ impl<'ast> DriverCallbacks<'ast> {
     }
     fn call_span(&self, span_id: SpanId) -> &'ast Span<'ast> {
         (self.span)(self.driver_context, span_id)
-    }
-    fn call_span_snippet(&self, span: &Span<'ast>) -> Option<String> {
-        let result: Option<ffi::FfiStr> = (self.span_snippet)(self.driver_context, span).into();
-        result.map(|x| x.to_string())
     }
     fn call_symbol_str(&self, sym: SymbolId) -> &'ast str {
         (self.symbol_str)(self.driver_context, sym).get()
