@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use crate::{context::with_cx, diagnostic::Applicability, ffi};
 
-use super::{MacroId, SpanId, SpanSrcId, SymbolId};
+use super::{ExpnId, MacroId, SpanId, SpanSrcId, SymbolId};
 
 /// A byte position used for the start and end position of [`Span`]s.
 ///
@@ -136,7 +136,7 @@ impl SpanPos {
 #[derive(Debug)]
 pub struct ExpnInfo<'ast> {
     _lifetime: PhantomData<&'ast ()>,
-    parent: SpanSrcId,
+    parent: ExpnId,
     call_site: SpanId,
     macro_id: MacroId,
 }
@@ -144,8 +144,7 @@ pub struct ExpnInfo<'ast> {
 impl<'ast> ExpnInfo<'ast> {
     #[must_use]
     pub fn parent(&self) -> Option<&ExpnInfo<'ast>> {
-        // TODO(xFrednet): Request info from Driver
-        todo!()
+        with_cx(self, |cx| cx.span_expn_info(self.parent))
     }
 
     /// The [`Span`] that invoked the macro, that this expansion belongs to.
@@ -162,7 +161,7 @@ impl<'ast> ExpnInfo<'ast> {
 #[cfg(feature = "driver-api")]
 impl<'ast> ExpnInfo<'ast> {
     #[must_use]
-    pub fn new(parent: SpanSrcId, call_site: SpanId, macro_id: MacroId) -> Self {
+    pub fn new(parent: ExpnId, call_site: SpanId, macro_id: MacroId) -> Self {
         Self {
             _lifetime: PhantomData,
             parent,
@@ -170,28 +169,6 @@ impl<'ast> ExpnInfo<'ast> {
             macro_id,
         }
     }
-}
-
-// FIXME(xFrednet): This enum is "limited" to say it lightly, it should contain
-// the more information about macros and their expansion etc. This covers the
-// basic use case of checking if a span comes from a macro or a file. The rest
-// will come in due time. Luckily it's not a public enum right now.
-//
-// See: rust-marker/marker#175
-#[repr(C)]
-#[allow(clippy::exhaustive_enums)]
-#[derive(Debug, Eq, PartialEq, Hash)]
-#[cfg_attr(feature = "driver-api", visibility::make(pub))]
-enum SpanSource<'ast> {
-    /// The span comes from a file
-    File(ffi::FfiStr<'ast>),
-    /// The span comes from a macro.
-    Macro(SpanSrcId),
-    /// The span belongs to a file, but is the result of desugaring, they should
-    /// be handled like normal files. This is variant mostly important for the driver.
-    // FIXME(xFrednet): All desugars are usually resugared by Marker, the driver should
-    // pass the span of the original sugared expression to the API.
-    Sugar(ffi::FfiStr<'ast>, SpanSrcId),
 }
 
 /// A region of code, used for snipping, lint emission, and the retrieval of
@@ -224,7 +201,7 @@ pub struct Span<'ast> {
     /// The source of this [`Span`]. The id space and position distribution is
     /// decided by the driver. To get the full source information it might be
     /// necessary to also pass the start and end position to the driver.
-    source: SpanSrcId,
+    source_id: SpanSrcId,
     /// This information could also be retrieved, by requesting the [`ExpnInfo`]
     /// of this span. However, from looking at Clippy and rustc lints, it looks
     /// like the main interested is, if this comes from a macro expansion, not from
@@ -361,15 +338,20 @@ impl<'ast> Span<'ast> {
         new_span.set_end(end);
         new_span
     }
+
+    #[must_use]
+    pub fn source(&self) -> SpanSource<'ast> {
+        with_cx(self, |cx| cx.span_source(self))
+    }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Span<'ast> {
     #[must_use]
-    pub fn new(source: SpanSrcId, from_expansion: bool, start: SpanPos, end: SpanPos) -> Self {
+    pub fn new(source_id: SpanSrcId, from_expansion: bool, start: SpanPos, end: SpanPos) -> Self {
         Self {
             _lifetime: PhantomData,
-            source,
+            source_id,
             from_expansion,
             start,
             end,
@@ -377,7 +359,89 @@ impl<'ast> Span<'ast> {
     }
 
     pub fn source_id(&self) -> SpanSrcId {
-        self.source
+        self.source_id
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+#[allow(clippy::exhaustive_enums)]
+pub enum SpanSource<'ast> {
+    File(&'ast FileInfo<'ast>),
+    Macro(&'ast ExpnInfo<'ast>),
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct FileInfo<'ast> {
+    file: ffi::FfiStr<'ast>,
+    span_src: SpanSrcId,
+}
+
+impl<'ast> FileInfo<'ast> {
+    pub fn file(&self) -> &str {
+        self.file.get()
+    }
+
+    /// Maps the given [`SpanPos`] to a [`FilePos`]. The [`SpanPos`] has to correspond
+    /// to a position that belongs to this [`FileInfo`].
+    pub fn to_file_pos(&self, span_pos: SpanPos) -> Option<FilePos> {
+        with_cx(self, |cx| cx.span_pos_to_file_loc(self, span_pos))
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> FileInfo<'ast> {
+    #[must_use]
+    pub fn new(file: &'ast str, span_src: SpanSrcId) -> Self {
+        Self {
+            file: file.into(),
+            span_src,
+        }
+    }
+
+    pub fn span_src(&self) -> SpanSrcId {
+        self.span_src
+    }
+}
+
+/// A locating inside a file.
+///
+/// [`SpanPos`] instances belonging to files can be mapped to [`FilePos`] with
+/// the [`FileInfo`] from the [`SpanSource`] of the [`Span`] they belong to. See:
+/// [`FileInfo::to_file_pos`].
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+pub struct FilePos<'ast> {
+    /// The lifetime is not needed right now, but I want to have it, to potentualy
+    /// add more behavior to this struct.
+    _lifetime: PhantomData<&'ast ()>,
+    /// The 1-indexed line in bytes
+    line: usize,
+    /// The 1-indexed column in bytes
+    column: usize,
+}
+
+impl<'ast> FilePos<'ast> {
+    /// Returns the 1-indexed line location in bytes
+    pub fn line(&self) -> usize {
+        self.line
+    }
+
+    /// Returns the 1-indexed column location in bytes
+    pub fn column(&self) -> usize {
+        self.column
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> FilePos<'ast> {
+    pub fn new(line: usize, column: usize) -> Self {
+        Self {
+            _lifetime: PhantomData,
+            line,
+            column,
+        }
     }
 }
 

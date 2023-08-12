@@ -8,7 +8,8 @@ use crate::{
     ast::{
         item::{Body, ItemKind},
         ty::SemTyKind,
-        BodyId, ExprId, ItemId, Span, SpanId, SymbolId, TyDefId,
+        BodyId, ExpnId, ExpnInfo, ExprId, FileInfo, FilePos, ItemId, Span, SpanId, SpanPos, SpanSource, SymbolId,
+        TyDefId,
     },
     diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
@@ -197,6 +198,16 @@ impl<'ast> AstContext<'ast> {
         self.driver.call_span(span_id)
     }
 
+    pub(crate) fn span_source(&self, span: &Span<'_>) -> SpanSource<'ast> {
+        (self.driver.span_source)(self.driver.driver_context, span)
+    }
+    pub(crate) fn span_pos_to_file_loc(&self, file: &FileInfo<'ast>, pos: SpanPos) -> Option<FilePos<'ast>> {
+        (self.driver.span_pos_to_file_loc)(self.driver.driver_context, file, pos).into()
+    }
+    pub(crate) fn span_expn_info(&self, src_id: ExpnId) -> Option<&'ast ExpnInfo<'ast>> {
+        (self.driver.span_expn_info)(self.driver.driver_context, src_id).into()
+    }
+
     pub(crate) fn symbol_str(&self, sym: SymbolId) -> &'ast str {
         self.driver.call_symbol_str(sym)
     }
@@ -249,6 +260,9 @@ struct DriverCallbacks<'ast> {
     pub expr_ty: extern "C" fn(&'ast (), ExprId) -> SemTyKind<'ast>,
     pub span: extern "C" fn(&'ast (), SpanId) -> &'ast Span<'ast>,
     pub span_snippet: extern "C" fn(&'ast (), &Span<'ast>) -> ffi::FfiOption<ffi::FfiStr<'ast>>,
+    pub span_source: extern "C" fn(&'ast (), &Span<'_>) -> SpanSource<'ast>,
+    pub span_pos_to_file_loc: extern "C" fn(&'ast (), &FileInfo<'ast>, SpanPos) -> ffi::FfiOption<FilePos<'ast>>,
+    pub span_expn_info: extern "C" fn(&'ast (), ExpnId) -> ffi::FfiOption<&'ast ExpnInfo<'ast>>,
     pub symbol_str: extern "C" fn(&'ast (), SymbolId) -> ffi::FfiStr<'ast>,
     pub resolve_method_target: extern "C" fn(&'ast (), ExprId) -> ItemId,
 }

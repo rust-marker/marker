@@ -125,6 +125,15 @@ new_id! {
 new_id! {
     /// **Unstable**
     ///
+    /// This id is used to identify a specific expansion. This type is only intended for internal
+    /// use. For now it's only intended for drivers to map spans back
+    #[cfg_attr(feature = "driver-api", visibility::make(pub))]
+    pub(crate) ExpnId: u64
+}
+
+new_id! {
+    /// **Unstable**
+    ///
     /// This id is used to identify symbols. This type is only intended for internal
     /// use. Lint crates should always get [`String`] or `&str`.
     #[cfg_attr(feature = "driver-api", visibility::make(pub))]
