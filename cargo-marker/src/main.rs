@@ -12,30 +12,16 @@ mod utils;
 use std::{collections::HashMap, ffi::OsString};
 
 use backend::CheckInfo;
-use cli::{get_clap_config, Flags};
+use cli::{CheckArgs, CliCommand, MarkerCli};
 use config::Config;
 
 pub use exit::ExitStatus;
 
 use crate::backend::driver::DriverVersionInfo;
 
-const CARGO_ARGS_SEPARATOR: &str = "--";
-const VERSION: &str = concat!("cargo-marker ", env!("CARGO_PKG_VERSION"));
-
+#[allow(unreachable_code)]
 fn main() -> Result<(), ExitStatus> {
-    let matches = get_clap_config().get_matches_from(
-        std::env::args()
-            .enumerate()
-            .filter_map(|(index, value)| (!(index == 1 && value == "marker")).then_some(value))
-            .take_while(|s| s != CARGO_ARGS_SEPARATOR),
-    );
-
-    let flags = Flags::from_args(&matches);
-
-    if matches.get_flag("version") {
-        print_version();
-        return Ok(());
-    }
+    let cli = MarkerCli::parse_args();
 
     let config = match Config::try_from_manifest() {
         Ok(v) => Some(v),
@@ -45,22 +31,28 @@ fn main() -> Result<(), ExitStatus> {
         },
     };
 
-    match matches.subcommand() {
-        Some(("setup", args)) => {
-            let rustc_flags = if flags.forward_rust_flags {
+    match &cli.command {
+        Some(CliCommand::Setup(args)) => {
+            let rustc_flags = if args.forward_rust_flags {
                 std::env::var("RUSTFLAGS").unwrap_or_default()
             } else {
                 String::new()
             };
-            backend::driver::install_driver(args.get_flag("auto-install-toolchain"), flags.dev_build, &rustc_flags)
+            backend::driver::install_driver(args.auto_install_toolchain, &rustc_flags)
         },
-        Some(("check", args)) => run_check(args, config, &flags),
-        None => run_check(&matches, config, &flags),
-        _ => unreachable!(),
+        Some(CliCommand::Check(args)) => run_check(args, config, CheckKind::Normal),
+        Some(CliCommand::TestSetup(args)) => run_check(args, config, CheckKind::TestSetup),
+        None => run_check(&cli.check_args, config, CheckKind::Normal),
     }
 }
 
-fn run_check(args: &clap::ArgMatches, config: Option<Config>, flags: &Flags) -> Result<(), ExitStatus> {
+#[derive(Debug, Clone, Copy)]
+enum CheckKind {
+    Normal,
+    TestSetup,
+}
+
+fn run_check(args: &CheckArgs, config: Option<Config>, kind: CheckKind) -> Result<(), ExitStatus> {
     // determine lints
     let deps = match cli::collect_lint_deps(args) {
         Ok(deps) => deps,
@@ -84,14 +76,15 @@ fn run_check(args: &clap::ArgMatches, config: Option<Config>, flags: &Flags) -> 
     }
 
     // If this is a dev build, we want to rebuild the driver before checking
-    if flags.dev_build {
-        backend::driver::install_driver(false, flags.dev_build, "")?;
-    }
+    #[cfg(debug_assertions)]
+    backend::driver::install_driver(false, "")?;
 
     // Configure backend
-    let toolchain = backend::toolchain::Toolchain::try_find_toolchain(flags.dev_build, flags.verbose)?;
+    // FIXME(xFrednet): Implement better logging and remove verbose boolean in
+    // favor of debug logging.
+    let toolchain = backend::toolchain::Toolchain::try_find_toolchain(false)?;
     let backend_conf = backend::Config {
-        dev_build: flags.dev_build,
+        dev_build: cfg!(debug_assertions),
         lints,
         ..backend::Config::try_base_from(toolchain)?
     };
@@ -100,20 +93,13 @@ fn run_check(args: &clap::ArgMatches, config: Option<Config>, flags: &Flags) -> 
     let info = backend::prepare_check(&backend_conf)?;
 
     // Run backend
-    if flags.test_build {
-        print_test_info(&backend_conf, &info).unwrap();
-        Ok(())
-    } else {
-        let additional_cargo_args: Vec<_> = std::env::args()
-            .skip_while(|c| c != CARGO_ARGS_SEPARATOR)
-            .skip(1)
-            .collect();
-        backend::run_check(&backend_conf, info, &additional_cargo_args)
+    match kind {
+        CheckKind::Normal => backend::run_check(&backend_conf, info, &args.cargo_args),
+        CheckKind::TestSetup => {
+            print_test_info(&backend_conf, &info).unwrap();
+            Ok(())
+        },
     }
-}
-
-fn print_version() {
-    println!("cargo-marker version: {}", env!("CARGO_PKG_VERSION"));
 }
 
 fn print_test_info(config: &backend::Config, check: &CheckInfo) -> Result<(), ExitStatus> {

@@ -71,11 +71,7 @@ impl DriverVersionInfo {
 }
 
 /// This tries to install the rustc driver specified in [`DEFAULT_DRIVER_INFO`].
-pub fn install_driver(
-    auto_install_toolchain: bool,
-    dev_build: bool,
-    additional_rustc_flags: &str,
-) -> Result<(), ExitStatus> {
+pub fn install_driver(auto_install_toolchain: bool, additional_rustc_flags: &str) -> Result<(), ExitStatus> {
     // The toolchain, driver version and api version should ideally be configurable.
     // However, that will require more prototyping and has a low priority rn.
     // See #60
@@ -98,12 +94,7 @@ pub fn install_driver(
         return Err(ExitStatus::InvalidToolchain);
     }
 
-    build_driver(
-        toolchain,
-        &DEFAULT_DRIVER_INFO.version,
-        dev_build,
-        additional_rustc_flags,
-    )
+    build_driver(toolchain, &DEFAULT_DRIVER_INFO.version, additional_rustc_flags)
 }
 
 fn install_toolchain(toolchain: &str) -> Result<(), ExitStatus> {
@@ -133,13 +124,8 @@ fn install_toolchain(toolchain: &str) -> Result<(), ExitStatus> {
 }
 
 /// This tries to compile the driver.
-fn build_driver(
-    toolchain: &str,
-    version: &str,
-    dev_build: bool,
-    additional_rustc_flags: &str,
-) -> Result<(), ExitStatus> {
-    if dev_build {
+fn build_driver(toolchain: &str, version: &str, additional_rustc_flags: &str) -> Result<(), ExitStatus> {
+    if cfg!(debug_assertions) {
         println!("Compiling rustc driver");
     } else {
         println!("Compiling rustc driver v{version} with {toolchain}");
@@ -149,7 +135,7 @@ fn build_driver(
 
     // Build driver
     let mut cmd = Command::new("cargo");
-    if dev_build {
+    if cfg!(debug_assertions) {
         cmd.args(["build", "--bin", "marker_rustc_driver"]);
     } else {
         cmd.env("RUSTUP_TOOLCHAIN", toolchain);

@@ -1,6 +1,6 @@
 [alias]
 bless   = "test --test uitest -- -- --bless"
-dogfood = "run --features dev-build --bin cargo-marker -- --forward-rust-flags"
+dogfood = "run --bin cargo-marker -- marker --forward-rust-flags"
 uilints = "test -p marker_uilints --test uitest"
 uitest  = "test --test uitest"
 
