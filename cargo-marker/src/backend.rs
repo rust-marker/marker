@@ -111,7 +111,12 @@ pub fn run_check(config: &Config, info: CheckInfo, additional_cargo_args: &[Stri
 pub fn to_marker_lint_crates_env(lints: &[LintCrate]) -> OsString {
     let lint_paths: Vec<_> = lints
         .iter()
-        .map(|krate| OsString::from(krate.file.as_os_str()))
+        .map(|krate| {
+            let mut env_str = OsString::from(&krate.name);
+            env_str.push(":");
+            env_str.push(krate.file.as_os_str());
+            env_str
+        })
         .collect();
     lint_paths.join(OsStr::new(";"))
 }

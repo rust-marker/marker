@@ -242,7 +242,7 @@ fn main() {
         // in preparation.
         if !has_sys_root_arg {
             let sys_root = find_sys_root(sys_root_arg);
-            orig_args.extend(vec!["--sysroot".into(), sys_root]);
+            orig_args.extend(["--sysroot".into(), sys_root]);
         };
 
         // make "marker_rustc_driver --rustc" work like a subcommand that passes
@@ -302,6 +302,17 @@ fn main() {
                 Err(marker_adapter::AdapterError::LintCratesEnvUnset) => vec![],
                 Err(err) => panic!("Error while determining the lint crates to load: {err:#?}"),
             };
+
+            // We need to provide a marker cfg flag to allow conditional compilation,
+            // we add a simple `marker` config for the common use case, but also provide
+            // `marker=crate_name` for more complex uses
+            orig_args.push("--cfg=marker".into());
+            orig_args.extend(
+                lint_crates
+                    .iter()
+                    .map(|krate| format!(r#"--cfg=marker="{}""#, krate.name)),
+            );
+
             let mut callback = MarkerCallback { env_vars, lint_crates };
             rustc_driver::RunCompiler::new(&orig_args, &mut callback).run()
         } else {

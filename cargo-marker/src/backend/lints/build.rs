@@ -1,4 +1,4 @@
-use std::{ffi::OsStr, path::Path};
+use std::{collections::HashSet, ffi::OsStr, path::Path};
 
 use crate::{backend::Config, ExitStatus};
 
@@ -26,40 +26,52 @@ const ARTIFACT_ENDINGS: &[&str] = &[
 pub fn build_lints(sources: &[LintCrateSource], config: &Config) -> Result<Vec<LintCrate>, ExitStatus> {
     // By default Cargo doesn't provide the path of the compiled lint crate.
     // As a work around, we use the `--out-dir` option to make cargo copy all
-    // created binaries into one folder. We then scan that folder and collect
-    // all dynamic libraries, assuming that they're lint crates.
+    // created binaries into one folder. We then scan that folder as we build our crates
+    // and collect all dynamic libraries that show up, we link the name of the crate we just built
+    // with the file(s) we found after we built it, assuming that they are related.
+    //
+    // TODO Look into how to optimize this a bit better:
+    // Another option that would be potentially more performant is if we built each
+    // crate in it's own target dir. this would eliminate the need for HashSet<_> below, without
+    // changing too much else about the implementation.
+    //
+    // This would be so much simpler if we could get an output name from Cargo
 
     // Clear previously build lints
     let lints_dir = config.lint_crate_dir();
     clear_lints_dir(&lints_dir)?;
 
-    // Build lint crates
+    // Build lint crates and find the output of those builds
+    let mut found_paths = HashSet::new();
+    let ending = OsStr::new(DYNAMIC_LIB_FILE_ENDING);
+    let mut lints = Vec::with_capacity(sources.len());
+
     for lint_src in sources {
         build_lint(lint_src, config)?;
-    }
-
-    // Find lint lint crates
-    match std::fs::read_dir(&lints_dir) {
-        Ok(dir) => {
-            let ending = OsStr::new(DYNAMIC_LIB_FILE_ENDING);
-            let mut lints = vec![];
-            for file in dir {
-                let file = file.unwrap().path();
-                if file.extension() == Some(ending) {
-                    lints.push(LintCrate { file });
+        match std::fs::read_dir(&lints_dir) {
+            Ok(dir) => {
+                for file in dir {
+                    let file = file.unwrap().path();
+                    if file.extension() == Some(ending) && !found_paths.contains(&file) {
+                        found_paths.insert(file.clone());
+                        lints.push(LintCrate {
+                            file,
+                            name: lint_src.name.clone(),
+                        });
+                    }
                 }
-            }
-            Ok(lints)
-        },
-        Err(err) => {
-            // This shouldn't really be a point of failure. In this case, I'm
-            // more interested in the HOW?
-            panic!(
-                "unable to read lints dir after lint compilation: {} ({err:#?})",
-                lints_dir.display()
-            );
-        },
+            },
+            Err(err) => {
+                // This shouldn't really be a point of failure. In this case, I'm
+                // more interested in the HOW?
+                panic!(
+                    "unable to read lints dir after lint compilation: {} ({err:#?})",
+                    lints_dir.display()
+                );
+            },
+        }
     }
+    Ok(lints)
 }
 
 /// This function clears the `marker/lints` directory holding all compiled lints. This

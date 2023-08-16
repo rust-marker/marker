@@ -23,6 +23,8 @@ pub struct LintCrateSource {
 /// The information of a compiled lint crate.
 #[derive(Debug)]
 pub struct LintCrate {
+    /// The name of the crate
+    pub name: String,
     /// The absolute path of the compiled crate, as a dynamic library.
     pub file: PathBuf,
 }
