@@ -1,5 +1,5 @@
 use marker_api::{
-    ast::{ExpnInfo, FileInfo, SpanPos, SpanSource},
+    ast::{ExpnInfo, FileInfo, FilePos, SpanPos, SpanSource},
     prelude::Span,
 };
 
@@ -57,5 +57,14 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             self.to_span_id(data.call_site),
             self.to_macro_id(data.macro_def_id.expect("filled, because this belongs to a macro")),
         )
+    }
+
+    pub fn try_to_span_pos(&self, scx: rustc_span::SyntaxContext, pos: rustc_span::BytePos) -> Option<FilePos<'ast>> {
+        (scx == rustc_span::SyntaxContext::root())
+            .then(|| self.to_file_pos(&self.rustc_cx.sess.source_map().lookup_char_pos(pos)))
+    }
+
+    fn to_file_pos(&self, loc: &rustc_span::Loc) -> FilePos<'ast> {
+        FilePos::new(loc.line, loc.col.0 + 1)
     }
 }

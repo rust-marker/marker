@@ -195,7 +195,7 @@ impl<'ast> ExpnInfo<'ast> {
 /// also worth checking that all linted nodes originate from the same macro expansion.
 /// Check out the documentation of [`ExpnInfo`].
 #[repr(C)]
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Span<'ast> {
     _lifetime: PhantomData<&'ast ()>,
     /// The source of this [`Span`]. The id space and position distribution is
@@ -210,6 +210,29 @@ pub struct Span<'ast> {
     from_expansion: bool,
     start: SpanPos,
     end: SpanPos,
+}
+
+impl<'ast> std::fmt::Debug for Span<'ast> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        fn fmt_pos(pos: Option<FilePos<'_>>) -> String {
+            match pos {
+                Some(pos) => format!("{}:{}", pos.line(), pos.column()),
+                None => "[invalid]".to_string(),
+            }
+        }
+
+        let src = self.source();
+        let name = match src {
+            SpanSource::File(file) => format!(
+                "{}:{} - {}",
+                file.file(),
+                fmt_pos(file.to_file_pos(self.start)),
+                fmt_pos(file.to_file_pos(self.end))
+            ),
+            SpanSource::Macro(expn) => format!("[Inside Macro] {:#?}", expn.call_site()),
+        };
+        f.debug_struct(&name).finish()
+    }
 }
 
 impl<'ast> Span<'ast> {

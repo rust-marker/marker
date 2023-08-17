@@ -232,10 +232,13 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
 
     fn span_pos_to_file_loc(
         &'ast self,
-        _file: &marker_api::ast::FileInfo<'ast>,
-        _pos: marker_api::ast::SpanPos,
+        file: &marker_api::ast::FileInfo<'ast>,
+        pos: marker_api::ast::SpanPos,
     ) -> Option<marker_api::ast::FilePos<'ast>> {
-        todo!()
+        self.marker_converter.try_to_span_pos(
+            self.rustc_converter.to_syntax_context(file.span_src()),
+            self.rustc_converter.to_byte_pos(pos),
+        )
     }
 
     fn span_expn_info(&'ast self, expn_id: marker_api::ast::ExpnId) -> Option<&'ast marker_api::ast::ExpnInfo<'ast>> {

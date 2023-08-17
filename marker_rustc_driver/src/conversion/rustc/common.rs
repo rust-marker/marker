@@ -2,8 +2,8 @@ use std::mem::{size_of, transmute};
 
 use marker_api::{
     ast::{
-        BodyId, CrateId, ExpnId, ExprId, FieldId, GenericId, ItemId, LetStmtId, Span, SpanId, SpanSrcId, StmtIdInner,
-        SymbolId, TyDefId, VarId, VariantId,
+        BodyId, CrateId, ExpnId, ExprId, FieldId, GenericId, ItemId, LetStmtId, Span, SpanId, SpanPos, SpanSrcId,
+        StmtIdInner, SymbolId, TyDefId, VarId, VariantId,
     },
     diagnostic::{Applicability, EmissionNode},
     lint::Level,
@@ -217,5 +217,10 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
         let lo = rustc_span::BytePos(api_span.start().index());
         let hi = rustc_span::BytePos(api_span.end().index());
         rustc_span::Span::new(lo, hi, self.to_syntax_context(api_span.source_id()), None)
+    }
+
+    #[must_use]
+    pub fn to_byte_pos(&self, span_pos: SpanPos) -> rustc_span::BytePos {
+        rustc_span::BytePos(span_pos.index())
     }
 }
