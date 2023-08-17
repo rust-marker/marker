@@ -45,6 +45,15 @@ marker_api::declare_lint! {
     Warn,
 }
 
+marker_api::declare_lint! {
+    /// # What it does
+    /// A lint used for markers uitests.
+    ///
+    /// It warns about about item names starting with `FindMe`, `find_me` or `FIND_ME`.
+    PRINT_EVERY_EXPR,
+    Allow,
+}
+
 fn emit_item_with_test_name_lint<'ast>(
     cx: &'ast AstContext<'ast>,
     node: impl Into<EmissionNode>,
@@ -57,7 +66,7 @@ fn emit_item_with_test_name_lint<'ast>(
 
 impl LintPass for TestLintPass {
     fn info(&self) -> LintPassInfo {
-        LintPassInfoBuilder::new(Box::new([TEST_LINT, ITEM_WITH_TEST_NAME])).build()
+        LintPassInfoBuilder::new(Box::new([TEST_LINT, ITEM_WITH_TEST_NAME, PRINT_EVERY_EXPR])).build()
     }
 
     fn check_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
@@ -186,6 +195,13 @@ impl LintPass for TestLintPass {
                 });
             }
         }
+    }
+
+    fn check_expr<'ast>(&mut self, cx: &'ast AstContext<'ast>, expr: ExprKind<'ast>) {
+        cx.emit_lint(PRINT_EVERY_EXPR, expr.id(), "expr", expr.span(), |diag| {
+            diag.note(&format!("SpanSource: {:#?}", expr.span().source()));
+            diag.note(&format!("Snippet: {:#?}", expr.span().snippet_or("<..>")));
+        });
     }
 }
 

@@ -202,7 +202,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 self.to_expr(then),
                 els.map(|els| self.to_expr(els)),
             ))),
-            hir::ExprKind::Let(lets) => self.to_let_expr(lets),
+            hir::ExprKind::Let(lets) => self.to_let_expr(lets, expr.hir_id),
             hir::ExprKind::Match(_scrutinee, _arms, hir::MatchSource::ForLoopDesugar) => {
                 ExprKind::For(self.alloc(self.to_for_from_desugar(expr)))
             },
@@ -400,7 +400,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     fn to_match_arm(&self, arm: &hir::Arm<'tcx>) -> MatchArm<'ast> {
         let guard = match &arm.guard {
             Some(hir::Guard::If(expr)) => Some(self.to_expr(expr)),
-            Some(hir::Guard::IfLet(lets)) => Some(self.to_let_expr(lets)),
+            Some(hir::Guard::IfLet(lets)) => Some(self.to_let_expr(lets, arm.hir_id)),
             None => None,
         };
         MatchArm::new(
@@ -494,8 +494,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
-    fn to_let_expr(&self, lets: &hir::Let<'tcx>) -> ExprKind<'ast> {
-        let data = CommonExprData::new(self.to_expr_id(lets.hir_id), self.to_span_id(lets.span));
+    fn to_let_expr(&self, lets: &hir::Let<'tcx>, id: hir::HirId) -> ExprKind<'ast> {
+        let data = CommonExprData::new(self.to_expr_id(id), self.to_span_id(lets.span));
         ExprKind::Let(self.alloc(LetExpr::new(data, self.to_pat(lets.pat), self.to_expr(lets.init))))
     }
 
@@ -568,13 +568,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     /// [Playground]: https://play.rust-lang.org/?version=nightly&mode=debug&edition=2021&gist=b642324278a27a71e80720f24b29d7ee
     #[must_use]
     fn to_while_loop_from_desugar(&self, loop_expr: &hir::Expr<'tcx>) -> WhileExpr<'ast> {
-        if let hir::ExprKind::Loop(block, label, hir::LoopSource::While, while_loop_head) = loop_expr.kind {
+        if let hir::ExprKind::Loop(block, label, hir::LoopSource::While, _loop_head) = loop_expr.kind {
             if let Some(expr) = block.expr {
                 if let hir::ExprKind::If(cond, then, Some(_)) = expr.kind {
-                    let data = CommonExprData::new(
-                        self.to_expr_id(loop_expr.hir_id),
-                        self.to_span_id(while_loop_head.to(then.span)),
-                    );
+                    let data = CommonExprData::new(self.to_expr_id(loop_expr.hir_id), self.to_span_id(loop_expr.span));
                     return WhileExpr::new(
                         data,
                         label.map(|label| self.to_ident(label.ident)),
@@ -614,7 +611,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         if let hir::ExprKind::Match(into_scrutinee, [mut_iter_arm], hir::MatchSource::ForLoopDesugar) = into_match.kind
             && let hir::ExprKind::Call(_into_iter_path, [iter_expr]) = &into_scrutinee.kind
             && let loop_expr = mut_iter_arm.body
-            && let hir::ExprKind::Loop(block, label, hir::LoopSource::ForLoop, for_loop_head) = loop_expr.kind
+            && let hir::ExprKind::Loop(block, label, hir::LoopSource::ForLoop, _loop_head) = loop_expr.kind
             && let [stmt] = block.stmts
             && let hir::StmtKind::Expr(none_some_match) = stmt.kind
             && let hir::ExprKind::Match(_, [_none, some_arm], hir::MatchSource::ForLoopDesugar) = none_some_match.kind
@@ -625,7 +622,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             let body = self.to_expr(some_arm.body);
             let data = CommonExprData::new(
                 self.to_expr_id(loop_expr.hir_id),
-                self.to_span_id(for_loop_head.to(some_arm.body.span))
+                self.to_resugared_span_id(into_match.span)
             );
             return ForExpr::new(
                 data,

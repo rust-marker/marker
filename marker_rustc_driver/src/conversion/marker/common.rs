@@ -74,6 +74,15 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
+    pub fn to_resugared_span_id(&self, rustc_span: rustc_span::Span) -> SpanId {
+        if let Some(source_data) = rustc_span.source_callee() {
+            self.to_span_id(source_data.call_site)
+        } else {
+            panic!("driver requested resugared id for an unsugared span: {rustc_span:#?}");
+        }
+    }
+
+    #[must_use]
     pub fn to_symbol_id(&self, sym: rustc_span::Symbol) -> SymbolId {
         assert_eq!(size_of::<SymbolId>(), 4);
         SymbolId::new(sym.as_u32())
