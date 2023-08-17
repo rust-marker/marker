@@ -1,0 +1,96 @@
+warning: expr
+  --> $DIR/while_loop.rs:8:5
+   |
+8  | /     while let Some(_) = something {
+9  | |         something = None;
+10 | |     }
+   | |_____^
+   |
+   = note: SpanSource: File(
+               FileInfo {
+                   file: "$DIR/while_loop.rs",
+                   span_src: SpanSrcId(..),
+               },
+           )
+   = note: Snippet: "while let Some(_) = something {/n        something = None;/n    }"
+note: the lint level is defined here
+  --> $DIR/while_loop.rs:7:12
+   |
+7  |     #[warn(marker::print_every_expr)]
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: expr
+ --> $DIR/while_loop.rs:8:11
+  |
+8 |     while let Some(_) = something {
+  |           ^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: SpanSource: File(
+              FileInfo {
+                  file: "$DIR/while_loop.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
+  = note: Snippet: "let Some(_) = something"
+
+warning: expr
+ --> $DIR/while_loop.rs:8:25
+  |
+8 |     while let Some(_) = something {
+  |                         ^^^^^^^^^
+  |
+  = note: SpanSource: File(
+              FileInfo {
+                  file: "$DIR/while_loop.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
+  = note: Snippet: "something"
+
+warning: expr
+  --> $DIR/while_loop.rs:8:35
+   |
+8  |       while let Some(_) = something {
+   |  ___________________________________^
+9  | |         something = None;
+10 | |     }
+   | |_____^
+   |
+   = note: SpanSource: File(
+               FileInfo {
+                   file: "$DIR/while_loop.rs",
+                   span_src: SpanSrcId(..),
+               },
+           )
+   = note: Snippet: "{/n        something = None;/n    }"
+
+warning: expr
+ --> $DIR/while_loop.rs:9:9
+  |
+9 |         something = None;
+  |         ^^^^^^^^^^^^^^^^
+  |
+  = note: SpanSource: File(
+              FileInfo {
+                  file: "$DIR/while_loop.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
+  = note: Snippet: "something = None"
+
+warning: expr
+ --> $DIR/while_loop.rs:9:21
+  |
+9 |         something = None;
+  |                     ^^^^
+  |
+  = note: SpanSource: File(
+              FileInfo {
+                  file: "$DIR/while_loop.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
+  = note: Snippet: "None"
+
+warning: 6 warnings emitted
+

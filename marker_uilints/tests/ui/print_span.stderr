@@ -1,33 +1,50 @@
 warning: print span
  --> $DIR/print_span.rs:9:5
   |
-9 |     let _span_normal = 178;
-  |     ^^^^^^^^^^^^^^^^^^^^^^^
+9 |     let _span_try = Some(21)?;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
-  = note: Debug: Span {
-              source: File(
-                  "$DIR/print_span.rs",
-              ),
-              start: 134,
-              end: 137,
-          }
-  = note: Snippet: 178
+  = note: Debug: $DIR/print_span.rs:9:21 - 9:30
+  = note: Snippet: Some(21)?
+  = note: Source: File(
+              FileInfo {
+                  file: "$DIR/print_span.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
   = note: `#[warn(marker::print_span_lint)]` on by default
 
 warning: print span
-  --> $DIR/print_span.rs:11:5
+  --> $DIR/print_span.rs:14:5
    |
-11 |     let _span_macro = magic_macro!();
+14 |     let _span_normal = 178;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Debug: $DIR/print_span.rs:14:24 - 14:27
+   = note: Snippet: 178
+   = note: Source: File(
+               FileInfo {
+                   file: "$DIR/print_span.rs",
+                   span_src: SpanSrcId(..),
+               },
+           )
+
+warning: print span
+  --> $DIR/print_span.rs:16:5
+   |
+16 |     let _span_macro = magic_macro!();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: Debug: Span {
-               source: Macro(
-                   SpanSrcId(..),
-               ),
-               start: 0,
-               end: 14,
-           }
-   = note: Snippet: magic_macro!()
+   = note: Debug: [Inside Macro] $DIR/print_span.rs:16:23 - 16:37
+   = note: Snippet: "*magic penguin noises*"
+   = note: Source: Macro(
+               ExpnInfo {
+                   _lifetime: PhantomData<&()>,
+                   parent: ExpnId(..),
+                   call_site: SpanId(..),
+                   macro_id: MacroId(..),
+               },
+           )
 
-warning: 2 warnings emitted
+warning: 3 warnings emitted
 

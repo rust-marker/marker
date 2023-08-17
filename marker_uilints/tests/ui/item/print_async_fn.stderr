@@ -12,13 +12,7 @@ warning: printing item with body
                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                       ident: Ident {
                           name: "print_with_body_foo",
-                          span: Span {
-                              source: File(
-                                  "$DIR/print_async_fn.rs",
-                              ),
-                              start: 9,
-                              end: 28,
-                          },
+                          span: $DIR/print_async_fn.rs:1:10 - 1:29,
                       },
                   },
                   generics: SynGenericParams {
@@ -94,13 +88,7 @@ warning: printing item with body
                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                       ident: Ident {
                           name: "print_with_body_bar",
-                          span: Span {
-                              source: File(
-                                  "$DIR/print_async_fn.rs",
-                              ),
-                              start: 91,
-                              end: 110,
-                          },
+                          span: $DIR/print_async_fn.rs:9:10 - 9:29,
                       },
                   },
                   generics: SynGenericParams {
@@ -198,13 +186,7 @@ warning: printing item with body
                                                                           AstPathSegment {
                                                                               ident: Ident {
                                                                                   name: "foo",
-                                                                                  span: Span {
-                                                                                      source: File(
-                                                                                          "$DIR/print_async_fn.rs",
-                                                                                      ),
-                                                                                      start: 137,
-                                                                                      end: 140,
-                                                                                  },
+                                                                                  span: $DIR/print_async_fn.rs:10:17 - 10:20,
                                                                               },
                                                                               generics: SynGenericArgs {
                                                                                   args: [],
@@ -285,13 +267,7 @@ warning: printing item with body
                                                                           AstPathSegment {
                                                                               ident: Ident {
                                                                                   name: "foo",
-                                                                                  span: Span {
-                                                                                      source: File(
-                                                                                          "$DIR/print_async_fn.rs",
-                                                                                      ),
-                                                                                      start: 166,
-                                                                                      end: 169,
-                                                                                  },
+                                                                                  span: $DIR/print_async_fn.rs:11:17 - 11:20,
                                                                               },
                                                                               generics: SynGenericArgs {
                                                                                   args: [],
@@ -372,13 +348,7 @@ warning: printing item with body
                                                                           AstPathSegment {
                                                                               ident: Ident {
                                                                                   name: "foo",
-                                                                                  span: Span {
-                                                                                      source: File(
-                                                                                          "$DIR/print_async_fn.rs",
-                                                                                      ),
-                                                                                      start: 195,
-                                                                                      end: 198,
-                                                                                  },
+                                                                                  span: $DIR/print_async_fn.rs:12:17 - 12:20,
                                                                               },
                                                                               generics: SynGenericArgs {
                                                                                   args: [],
@@ -432,13 +402,7 @@ warning: printing item with body
                                                               AstPathSegment {
                                                                   ident: Ident {
                                                                       name: "a",
-                                                                      span: Span {
-                                                                          source: File(
-                                                                              "$DIR/print_async_fn.rs",
-                                                                          ),
-                                                                          start: 212,
-                                                                          end: 213,
-                                                                      },
+                                                                      span: $DIR/print_async_fn.rs:13:5 - 13:6,
                                                                   },
                                                                   generics: SynGenericArgs {
                                                                       args: [],
@@ -467,13 +431,7 @@ warning: printing item with body
                                                               AstPathSegment {
                                                                   ident: Ident {
                                                                       name: "b",
-                                                                      span: Span {
-                                                                          source: File(
-                                                                              "$DIR/print_async_fn.rs",
-                                                                          ),
-                                                                          start: 216,
-                                                                          end: 217,
-                                                                      },
+                                                                      span: $DIR/print_async_fn.rs:13:9 - 13:10,
                                                                   },
                                                                   generics: SynGenericArgs {
                                                                       args: [],
@@ -505,13 +463,7 @@ warning: printing item with body
                                                       AstPathSegment {
                                                           ident: Ident {
                                                               name: "c",
-                                                              span: Span {
-                                                                  source: File(
-                                                                      "$DIR/print_async_fn.rs",
-                                                                  ),
-                                                                  start: 220,
-                                                                  end: 221,
-                                                              },
+                                                              span: $DIR/print_async_fn.rs:13:13 - 13:14,
                                                           },
                                                           generics: SynGenericArgs {
                                                               args: [],
@@ -551,13 +503,7 @@ warning: printing item with body
                        vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                        ident: Ident {
                            name: "print_with_body_with_lifetime",
-                           span: Span {
-                               source: File(
-                                   "$DIR/print_async_fn.rs",
-                               ),
-                               start: 234,
-                               end: 263,
-                           },
+                           span: $DIR/print_async_fn.rs:16:10 - 16:39,
                        },
                    },
                    generics: SynGenericParams {
@@ -656,13 +602,7 @@ warning: printing item with body
                                                        AstPathSegment {
                                                            ident: Ident {
                                                                name: "x",
-                                                               span: Span {
-                                                                   source: File(
-                                                                       "$DIR/print_async_fn.rs",
-                                                                   ),
-                                                                   start: 285,
-                                                                   end: 286,
-                                                               },
+                                                               span: $DIR/print_async_fn.rs:17:6 - 17:7,
                                                            },
                                                            generics: SynGenericArgs {
                                                                args: [],

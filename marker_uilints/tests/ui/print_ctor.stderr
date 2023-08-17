@@ -365,13 +365,7 @@ warning: print test
                                AstPathSegment {
                                    ident: Ident {
                                        name: "FieldStruct",
-                                       span: Span {
-                                           source: File(
-                                               "$DIR/print_ctor.rs",
-                                           ),
-                                           start: 519,
-                                           end: 530,
-                                       },
+                                       span: $DIR/print_ctor.rs:29:23 - 29:34,
                                    },
                                    generics: SynGenericArgs {
                                        args: [],
@@ -388,13 +382,7 @@ warning: print test
                            span: SpanId(..),
                            ident: Ident {
                                name: "a",
-                               span: Span {
-                                   source: File(
-                                       "$DIR/print_ctor.rs",
-                                   ),
-                                   start: 533,
-                                   end: 534,
-                               },
+                               span: $DIR/print_ctor.rs:29:37 - 29:38,
                            },
                            expr: IntLit(
                                IntLitExpr {
@@ -412,13 +400,7 @@ warning: print test
                            span: SpanId(..),
                            ident: Ident {
                                name: "b",
-                               span: Span {
-                                   source: File(
-                                       "$DIR/print_ctor.rs",
-                                   ),
-                                   start: 539,
-                                   end: 540,
-                               },
+                               span: $DIR/print_ctor.rs:29:43 - 29:44,
                            },
                            expr: IntLit(
                                IntLitExpr {
@@ -461,13 +443,7 @@ warning: print test
                                AstPathSegment {
                                    ident: Ident {
                                        name: "FieldStruct",
-                                       span: Span {
-                                           source: File(
-                                               "$DIR/print_ctor.rs",
-                                           ),
-                                           start: 569,
-                                           end: 580,
-                                       },
+                                       span: $DIR/print_ctor.rs:30:23 - 30:34,
                                    },
                                    generics: SynGenericArgs {
                                        args: [],
@@ -484,13 +460,7 @@ warning: print test
                            span: SpanId(..),
                            ident: Ident {
                                name: "a",
-                               span: Span {
-                                   source: File(
-                                       "$DIR/print_ctor.rs",
-                                   ),
-                                   start: 591,
-                                   end: 592,
-                               },
+                               span: $DIR/print_ctor.rs:31:9 - 31:10,
                            },
                            expr: IntLit(
                                IntLitExpr {
@@ -537,13 +507,7 @@ warning: print test
                                                                    AstPathSegment {
                                                                        ident: Ident {
                                                                            name: "FieldStruct",
-                                                                           span: Span {
-                                                                               source: File(
-                                                                                   "$DIR/print_ctor.rs",
-                                                                               ),
-                                                                               start: 608,
-                                                                               end: 619,
-                                                                           },
+                                                                           span: $DIR/print_ctor.rs:32:11 - 32:22,
                                                                        },
                                                                        generics: SynGenericArgs {
                                                                            args: [],
@@ -563,13 +527,7 @@ warning: print test
                                                    AstPathSegment {
                                                        ident: Ident {
                                                            name: "FieldStruct",
-                                                           span: Span {
-                                                               source: File(
-                                                                   "$DIR/print_ctor.rs",
-                                                               ),
-                                                               start: 608,
-                                                               end: 619,
-                                                           },
+                                                           span: $DIR/print_ctor.rs:32:11 - 32:22,
                                                        },
                                                        generics: SynGenericArgs {
                                                            args: [],
@@ -578,13 +536,7 @@ warning: print test
                                                    AstPathSegment {
                                                        ident: Ident {
                                                            name: "default",
-                                                           span: Span {
-                                                               source: File(
-                                                                   "$DIR/print_ctor.rs",
-                                                               ),
-                                                               start: 621,
-                                                               end: 628,
-                                                           },
+                                                           span: $DIR/print_ctor.rs:32:24 - 32:31,
                                                        },
                                                        generics: SynGenericArgs {
                                                            args: [],
@@ -626,13 +578,7 @@ warning: print test
                                AstPathSegment {
                                    ident: Ident {
                                        name: "Union",
-                                       span: Span {
-                                           source: File(
-                                               "$DIR/print_ctor.rs",
-                                           ),
-                                           start: 661,
-                                           end: 666,
-                                       },
+                                       span: $DIR/print_ctor.rs:35:23 - 35:28,
                                    },
                                    generics: SynGenericArgs {
                                        args: [],
@@ -649,13 +595,7 @@ warning: print test
                            span: SpanId(..),
                            ident: Ident {
                                name: "a",
-                               span: Span {
-                                   source: File(
-                                       "$DIR/print_ctor.rs",
-                                   ),
-                                   start: 669,
-                                   end: 670,
-                               },
+                               span: $DIR/print_ctor.rs:35:31 - 35:32,
                            },
                            expr: IntLit(
                                IntLitExpr {
@@ -695,13 +635,7 @@ warning: print test
                                AstPathSegment {
                                    ident: Ident {
                                        name: "TupleStruct",
-                                       span: Span {
-                                           source: File(
-                                               "$DIR/print_ctor.rs",
-                                           ),
-                                           start: 700,
-                                           end: 711,
-                                       },
+                                       span: $DIR/print_ctor.rs:37:23 - 37:34,
                                    },
                                    generics: SynGenericArgs {
                                        args: [],
@@ -718,13 +652,7 @@ warning: print test
                            span: SpanId(..),
                            ident: Ident {
                                name: "0",
-                               span: Span {
-                                   source: File(
-                                       "$DIR/print_ctor.rs",
-                                   ),
-                                   start: 0,
-                                   end: 0,
-                               },
+                               span: $DIR/print_ctor.rs:1:1 - 1:1,
                            },
                            expr: IntLit(
                                IntLitExpr {
@@ -742,13 +670,7 @@ warning: print test
                            span: SpanId(..),
                            ident: Ident {
                                name: "1",
-                               span: Span {
-                                   source: File(
-                                       "$DIR/print_ctor.rs",
-                                   ),
-                                   start: 0,
-                                   end: 0,
-                               },
+                               span: $DIR/print_ctor.rs:1:1 - 1:1,
                            },
                            expr: IntLit(
                                IntLitExpr {
@@ -791,13 +713,7 @@ warning: print test
                                AstPathSegment {
                                    ident: Ident {
                                        name: "TupleStruct",
-                                       span: Span {
-                                           source: File(
-                                               "$DIR/print_ctor.rs",
-                                           ),
-                                           start: 741,
-                                           end: 752,
-                                       },
+                                       span: $DIR/print_ctor.rs:38:23 - 38:34,
                                    },
                                    generics: SynGenericArgs {
                                        args: [],
@@ -814,13 +730,7 @@ warning: print test
                            span: SpanId(..),
                            ident: Ident {
                                name: "0",
-                               span: Span {
-                                   source: File(
-                                       "$DIR/print_ctor.rs",
-                                   ),
-                                   start: 763,
-                                   end: 764,
-                               },
+                               span: $DIR/print_ctor.rs:39:9 - 39:10,
                            },
                            expr: IntLit(
                                IntLitExpr {
@@ -867,13 +777,7 @@ warning: print test
                                                                    AstPathSegment {
                                                                        ident: Ident {
                                                                            name: "TupleStruct",
-                                                                           span: Span {
-                                                                               source: File(
-                                                                                   "$DIR/print_ctor.rs",
-                                                                               ),
-                                                                               start: 779,
-                                                                               end: 790,
-                                                                           },
+                                                                           span: $DIR/print_ctor.rs:40:11 - 40:22,
                                                                        },
                                                                        generics: SynGenericArgs {
                                                                            args: [],
@@ -893,13 +797,7 @@ warning: print test
                                                    AstPathSegment {
                                                        ident: Ident {
                                                            name: "TupleStruct",
-                                                           span: Span {
-                                                               source: File(
-                                                                   "$DIR/print_ctor.rs",
-                                                               ),
-                                                               start: 779,
-                                                               end: 790,
-                                                           },
+                                                           span: $DIR/print_ctor.rs:40:11 - 40:22,
                                                        },
                                                        generics: SynGenericArgs {
                                                            args: [],
@@ -908,13 +806,7 @@ warning: print test
                                                    AstPathSegment {
                                                        ident: Ident {
                                                            name: "default",
-                                                           span: Span {
-                                                               source: File(
-                                                                   "$DIR/print_ctor.rs",
-                                                               ),
-                                                               start: 792,
-                                                               end: 799,
-                                                           },
+                                                           span: $DIR/print_ctor.rs:40:24 - 40:31,
                                                        },
                                                        generics: SynGenericArgs {
                                                            args: [],
@@ -956,13 +848,7 @@ warning: print test
                                AstPathSegment {
                                    ident: Ident {
                                        name: "Enum",
-                                       span: Span {
-                                           source: File(
-                                               "$DIR/print_ctor.rs",
-                                           ),
-                                           start: 832,
-                                           end: 836,
-                                       },
+                                       span: $DIR/print_ctor.rs:43:23 - 43:27,
                                    },
                                    generics: SynGenericArgs {
                                        args: [],
@@ -971,13 +857,7 @@ warning: print test
                                AstPathSegment {
                                    ident: Ident {
                                        name: "A",
-                                       span: Span {
-                                           source: File(
-                                               "$DIR/print_ctor.rs",
-                                           ),
-                                           start: 838,
-                                           end: 839,
-                                       },
+                                       span: $DIR/print_ctor.rs:43:29 - 43:30,
                                    },
                                    generics: SynGenericArgs {
                                        args: [],
@@ -1015,13 +895,7 @@ warning: print test
                                AstPathSegment {
                                    ident: Ident {
                                        name: "Enum",
-                                       span: Span {
-                                           source: File(
-                                               "$DIR/print_ctor.rs",
-                                           ),
-                                           start: 863,
-                                           end: 867,
-                                       },
+                                       span: $DIR/print_ctor.rs:44:23 - 44:27,
                                    },
                                    generics: SynGenericArgs {
                                        args: [],
@@ -1030,13 +904,7 @@ warning: print test
                                AstPathSegment {
                                    ident: Ident {
                                        name: "B",
-                                       span: Span {
-                                           source: File(
-                                               "$DIR/print_ctor.rs",
-                                           ),
-                                           start: 869,
-                                           end: 870,
-                                       },
+                                       span: $DIR/print_ctor.rs:44:29 - 44:30,
                                    },
                                    generics: SynGenericArgs {
                                        args: [],
@@ -1053,13 +921,7 @@ warning: print test
                            span: SpanId(..),
                            ident: Ident {
                                name: "0",
-                               span: Span {
-                                   source: File(
-                                       "$DIR/print_ctor.rs",
-                                   ),
-                                   start: 0,
-                                   end: 0,
-                               },
+                               span: $DIR/print_ctor.rs:1:1 - 1:1,
                            },
                            expr: IntLit(
                                IntLitExpr {
@@ -1099,13 +961,7 @@ warning: print test
                                AstPathSegment {
                                    ident: Ident {
                                        name: "Enum",
-                                       span: Span {
-                                           source: File(
-                                               "$DIR/print_ctor.rs",
-                                           ),
-                                           start: 897,
-                                           end: 901,
-                                       },
+                                       span: $DIR/print_ctor.rs:45:23 - 45:27,
                                    },
                                    generics: SynGenericArgs {
                                        args: [],
@@ -1114,13 +970,7 @@ warning: print test
                                AstPathSegment {
                                    ident: Ident {
                                        name: "C",
-                                       span: Span {
-                                           source: File(
-                                               "$DIR/print_ctor.rs",
-                                           ),
-                                           start: 903,
-                                           end: 904,
-                                       },
+                                       span: $DIR/print_ctor.rs:45:29 - 45:30,
                                    },
                                    generics: SynGenericArgs {
                                        args: [],
@@ -1137,13 +987,7 @@ warning: print test
                            span: SpanId(..),
                            ident: Ident {
                                name: "f1",
-                               span: Span {
-                                   source: File(
-                                       "$DIR/print_ctor.rs",
-                                   ),
-                                   start: 907,
-                                   end: 909,
-                               },
+                               span: $DIR/print_ctor.rs:45:33 - 45:35,
                            },
                            expr: IntLit(
                                IntLitExpr {
@@ -1161,13 +1005,7 @@ warning: print test
                            span: SpanId(..),
                            ident: Ident {
                                name: "f2",
-                               span: Span {
-                                   source: File(
-                                       "$DIR/print_ctor.rs",
-                                   ),
-                                   start: 915,
-                                   end: 917,
-                               },
+                               span: $DIR/print_ctor.rs:45:41 - 45:43,
                            },
                            expr: IntLit(
                                IntLitExpr {

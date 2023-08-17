@@ -20,13 +20,7 @@ Path(
                     AstPathSegment {
                         ident: Ident {
                             name: "Option",
-                            span: Span {
-                                source: File(
-                                    "$DIR/print_ty.rs",
-                                ),
-                                start: 85,
-                                end: 91,
-                            },
+                            span: $DIR/print_ty.rs:4:32 - 4:38,
                         },
                         generics: SynGenericArgs {
                             args: [
@@ -131,13 +125,7 @@ Path(
                     AstPathSegment {
                         ident: Ident {
                             name: "Option",
-                            span: Span {
-                                source: File(
-                                    "$DIR/print_ty.rs",
-                                ),
-                                start: 165,
-                                end: 171,
-                            },
+                            span: $DIR/print_ty.rs:5:32 - 5:38,
                         },
                         generics: SynGenericArgs {
                             args: [
@@ -242,13 +230,7 @@ Path(
                     AstPathSegment {
                         ident: Ident {
                             name: "Option",
-                            span: Span {
-                                source: File(
-                                    "$DIR/print_ty.rs",
-                                ),
-                                start: 245,
-                                end: 251,
-                            },
+                            span: $DIR/print_ty.rs:6:32 - 6:38,
                         },
                         generics: SynGenericArgs {
                             args: [
@@ -334,13 +316,7 @@ Path(
                     AstPathSegment {
                         ident: Ident {
                             name: "Option",
-                            span: Span {
-                                source: File(
-                                    "$DIR/print_ty.rs",
-                                ),
-                                start: 312,
-                                end: 318,
-                            },
+                            span: $DIR/print_ty.rs:7:29 - 7:35,
                         },
                         generics: SynGenericArgs {
                             args: [
@@ -360,13 +336,7 @@ Path(
                                                             AstPathSegment {
                                                                 ident: Ident {
                                                                     name: "AllowSync",
-                                                                    span: Span {
-                                                                        source: File(
-                                                                            "$DIR/print_ty.rs",
-                                                                        ),
-                                                                        start: 319,
-                                                                        end: 328,
-                                                                    },
+                                                                    span: $DIR/print_ty.rs:7:36 - 7:45,
                                                                 },
                                                                 generics: SynGenericArgs {
                                                                     args: [
@@ -497,13 +467,7 @@ Path(
                     AstPathSegment {
                         ident: Ident {
                             name: "Option",
-                            span: Span {
-                                source: File(
-                                    "$DIR/print_ty.rs",
-                                ),
-                                start: 385,
-                                end: 391,
-                            },
+                            span: $DIR/print_ty.rs:8:28 - 8:34,
                         },
                         generics: SynGenericArgs {
                             args: [
@@ -523,13 +487,7 @@ Path(
                                                             AstPathSegment {
                                                                 ident: Ident {
                                                                     name: "AllowSync",
-                                                                    span: Span {
-                                                                        source: File(
-                                                                            "$DIR/print_ty.rs",
-                                                                        ),
-                                                                        start: 392,
-                                                                        end: 401,
-                                                                    },
+                                                                    span: $DIR/print_ty.rs:8:35 - 8:44,
                                                                 },
                                                                 generics: SynGenericArgs {
                                                                     args: [
@@ -663,13 +621,7 @@ Path(
                     AstPathSegment {
                         ident: Ident {
                             name: "Option",
-                            span: Span {
-                                source: File(
-                                    "$DIR/print_ty.rs",
-                                ),
-                                start: 476,
-                                end: 482,
-                            },
+                            span: $DIR/print_ty.rs:9:28 - 9:34,
                         },
                         generics: SynGenericArgs {
                             args: [
@@ -689,13 +641,7 @@ Path(
                                                             AstPathSegment {
                                                                 ident: Ident {
                                                                     name: "AllowSync",
-                                                                    span: Span {
-                                                                        source: File(
-                                                                            "$DIR/print_ty.rs",
-                                                                        ),
-                                                                        start: 488,
-                                                                        end: 497,
-                                                                    },
+                                                                    span: $DIR/print_ty.rs:10:5 - 10:14,
                                                                 },
                                                                 generics: SynGenericArgs {
                                                                     args: [
@@ -722,13 +668,7 @@ Path(
                                                                                                                 AstPathSegment {
                                                                                                                     ident: Ident {
                                                                                                                         name: "AliasTy",
-                                                                                                                        span: Span {
-                                                                                                                            source: File(
-                                                                                                                                "$DIR/print_ty.rs",
-                                                                                                                            ),
-                                                                                                                            start: 508,
-                                                                                                                            end: 515,
-                                                                                                                        },
+                                                                                                                        span: $DIR/print_ty.rs:11:9 - 11:16,
                                                                                                                     },
                                                                                                                     generics: SynGenericArgs {
                                                                                                                         args: [],
@@ -756,13 +696,7 @@ Path(
                                                                                                                 AstPathSegment {
                                                                                                                     ident: Ident {
                                                                                                                         name: "String",
-                                                                                                                        span: Span {
-                                                                                                                            source: File(
-                                                                                                                                "$DIR/print_ty.rs",
-                                                                                                                            ),
-                                                                                                                            start: 525,
-                                                                                                                            end: 531,
-                                                                                                                        },
+                                                                                                                        span: $DIR/print_ty.rs:12:9 - 12:15,
                                                                                                                     },
                                                                                                                     generics: SynGenericArgs {
                                                                                                                         args: [],
@@ -790,13 +724,7 @@ Path(
                                                                                                                 AstPathSegment {
                                                                                                                     ident: Ident {
                                                                                                                         name: "Option",
-                                                                                                                        span: Span {
-                                                                                                                            source: File(
-                                                                                                                                "$DIR/print_ty.rs",
-                                                                                                                            ),
-                                                                                                                            start: 541,
-                                                                                                                            end: 547,
-                                                                                                                        },
+                                                                                                                        span: $DIR/print_ty.rs:13:9 - 13:15,
                                                                                                                     },
                                                                                                                     generics: SynGenericArgs {
                                                                                                                         args: [
@@ -816,13 +744,7 @@ Path(
                                                                                                                                                         AstPathSegment {
                                                                                                                                                             ident: Ident {
                                                                                                                                                                 name: "String",
-                                                                                                                                                                span: Span {
-                                                                                                                                                                    source: File(
-                                                                                                                                                                        "$DIR/print_ty.rs",
-                                                                                                                                                                    ),
-                                                                                                                                                                    start: 548,
-                                                                                                                                                                    end: 554,
-                                                                                                                                                                },
+                                                                                                                                                                span: $DIR/print_ty.rs:13:16 - 13:22,
                                                                                                                                                             },
                                                                                                                                                             generics: SynGenericArgs {
                                                                                                                                                                 args: [],
@@ -863,13 +785,7 @@ Path(
                                                                                                                 AstPathSegment {
                                                                                                                     ident: Ident {
                                                                                                                         name: "Vec",
-                                                                                                                        span: Span {
-                                                                                                                            source: File(
-                                                                                                                                "$DIR/print_ty.rs",
-                                                                                                                            ),
-                                                                                                                            start: 565,
-                                                                                                                            end: 568,
-                                                                                                                        },
+                                                                                                                        span: $DIR/print_ty.rs:14:9 - 14:12,
                                                                                                                     },
                                                                                                                     generics: SynGenericArgs {
                                                                                                                         args: [
@@ -889,13 +805,7 @@ Path(
                                                                                                                                                         AstPathSegment {
                                                                                                                                                             ident: Ident {
                                                                                                                                                                 name: "UnionItem",
-                                                                                                                                                                span: Span {
-                                                                                                                                                                    source: File(
-                                                                                                                                                                        "$DIR/print_ty.rs",
-                                                                                                                                                                    ),
-                                                                                                                                                                    start: 569,
-                                                                                                                                                                    end: 578,
-                                                                                                                                                                },
+                                                                                                                                                                span: $DIR/print_ty.rs:14:13 - 14:22,
                                                                                                                                                             },
                                                                                                                                                             generics: SynGenericArgs {
                                                                                                                                                                 args: [],
@@ -936,13 +846,7 @@ Path(
                                                                                                                 AstPathSegment {
                                                                                                                     ident: Ident {
                                                                                                                         name: "Box",
-                                                                                                                        span: Span {
-                                                                                                                            source: File(
-                                                                                                                                "$DIR/print_ty.rs",
-                                                                                                                            ),
-                                                                                                                            start: 589,
-                                                                                                                            end: 592,
-                                                                                                                        },
+                                                                                                                        span: $DIR/print_ty.rs:15:9 - 15:12,
                                                                                                                     },
                                                                                                                     generics: SynGenericArgs {
                                                                                                                         args: [
@@ -997,13 +901,7 @@ Path(
                                                                                                                 AstPathSegment {
                                                                                                                     ident: Ident {
                                                                                                                         name: "Box",
-                                                                                                                        span: Span {
-                                                                                                                            source: File(
-                                                                                                                                "$DIR/print_ty.rs",
-                                                                                                                            ),
-                                                                                                                            start: 613,
-                                                                                                                            end: 616,
-                                                                                                                        },
+                                                                                                                        span: $DIR/print_ty.rs:16:9 - 16:12,
                                                                                                                     },
                                                                                                                     generics: SynGenericArgs {
                                                                                                                         args: [

@@ -26,13 +26,7 @@ warning: print test
                                        AstPathSegment {
                                            ident: Ident {
                                                name: "foo",
-                                               span: Span {
-                                                   source: File(
-                                                       "$DIR/print_object_exprs.rs",
-                                                   ),
-                                                   start: 273,
-                                                   end: 276,
-                                               },
+                                               span: $DIR/print_object_exprs.rs:18:25 - 18:28,
                                            },
                                            generics: SynGenericArgs {
                                                args: [],
@@ -49,13 +43,7 @@ warning: print test
                    method: AstPathSegment {
                        ident: Ident {
                            name: "print",
-                           span: Span {
-                               source: File(
-                                   "$DIR/print_object_exprs.rs",
-                               ),
-                               start: 277,
-                               end: 282,
-                           },
+                           span: $DIR/print_object_exprs.rs:18:29 - 18:34,
                        },
                        generics: SynGenericArgs {
                            args: [],
@@ -94,13 +82,7 @@ warning: print test
                                        AstPathSegment {
                                            ident: Ident {
                                                name: "foo",
-                                               span: Span {
-                                                   source: File(
-                                                       "$DIR/print_object_exprs.rs",
-                                                   ),
-                                                   start: 310,
-                                                   end: 313,
-                                               },
+                                               span: $DIR/print_object_exprs.rs:19:25 - 19:28,
                                            },
                                            generics: SynGenericArgs {
                                                args: [],
@@ -117,13 +99,7 @@ warning: print test
                    method: AstPathSegment {
                        ident: Ident {
                            name: "inc",
-                           span: Span {
-                               source: File(
-                                   "$DIR/print_object_exprs.rs",
-                               ),
-                               start: 314,
-                               end: 317,
-                           },
+                           span: $DIR/print_object_exprs.rs:19:29 - 19:32,
                        },
                        generics: SynGenericArgs {
                            args: [],

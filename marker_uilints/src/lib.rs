@@ -167,6 +167,7 @@ impl LintPass for TestLintPass {
                     let span = expr.span();
                     diag.note(format!("Debug: {span:#?}"));
                     diag.note(format!("Snippet: {}", span.snippet_or("..")));
+                    diag.note(format!("Source: {:#?}", span.source()));
                 });
             } else if ident.name().starts_with("_ty") {
                 cx.emit_lint(TEST_LINT, stmt.id(), "print type test", stmt.span(), |diag| {

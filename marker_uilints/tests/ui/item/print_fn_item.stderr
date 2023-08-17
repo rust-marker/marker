@@ -12,13 +12,7 @@ warning: printing item
                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                       ident: Ident {
                           name: "print_me_simple",
-                          span: Span {
-                              source: File(
-                                  "$DIR/print_fn_item.rs",
-                              ),
-                              start: 7,
-                              end: 22,
-                          },
+                          span: $DIR/print_fn_item.rs:1:8 - 1:23,
                       },
                   },
                   generics: SynGenericParams {
@@ -54,13 +48,7 @@ warning: printing item
                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                       ident: Ident {
                           name: "print_me_special",
-                          span: Span {
-                              source: File(
-                                  "$DIR/print_fn_item.rs",
-                              ),
-                              start: 49,
-                              end: 65,
-                          },
+                          span: $DIR/print_fn_item.rs:3:21 - 3:37,
                       },
                   },
                   generics: SynGenericParams {
@@ -95,13 +83,7 @@ warning: printing item
                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                       ident: Ident {
                           name: "print_me_params",
-                          span: Span {
-                              source: File(
-                                  "$DIR/print_fn_item.rs",
-                              ),
-                              start: 79,
-                              end: 94,
-                          },
+                          span: $DIR/print_fn_item.rs:5:8 - 5:23,
                       },
                   },
                   generics: SynGenericParams {
@@ -223,13 +205,7 @@ warning: printing item
                                           AstPathSegment {
                                               ident: Ident {
                                                   name: "String",
-                                                  span: Span {
-                                                      source: File(
-                                                          "$DIR/print_fn_item.rs",
-                                                      ),
-                                                      start: 133,
-                                                      end: 139,
-                                                  },
+                                                  span: $DIR/print_fn_item.rs:5:62 - 5:68,
                                               },
                                               generics: SynGenericArgs {
                                                   args: [],
@@ -264,13 +240,7 @@ warning: printing item
                        vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                        ident: Ident {
                            name: "print_me_trait_with_body",
-                           span: Span {
-                               source: File(
-                                   "$DIR/print_fn_item.rs",
-                               ),
-                               start: 196,
-                               end: 220,
-                           },
+                           span: $DIR/print_fn_item.rs:10:8 - 10:32,
                        },
                    },
                    generics: SynGenericParams {
@@ -392,13 +362,7 @@ warning: printing item
                                            AstPathSegment {
                                                ident: Ident {
                                                    name: "String",
-                                                   span: Span {
-                                                       source: File(
-                                                           "$DIR/print_fn_item.rs",
-                                                       ),
-                                                       start: 256,
-                                                       end: 262,
-                                                   },
+                                                   span: $DIR/print_fn_item.rs:10:68 - 10:74,
                                                },
                                                generics: SynGenericArgs {
                                                    args: [],
@@ -433,13 +397,7 @@ warning: printing item
                        vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                        ident: Ident {
                            name: "print_me_trait_no_body",
-                           span: Span {
-                               source: File(
-                                   "$DIR/print_fn_item.rs",
-                               ),
-                               start: 301,
-                               end: 323,
-                           },
+                           span: $DIR/print_fn_item.rs:14:8 - 14:30,
                        },
                    },
                    generics: SynGenericParams {
@@ -538,13 +496,7 @@ warning: printing item
                                            AstPathSegment {
                                                ident: Ident {
                                                    name: "String",
-                                                   span: Span {
-                                                       source: File(
-                                                           "$DIR/print_fn_item.rs",
-                                                       ),
-                                                       start: 359,
-                                                       end: 365,
-                                                   },
+                                                   span: $DIR/print_fn_item.rs:14:66 - 14:72,
                                                },
                                                generics: SynGenericArgs {
                                                    args: [],
