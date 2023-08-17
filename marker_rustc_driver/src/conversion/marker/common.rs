@@ -3,14 +3,14 @@ use std::mem::{size_of, transmute};
 use marker_api::ast::generic::SynGenericArgs;
 use marker_api::ast::ty::SynTyKind;
 use marker_api::ast::{
-    Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, Constness, CrateId, ExprId, FieldId, GenericId,
-    Ident, ItemId, LetStmtId, Mutability, Safety, SpanId, SpanSrcId, SymbolId, Syncness, TraitRef, TyDefId, VarId,
-    VariantId,
+    Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, Constness, CrateId, ExpnId, ExprId, FieldId,
+    GenericId, Ident, ItemId, LetStmtId, MacroId, Mutability, Safety, SpanId, SpanSrcId, SymbolId, Syncness, TraitRef,
+    TyDefId, VarId, VariantId,
 };
 use marker_api::lint::Level;
 use rustc_hir as hir;
 
-use crate::conversion::common::{BodyIdLayout, DefIdLayout, HirIdLayout};
+use crate::conversion::common::{BodyIdLayout, DefIdLayout, ExpnIdLayout, HirIdLayout};
 use crate::transmute_id;
 
 use super::MarkerConverterInner;
@@ -108,6 +108,21 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_field_id(&self, id: impl Into<HirIdLayout>) -> FieldId {
         transmute_id!(HirIdLayout as FieldId = id.into())
+    }
+
+    #[must_use]
+    pub fn to_macro_id(&self, id: impl Into<DefIdLayout>) -> MacroId {
+        transmute_id!(DefIdLayout as MacroId = id.into())
+    }
+
+    #[must_use]
+    pub fn to_expn_id(&self, id: rustc_span::ExpnId) -> ExpnId {
+        transmute_id!(
+            ExpnIdLayout as ExpnId = ExpnIdLayout {
+                krate: id.krate.as_u32(),
+                index: id.local_id.as_u32(),
+            }
+        )
     }
 
     #[must_use]

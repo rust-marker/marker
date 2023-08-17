@@ -2,15 +2,15 @@ use std::mem::{size_of, transmute};
 
 use marker_api::{
     ast::{
-        BodyId, CrateId, ExprId, FieldId, GenericId, ItemId, LetStmtId, Span, SpanId, SpanSrcId, StmtIdInner, SymbolId,
-        TyDefId, VarId, VariantId,
+        BodyId, CrateId, ExpnId, ExprId, FieldId, GenericId, ItemId, LetStmtId, Span, SpanId, SpanSrcId, StmtIdInner,
+        SymbolId, TyDefId, VarId, VariantId,
     },
     diagnostic::{Applicability, EmissionNode},
     lint::Level,
 };
 use rustc_hir as hir;
 
-use crate::conversion::common::{BodyIdLayout, DefIdInfo, DefIdLayout, HirIdLayout};
+use crate::conversion::common::{BodyIdLayout, DefIdInfo, DefIdLayout, ExpnIdLayout, HirIdLayout};
 use crate::transmute_id;
 
 use super::RustcConverter;
@@ -167,6 +167,15 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
         // FIXME(xFrednet): This is unsound, since `SyntaxContext` doesn't have
         // `#[repr(...)]`. See comment in `MarkerConverterInner::to_span_src_id`
         transmute_id!(SpanSrcId as rustc_span::SyntaxContext = src)
+    }
+
+    #[must_use]
+    pub(crate) fn to_expn_id(&self, expn_id: ExpnId) -> rustc_span::ExpnId {
+        let layout = transmute_id!(ExpnId as ExpnIdLayout = expn_id);
+        rustc_span::ExpnId {
+            krate: rustc_span::def_id::CrateNum::from_u32(layout.krate),
+            local_id: rustc_span::hygiene::ExpnIndex::from_u32(layout.index),
+        }
     }
 }
 

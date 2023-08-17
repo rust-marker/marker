@@ -27,6 +27,12 @@ pub struct HirIdLayout {
     pub index: u32,
 }
 
+#[repr(C)]
+pub struct ExpnIdLayout {
+    pub krate: u32,
+    pub index: u32,
+}
+
 #[macro_export]
 macro_rules! transmute_id {
     ($t1:ty as $t2:ty = $e:expr) => {
