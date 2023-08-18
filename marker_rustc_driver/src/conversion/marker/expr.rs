@@ -209,8 +209,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ExprKind::Match(scrutinee, arms, hir::MatchSource::Normal | hir::MatchSource::FormatArgs) => {
                 ExprKind::Match(self.alloc(MatchExpr::new(data, self.to_expr(scrutinee), self.to_match_arms(arms))))
             },
-            hir::ExprKind::Match(scrutinee, [_early_return, _continue], hir::MatchSource::TryDesugar) => {
-                ExprKind::QuestionMark(self.alloc(QuestionMarkExpr::new(data, self.to_expr(scrutinee))))
+            hir::ExprKind::Match(_scrutinee, [_early_return, _continue], hir::MatchSource::TryDesugar) => {
+                ExprKind::QuestionMark(self.alloc(self.to_try_expr_from_desugar(expr)))
             },
             hir::ExprKind::Match(_scrutinee, [_awaitee_arm], hir::MatchSource::AwaitDesugar) => {
                 ExprKind::Await(self.alloc(self.to_await_expr_from_desugar(expr)))
@@ -550,6 +550,19 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         } else {
             unreachable!("assignment expr desugar always has a local as the first statement")
         }
+    }
+
+    fn to_try_expr_from_desugar(&self, try_desugar: &hir::Expr<'tcx>) -> QuestionMarkExpr<'ast> {
+        if let hir::ExprKind::Match(scrutinee, [_ret, _con], hir::MatchSource::TryDesugar) = try_desugar.kind {
+            if let hir::ExprKind::Call(_try_path, [tested_expr]) = scrutinee.kind {
+                return QuestionMarkExpr::new(
+                    CommonExprData::new(self.to_expr_id(try_desugar.hir_id), self.to_span_id(try_desugar.span)),
+                    self.to_expr(tested_expr),
+                );
+            }
+        }
+
+        unreachable!("try desugar always has the same structure")
     }
 
     /// The "Show HIR" option on the [Playground] is a great resource to
