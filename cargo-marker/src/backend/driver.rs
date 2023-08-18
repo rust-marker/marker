@@ -2,7 +2,7 @@ use std::{path::Path, process::Command, str::from_utf8};
 
 use once_cell::sync::Lazy;
 
-use crate::ExitStatus;
+use crate::{utils::is_local_driver, ExitStatus};
 
 use super::toolchain::{get_toolchain_folder, rustup_which, Toolchain};
 
@@ -125,7 +125,7 @@ fn install_toolchain(toolchain: &str) -> Result<(), ExitStatus> {
 
 /// This tries to compile the driver.
 fn build_driver(toolchain: &str, version: &str, additional_rustc_flags: &str) -> Result<(), ExitStatus> {
-    if cfg!(debug_assertions) {
+    if is_local_driver() {
         println!("Compiling rustc driver");
     } else {
         println!("Compiling rustc driver v{version} with {toolchain}");
@@ -135,7 +135,7 @@ fn build_driver(toolchain: &str, version: &str, additional_rustc_flags: &str) ->
 
     // Build driver
     let mut cmd = Command::new("cargo");
-    if cfg!(debug_assertions) {
+    if is_local_driver() {
         cmd.args(["build", "--bin", "marker_rustc_driver"]);
     } else {
         cmd.env("RUSTUP_TOOLCHAIN", toolchain);

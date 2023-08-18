@@ -114,7 +114,7 @@ const DUMMY_MAIN_CONTENT: &str = r#"
 "#;
 
 fn call_cargo_fetch(manifest: &Path, config: &Config) -> Result<(), ExitStatus> {
-    let mut cmd = config.toolchain.cargo_command();
+    let mut cmd = config.toolchain.cargo.command();
     cmd.arg("fetch");
     cmd.arg("--manifest-path");
     cmd.arg(manifest.as_os_str());
@@ -141,7 +141,7 @@ fn call_cargo_fetch(manifest: &Path, config: &Config) -> Result<(), ExitStatus> 
 }
 
 fn call_cargo_metadata(manifest: &PathBuf, config: &Config) -> Result<Metadata, ExitStatus> {
-    let res = config.toolchain.cargo_metadata_command().manifest_path(manifest).exec();
+    let res = config.toolchain.cargo.metadata().manifest_path(manifest).exec();
 
     // FIXME(xFrednet): Handle errors properly.
     res.map_err(|_| ExitStatus::LintCrateFetchFailed)

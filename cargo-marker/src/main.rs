@@ -23,7 +23,10 @@ use crate::backend::driver::DriverVersionInfo;
 fn main() -> Result<(), ExitStatus> {
     let cli = MarkerCli::parse_args();
 
-    let config = match Config::try_from_manifest() {
+    let cargo = backend::cargo::Cargo::default();
+
+    let path = cargo.cargo_locate_project()?;
+    let config = match Config::try_from_manifest(&path) {
         Ok(v) => Some(v),
         Err(e) => match e {
             config::ConfigFetchError::SectionNotFound => None,
@@ -76,15 +79,15 @@ fn run_check(args: &CheckArgs, config: Option<Config>, kind: CheckKind) -> Resul
     }
 
     // If this is a dev build, we want to rebuild the driver before checking
-    #[cfg(debug_assertions)]
-    backend::driver::install_driver(false, "")?;
+    if utils::is_local_driver() {
+        backend::driver::install_driver(false, "")?;
+    }
 
     // Configure backend
     // FIXME(xFrednet): Implement better logging and remove verbose boolean in
     // favor of debug logging.
     let toolchain = backend::toolchain::Toolchain::try_find_toolchain(false)?;
     let backend_conf = backend::Config {
-        dev_build: cfg!(debug_assertions),
         lints,
         ..backend::Config::try_base_from(toolchain)?
     };

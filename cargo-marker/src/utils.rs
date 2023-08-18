@@ -1,14 +1,4 @@
-use std::ffi::OsString;
-
-#[allow(clippy::unnecessary_wraps)]
-pub fn to_os_str(bytes: Vec<u8>) -> Option<OsString> {
-    #[cfg(unix)]
-    {
-        use std::os::unix::prelude::OsStringExt;
-        Some(OsString::from_vec(bytes))
-    }
-
-    // Windows paths are guaranteed to be valid UTF
-    #[cfg(windows)]
-    Some(OsString::from(String::from_utf8(bytes).ok()?))
+/// Use local dev build of driver nearby `cargo-marker` executable
+pub fn is_local_driver() -> bool {
+    std::env::var("MARKER_NO_LOCAL_DRIVER").is_err() && cfg!(debug_assertions)
 }

@@ -5,7 +5,7 @@ use std::fmt::Debug;
 
 use crate::backend::driver::DEFAULT_DRIVER_INFO;
 
-const HELP_FOR_NO_LINTS: &str = r#"No lints where specified.
+const HELP_FOR_NO_LINTS: &str = r#"No lints were specified.
 
 * Try specifying them in `Cargo.toml` under `[workspace.metadata.marker.lints]`
     Example:
@@ -49,35 +49,54 @@ const HELP_INSTALL_DRIVER_FAILED: &str = r#"Installing the driver failed
 pub enum ExitStatus {
     /// The toolchain validation failed. This could happen, if rustup is not
     /// installed or the required toolchain is not installed.
-    InvalidToolchain = 100,
+    InvalidToolchain,
     /// The execution of a tool, like rustup or cargo, failed.
-    ToolExecutionFailed = 101,
+    ToolExecutionFailed,
     /// Unable to find the driver binary
-    MissingDriver = 200,
+    MissingDriver,
     /// Nothing we can really do, but good to know. The user will have to analyze
     /// the forwarded cargo output.
-    DriverInstallationFailed = 300,
+    DriverInstallationFailed,
     /// A general collection status, for failures originating from the driver
-    DriverFailed = 400,
+    DriverFailed,
     /// The lint crate build failed for some reason
-    LintCrateBuildFail = 500,
+    LintCrateBuildFail,
     /// Lint crate could not be found
-    LintCrateNotFound = 501,
+    LintCrateNotFound,
     /// The lint crate has been build, but the resulting binary could not be found.
-    LintCrateLibNotFound = 502,
+    LintCrateLibNotFound,
     /// Failed to fetch the lint crate
-    LintCrateFetchFailed = 550,
-    NoTargetDir = 551,
+    LintCrateFetchFailed,
+    NoTargetDir,
     /// General "bad config" error
-    BadConfiguration = 600,
+    BadConfiguration,
     /// No lint crates were specified -> nothing to do
-    NoLints = 601,
+    NoLints,
     /// Can't deserialise `workspace.metadata.marker.lints` properly
-    WrongStructure = 602,
+    WrongStructure,
     /// An invalid configuration value was specified
-    InvalidValue = 603,
+    InvalidValue,
     /// Check failed
-    MarkerCheckFailed = 1000,
+    MarkerCheckFailed,
+    /// Uncategorized error happened.
+    /// If some kind of error needs to be handled specially, we may consider
+    /// moving it from `Fatal` to a dedicated enum variant.
+    Fatal {
+        message: String,
+        source: Option<Box<dyn std::error::Error + Send + Sync>>,
+    },
+}
+
+impl ExitStatus {
+    pub(crate) fn fatal(
+        source: impl Into<Box<dyn std::error::Error + Send + Sync>>,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::Fatal {
+            message: message.into(),
+            source: Some(source.into()),
+        }
+    }
 }
 
 impl Debug for ExitStatus {
@@ -102,6 +121,10 @@ impl Debug for ExitStatus {
             Self::WrongStructure => write!(f, "WrongStructure"),
             Self::InvalidValue => write!(f, "InvalidValue"),
             Self::MarkerCheckFailed => write!(f, "MarkerCheckFailed"),
+            Self::Fatal { message, source } => match source {
+                Some(source) => write!(f, "{message}\nCaused by: {source}"),
+                None => f.write_str(message),
+            },
         }
     }
 }

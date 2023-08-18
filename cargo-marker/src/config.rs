@@ -5,17 +5,27 @@
 //! ([source](https://toml.io/en/v1.0.0)) This allows Marker to just use
 //! strings here, without worrying about OS specific string magic.
 
-use std::{
-    collections::HashMap,
-    fs::File,
-    io::{self, Read},
-};
+use std::{collections::HashMap, fs, io};
 
+use camino::Utf8Path;
 use serde::{Deserialize, Serialize};
 
 use crate::ExitStatus;
 
-const CARGO_TOML: &str = "Cargo.toml";
+#[derive(Deserialize, Debug)]
+struct CargoToml {
+    workspace: Option<Workspace>,
+}
+
+#[derive(Deserialize, Debug)]
+struct Workspace {
+    metadata: Option<WorkspaceMetadata>,
+}
+
+#[derive(Deserialize, Debug)]
+struct WorkspaceMetadata {
+    marker: Option<Config>,
+}
 
 /// Markers metadata section `workspace.metadata.marker` in `Cargo.toml`
 #[derive(Deserialize, Debug)]
@@ -36,10 +46,10 @@ pub enum LintDependency {
 
 impl LintDependency {
     /// This function normalizes the struct, by making all paths absolute paths
-    fn normalize(&mut self) {
+    fn normalize(&mut self, workspace_path: &Utf8Path) -> Result<(), ConfigFetchError> {
         match self {
-            LintDependency::Full(full) => full.source.normalize(),
-            LintDependency::Simple(_) => {},
+            LintDependency::Full(full) => full.source.normalize(workspace_path),
+            LintDependency::Simple(_) => Ok(()),
         }
     }
 
@@ -87,14 +97,16 @@ pub enum Source {
 
 impl Source {
     /// This function normalizes the struct, by making all paths absolute paths
-    fn normalize(&mut self) {
-        if let Source::Path { ref mut path } = self {
-            if let Ok(absolute_path) = std::fs::canonicalize(&path) {
-                if let Some(absolute_path) = absolute_path.to_str() {
-                    *path = absolute_path.to_string();
-                }
-            }
-        }
+    fn normalize(&mut self, workspace_path: &Utf8Path) -> Result<(), ConfigFetchError> {
+        let Source::Path { path } = self else {
+            return Ok(());
+        };
+        *path = workspace_path
+            .join(&path)
+            .canonicalize_utf8()
+            .map_err(ConfigFetchError::IoError)?
+            .into_string();
+        Ok(())
     }
 }
 
@@ -108,14 +120,10 @@ pub enum GitRef {
 
 #[derive(Debug)]
 pub enum ConfigFetchError {
-    /// `Cargo.toml` wasn't found
-    FileNotFound,
     /// Read failed
     IoError(io::Error),
     /// Couldn't parse `Cargo.toml`
     ParseError(toml::de::Error),
-    /// `workspace.metadata.marker` has invalid structure
-    InvalidStructure,
     /// `workspace.metadata.marker` doesn't exist
     SectionNotFound,
 }
@@ -123,71 +131,48 @@ pub enum ConfigFetchError {
 impl ConfigFetchError {
     pub fn emit_and_convert(self) -> ExitStatus {
         match self {
-            ConfigFetchError::FileNotFound => eprintln!("`Cargo.toml` wasn't found"),
             ConfigFetchError::IoError(err) => eprintln!("IO error reading config: {err:?}"),
-            ConfigFetchError::ParseError(err) => eprintln!("Can't parse config: {err:?}"),
+            // Better to use Display than Debug for toml error because it
+            // will display the snippet of toml and highlight the error span
+            ConfigFetchError::ParseError(err) => eprintln!("Can't parse config: {err}"),
             ConfigFetchError::SectionNotFound => eprintln!("Marker config wasn't found"),
-            ConfigFetchError::InvalidStructure => {
-                eprintln!("`workspace.metadata.marker` has invalid structure");
-                return ExitStatus::WrongStructure;
-            },
         };
         ExitStatus::BadConfiguration
     }
 }
 
 impl Config {
-    pub fn try_from_manifest() -> Result<Config, ConfigFetchError> {
-        let config_str = Self::load_raw_manifest()?;
+    pub fn try_from_manifest(path: &Utf8Path) -> Result<Config, ConfigFetchError> {
+        let config_str = fs::read_to_string(path).map_err(ConfigFetchError::IoError)?;
 
-        Self::try_from_str(&config_str)
+        Self::try_from_str(&config_str, path)
     }
 
-    pub fn try_from_str(config_str: &str) -> Result<Config, ConfigFetchError> {
-        let cargo_config: toml::Value = match toml::from_str(config_str) {
-            Ok(v) => v,
-            Err(e) => return Err(ConfigFetchError::ParseError(e)),
-        };
+    pub(crate) fn try_from_str(config_str: &str, path: &Utf8Path) -> Result<Config, ConfigFetchError> {
+        let cargo_toml: CargoToml = toml::from_str(config_str).map_err(ConfigFetchError::ParseError)?;
 
-        let config_value = if let Some(value) = cargo_config
-            .get("workspace")
-            .and_then(|v| v.get("metadata"))
-            .and_then(|v| v.get("marker"))
-        {
-            value
-        } else {
-            return Err(ConfigFetchError::SectionNotFound);
-        };
+        let mut config = cargo_toml
+            .workspace
+            .ok_or(ConfigFetchError::SectionNotFound)?
+            .metadata
+            .ok_or(ConfigFetchError::SectionNotFound)?
+            .marker
+            .ok_or(ConfigFetchError::SectionNotFound)?;
 
-        let mut config: Config = if let Ok(config) = config_value.clone().try_into() {
-            config
-        } else {
-            return Err(ConfigFetchError::InvalidStructure);
-        };
-
-        config.normalize();
+        let workspace_path = path
+            .parent()
+            .expect("path must have a parent after reading the `Cargo.toml` file");
+        config.normalize(workspace_path)?;
 
         Ok(config)
     }
 
-    fn load_raw_manifest() -> Result<String, ConfigFetchError> {
-        // FIXME(xFrednet): Use `cargo locate-project` to find the `Cargo.toml` file
-        let Ok(mut config_file) = File::open(CARGO_TOML) else {
-            return Err(ConfigFetchError::FileNotFound);
-        };
-
-        // FIXME(xFrednet): Maybe load `Cargo.toml` with `toml` that allows to display
-        // warnings with a span
-        let mut config_str = String::new();
-        if let Err(e) = config_file.read_to_string(&mut config_str) {
-            return Err(ConfigFetchError::IoError(e));
-        }
-        Ok(config_str)
-    }
-
     /// This function normalizes the config, to be generally applicable. Currently,
     /// it normalizes all relative paths to be absolute paths instead.
-    fn normalize(&mut self) {
-        self.lints.iter_mut().for_each(|(_name, lint)| lint.normalize());
+    fn normalize(&mut self, workspace_path: &Utf8Path) -> Result<(), ConfigFetchError> {
+        for lint in &mut self.lints.values_mut() {
+            lint.normalize(workspace_path)?;
+        }
+        Ok(())
     }
 }
