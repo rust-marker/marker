@@ -17,20 +17,25 @@ env:
   CARGO_TERM_COLOR: always
   RUSTDOCFLAGS: --deny warnings
   RUSTFLAGS: --deny warnings
+  # for unix
+  PATH: ${{ github.workspace }}:${{ env.PATH }}
+  # for windows
+  Path: ${{ github.workspace }};${{ env.Path }}
 
 jobs:
   rust-lint:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu, windows, macos]
 
-    # Setup
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - run: cargo test
+      - run: ./scripts/download/cargo-nextest.sh
+
+      - run: cargo nextest run
       - run: cargo clippy
       - run: cargo doc --no-deps
 
@@ -45,11 +50,11 @@ jobs:
   # the only package requiring nightly should be `marker_rustc_driver` and
   # optionally `marker_adapter`
   cargo-check-on-stable:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu, windows, macos]
 
     steps:
       - uses: actions/checkout@v3
