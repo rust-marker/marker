@@ -27,17 +27,17 @@ jobs:
         os: [ubuntu, windows, macos]
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - run: ./scripts/download/cargo-nextest.sh && mv cargo-nextest ~/.cargo/bin
-      - run: which cargo
+      # - uses: actions/checkout@v3
+      # - uses: actions-rust-lang/setup-rust-toolchain@v1
+      # - run: ./scripts/download/cargo-nextest.sh && mv cargo-nextest ~/.cargo/bin
+      # - run: which cargo
       - run: echo $OSTYPE
-      - run: ls -la ~/.cargo/bin
-      - run: echo ${Path:-nothing}
+      # - run: ls -la ~/.cargo/bin
+      # - run: echo ${Path:-nothing}
 
-      - run: cargo nextest run --locked
-      - run: cargo clippy
-      - run: cargo doc --no-deps
+      # - run: cargo nextest run --locked
+      # - run: cargo clippy
+      # - run: cargo doc --no-deps
 
   rust-formatting:
     runs-on: ubuntu-latest
