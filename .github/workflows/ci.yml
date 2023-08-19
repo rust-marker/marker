@@ -33,9 +33,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - run: ./scripts/download/cargo-nextest.sh
 
-      - run: cargo nextest run --locked
+      - run: cargo test --locked
       - run: cargo clippy
       - run: cargo doc --no-deps
 
