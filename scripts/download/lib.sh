@@ -20,6 +20,12 @@ esac
 
 triple_rust=$arch_rust-$triple_rust
 
+if [[ os == "windows" ]]; then
+    export exe=.exe
+else
+    export exe=
+fi
+
 function download_and_decompress {
     with_backoff try_download_and_decompress "$@"
 }

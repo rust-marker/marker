@@ -12,4 +12,8 @@ if [[ $os == macos ]]; then
     triple_rust=universal-apple-darwin
 fi
 
+echo OS: $os, triple: $triple_rust
+
 download_and_decompress https://get.nexte.st/$version/$triple_rust.tar.gz
+
+mv cargo-nextest$exe ~/.cargo/bin

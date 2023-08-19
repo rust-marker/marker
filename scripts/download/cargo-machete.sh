@@ -15,3 +15,5 @@ download_and_decompress \
     --check-hash sha256 \
     $base_url/$file_stem.tar.gz \
     --strip-components 1 $file_stem/cargo-machete
+
+mv cargo-machete$exe ~/.cargo/bin
