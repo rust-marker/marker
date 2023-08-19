@@ -19,7 +19,7 @@ env:
   RUSTFLAGS: --deny warnings
 
 jobs:
-  rust-lint:
+  rust-test:
     runs-on: ${{ matrix.os }}-latest
 
     strategy:
@@ -31,6 +31,7 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       - run: ./scripts/download/cargo-nextest.sh && mv cargo-nextest ~/.cargo/bin
       - run: which cargo
+      - run: echo $OSTYPE
       - run: ls -la ~/.cargo/bin
       - run: echo ${Path:-nothing}
 
@@ -38,7 +39,7 @@ jobs:
       - run: cargo clippy
       - run: cargo doc --no-deps
 
-  cargo-fmt:
+  rust-formatting:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -48,7 +49,7 @@ jobs:
   # This task ensures, required packages can be built with a stable toolchain
   # the only package requiring nightly should be `marker_rustc_driver` and
   # optionally `marker_adapter`
-  cargo-check-on-stable:
+  rust-check-on-stable:
     runs-on: ${{ matrix.os }}-latest
 
     strategy:
