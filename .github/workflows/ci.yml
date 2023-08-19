@@ -60,9 +60,9 @@ jobs:
 
       - run: >-
           cargo check
-            --workspace
-            --exclude marker_rustc_driver
-            --exclude marker_lints
+          --workspace
+          --exclude marker_rustc_driver
+          --exclude marker_lints
 
   # Check the formatting of TOML files in the repository
   toml:
