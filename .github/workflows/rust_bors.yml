@@ -1,4 +1,3 @@
-# This file has to be kept in sync with `rust.yml`
 name: Rust (bors)
 
 on:

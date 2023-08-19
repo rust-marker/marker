@@ -1,74 +1,59 @@
-# This file has to be kept in sync with `rust_bors.yml`
-name: Rust
+name: ci
 
 on:
   push:
-    # Don't run tests, when only text files were modified
-    paths-ignore:
-    - 'COPYRIGHT'
-    - 'LICENSE-*'
-    - '**.md'
-    - '**.txt'
-    # Bors magic branches, these are covered by `rust_bors`
-    branches-ignore:
-    - '**.tmp'
-    - 'staging'
-    - 'trying'
-    - 'master'
+    branches:
+      - master
+  merge_group:
   pull_request:
     # Don't run tests, when only text files were modified
     paths-ignore:
-    - 'COPYRIGHT'
-    - 'LICENSE-*'
-    - '**.md'
-    - '**.txt'
+      - 'COPYRIGHT'
+      - 'LICENSE-*'
+      - '**.md'
+      - '**.txt'
 
 env:
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
-  RUSTDOCFLAGS: "-Dwarnings"
-  RUSTFLAGS: "-Dwarnings"
+  RUSTDOCFLAGS: --deny warnings
+  RUSTFLAGS: --deny warnings
 
 jobs:
-  rust:
-    runs-on: ubuntu-latest
+  rust-lint:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     # Setup
     steps:
-    - uses: actions/checkout@v3
-    - uses: dtolnay/rust-toolchain@master
-      with:
-        toolchain: nightly-2023-07-13
-        components: rustfmt, clippy
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with: { toolchain: nightly-2023-07-13 }
 
-    - run: rustc -vV
-
-    # Tests
-    - run: cargo test
-    - run: cargo clippy
-    - run: cargo fmt --check
-    - run: cargo doc --no-deps
+      - run: cargo test
+      - run: cargo clippy
+      - run: cargo fmt --check
+      - run: cargo doc --no-deps
 
   # This task ensures, required packages can be built with a stable toolchain
   # the only package requiring nightly should be `marker_rustc_driver` and
   # optionally `marker_adapter`
   rust-crates-build-stable:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
-    # Setup
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
     steps:
-    - uses: actions/checkout@v3
-    - run: rm rust-toolchain
-    - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@v3
+      - run: rm rust-toolchain
+      - uses: dtolnay/rust-toolchain@stable
 
-    - run: rustc -vV
-
-    # Test
-    - run: cargo build --package cargo_marker
-    - run: cargo build --package marker_api
-    - run: cargo build --package marker_utils
-    - run: cargo build --package marker_uitest
-    - run: cargo build --package marker_uilints
+      - run: cargo check --exclude marker_rustc_driver --exclude marker_adapter
 
   # Check the formatting of TOML files in the repository
   toml:
