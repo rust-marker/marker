@@ -26,16 +26,10 @@ jobs:
       matrix:
         os: [ubuntu, windows, macos]
 
-    env:
-      # for unix
-      PATH: ${{ github.workspace }}:${{ env.PATH }}
-      # for windows
-      Path: ${{ github.workspace }};${{ env.Path }}
-
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - run: ./scripts/download/cargo-nextest.sh
+      - run: ./scripts/download/cargo-nextest.sh && mv cargo-nextest ~/.cargo/bin
 
       - run: cargo nextest run
       - run: cargo clippy
