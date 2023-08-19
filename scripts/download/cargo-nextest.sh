@@ -8,4 +8,8 @@ script_dir=$(readlink -f $(dirname $0))
 
 version=0.9.57
 
-download_and_decompress https://get.nexte.st/$version/$arch_rust-unknown-linux-gnu.tar.gz
+if [[ $os == macos ]]; then
+    triple_rust=universal-apple-darwin
+fi
+
+download_and_decompress https://get.nexte.st/$version/$triple_rust.tar.gz

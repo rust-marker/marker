@@ -12,6 +12,10 @@ version=v1.16.1
 
 base_url=https://github.com/crate-ci/typos/releases/download/$version
 
+if [[ $os == linux ]]; then
+    triple_rust=$arch_rust-unknown-linux-musl
+fi
+
 file_stem=typos-$version-x86_64-unknown-linux-musl
 
 download_and_decompress $base_url/$file_stem.tar.gz ./typos
