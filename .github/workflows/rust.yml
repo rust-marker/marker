@@ -35,13 +35,19 @@ jobs:
 
       - run: cargo test
       - run: cargo clippy
-      - run: cargo fmt --check
       - run: cargo doc --no-deps
+
+  cargo-fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo fmt --check
 
   # This task ensures, required packages can be built with a stable toolchain
   # the only package requiring nightly should be `marker_rustc_driver` and
   # optionally `marker_adapter`
-  rust-crates-build-stable:
+  cargo-check-on-stable:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -53,7 +59,11 @@ jobs:
       - run: rm rust-toolchain
       - uses: dtolnay/rust-toolchain@stable
 
-      - run: cargo check --exclude marker_rustc_driver --exclude marker_adapter
+      - run: >-
+          cargo check
+            --workspace
+            --exclude marker_rustc_driver
+            --exclude marker_adapter
 
   # Check the formatting of TOML files in the repository
   toml:
