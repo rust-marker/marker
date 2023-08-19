@@ -26,14 +26,10 @@ jobs:
       matrix:
         os: [ubuntu, windows, macos]
 
-    env:
-      EXE: ${{ matrix.os == 'windows' && '.exe' || '' }}
-
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       - run: ./scripts/download/cargo-nextest.sh
-      - run: mv cargo-nextest${{ env.EXE }} ~/.cargo/bin
 
       - run: cargo nextest run --locked
       - run: cargo clippy
