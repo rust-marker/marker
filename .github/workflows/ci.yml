@@ -18,6 +18,10 @@ env:
   RUSTDOCFLAGS: --deny warnings
   RUSTFLAGS: --deny warnings
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   rust-test:
     runs-on: ${{ matrix.os }}-latest
@@ -72,7 +76,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: ./scripts/download/taplo.sh
-      - run: ./taplo fmt --check
+      - run: taplo fmt --check
 
   # Check for typos in the repository based on a static dictionary
   typos:
@@ -80,7 +84,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: ./scripts/download/typos.sh
-      - run: ./typos
+      - run: typos
 
   # Check for unused dependencies that uses simple regex search,
   # meaning it's ⚡️ blazingly ⚡️ fast
@@ -89,4 +93,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: ./scripts/download/cargo-machete.sh
-      - run: ./cargo-machete
+      - run: cargo-machete

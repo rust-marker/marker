@@ -16,4 +16,4 @@ download_and_decompress $base_url/$file_stem.gz
 
 mv $file_stem$exe ~/.cargo/bin
 
-chmod +x ./taplo
+chmod +x ./cargo/bin/taplo$exe

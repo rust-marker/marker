@@ -8,7 +8,7 @@ script_dir=$(readlink -f $(dirname $0))
 
 version=0.9.57
 
-if [[ $os == macos ]]; then
+if [[ $os == darwin ]]; then
     triple_rust=universal-apple-darwin
 fi
 
