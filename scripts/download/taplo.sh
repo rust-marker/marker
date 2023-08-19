@@ -10,10 +10,9 @@ version=0.8.1
 
 base_url=https://github.com/tamasfe/taplo/releases/download/$version
 
-file_stem=taplo-linux-$arch_rust
+file_stem=taplo-$os-$arch_rust
 
 download_and_decompress $base_url/$file_stem.gz
 
-mv $file_stem taplo
-
-chmod +x ./taplo
+with_log chmod +x $file_stem$exe
+with_log mv $file_stem$exe ~/.cargo/bin/taplo$exe

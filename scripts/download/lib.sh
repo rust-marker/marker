@@ -5,6 +5,27 @@ script_dir=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
 # Produces Rust-style arch names, e.g. x86_64, aarch64, etc.
 export arch_rust=$(uname -m)
 
+case "$OSTYPE" in
+    linux*)  export os=linux ;;
+    darwin*) export os=darwin ;;
+    msys)    export os=windows ;;
+    *)       echo "Unknown OS: $OSTYPE" && exit 1 ;;
+esac
+
+case $os in
+    linux)   export triple_rust=unknown-linux-gnu ;;
+    darwin)  export triple_rust=apple-darwin ;;
+    windows) export triple_rust=pc-windows-msvc ;;
+esac
+
+triple_rust=$arch_rust-$triple_rust
+
+if [[ os == "windows" ]]; then
+    export exe=.exe
+else
+    export exe=
+fi
+
 function download_and_decompress {
     with_backoff try_download_and_decompress "$@"
 }
