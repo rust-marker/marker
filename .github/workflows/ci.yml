@@ -17,10 +17,6 @@ env:
   CARGO_TERM_COLOR: always
   RUSTDOCFLAGS: --deny warnings
   RUSTFLAGS: --deny warnings
-  # for unix
-  PATH: ${{ github.workspace }}:${{ env.PATH }}
-  # for windows
-  Path: ${{ github.workspace }};${{ env.Path }}
 
 jobs:
   rust-lint:
@@ -29,6 +25,12 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu, windows, macos]
+
+    env:
+      # for unix
+      PATH: ${{ github.workspace }}:${{ env.PATH }}
+      # for windows
+      Path: ${{ github.workspace }};${{ env.Path }}
 
     steps:
       - uses: actions/checkout@v3
