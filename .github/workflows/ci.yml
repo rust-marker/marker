@@ -59,6 +59,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       # We don't need any cache here, so use dtolnay action directly
+      # The version of toolchain here should track the latest stable
+      # version of Rust. The version of `cargo fmt` we use here doesn't
+      # influence the version of Rust that is used when `cargo-marker` is built.
       - uses: dtolnay/rust-toolchain@1.71.1
       - run: cargo fmt --check
 
@@ -76,6 +79,13 @@ jobs:
       - run: rm rust-toolchain.toml
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
+          # We want a wide range of users to be able to build the project
+          # if they stick with an old version in their repository yet.
+          # Therefore we use an older toolchain version here. However,
+          # we may remove this and track the latest stable version once
+          # we ship pre-compiled binaries (#193). This way users wouldn't
+          # need to compile `cargo-marker` from sources and depend on the
+          # toolchain version that they have installed in their environment.
           toolchain: 1.65.0
 
       - run: >-
