@@ -59,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       # We don't need any cache here, so use dtolnay action directly
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.71.1
       - run: cargo fmt --check
 
   # This job ensures required packages can be built with a stable toolchain
@@ -76,7 +76,7 @@ jobs:
       - run: rm rust-toolchain.toml
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: stable
+          toolchain: 1.65.0
 
       - run: >-
           cargo check
