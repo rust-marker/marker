@@ -1,23 +1,24 @@
-use std::{path::Path, process::Command, str::from_utf8};
-
-use once_cell::sync::Lazy;
-
-use crate::{utils::is_local_driver, ExitStatus};
-
 use super::toolchain::{get_toolchain_folder, rustup_which, Toolchain};
+use crate::error::prelude::*;
+use crate::observability::display::print_stage;
+use crate::observability::prelude::*;
+use crate::{utils::is_local_driver, Result};
+use std::{path::Path, process::Command};
+use yansi::Paint;
 
-#[cfg(unix)]
-pub const MARKER_DRIVER_BIN_NAME: &str = "marker_rustc_driver";
-#[cfg(windows)]
-pub const MARKER_DRIVER_BIN_NAME: &str = "marker_rustc_driver.exe";
+pub fn marker_driver_bin_name() -> String {
+    format!("marker_rustc_driver{}", std::env::consts::EXE_SUFFIX)
+}
 
 /// This is the driver version and toolchain, that is used by the setup command
 /// to install the driver.
-pub static DEFAULT_DRIVER_INFO: Lazy<DriverVersionInfo> = Lazy::new(|| DriverVersionInfo {
-    toolchain: "nightly-2023-08-24".to_string(),
-    version: "0.3.0-dev".to_string(),
-    api_version: "0.3.0-dev".to_string(),
-});
+pub(crate) fn default_driver_info() -> DriverVersionInfo {
+    DriverVersionInfo {
+        toolchain: "nightly-2023-08-24".to_string(),
+        version: "0.3.0-dev".to_string(),
+        api_version: "0.3.0-dev".to_string(),
+    }
+}
 
 /// The version info of one specific driver
 pub struct DriverVersionInfo {
@@ -27,10 +28,10 @@ pub struct DriverVersionInfo {
 }
 
 impl DriverVersionInfo {
-    pub fn try_from_toolchain(toolchain: &Toolchain, manifest: &Path) -> Result<DriverVersionInfo, ExitStatus> {
+    pub fn try_from_toolchain(toolchain: &Toolchain, manifest: &Path) -> Result<DriverVersionInfo> {
         // The driver has to be invoked via cargo, to ensure that the libraries
         // are correctly linked. Toolchains are truly fun...
-        if let Ok(output) = toolchain
+        let output = toolchain
             .cargo_with_driver()
             .arg("rustc")
             .arg("--quiet")
@@ -38,45 +39,49 @@ impl DriverVersionInfo {
             .arg(manifest.as_os_str())
             .arg("--")
             .arg("--toolchain")
+            .log()
             .output()
-        {
-            if !output.status.success() {
-                return Err(ExitStatus::DriverFailed);
-            }
+            .context(|| "Failed to run the command `cargo rustc` to get the driver metadata")?;
 
-            if let Ok(info) = from_utf8(&output.stdout) {
-                let mut toolchain = Err(ExitStatus::InvalidValue);
-                let mut driver_version = Err(ExitStatus::InvalidValue);
-                let mut api_version = Err(ExitStatus::InvalidValue);
-                for line in info.lines() {
-                    if let Some(value) = line.strip_prefix("toolchain: ") {
-                        toolchain = Ok(value.trim().to_string());
-                    } else if let Some(value) = line.strip_prefix("driver: ") {
-                        driver_version = Ok(value.trim().to_string());
-                    } else if let Some(value) = line.strip_prefix("marker-api: ") {
-                        api_version = Ok(value.trim().to_string());
-                    }
-                }
-
-                return Ok(DriverVersionInfo {
-                    toolchain: toolchain?,
-                    version: driver_version?,
-                    api_version: api_version?,
-                });
-            }
+        if !output.status.success() {
+            return Err(Error::wrap(
+                String::from_utf8_lossy(&output.stderr),
+                "Command `cargo rustc` to get the driver metadata failed",
+            ));
         }
 
-        Err(ExitStatus::DriverFailed)
+        let info = String::from_utf8(output.stdout).context(|| "Failed to parse the driver metadata as UTF8")?;
+
+        let fields = ["toolchain", "driver", "marker-api"];
+
+        let [toolchain, driver, marker_api] = fields.map(|field| {
+            info.lines()
+                .find_map(|line| line.strip_prefix(&format!("{field}: ")))
+                .map(ToOwned::to_owned)
+                .context(|| {
+                    format!(
+                        "The driver metadata doesn't contain the `{field}` field \
+                        (dumped metadata on the next line)\n---\n{info}\n---"
+                    )
+                })
+        });
+
+        Ok(DriverVersionInfo {
+            toolchain: toolchain?,
+            version: driver?,
+            api_version: marker_api?,
+        })
     }
 }
 
-/// This tries to install the rustc driver specified in [`DEFAULT_DRIVER_INFO`].
-pub fn install_driver(auto_install_toolchain: bool, additional_rustc_flags: &str) -> Result<(), ExitStatus> {
+/// This tries to install the rustc driver specified in [`default_driver_info`].
+pub(crate) fn install_driver(auto_install_toolchain: bool, additional_rustc_flags: Option<String>) -> Result {
     // The toolchain, driver version and api version should ideally be configurable.
     // However, that will require more prototyping and has a low priority rn.
     // See #60
+    let default_driver = default_driver_info();
 
-    let toolchain = &DEFAULT_DRIVER_INFO.toolchain;
+    let toolchain = &default_driver.toolchain;
 
     // If `auto-install-toolchain` is set, we want to run it regardless
     if auto_install_toolchain {
@@ -84,20 +89,15 @@ pub fn install_driver(auto_install_toolchain: bool, additional_rustc_flags: &str
     }
 
     // Prerequisites
-    if rustup_which(toolchain, "cargo", false).is_err() {
-        eprintln!("Error: The required toolchain `{toolchain}` can't be found");
-        eprintln!();
-        eprintln!(
-            "You can install the toolchain by running: `rustup toolchain install {toolchain} --component rustc-dev llvm-tools`"
-        );
-        eprintln!("Or by adding the `--auto-install-toolchain` flag");
-        return Err(ExitStatus::InvalidToolchain);
-    }
+    rustup_which(toolchain, "cargo").map_err(|source| ErrorKind::ToolchainNotFound {
+        source,
+        toolchain: toolchain.clone(),
+    })?;
 
-    build_driver(toolchain, &DEFAULT_DRIVER_INFO.version, additional_rustc_flags)
+    build_driver(toolchain, &default_driver.version, additional_rustc_flags)
 }
 
-fn install_toolchain(toolchain: &str) -> Result<(), ExitStatus> {
+fn install_toolchain(toolchain: &str) -> Result {
     let mut cmd = Command::new("rustup");
 
     cmd.args([
@@ -110,28 +110,28 @@ fn install_toolchain(toolchain: &str) -> Result<(), ExitStatus> {
     ]);
 
     let status = cmd
+        .log()
         .spawn()
         .expect("unable to start rustup to install the toolchain")
         .wait()
         .expect("unable to wait on rustup to install the toolchain");
     if status.success() {
-        Ok(())
-    } else {
-        // The user can see rustup's output, as the command output was passed on
-        // to the user via the `.spawn()` call.
-        Err(ExitStatus::InvalidToolchain)
+        return Ok(());
     }
+
+    Err(Error::root(format!(
+        "Failed to install the toolchain {}",
+        toolchain.red().bold()
+    )))
 }
 
 /// This tries to compile the driver.
-fn build_driver(toolchain: &str, version: &str, additional_rustc_flags: &str) -> Result<(), ExitStatus> {
+fn build_driver(toolchain: &str, version: &str, mut additional_rustc_flags: Option<String>) -> Result {
     if is_local_driver() {
-        println!("Compiling rustc driver");
+        print_stage("compiling rustc driver");
     } else {
-        println!("Compiling rustc driver v{version} with {toolchain}");
+        print_stage(&format!("compiling rustc driver v{version} with {toolchain}"));
     }
-
-    let mut rustc_flags = additional_rustc_flags.to_string();
 
     // Build driver
     let mut cmd = Command::new("cargo");
@@ -140,26 +140,30 @@ fn build_driver(toolchain: &str, version: &str, additional_rustc_flags: &str) ->
     } else {
         cmd.env("RUSTUP_TOOLCHAIN", toolchain);
         cmd.args(["install", "marker_rustc_driver", "--version", version, "--force"]);
-        rustc_flags += " --cap-lints=allow";
+
+        *additional_rustc_flags.get_or_insert_with(Default::default) += " --cap-lints=allow";
 
         let install_root = get_toolchain_folder(toolchain)?;
         cmd.arg("--root");
         cmd.arg(install_root.as_os_str());
         cmd.arg("--no-track");
     }
-    cmd.env("RUSTFLAGS", rustc_flags);
+
+    if let Some(rustc_flags) = additional_rustc_flags {
+        cmd.env("RUSTFLAGS", rustc_flags);
+    }
+
     cmd.env("MARKER_ALLOW_DRIVER_BUILD", "1");
 
     let status = cmd
+        .log()
         .spawn()
         .expect("unable to start cargo install for the driver")
         .wait()
         .expect("unable to wait on cargo install for the driver");
     if status.success() {
-        Ok(())
-    } else {
-        // The user can see cargo's output, as the command output was passed on
-        // to the user via the `.spawn()` call.
-        Err(ExitStatus::DriverInstallationFailed)
+        return Ok(());
     }
+
+    Err(Error::from_kind(ErrorKind::BuildDriver))
 }

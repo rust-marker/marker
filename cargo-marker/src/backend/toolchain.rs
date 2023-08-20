@@ -1,14 +1,16 @@
+use crate::error::prelude::*;
+use crate::observability::prelude::*;
+use crate::{utils::is_local_driver, Result};
 use std::{
     path::{Path, PathBuf},
     process::Command,
     str::FromStr,
 };
-
-use crate::{utils::is_local_driver, ExitStatus};
+use yansi::Paint;
 
 use super::{
     cargo::Cargo,
-    driver::{DEFAULT_DRIVER_INFO, MARKER_DRIVER_BIN_NAME},
+    driver::{default_driver_info, marker_driver_bin_name},
     Config,
 };
 
@@ -53,108 +55,114 @@ impl Toolchain {
         cmd
     }
 
-    pub fn find_target_dir(&self) -> Result<PathBuf, ExitStatus> {
-        // FIXME(xFrednet): Handle errors properly.
-        let metadata = self.cargo.metadata().exec().map_err(|_| ExitStatus::NoTargetDir)?;
+    pub fn find_target_dir(&self) -> Result<PathBuf> {
+        let metadata = self
+            .cargo
+            .metadata()
+            .exec()
+            .context(|| "Coudln't find the target directory")?;
 
         Ok(metadata.target_directory.into())
     }
 
-    pub fn try_find_toolchain(verbose: bool) -> Result<Toolchain, ExitStatus> {
+    pub fn try_find_toolchain() -> Result<Toolchain> {
         if is_local_driver() {
-            Self::search_next_to_cargo_marker(verbose)
-        } else {
-            // First check if there is a rustc driver for the current toolchain. This
-            // allows the user to override the used toolchain with `+<toolchain>` or
-            // `rust-toolchain`
-            if let Ok(toolchain) = std::env::var("RUSTUP_TOOLCHAIN") {
-                if let Ok(info) = Self::search_driver(&toolchain, verbose) {
-                    return Ok(info);
-                }
-            }
-
-            // Next we check, if we can find a driver for the linked marker toolchain.
-            if let Ok(info) = Self::search_driver(&DEFAULT_DRIVER_INFO.toolchain, verbose) {
-                return Ok(info);
-            }
-
-            // Check if this is a *weird* custom installation, where the driver is
-            // placed next to the `cargo-marker` binary for one reason or another.
-            if let Ok(path) = Self::search_next_to_cargo_marker(verbose) {
-                return Ok(path);
-            }
-
-            Err(ExitStatus::MissingDriver)
+            return Self::search_next_to_cargo_marker();
         }
+
+        let mut errors = vec![];
+
+        // First check if there is a rustc driver for the current toolchain. This
+        // allows the user to override the used toolchain with `+<toolchain>` or
+        // `rust-toolchain`
+        if let Ok(toolchain) = std::env::var("RUSTUP_TOOLCHAIN") {
+            match Self::search_driver(&toolchain) {
+                Ok(toolchain) => return Ok(toolchain),
+                Err(err) => errors.push(err),
+            }
+        }
+
+        // Next we check, if we can find a driver for the linked marker toolchain.
+        match Self::search_driver(&default_driver_info().toolchain) {
+            Ok(toolchain) => return Ok(toolchain),
+            Err(err) => errors.push(err),
+        }
+
+        // Check if this is a *weird* custom installation, where the driver is
+        // placed next to the `cargo-marker` binary for one reason or another.
+        match Self::search_next_to_cargo_marker() {
+            Ok(toolchain) => return Ok(toolchain),
+            Err(err) => errors.push(err),
+        }
+
+        Err(Error::from_kind(ErrorKind::DriverNotFound { errors }))
     }
 
-    fn search_driver(toolchain: &str, verbose: bool) -> Result<Toolchain, ExitStatus> {
-        if let Ok(driver_path) = rustup_which(toolchain, "marker_rustc_driver", verbose) {
-            return Ok(Toolchain {
-                driver_path,
-                cargo: Cargo::with_toolchain(toolchain),
-            });
-        }
+    fn search_driver(toolchain: &str) -> Result<Toolchain> {
+        let driver_path = rustup_which(toolchain, "marker_rustc_driver")?;
 
-        Err(ExitStatus::MissingDriver)
+        Ok(Toolchain {
+            driver_path,
+            cargo: Cargo::with_toolchain(toolchain),
+        })
     }
 
-    fn search_next_to_cargo_marker(verbose: bool) -> Result<Toolchain, ExitStatus> {
-        if let Ok(path) = std::env::current_exe() {
-            let driver_path = path.with_file_name(MARKER_DRIVER_BIN_NAME);
-            if verbose {
-                println!("Searching for driver at '{}'", driver_path.to_string_lossy());
-            }
+    fn search_next_to_cargo_marker() -> Result<Toolchain> {
+        let current_exe = std::env::current_exe().context(|| "failed to get the current exe path")?;
 
-            if driver_path.exists() && driver_path.is_file() {
-                if verbose {
-                    println!("Found driver at '{}'", driver_path.to_string_lossy());
-                }
-                return Ok(Toolchain {
-                    driver_path,
-                    cargo: Cargo::default(),
-                });
-            }
+        let driver_path = current_exe.with_file_name(marker_driver_bin_name());
+
+        let _span = info_span!("search_next_to_cargo_marker", path = %driver_path.display()).entered();
+
+        info!("Searching for driver");
+
+        if !driver_path.is_file() {
+            return Err(Error::root(format!(
+                "Could not find driver next to the cargo-marker binary at {}",
+                driver_path.display().red().bold()
+            )));
         }
 
-        Err(ExitStatus::MissingDriver)
+        info!("Found driver");
+
+        Ok(Toolchain {
+            driver_path,
+            cargo: Cargo::default(),
+        })
     }
 }
 
-pub(crate) fn get_toolchain_folder(toolchain: &str) -> Result<PathBuf, ExitStatus> {
-    if let Ok(toolchain_cargo) = rustup_which(toolchain, "cargo", false) {
-        // ../toolchain/bin/cargo -> ../toolchain
-        if let Some(path) = toolchain_cargo.ancestors().nth(2) {
-            return Ok(path.to_path_buf());
-        }
-    }
-    Err(ExitStatus::BadConfiguration)
+pub(crate) fn get_toolchain_folder(toolchain: &str) -> Result<PathBuf> {
+    let toolchain_cargo = rustup_which(toolchain, "cargo")?;
+
+    // ../toolchain/bin/cargo -> ../toolchain
+    let path = toolchain_cargo.ancestors().nth(2).context(|| {
+        format!(
+            "Unexpected layout of the rustup toolchain binary dir. There are not \
+            enough ancestors in the path `{}`",
+            toolchain_cargo.display()
+        )
+    })?;
+
+    Ok(path.to_path_buf())
 }
 
-pub(crate) fn rustup_which(toolchain: &str, tool: &str, verbose: bool) -> Result<PathBuf, ExitStatus> {
-    if verbose {
-        println!("Searching for `{tool}` with rustup for toolchain `{toolchain}`");
-    }
+pub(crate) fn rustup_which(toolchain: &str, tool: &str) -> Result<PathBuf> {
+    let mut cmd = Command::new("rustup");
+    cmd.args(["which", "--toolchain", toolchain, tool]);
 
-    let output = Command::new("rustup")
-        .args(["which", "--toolchain", toolchain, tool])
-        .output()
-        .map_err(|err| ExitStatus::fatal(err, "failed to execute rustup"))?;
+    let output = cmd.log().output().context(|| "failed to execute rustup")?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(ExitStatus::fatal(
-            stderr.trim(),
-            format!("failed to execute `rustup which` for `{tool}` with `{toolchain}` toolchain"),
-        ));
+
+        return Err(Error::wrap(stderr.trim(), format!("Command failed: {}", cmd.display())));
     }
 
-    let string_path = String::from_utf8(output.stdout).map_err(|err| ExitStatus::fatal(err, "incorrect bytes"))?;
-    let path = PathBuf::from_str(string_path.trim())
-        .map_err(|err| ExitStatus::fatal(err, format!("failed to parse path for `{tool}`")))?;
+    let string_path = String::from_utf8(output.stdout).context(|| "incorrect bytes")?;
+    let path = PathBuf::from_str(string_path.trim()).context(|| format!("failed to parse path for `{tool}`"))?;
 
-    if verbose {
-        println!("Found `{tool}` for `{toolchain}` at {}", path.to_string_lossy());
-    }
+    info!(%tool, %toolchain, path = %path.display(), "Found the tool");
+
     Ok(path)
 }

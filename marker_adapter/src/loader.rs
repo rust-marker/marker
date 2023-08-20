@@ -1,10 +1,10 @@
+use crate::error::prelude::*;
 use libloading::Library;
 use marker_api::{interface::LintCrateBindings, AstContext};
 use marker_api::{LintPass, LintPassInfo, MARKER_API_VERSION};
 use std::path::PathBuf;
-use thiserror::Error;
 
-use super::{AdapterError, LINT_CRATES_ENV};
+use super::LINT_CRATES_ENV;
 
 /// A struct describing a lint crate that can be loaded
 #[derive(Debug, Clone)]
@@ -24,20 +24,26 @@ impl LintCrateInfo {
     /// This function will return an error if the value can't be read or the
     /// content is malformed. The `README.md` of this adapter contains the
     /// format definition.
-    pub fn list_from_env() -> Result<Vec<LintCrateInfo>, AdapterError> {
-        let env_str = std::env::var_os(LINT_CRATES_ENV).ok_or(AdapterError::LintCratesEnvUnset)?;
+    pub fn list_from_env() -> Result<Option<Vec<LintCrateInfo>>> {
+        let Some(env_str) = std::env::var(LINT_CRATES_ENV).ok() else {
+            return Ok(None);
+        };
 
         let mut lint_crates = vec![];
-        for item in env_str.to_str().ok_or(AdapterError::LintCratesEnvMalformed)?.split(';') {
-            let mut item_parts = item.splitn(2, ':');
-            let name = item_parts.next().ok_or(AdapterError::LintCratesEnvMalformed)?;
-            let path = item_parts.next().ok_or(AdapterError::LintCratesEnvMalformed)?;
+        for item in env_str.split(';') {
+            let (name, path) = item.split_once(':').context(|| {
+                format!(
+                    "the content of the `{LINT_CRATES_ENV}` environment value is malformed. \
+                    Dumped its content on the next line:\n---\n{env_str}\n---",
+                )
+            })?;
+
             lint_crates.push(LintCrateInfo {
                 name: name.to_string(),
                 path: PathBuf::from(path),
             });
         }
-        Ok(lint_crates)
+        Ok(Some(lint_crates))
     }
 }
 
@@ -49,7 +55,7 @@ pub struct LintCrateRegistry {
 }
 
 impl LintCrateRegistry {
-    pub fn new(lint_crates: &[LintCrateInfo]) -> Result<Self, LoadingError> {
+    pub fn new(lint_crates: &[LintCrateInfo]) -> Result<Self> {
         let mut new_self = Self::default();
 
         for krate in lint_crates {
@@ -131,34 +137,35 @@ impl std::fmt::Debug for LoadedLintCrate {
 }
 
 impl LoadedLintCrate {
-    fn try_from_info(info: LintCrateInfo) -> Result<Self, LoadingError> {
-        let lib: &'static Library = Box::leak(Box::new(unsafe { Library::new(&info.path) }?));
+    fn try_from_info(info: LintCrateInfo) -> Result<Self> {
+        let lib = unsafe { Library::new(&info.path) };
+
+        let lib = lib.context(|| format!("failed to load lint crate `{}`", info.name))?;
+
+        let lib: &'static Library = Box::leak(Box::new(lib));
 
         let pass = LoadedLintCrate::try_from_lib(lib, info)?;
 
         Ok(pass)
     }
 
-    fn try_from_lib(lib: &'static Library, info: LintCrateInfo) -> Result<Self, LoadingError> {
+    fn try_from_lib(lib: &'static Library, info: LintCrateInfo) -> Result<Self> {
         // Check API version for verification
-        let get_api_version = {
-            unsafe {
-                lib.get::<unsafe extern "C" fn() -> &'static str>(b"marker_api_version\0")
-                    .map_err(|_| LoadingError::MissingApiSymbol)?
-            }
-        };
-        let krate_api_version = unsafe { get_api_version() };
-        if krate_api_version != MARKER_API_VERSION {
-            return Err(LoadingError::IncompatibleVersion {
-                krate_version: krate_api_version.to_string(),
-            });
+        let get_api_version =
+            unsafe { get_symbol::<extern "C" fn() -> &'static str>(lib, &info, b"marker_api_version\0")? };
+
+        let marker_api_version = get_api_version();
+        if marker_api_version != MARKER_API_VERSION {
+            return Err(Error::from_kind(ErrorKind::IncompatibleMarkerApiVersion {
+                lint_krate: info.name,
+                marker_api_version: marker_api_version.to_string(),
+            }));
         }
 
         // Load bindings
-        let get_lint_crate_bindings = unsafe {
-            lib.get::<extern "C" fn() -> LintCrateBindings>(b"marker_lint_crate_bindings\0")
-                .map_err(|_| LoadingError::MissingBindingSymbol)?
-        };
+        let get_lint_crate_bindings =
+            unsafe { get_symbol::<extern "C" fn() -> LintCrateBindings>(lib, &info, b"marker_lint_crate_bindings\0")? };
+
         let bindings = get_lint_crate_bindings();
 
         Ok(Self {
@@ -169,14 +176,20 @@ impl LoadedLintCrate {
     }
 }
 
-#[derive(Error, Debug)]
-pub enum LoadingError {
-    #[error("the lint crate could not be loaded: {0:#?}")]
-    LibLoading(#[from] libloading::Error),
-    #[error("the loaded crate doesn't contain the `marker_api_version` symbol")]
-    MissingApiSymbol,
-    #[error("the loaded crate doesn't contain the `marker_lint_crate_bindings` symbol")]
-    MissingBindingSymbol,
-    #[error("incompatible api version:\n- lint-crate api: {krate_version}\n- driver api: {MARKER_API_VERSION}")]
-    IncompatibleVersion { krate_version: String },
+/// SAFETY: inherits the same safety requirements from [`Library::get`]
+unsafe fn get_symbol<T>(
+    lib: &'static Library,
+    info: &LintCrateInfo,
+    symbol_with_nul: &[u8],
+) -> Result<libloading::Symbol<'static, T>> {
+    lib.get::<T>(symbol_with_nul).context(|| {
+        format!(
+            "the loaded lint crate {} doesn't contain the symbol {}.\n\
+            Dynamic library path: {}",
+            info.name,
+            // String ignores the trailing nul byte
+            String::from_utf8_lossy(symbol_with_nul),
+            info.path.display()
+        )
+    })
 }

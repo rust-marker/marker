@@ -15,6 +15,7 @@ version    = { workspace = true }
 [dependencies]
 marker_adapter = { workspace = true }
 marker_api     = { workspace = true, features = ["driver-api"] }
+marker_error   = { workspace = true }
 
 bumpalo          = { workspace = true }
 rustc_tools_util = { workspace = true }

@@ -1,8 +1,6 @@
-use std::path::PathBuf;
-
-use crate::ExitStatus;
-
 use super::Config;
+use crate::error::prelude::*;
+use std::path::PathBuf;
 
 mod build;
 mod fetch;
@@ -11,7 +9,6 @@ mod fetch;
 /// the crate. See the [fetch] module for how external crates are fetched and
 /// this info is retrieved.
 #[derive(Debug)]
-#[allow(unused)]
 pub struct LintCrateSource {
     /// The name of the package, for now we can assume that this is the name
     /// that will be used to construct the dynamic library.
@@ -30,7 +27,7 @@ pub struct LintCrate {
 }
 
 /// This function fetches and builds all lints specified in the given [`Config`]
-pub fn build_lints(config: &Config) -> Result<Vec<LintCrate>, ExitStatus> {
+pub fn build_lints(config: &Config) -> Result<Vec<LintCrate>> {
     // FIXME(xFrednet): Potentially handle local crates compiled for UI tests
     // differently. Like running the build command in the project root. This
     // would allow cargo to cache the compilation better. Right now normal

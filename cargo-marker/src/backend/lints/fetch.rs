@@ -10,22 +10,17 @@
 //! will download the crates into Cargo's cache. The absolute path to the lints
 //! can then be retrieved from `cargo metadata`.
 
-use std::{
-    collections::HashMap,
-    fs::OpenOptions,
-    io::Write,
-    path::{Path, PathBuf},
-};
-
-use cargo_metadata::Metadata;
-
-use crate::{backend::Config, config::LintDependencyEntry, ExitStatus};
-
 use super::LintCrateSource;
+use crate::error::prelude::*;
+use crate::observability::prelude::*;
+use crate::{backend::Config, config::LintDependencyEntry};
+use cargo_metadata::Metadata;
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 
 /// This function fetches and locates all lint crates specified in the given
 /// configuration.
-pub fn fetch_crates(config: &Config) -> Result<Vec<LintCrateSource>, ExitStatus> {
+pub fn fetch_crates(config: &Config) -> Result<Vec<LintCrateSource>> {
     // FIXME(xFrednet): Only create the dummy crate, if there is a non
     // local dependency.
 
@@ -40,7 +35,7 @@ pub fn fetch_crates(config: &Config) -> Result<Vec<LintCrateSource>, ExitStatus>
 
 /// This function sets up the dummy crate with all the lints listed as dependencies.
 /// It returns the path of the manifest, if everything was successful.
-fn setup_dummy_crate(config: &Config) -> Result<PathBuf, ExitStatus> {
+fn setup_dummy_crate(config: &Config) -> Result<PathBuf> {
     /// A small hack, to have the lints namespaced under the `[dependencies]` section
     #[derive(serde::Serialize)]
     struct DepNamespace<'a> {
@@ -48,14 +43,12 @@ fn setup_dummy_crate(config: &Config) -> Result<PathBuf, ExitStatus> {
     }
 
     // Manifest
-    let lints_as_deps = if let Ok(lints_as_deps) = toml::to_string(&DepNamespace {
+    let lints_as_deps = toml::to_string(&DepNamespace {
         dependencies: &config.lints,
-    }) {
-        lints_as_deps
-    } else {
-        unreachable!("a valid toml structure is enforced my rustc's type system");
-    };
-    let manifest_content = DUMMY_MANIFEST_TEMPLATE.to_string() + &lints_as_deps;
+    })
+    .expect("DepNamespace can be repseresented as TOML");
+
+    let manifest_content = format!("{DUMMY_MANIFEST_TEMPLATE}{lints_as_deps}");
     let manifest_path = config.marker_dir.join("Cargo.toml");
     write_to_file(&manifest_path, &manifest_content)?;
 
@@ -65,27 +58,18 @@ fn setup_dummy_crate(config: &Config) -> Result<PathBuf, ExitStatus> {
     Ok(manifest_path)
 }
 
-fn write_to_file(path: &PathBuf, content: &str) -> Result<(), ExitStatus> {
-    if let Some(parent) = path.parent() {
-        // The result is ignored in this case. If the creation failed an error
-        // will be emitted when the file creation fails. It's easier to handle
-        // that case only once.
-        let _ = std::fs::create_dir_all(parent);
-    }
-    let mut file = match OpenOptions::new().create(true).truncate(true).write(true).open(path) {
-        Ok(file) => file,
-        Err(_) => {
-            // FIXME(xFrednet): Handle this case better by returning a custom status
-            // with more information, to help us and users with debugging.
-            return Err(ExitStatus::LintCrateFetchFailed);
-        },
-    };
+fn write_to_file(path: &PathBuf, content: &str) -> Result {
+    let parent = path
+        .parent()
+        .unwrap_or_else(|| panic!("The file must have a parent directory. Path: {}", path.display()));
 
-    if file.write_all(content.as_bytes()).is_err() {
-        // FIXME(xFrednet): Also handle this error better
-        return Err(ExitStatus::LintCrateFetchFailed);
-    }
-    Ok(())
+    // The result is ignored in this case. If the creation failed an error
+    // will be emitted when the file creation fails. It's easier to handle
+    // that case only once.
+    std::fs::create_dir_all(parent)
+        .context(|| format!("Failed to create the ditectory structure for {}", parent.display()))?;
+
+    std::fs::write(path, content).context(|| format!("Failed to write a file at {}", path.display()))
 }
 
 const DUMMY_MANIFEST_TEMPLATE: &str = r#"
@@ -113,7 +97,7 @@ const DUMMY_MAIN_CONTENT: &str = r#"
     }
 "#;
 
-fn call_cargo_fetch(manifest: &Path, config: &Config) -> Result<(), ExitStatus> {
+fn call_cargo_fetch(manifest: &Path, config: &Config) -> Result {
     let mut cmd = config.toolchain.cargo.command();
     cmd.arg("fetch");
     cmd.arg("--manifest-path");
@@ -127,24 +111,27 @@ fn call_cargo_fetch(manifest: &Path, config: &Config) -> Result<(), ExitStatus> 
     }
 
     let status = cmd
+        .log()
         .spawn()
         .expect("unable to start `cargo fetch` to fetch lint crates")
         .wait()
         .expect("unable to wait for `cargo fetch` to fetch lint crates");
+
     if status.success() {
-        Ok(())
-    } else {
-        // The user can see cargo's output, as the command output was passed on
-        // to the user via the `.spawn()` call.
-        Err(ExitStatus::DriverInstallationFailed)
+        return Ok(());
     }
+
+    Err(Error::root("cargo fetch failed for lint crates"))
 }
 
-fn call_cargo_metadata(manifest: &PathBuf, config: &Config) -> Result<Metadata, ExitStatus> {
-    let res = config.toolchain.cargo.metadata().manifest_path(manifest).exec();
-
-    // FIXME(xFrednet): Handle errors properly.
-    res.map_err(|_| ExitStatus::LintCrateFetchFailed)
+fn call_cargo_metadata(manifest: &PathBuf, config: &Config) -> Result<Metadata> {
+    config
+        .toolchain
+        .cargo
+        .metadata()
+        .manifest_path(manifest)
+        .exec()
+        .context(|| "Failed to get cargo metadata for the lint crates")
 }
 
 fn extract_lint_crate_sources(metadata: &Metadata, marker_config: &Config) -> Vec<LintCrateSource> {

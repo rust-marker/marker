@@ -1,10 +1,9 @@
-use std::process::Command;
-
+use crate::error::prelude::*;
+use crate::observability::prelude::*;
 use camino::Utf8PathBuf;
 use cargo_metadata::MetadataCommand;
 use serde::Deserialize;
-
-use crate::ExitStatus;
+use std::process::Command;
 
 #[derive(Debug, Default)]
 pub struct Cargo {
@@ -48,25 +47,30 @@ impl Cargo {
         }
     }
 
-    pub fn cargo_locate_project(&self) -> Result<Utf8PathBuf, ExitStatus> {
+    pub fn cargo_locate_project(&self) -> Result<Utf8PathBuf> {
         let mut cmd = self.command();
 
+        cmd.arg("locate-project").arg("--color=always").arg("--workspace");
         let output = cmd
-            .arg("locate-project")
-            .arg("--workspace")
+            .log()
             .output()
-            .map_err(|err| ExitStatus::fatal(err, "error locating workspace manifest Cargo.toml"))?;
+            .context(|| "error locating workspace manifest Cargo.toml")?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(ExitStatus::fatal(
+            return Err(Error::wrap(
                 stderr.trim(),
-                format!("cargo locate-project failed with {}", output.status),
+                format!("{} failed with {}", cmd.display(), output.status),
             ));
         }
 
-        let manifest_location: ProjectLocation = serde_json::from_slice(&output.stdout)
-            .map_err(|err| ExitStatus::fatal(err, "failed to deserialize cargo locate-project output"))?;
+        let manifest_location: ProjectLocation = serde_json::from_slice(&output.stdout).context(|| {
+            format!(
+                "failed to deserialize cargo locate-project output (dumped it on the line bellow) \
+                ---\n{}\n---",
+                String::from_utf8_lossy(&output.stdout)
+            )
+        })?;
 
         Ok(manifest_location.root)
     }

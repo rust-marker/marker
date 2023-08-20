@@ -1,0 +1,19 @@
+[package]
+name = "marker_error"
+
+description = """
+A library for error handling in marker. It is internal to marker and should not
+be used directly outside of it. Semver guarantees do not apply to this library.
+"""
+
+edition    = { workspace = true }
+keywords   = { workspace = true }
+license    = { workspace = true }
+repository = { workspace = true }
+version    = { workspace = true }
+
+[dependencies]
+miette        = { workspace = true, features = ["fancy"] }
+thiserror     = { workspace = true }
+tracing-error = { workspace = true }
+yansi         = { workspace = true }

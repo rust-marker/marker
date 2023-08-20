@@ -3,11 +3,15 @@
 #![warn(clippy::index_refutable_slice)]
 #![allow(clippy::module_name_repetitions)]
 
-pub mod context;
+mod error;
 mod loader;
-pub use loader::LintCrateInfo;
-use loader::{LintCrateRegistry, LoadingError};
 
+pub mod context;
+
+pub use error::{Error, Result};
+pub use loader::LintCrateInfo;
+
+use loader::LintCrateRegistry;
 use marker_api::{
     ast::{
         expr::ExprKind,
@@ -20,21 +24,8 @@ use marker_api::{
 };
 use marker_utils::visitor::{self, Visitor};
 use std::{cell::RefCell, ops::ControlFlow};
-use thiserror::Error;
 
 pub const LINT_CRATES_ENV: &str = "MARKER_LINT_CRATES";
-
-#[derive(Debug, Error)]
-pub enum AdapterError {
-    #[error("the `{LINT_CRATES_ENV}` environment value is not set")]
-    LintCratesEnvUnset,
-    /// The format of the environment value is defined in the `README.md` of
-    /// the `marker_adapter` crate.
-    #[error("the content of the `{LINT_CRATES_ENV}` environment value is malformed")]
-    LintCratesEnvMalformed,
-    #[error("error while loading the lint crate: {0:#?}")]
-    LoadingError(#[from] LoadingError),
-}
 
 /// This struct is the interface used by lint drivers to load lint crates, pass
 /// `marker_api` objects to external lint passes and all other magic you can think of.
@@ -61,7 +52,7 @@ impl Adapter {
     ///
     /// This function will return an error if an error occurs during the lint
     /// loading process.
-    pub fn new(lint_crates: &[LintCrateInfo]) -> Result<Self, AdapterError> {
+    pub fn new(lint_crates: &[LintCrateInfo]) -> Result<Self> {
         let external_lint_crates = LintCrateRegistry::new(lint_crates)?;
         Ok(Self {
             inner: RefCell::new(AdapterInner { external_lint_crates }),
