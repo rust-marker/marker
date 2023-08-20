@@ -86,7 +86,7 @@ jobs:
           # we ship pre-compiled binaries (#193). This way users wouldn't
           # need to compile `cargo-marker` from sources and depend on the
           # toolchain version that they have installed in their environment.
-          toolchain: 1.65.0
+          toolchain: 1.66.0
 
       - run: >-
           cargo check
