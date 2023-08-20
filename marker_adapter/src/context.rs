@@ -95,6 +95,8 @@ extern "C" fn span_snippet<'ast>(data: &'ast (), span: &Span<'ast>) -> ffi::FfiO
     unsafe { as_driver_cx(data) }.span_snippet(span).map(Into::into).into()
 }
 
+// False positive because `SpanSource` is non-exhaustive
+#[allow(improper_ctypes_definitions)]
 extern "C" fn span_source<'ast>(data: &'ast (), span: &Span<'_>) -> SpanSource<'ast> {
     unsafe { as_driver_cx(data) }.span_source(span)
 }

@@ -23,24 +23,25 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
     pub fn to_span_source(&self, rust_span: rustc_span::Span) -> SpanSource<'ast> {
         let ctxt = rust_span.ctxt();
-        if ctxt.is_root() {
-            let src_file = self.rustc_cx.sess.source_map().lookup_source_file(rust_span.lo());
-            let name = match &src_file.name {
-                rustc_span::FileName::Real(
-                    rustc_span::RealFileName::LocalPath(file_path)
-                    | rustc_span::RealFileName::Remapped {
-                        virtual_name: file_path,
-                        ..
-                    },
-                ) => file_path.to_string_lossy().to_string(),
-                _ => {
-                    format!("MarkerConverter::to_span_source(): Unexpected file name: {rust_span:#?} -> {src_file:#?}")
-                },
-            };
-            SpanSource::File(self.alloc(FileInfo::new(self.storage.alloc_str(&name), self.to_span_src_id(ctxt))))
-        } else {
-            SpanSource::Macro(self.alloc(self.to_expn_info(&ctxt.outer_expn_data())))
+
+        if !ctxt.is_root() {
+            return SpanSource::Macro(self.alloc(self.to_expn_info(&ctxt.outer_expn_data())));
         }
+
+        let src_file = self.rustc_cx.sess.source_map().lookup_source_file(rust_span.lo());
+        let name = match &src_file.name {
+            rustc_span::FileName::Real(
+                rustc_span::RealFileName::LocalPath(file_path)
+                | rustc_span::RealFileName::Remapped {
+                    virtual_name: file_path,
+                    ..
+                },
+            ) => file_path.to_string_lossy().into_owned(),
+            _ => {
+                format!("MarkerConverter::to_span_source(): Unexpected file name: {rust_span:#?} -> {src_file:#?}")
+            },
+        };
+        SpanSource::File(self.alloc(FileInfo::new(self.storage.alloc_str(&name), self.to_span_src_id(ctxt))))
     }
 
     pub fn try_to_expn_info(&self, id: rustc_span::ExpnId) -> Option<&'ast ExpnInfo<'ast>> {

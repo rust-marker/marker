@@ -97,7 +97,7 @@ impl SpanPos {
 /// ex3b!(2);
 /// ```
 ///
-/// In this example `ex3b!(2)` expands to `ex3a(2, 3)` which in turn expands to
+/// In this example `ex3b!(2)` expands to `ex3a!(2, 3)` which in turn expands to
 /// `2 + 3`. This expansion has three layers, first the root, which contains the
 /// `ex3b!(2)` call. The next layer is the `ex3a!(2, 3)` call. The binary expression
 /// comes from the third layer, the number 3 from the second, and the number 2 from
@@ -122,8 +122,8 @@ impl SpanPos {
 ///
 /// This example expands `ex4a` into a new `ex4b` macro, which in turn expands
 /// into a `4 + 4` expression. The [`Span`] of the binary expression has three
-/// layers. First the root layer calling the `ex4b` macro, this would then
-/// expand to the `4 + 4` expression, which actually comes from the `ex4a` expansion.
+/// layers. First the root layer calling the `ex4b` macro, which calls the `ex4a`
+/// macro, which inturn expands into the `4 + 4` expression.
 ///
 /// ### Proc Macros
 ///
@@ -142,6 +142,7 @@ pub struct ExpnInfo<'ast> {
 }
 
 impl<'ast> ExpnInfo<'ast> {
+    /// This returns [`Some`] if this expansion comes from another expansion.
     #[must_use]
     pub fn parent(&self) -> Option<&ExpnInfo<'ast>> {
         with_cx(self, |cx| cx.span_expn_info(self.parent))
@@ -204,7 +205,7 @@ pub struct Span<'ast> {
     source_id: SpanSrcId,
     /// This information could also be retrieved, by requesting the [`ExpnInfo`]
     /// of this span. However, from looking at Clippy and rustc lints, it looks
-    /// like the main interested is, if this comes from a macro expansion, not from
+    /// like the main interest is, if this comes from a macro expansion, not from
     /// which one. Having this boolean flag will be sufficient to answer this simple
     /// question and will save on extra [`SpanSrcId`] mappings.
     from_expansion: bool,
@@ -226,8 +227,8 @@ impl<'ast> std::fmt::Debug for Span<'ast> {
             SpanSource::File(file) => format!(
                 "{}:{} - {}",
                 file.file(),
-                fmt_pos(file.to_file_pos(self.start)),
-                fmt_pos(file.to_file_pos(self.end))
+                fmt_pos(file.try_to_file_pos(self.start)),
+                fmt_pos(file.try_to_file_pos(self.end))
             ),
             SpanSource::Macro(expn) => format!("[Inside Macro] {:#?}", expn.call_site()),
         };
@@ -271,8 +272,12 @@ impl<'ast> Span<'ast> {
     ///
     /// If you're planning to use this snippet in a suggestion, consider using
     /// [`snippet_with_applicability`](Self::snippet_with_applicability) instead.
-    pub fn snippet_or(&self, default: &str) -> String {
-        self.snippet().unwrap_or(default).to_string()
+    pub fn snippet_or<'a, 'b>(&self, default: &'a str) -> &'b str
+    where
+        'a: 'b,
+        'ast: 'b,
+    {
+        self.snippet().unwrap_or(default)
     }
 
     /// Adjusts the given [`Applicability`] according to the context and returns the
@@ -288,26 +293,39 @@ impl<'ast> Span<'ast> {
     /// your suggestion should have, and then use it with this snippet function
     /// to adjust it accordingly. The applicability is then used to submit the
     /// suggestion to the driver.
-    pub fn snippet_with_applicability(&self, placeholder: &str, applicability: &mut Applicability) -> String {
+    ///
+    /// Here is an example, for constructing a string with two expressions `a` and `b`:
+    ///
+    /// ```rust,ignore
+    /// let mut app = Applicability::MachineApplicable;
+    /// let sugg = format!(
+    ///     "{}..{}",
+    ///     a.span().snippet_with_applicability("<expr-a>", &mut app),
+    ///     b.span().snippet_with_applicability("<expr-b>", &mut app),
+    /// );
+    /// ```
+    pub fn snippet_with_applicability<'a, 'b>(&self, placeholder: &'a str, applicability: &mut Applicability) -> &'b str
+    where
+        'a: 'b,
+        'ast: 'b,
+    {
         if *applicability != Applicability::Unspecified && self.is_from_expansion() {
             *applicability = Applicability::MaybeIncorrect;
         }
-        self.snippet()
-            .unwrap_or_else(|| {
-                if matches!(
-                    *applicability,
-                    Applicability::MachineApplicable | Applicability::MaybeIncorrect
-                ) {
-                    *applicability = Applicability::HasPlaceholders;
-                }
-                placeholder
-            })
-            .to_string()
+        self.snippet().unwrap_or_else(|| {
+            if matches!(
+                *applicability,
+                Applicability::MachineApplicable | Applicability::MaybeIncorrect
+            ) {
+                *applicability = Applicability::HasPlaceholders;
+            }
+            placeholder
+        })
     }
 
     /// Returns the length of the this [`Span`] in bytes.
     pub fn len(&self) -> usize {
-        (self.start.0 - self.end.0)
+        (self.end.0 - self.start.0)
             .try_into()
             .expect("Marker is not compiled for usize::BITs < 32")
     }
@@ -388,7 +406,7 @@ impl<'ast> Span<'ast> {
 
 #[repr(C)]
 #[derive(Debug)]
-#[allow(clippy::exhaustive_enums)]
+#[non_exhaustive]
 pub enum SpanSource<'ast> {
     File(&'ast FileInfo<'ast>),
     Macro(&'ast ExpnInfo<'ast>),
@@ -406,10 +424,21 @@ impl<'ast> FileInfo<'ast> {
         self.file.get()
     }
 
-    /// Maps the given [`SpanPos`] to a [`FilePos`]. The [`SpanPos`] has to correspond
-    /// to a position that belongs to this [`FileInfo`].
-    pub fn to_file_pos(&self, span_pos: SpanPos) -> Option<FilePos> {
+    /// Tries to map the given [`SpanPos`] to a [`FilePos`]. It will return [`None`]
+    /// if the given [`FilePos`] belongs to a different [`FileInfo`].
+    pub fn try_to_file_pos(&self, span_pos: SpanPos) -> Option<FilePos> {
         with_cx(self, |cx| cx.span_pos_to_file_loc(self, span_pos))
+    }
+
+    /// Map the given [`SpanPos`] to a [`FilePos`]. This will panic, if the
+    /// [`SpanPos`] doesn't belong to this [`FileInfo`]
+    pub fn to_file_pos(&self, span_pos: SpanPos) -> FilePos {
+        self.try_to_file_pos(span_pos).unwrap_or_else(|| {
+            panic!(
+                "the given span position `{span_pos:#?}` is out of range of the file `{}`",
+                self.file.get()
+            )
+        })
     }
 }
 
@@ -428,7 +457,7 @@ impl<'ast> FileInfo<'ast> {
     }
 }
 
-/// A locating inside a file.
+/// A location inside a file.
 ///
 /// [`SpanPos`] instances belonging to files can be mapped to [`FilePos`] with
 /// the [`FileInfo`] from the [`SpanSource`] of the [`Span`] they belong to. See:

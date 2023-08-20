@@ -3,8 +3,10 @@ use std::marker::PhantomData;
 use bumpalo::Bump;
 
 pub struct Storage<'ast> {
-    /// The `'ast` lifetime is bound by the `buffer` field. Having it as a parameter
-    /// makes it easier to declare it in the return of functions
+    /// The `'ast` lifetime is the lifetime of the `buffer` field.
+    ///
+    /// Having it as an explicit parameter allows us to later add fields to cache
+    /// values.
     _lifetime: PhantomData<&'ast ()>,
     buffer: Bump,
 }

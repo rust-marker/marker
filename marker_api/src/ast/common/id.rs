@@ -70,7 +70,7 @@ new_id! {
 }
 
 new_id! {
-    /// This ID uniquely identifies a user defined type during linting.
+    /// This ID uniquely identifies a macro during linting.
     pub MacroId: u64
 }
 
