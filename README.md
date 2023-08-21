@@ -130,3 +130,10 @@ Rust-marker is distributed under the terms of the MIT license or the Apache Lice
 
 See [LICENSE-APACHE](https://github.com/rust-marker/marker/blob/master/LICENSE-APACHE), [LICENSE-MIT](https://github.com/rust-marker/marker/blob/master/LICENSE-MIT).
 
+### Credit
+
+Marker is inspired and contains code snippets from [rustc], [Clippy] and [the Rust Reference]. These projects are dual-licensed under the Apache 2.0 and MIT licenses. See [`./COPYRIGHT.md`](./COPYRIGHT.md)
+
+[rustc]: https://github.com/rust-lang/rust
+[Clippy]: https://github.com/rust-lang/rust-clippy
+[the Rust Reference]: https://github.com/rust-lang/reference/
