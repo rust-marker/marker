@@ -36,11 +36,8 @@ jobs:
           mkdir deploy
           cp ./docs/index.html ./deploy/index.html
       - name: Build the book
-        run: |
-          PATH="$PATH:`pwd`"
-          cd ./docs/book/
-          mdbook build --dest-dir ../../deploy/book
-          cd ../../
+        run: mdbook build docs/book --dest-dir deploy/book
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:

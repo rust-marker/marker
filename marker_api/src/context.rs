@@ -230,6 +230,9 @@ struct DriverCallbacks<'ast> {
     /// get its own context.
     pub driver_context: &'ast (),
 
+    // FIXME: all of the callbacks here must be marked as `unsafe`, because you
+    // can't call them in safe Rust passing a &() pointer. This will trigger UB.
+
     // Lint emission and information
     pub lint_level_at: extern "C" fn(&'ast (), &'static Lint, EmissionNode) -> Level,
     pub emit_diag: for<'a> extern "C" fn(&'ast (), &'a Diagnostic<'a, 'ast>),

@@ -1,0 +1,129 @@
+name: ci
+
+on:
+  # Makes it possible to trigger via the GitHub UI (Actions tab)
+  workflow_dispatch:
+  merge_group:
+  pull_request:
+  push:
+    branches:
+      - master
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+  RUSTDOCFLAGS: --deny warnings
+  RUSTFLAGS: --deny warnings
+  # This disables incremental compilation for workspace packages and path deps.
+  # All other dependencies including registry deps will still use the incremental cache.
+  CARGO_INCREMENTAL: 0
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust-test:
+    runs-on: ${{ matrix.os }}-latest
+
+    strategy:
+      matrix:
+        os: [ubuntu, windows, macos]
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - run: cargo test --locked
+
+  rust-lint:
+    runs-on: ${{ matrix.os }}-latest
+
+    strategy:
+      matrix:
+        os: [ubuntu, windows, macos]
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - run: cargo clippy
+      - run: cargo doc --no-deps
+
+  rust-formatting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # We don't need any cache here, so use dtolnay action directly
+      # The version of toolchain here should track the latest stable
+      # version of Rust. The version of `cargo fmt` we use here doesn't
+      # influence the version of Rust that is used when `cargo-marker` is built.
+      - uses: dtolnay/rust-toolchain@1.71.1
+      - run: cargo fmt --check
+
+  # This job ensures required packages can be built with a stable toolchain
+  # except for some special ones that require nightly
+  rust-check-on-stable:
+    runs-on: ${{ matrix.os }}-latest
+
+    strategy:
+      matrix:
+        os: [ubuntu, windows, macos]
+
+    steps:
+      - uses: actions/checkout@v3
+      - run: rm rust-toolchain.toml
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          # We want a wide range of users to be able to build the project
+          # if they stick with an old version in their repository yet.
+          # Therefore we use an older toolchain version here. However,
+          # we may remove this and track the latest stable version once
+          # we ship pre-compiled binaries (#193). This way users wouldn't
+          # need to compile `cargo-marker` from sources and depend on the
+          # toolchain version that they have installed in their environment.
+          toolchain: 1.66.0
+
+      - run: >-
+          cargo check
+          --locked
+          --workspace
+          --exclude marker_rustc_driver
+          --exclude marker_lints
+
+  # Check for unused dependencies that uses simple regex search,
+  # meaning it's ⚡️ blazingly ⚡️ fast
+  rust-unused-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: scripts/download/cargo-machete.sh
+      - run: cargo-machete
+
+  # Check the formatting of TOML files in the repository
+  toml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: scripts/download/taplo.sh
+      - run: taplo fmt --check
+
+  # Check for typos in the repository based on a static dictionary
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: scripts/download/typos.sh
+      - run: typos
+
+  # Check that the documentation can be built
+  mdbook:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: scripts/download/mdbook.sh
+      - run: mdbook build docs/book

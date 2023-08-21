@@ -19,7 +19,7 @@ lint attributes you might usually use, on marker provided lints, like `#[allow(m
 ```
 
 #### Nightly Lint Attribute
-```
+```rust
 // Marker lints can be controlled like this
 #[allow(marker::my_lint)]
 fn foo() {}
@@ -49,7 +49,7 @@ check, like this: `#[cfg_attr(marker = "my_crate", allow(marker::foo))]`.
 ```
 
 #### Stable Conditional Lint Attribute
-```
+```rust
 // Marker lints can be controlled like this
 #[cfg_attr(marker, allow(marker::my_lint))]
 fn foo() {}
