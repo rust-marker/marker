@@ -3,17 +3,20 @@ use std::mem::{size_of, transmute};
 use marker_api::ast::generic::SynGenericArgs;
 use marker_api::ast::ty::SynTyKind;
 use marker_api::ast::{
-    Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, Constness, CrateId, ExprId, FieldId, GenericId,
-    Ident, ItemId, LetStmtId, Mutability, Safety, Span, SpanId, SpanSource, SpanSrcId, SymbolId, Syncness, TraitRef,
+    Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, Constness, CrateId, ExpnId, ExprId, FieldId,
+    GenericId, Ident, ItemId, LetStmtId, MacroId, Mutability, Safety, SpanId, SpanSrcId, SymbolId, Syncness, TraitRef,
     TyDefId, VarId, VariantId,
 };
 use marker_api::lint::Level;
 use rustc_hir as hir;
 
-use crate::conversion::common::{BodyIdLayout, DefIdLayout, HirIdLayout, SpanSourceInfo};
+use crate::conversion::common::{BodyIdLayout, DefIdLayout, ExpnIdLayout, HirIdLayout};
 use crate::transmute_id;
 
 use super::MarkerConverterInner;
+
+mod span;
+pub use span::*;
 
 impl From<hir::def_id::LocalDefId> for DefIdLayout {
     fn from(value: hir::def_id::LocalDefId) -> Self {
@@ -71,6 +74,15 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
+    pub fn to_resugared_span_id(&self, rustc_span: rustc_span::Span) -> SpanId {
+        if let Some(source_data) = rustc_span.source_callee() {
+            self.to_span_id(source_data.call_site)
+        } else {
+            panic!("driver requested resugared id for an unsugared span: {rustc_span:#?}");
+        }
+    }
+
+    #[must_use]
     pub fn to_symbol_id(&self, sym: rustc_span::Symbol) -> SymbolId {
         assert_eq!(size_of::<SymbolId>(), 4);
         SymbolId::new(sym.as_u32())
@@ -108,6 +120,21 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
+    pub fn to_macro_id(&self, id: impl Into<DefIdLayout>) -> MacroId {
+        transmute_id!(DefIdLayout as MacroId = id.into())
+    }
+
+    #[must_use]
+    pub fn to_expn_id(&self, id: rustc_span::ExpnId) -> ExpnId {
+        transmute_id!(
+            ExpnIdLayout as ExpnId = ExpnIdLayout {
+                krate: id.krate.as_u32(),
+                index: id.local_id.as_u32(),
+            }
+        )
+    }
+
+    #[must_use]
     pub fn to_body_id(&self, rustc_id: hir::BodyId) -> BodyId {
         transmute_id!(
             BodyIdLayout as BodyId = BodyIdLayout {
@@ -134,6 +161,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
     #[must_use]
     pub fn to_span_src_id(&self, id: rustc_span::SyntaxContext) -> SpanSrcId {
+        // FIXME(xFrednet): This conversion is theoretically unsound, since
+        // `SyntaxContext` doesn't have a defined `#[repr(..)]`. Rustc sadly
+        // limits the direct access to the wrapped `u32`. Since the struct only
+        // wraps a single field, it'll most likely be safe enough, to do this
+        // transmute and expect the type to always be 32 bits long.
         transmute_id!(rustc_span::SyntaxContext as SpanSrcId = id)
     }
 }
@@ -390,81 +422,5 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             _ => unreachable!("reached `PolyTraitRef` which can't be translated {trait_ref:#?}"),
         };
         TraitRef::new(trait_id, self.to_syn_generic_args_from_path(trait_ref.path))
-    }
-
-    pub fn to_span(&self, rustc_span: rustc_span::Span) -> Span<'ast> {
-        let ((src, src_info), span) = self.to_span_info(rustc_span);
-        let start = (span.lo().0 as usize) - src_info.rustc_start_offset;
-        let end = (span.hi().0 as usize) - src_info.rustc_start_offset;
-        Span::new(src, start, end)
-    }
-
-    fn to_span_info(
-        &self,
-        rustc_span: rustc_span::Span,
-    ) -> ((&'ast SpanSource<'ast>, SpanSourceInfo), rustc_span::Span) {
-        fn file_info(rustc_cx: rustc_middle::ty::TyCtxt<'_>, span: rustc_span::Span) -> (String, usize) {
-            let map = rustc_cx.sess.source_map();
-            let rustc_src = map.lookup_source_file(span.lo());
-            let name = if let rustc_span::FileName::Real(
-                rustc_span::RealFileName::LocalPath(path)
-                | rustc_span::RealFileName::Remapped { virtual_name: path, .. },
-            ) = &rustc_src.name
-            {
-                path.to_string_lossy().to_string()
-            } else {
-                unreachable!("spans which don't come from from expansion always belong to a file")
-            };
-
-            let offset = rustc_src.start_pos.0 as usize;
-            (name, offset)
-        }
-
-        let syn_cx = rustc_span.ctxt();
-        if !rustc_span.from_expansion() {
-            // This is a normal source file
-            let (name, offset) = file_info(self.rustc_cx, rustc_span);
-
-            // Check Marker's cache
-            let api_hash_source = SpanSource::File((&name).into());
-            if let Some(span_info) = self.storage.get_span_src_info(&api_hash_source) {
-                return (span_info, rustc_span);
-            }
-
-            // Create and insert data
-            let api_info = SpanSourceInfo {
-                rustc_span_cx: syn_cx,
-                rustc_start_offset: offset,
-            };
-
-            (
-                self.storage.insert_span_src_info(&api_hash_source, api_info),
-                rustc_span,
-            )
-        } else if let Some(expansion_data) = rustc_span.source_callee() {
-            // This span comes from a macro or other desugared magic.
-            let sugar_file_name: String;
-            let api_hash_source = if matches!(expansion_data.kind, rustc_span::ExpnKind::Macro(..)) {
-                SpanSource::Macro(self.to_span_src_id(syn_cx))
-            } else {
-                (sugar_file_name, _) = file_info(self.rustc_cx, rustc_span);
-                SpanSource::Sugar((&sugar_file_name).into(), self.to_span_src_id(syn_cx))
-            };
-            if let Some(span_info) = self.storage.get_span_src_info(&api_hash_source) {
-                return (span_info, expansion_data.call_site);
-            }
-
-            let api_info = SpanSourceInfo {
-                rustc_span_cx: syn_cx,
-                rustc_start_offset: expansion_data.call_site.lo().0 as usize,
-            };
-
-            (
-                self.storage.insert_span_src_info(&api_hash_source, api_info),
-                expansion_data.call_site,
-            )
-        } else {
-            unreachable!("the api should only receive and request spans from files and macros")
-        }
     }
 }

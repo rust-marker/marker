@@ -1,7 +1,7 @@
 warning: printing item
- --> $DIR/print_const_generics.rs:2:8
+ --> $DIR/print_const_generics.rs:1:8
   |
-2 | struct PrintMeConstGenerics<const N: usize> {
+1 | struct PrintMeConstGenerics<const N: usize> {
   |        ^^^^^^^^^^^^^^^^^^^^
   |
   = note: Struct(
@@ -12,13 +12,7 @@ warning: printing item
                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                       ident: Ident {
                           name: "PrintMeConstGenerics",
-                          span: Span {
-                              source: File(
-                                  "$DIR/print_const_generics.rs",
-                              ),
-                              start: 8,
-                              end: 28,
-                          },
+                          span: $DIR/print_const_generics.rs:1:8 - 1:28,
                       },
                   },
                   generics: SynGenericParams {
@@ -81,13 +75,7 @@ warning: printing item
                                                                   AstPathSegment {
                                                                       ident: Ident {
                                                                           name: "N",
-                                                                          span: Span {
-                                                                              source: File(
-                                                                                  "$DIR/print_const_generics.rs",
-                                                                              ),
-                                                                              start: 63,
-                                                                              end: 64,
-                                                                          },
+                                                                          span: $DIR/print_const_generics.rs:2:17 - 2:18,
                                                                       },
                                                                       generics: SynGenericArgs {
                                                                           args: [],
@@ -114,9 +102,9 @@ warning: printing item
   = note: `#[warn(marker::test_lint)]` on by default
 
 warning: printing item
- --> $DIR/print_const_generics.rs:6:4
+ --> $DIR/print_const_generics.rs:5:4
   |
-6 | fn print_me() -> PrintMeConstGenerics<3> {
+5 | fn print_me() -> PrintMeConstGenerics<3> {
   |    ^^^^^^^^
   |
   = note: Fn(
@@ -127,13 +115,7 @@ warning: printing item
                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                       ident: Ident {
                           name: "print_me",
-                          span: Span {
-                              source: File(
-                                  "$DIR/print_const_generics.rs",
-                              ),
-                              start: 73,
-                              end: 81,
-                          },
+                          span: $DIR/print_const_generics.rs:5:4 - 5:12,
                       },
                   },
                   generics: SynGenericParams {
@@ -162,13 +144,7 @@ warning: printing item
                                           AstPathSegment {
                                               ident: Ident {
                                                   name: "PrintMeConstGenerics",
-                                                  span: Span {
-                                                      source: File(
-                                                          "$DIR/print_const_generics.rs",
-                                                      ),
-                                                      start: 87,
-                                                      end: 107,
-                                                  },
+                                                  span: $DIR/print_const_generics.rs:5:18 - 5:38,
                                               },
                                               generics: SynGenericArgs {
                                                   args: [
@@ -209,12 +185,10 @@ warning: printing item
           )
 
 warning: print type test
-  --> $DIR/print_const_generics.rs:13:5
+  --> $DIR/print_const_generics.rs:12:5
    |
-13 | /     let _ty: PrintMeConstGenerics<3> = PrintMeConstGenerics {
-14 | |         data: [1.0, 1.5, 2.0],
-15 | |     };
-   | |______^
+12 |     let _ty: PrintMeConstGenerics<3> = PrintMeConstGenerics { data: [1.0, 1.5, 2.0] };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
                SemAdtTy {

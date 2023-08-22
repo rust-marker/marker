@@ -35,13 +35,7 @@ warning: print test
                                                   AstPathSegment {
                                                       ident: Ident {
                                                           name: "x",
-                                                          span: Span {
-                                                              source: File(
-                                                                  "$DIR/print_async_block.rs",
-                                                              ),
-                                                              start: 66,
-                                                              end: 67,
-                                                          },
+                                                          span: $DIR/print_async_block.rs:2:44 - 2:45,
                                                       },
                                                       generics: SynGenericArgs {
                                                           args: [],

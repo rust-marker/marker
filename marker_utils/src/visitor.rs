@@ -224,7 +224,7 @@ pub fn traverse_expr<'ast, B>(
             if let Some(start) = e.start() {
                 traverse_expr(cx, visitor, start)?;
             }
-            if let Some(end) = e.start() {
+            if let Some(end) = e.end() {
                 traverse_expr(cx, visitor, end)?;
             }
         },

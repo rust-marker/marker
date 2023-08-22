@@ -1,0 +1,134 @@
+warning: expr
+ --> $DIR/ranges.rs:6:13
+  |
+6 |     let _ = 1..2;
+  |             ^^^^
+  |
+  = note: SpanSource: File(
+              FileInfo {
+                  file: "$DIR/ranges.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
+  = note: Snippet: "1..2"
+note: the lint level is defined here
+ --> $DIR/ranges.rs:5:12
+  |
+5 |     #[warn(marker::print_every_expr)]
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: expr
+ --> $DIR/ranges.rs:6:13
+  |
+6 |     let _ = 1..2;
+  |             ^
+  |
+  = note: SpanSource: File(
+              FileInfo {
+                  file: "$DIR/ranges.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
+  = note: Snippet: "1"
+
+warning: expr
+ --> $DIR/ranges.rs:6:16
+  |
+6 |     let _ = 1..2;
+  |                ^
+  |
+  = note: SpanSource: File(
+              FileInfo {
+                  file: "$DIR/ranges.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
+  = note: Snippet: "2"
+
+warning: expr
+ --> $DIR/ranges.rs:8:13
+  |
+8 |     let _ = ..2;
+  |             ^^^
+  |
+  = note: SpanSource: File(
+              FileInfo {
+                  file: "$DIR/ranges.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
+  = note: Snippet: "..2"
+note: the lint level is defined here
+ --> $DIR/ranges.rs:7:12
+  |
+7 |     #[warn(marker::print_every_expr)]
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: expr
+ --> $DIR/ranges.rs:8:15
+  |
+8 |     let _ = ..2;
+  |               ^
+  |
+  = note: SpanSource: File(
+              FileInfo {
+                  file: "$DIR/ranges.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
+  = note: Snippet: "2"
+
+warning: expr
+  --> $DIR/ranges.rs:10:13
+   |
+10 |     let _ = 1..;
+   |             ^^^
+   |
+   = note: SpanSource: File(
+               FileInfo {
+                   file: "$DIR/ranges.rs",
+                   span_src: SpanSrcId(..),
+               },
+           )
+   = note: Snippet: "1.."
+note: the lint level is defined here
+  --> $DIR/ranges.rs:9:12
+   |
+9  |     #[warn(marker::print_every_expr)]
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: expr
+  --> $DIR/ranges.rs:10:13
+   |
+10 |     let _ = 1..;
+   |             ^
+   |
+   = note: SpanSource: File(
+               FileInfo {
+                   file: "$DIR/ranges.rs",
+                   span_src: SpanSrcId(..),
+               },
+           )
+   = note: Snippet: "1"
+
+warning: expr
+  --> $DIR/ranges.rs:12:13
+   |
+12 |     let _ = ..;
+   |             ^^
+   |
+   = note: SpanSource: File(
+               FileInfo {
+                   file: "$DIR/ranges.rs",
+                   span_src: SpanSrcId(..),
+               },
+           )
+   = note: Snippet: ".."
+note: the lint level is defined here
+  --> $DIR/ranges.rs:11:12
+   |
+11 |     #[warn(marker::print_every_expr)]
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: 8 warnings emitted
+

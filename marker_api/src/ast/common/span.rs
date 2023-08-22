@@ -2,133 +2,498 @@ use std::marker::PhantomData;
 
 use crate::{context::with_cx, diagnostic::Applicability, ffi};
 
-use super::{SpanId, SpanSrcId, SymbolId};
+use super::{ExpnId, MacroId, SpanId, SpanSrcId, SymbolId};
 
-// FIXME(xFrednet): This enum is "limited" to say it lightly, it should contain
-// the more information about macros and their expansion etc. This covers the
-// basic use case of checking if a span comes from a macro or a file. The rest
-// will come in due time. Luckily it's not a public enum right now.
-//
-// See: rust-marker/marker#175
+/// A byte position used for the start and end position of [`Span`]s.
+///
+/// This position can map to a source file or a virtual space, when it comes
+/// from the expansion of a macro. It's expected that a [`SpanPos`] always
+/// points to the start of a character. Indexing to the middle of a multi byte
+/// character can result in panics.
+///
+/// The start [`SpanPos`] doesn't have to start at zero, the order can be decided
+/// by the driver. A [`Span`] should always use [`SpanPos`] from the same span source.
+///
+/// **Stability notice**:
+/// * The position may not be stable between different sessions.
+/// * [`SpanPos`] should never be stored by lint crates, as drivers might change [`SpanPos`] between
+///   different `check_*` function calls.
+/// * The layout and size of this type might change. The type will continue to provide the current
+///   trait implementations.
 #[repr(C)]
-#[doc(hidden)]
-#[allow(clippy::exhaustive_enums)]
-#[derive(Debug, Eq, PartialEq, Hash)]
-#[cfg_attr(feature = "driver-api", visibility::make(pub))]
-enum SpanSource<'ast> {
-    /// The span comes from a file
-    File(ffi::FfiStr<'ast>),
-    /// The span comes from a macro.
-    Macro(SpanSrcId),
-    /// The span belongs to a file, but is the result of desugaring, they should
-    /// be handled like normal files. This is variant mostly important for the driver.
-    Sugar(ffi::FfiStr<'ast>, SpanSrcId),
+#[derive(Debug, Copy, Clone)]
+pub struct SpanPos(
+    /// Rustc only uses u32, therefore it should be safe to do the same. This
+    /// allows crates to have a total span size of ~4 GB (with expanded macros).
+    /// That sounds reasonable :D
+    u32,
+);
+
+#[cfg(feature = "driver-api")]
+impl SpanPos {
+    pub fn new(index: u32) -> Self {
+        Self(index)
+    }
+
+    pub fn index(self) -> u32 {
+        self.0
+    }
 }
 
+/// Information about a specific expansion.
+///
+/// [`Span`]s in Rust are structured in layers. The root layer is the source code
+/// written in a source file. Macros can be expanded to AST nodes with [`Span`]s.
+/// These are then added as a new layer, on top of the root. This struct provides
+/// the information about one expansion layer.
+///
+/// ### Simple Macro Rules
+///
+/// ```
+/// macro_rules! ex1 {
+///     () => {
+///         1 + 1
+///     };
+/// }
+///
+/// ex1!();
+/// ```
+///
+/// In this example `ex1!()` expands into the expression `1 + 1`. The [`Span`]
+/// of the binary expression and numbers will all be from an expansion. Snipping the
+/// [`Span`] of the binary expression would return `1 + 1` from inside the macro rules.
+///
+/// ### Macro Rules with Parameters
+///
+/// ```
+/// macro_rules! ex2 {
+///     ($a:literal, $b:literal) => {
+///         $a + $b
+///     };
+/// }
+///
+/// ex2!(1, 2);
+/// ```
+///
+/// In this example `ex2!(1, 2)` expands into the expression `1 + 2`. The [`Span`]
+/// of the binary expression is marked to come from the expansion of a macro.
+/// The `1` and `2` literals are marked as coming from the root layer, since
+/// they're actually written in the source file.
+///
+/// ### Macros Invoking Macros
+///
+/// ```
+/// macro_rules! ex3a {
+///     ($a:literal, $b:literal) => {
+///         $a + $b
+///     };
+/// }
+/// macro_rules! ex3b {
+///     ($a:literal) => {
+///         ex3a!($a, 3)
+///     };
+/// }
+///
+/// ex3b!(2);
+/// ```
+///
+/// In this example `ex3b!(2)` expands to `ex3a!(2, 3)` which in turn expands to
+/// `2 + 3`. This expansion has three layers, first the root, which contains the
+/// `ex3b!(2)` call. The next layer is the `ex3a!(2, 3)` call. The binary expression
+/// comes from the third layer, the number 3 from the second, and the number 2 from
+/// the root layer, since this one was actually written by the user.
+///
+/// ### Macros Creating Macros
+///
+/// ```
+/// macro_rules! ex4a {
+///     () => {
+///         macro_rules! ex4b {
+///             () => {
+///                 4 + 4
+///             };
+///         }
+///     };
+/// }
+///
+/// ex4a!();
+/// ex4b!();
+/// ```
+///
+/// This example expands `ex4a` into a new `ex4b` macro, which in turn expands
+/// into a `4 + 4` expression. The [`Span`] of the binary expression has three
+/// layers. First the root layer calling the `ex4b` macro, which calls the `ex4a`
+/// macro, which inturn expands into the `4 + 4` expression.
+///
+/// ### Proc Macros
+///
+/// Proc macros and some built-in macros are different from `macro_rules!` macros as
+/// they are opaque to the driver. It's just known that some tokens are provided as an
+/// input and somehow expanded. The [`Span`]s of the expanded tokens are marked as
+/// coming from an expansion by default. However, macro crates can sometimes override
+/// this with some trickery. (Please use this forbidden knowledge carefully.)
 #[repr(C)]
-#[derive(Debug, Clone)]
+#[derive(Debug)]
+pub struct ExpnInfo<'ast> {
+    _lifetime: PhantomData<&'ast ()>,
+    parent: ExpnId,
+    call_site: SpanId,
+    macro_id: MacroId,
+}
+
+impl<'ast> ExpnInfo<'ast> {
+    /// This returns [`Some`] if this expansion comes from another expansion.
+    #[must_use]
+    pub fn parent(&self) -> Option<&ExpnInfo<'ast>> {
+        with_cx(self, |cx| cx.span_expn_info(self.parent))
+    }
+
+    /// The [`Span`] that invoked the macro, that this expansion belongs to.
+    #[must_use]
+    pub fn call_site(&self) -> &Span<'ast> {
+        with_cx(self, |cx| cx.span(self.call_site))
+    }
+
+    pub fn macro_id(&self) -> MacroId {
+        self.macro_id
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> ExpnInfo<'ast> {
+    #[must_use]
+    pub fn new(parent: ExpnId, call_site: SpanId, macro_id: MacroId) -> Self {
+        Self {
+            _lifetime: PhantomData,
+            parent,
+            call_site,
+            macro_id,
+        }
+    }
+}
+
+/// A region of code, used for snipping, lint emission, and the retrieval of
+/// context information.
+///
+/// [`Span`]s provide context information, like the file location or macro expansion
+/// that created this span. [`SpanPos`] values from different sources or files should
+/// not be mixed. Check out the documentation of [`SpanPos`] for more information.
+///
+/// [`Span`]s don't provide any way to map back to the AST nodes, that they
+/// belonged to. If you require this information, consider passing the nodes
+/// instead or alongside the [`Span`].
+///
+/// [`Span`]s with invalid positions in the `start` or `end` value can cause panics
+/// in the driver. Please handle them with care, and also consider that UTF-8 allows
+/// multiple bytes per character. Instances provided by the API or driver directly,
+/// are always valid.
+///
+/// Handling macros during linting can be difficult, generally it's advised to
+/// abort, if the code originates from a macro. The API provides an automatic way
+/// by setting the [`MacroReport`][crate::lint::MacroReport] value during lint
+/// creation. If your lint is targeting code from macro expansions, please
+/// consider that users might not be able to influence the generated code. It's
+/// also worth checking that all linted nodes originate from the same macro expansion.
+/// Check out the documentation of [`ExpnInfo`].
+#[repr(C)]
+#[derive(Clone)]
 pub struct Span<'ast> {
-    source: &'ast SpanSource<'ast>,
-    /// The start marks the first byte in the [`SpanSource`] that is included in this
-    /// span. The span continues until the end position.
-    start: usize,
-    end: usize,
+    _lifetime: PhantomData<&'ast ()>,
+    /// The source of this [`Span`]. The id space and position distribution is
+    /// decided by the driver. To get the full source information it might be
+    /// necessary to also pass the start and end position to the driver.
+    source_id: SpanSrcId,
+    /// This information could also be retrieved, by requesting the [`ExpnInfo`]
+    /// of this span. However, from looking at Clippy and rustc lints, it looks
+    /// like the main interest is, if this comes from a macro expansion, not from
+    /// which one. Having this boolean flag will be sufficient to answer this simple
+    /// question and will save on extra [`SpanSrcId`] mappings.
+    from_expansion: bool,
+    start: SpanPos,
+    end: SpanPos,
+}
+
+impl<'ast> std::fmt::Debug for Span<'ast> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        fn fmt_pos(pos: Option<FilePos<'_>>) -> String {
+            match pos {
+                Some(pos) => format!("{}:{}", pos.line(), pos.column()),
+                None => "[invalid]".to_string(),
+            }
+        }
+
+        let src = self.source();
+        let name = match src {
+            SpanSource::File(file) => format!(
+                "{}:{} - {}",
+                file.file(),
+                fmt_pos(file.try_to_file_pos(self.start)),
+                fmt_pos(file.try_to_file_pos(self.end))
+            ),
+            SpanSource::Macro(expn) => format!("[Inside Macro] {:#?}", expn.call_site()),
+        };
+        f.debug_struct(&name).finish()
+    }
 }
 
 impl<'ast> Span<'ast> {
-    pub fn is_from_file(&self) -> bool {
-        matches!(self.source, SpanSource::File(..) | SpanSource::Sugar(..))
+    /// Returns `true`, if this [`Span`] comes from a macro expansion.
+    pub fn is_from_expansion(&self) -> bool {
+        self.from_expansion
     }
 
-    pub fn is_from_macro(&self) -> bool {
-        matches!(self.source, SpanSource::Macro(..))
+    /// Returns the code snippet that this [`Span`] refers to or [`None`] if the
+    /// snippet is unavailable.
+    ///
+    /// ```ignore
+    /// let variable = 15_000;
+    /// //             ^^^^^^
+    /// //             lit_span
+    ///
+    /// lit_span.snippet(); // -> Some("15_000")
+    /// ```
+    ///
+    /// There are several reasons, why a snippet might be unavailable. Also
+    /// depend on the used driver. You can also checkout the other snippet
+    /// methods to better deal with these cases:
+    /// * [`snippet_or`](Self::snippet_or)
+    /// * [`snippet_with_applicability`](Self::snippet_with_applicability)
+    #[must_use]
+    pub fn snippet(&self) -> Option<&'ast str> {
+        with_cx(self, |cx| cx.span_snipped(self))
+    }
+
+    /// Returns the code snippet that this [`Span`] refers to or the given default
+    /// if the snippet is unavailable.
+    ///
+    /// For placeholders, it's recommended to use angle brackets with information
+    /// should be filled out. For example, if you want to snip an expression, you
+    /// should use `<expr>` as the default value.
+    ///
+    /// If you're planning to use this snippet in a suggestion, consider using
+    /// [`snippet_with_applicability`](Self::snippet_with_applicability) instead.
+    pub fn snippet_or<'a, 'b>(&self, default: &'a str) -> &'b str
+    where
+        'a: 'b,
+        'ast: 'b,
+    {
+        self.snippet().unwrap_or(default)
+    }
+
+    /// Adjusts the given [`Applicability`] according to the context and returns the
+    /// code snippet that this [`Span`] refers to or the given default if the
+    /// snippet is unavailable.
+    ///
+    /// For the placeholder, it's recommended to use angle brackets with information
+    /// should be filled out. A placeholder for an expression should look like
+    /// this: `<expr>`
+    ///
+    /// The applicability will never be upgraded by this method. When you draft
+    /// suggestions, you'll generally start with the highest [`Applicability`]
+    /// your suggestion should have, and then use it with this snippet function
+    /// to adjust it accordingly. The applicability is then used to submit the
+    /// suggestion to the driver.
+    ///
+    /// Here is an example, for constructing a string with two expressions `a` and `b`:
+    ///
+    /// ```rust,ignore
+    /// let mut app = Applicability::MachineApplicable;
+    /// let sugg = format!(
+    ///     "{}..{}",
+    ///     a.span().snippet_with_applicability("<expr-a>", &mut app),
+    ///     b.span().snippet_with_applicability("<expr-b>", &mut app),
+    /// );
+    /// ```
+    pub fn snippet_with_applicability<'a, 'b>(&self, placeholder: &'a str, applicability: &mut Applicability) -> &'b str
+    where
+        'a: 'b,
+        'ast: 'b,
+    {
+        if *applicability != Applicability::Unspecified && self.is_from_expansion() {
+            *applicability = Applicability::MaybeIncorrect;
+        }
+        self.snippet().unwrap_or_else(|| {
+            if matches!(
+                *applicability,
+                Applicability::MachineApplicable | Applicability::MaybeIncorrect
+            ) {
+                *applicability = Applicability::HasPlaceholders;
+            }
+            placeholder
+        })
+    }
+
+    /// Returns the length of the this [`Span`] in bytes.
+    pub fn len(&self) -> usize {
+        (self.end.0 - self.start.0)
+            .try_into()
+            .expect("Marker is not compiled for usize::BITs < 32")
     }
 
     /// Returns `true` if the span has a length of 0. This means that no bytes are
     /// inside the span.
     pub fn is_empty(&self) -> bool {
-        self.start == self.end
+        self.len() == 0
     }
 
-    /// Returns true, if both spans originate from the same source. For example, this can be the
-    /// same source file or macro expansion.
-    pub fn is_same_source(&self, other: &Span<'ast>) -> bool {
-        self.source == other.source
-    }
-
-    pub fn start(&self) -> usize {
+    /// Returns the start position of this [`Span`].
+    pub fn start(&self) -> SpanPos {
         self.start
     }
 
-    pub fn set_start(&mut self, start: usize) {
+    /// Sets the start position of this [`Span`].
+    pub fn set_start(&mut self, start: SpanPos) {
+        assert!(
+            start.0 <= self.end.0,
+            "the start position should always be <= of the end position"
+        );
         self.start = start;
     }
 
-    pub fn end(&self) -> usize {
+    /// Returns a new [`Span`] with the given start position.
+    #[must_use]
+    pub fn with_start(&self, start: SpanPos) -> Span<'ast> {
+        let mut new_span = self.clone();
+        new_span.set_start(start);
+        new_span
+    }
+
+    /// Returns the end position of this [`Span`].
+    pub fn end(&self) -> SpanPos {
         self.end
     }
 
-    pub fn set_end(&mut self, end: usize) {
+    /// Sets the end position of this [`Span`].
+    pub fn set_end(&mut self, end: SpanPos) {
+        assert!(
+            self.start.0 <= end.0,
+            "the start position should always be >= of the end position"
+        );
         self.end = end;
     }
 
-    /// Returns the code that this span references or [`None`] if the code is unavailable.
-    pub fn snippet(&self) -> Option<String> {
-        with_cx(self, |cx| cx.span_snipped(self))
+    /// Returns a new [`Span`] with the given end position.
+    #[must_use]
+    pub fn with_end(&self, end: SpanPos) -> Span<'ast> {
+        let mut new_span = self.clone();
+        new_span.set_end(end);
+        new_span
     }
 
-    /// Converts a span to a code snippet if available, otherwise returns the default.
-    ///
-    /// This is useful if you want to provide suggestions for your lint or more generally, if you
-    /// want to convert a given [`Span`] to a [`String`]. To create suggestions consider using
-    /// [`snippet_with_applicability()`](`Self::snippet_with_applicability`) to ensure that the
-    /// [`Applicability`] stays correct.
-    ///
-    /// # Example
-    /// ```rust,ignore
-    /// // Given two spans one for `value` and one for the `init` expression.
-    /// let value = Vec::new();
-    /// //  ^^^^^   ^^^^^^^^^^
-    /// //  span1   span2
-    ///
-    /// // The snipped call would return the corresponding code snippets
-    /// span1.snippet_or("..") // -> "value"
-    /// span2.snippet_or("..") // -> "Vec::new()"
-    /// ```
-    pub fn snippet_or(&self, default: &str) -> String {
-        self.snippet().unwrap_or_else(|| default.to_string())
-    }
-
-    /// Same as [`snippet()`](`Self::snippet`), but adapts the applicability level by following
-    /// rules:
-    ///
-    /// - Applicability level [`Unspecified`](`Applicability::Unspecified`) will never be changed.
-    /// - If the span is inside a macro, change the applicability level to
-    ///   [`MaybeIncorrect`](`Applicability::MaybeIncorrect`).
-    /// - If the default value is used and the applicability level is
-    ///   [`MachineApplicable`](`Applicability::MachineApplicable`), change it to
-    ///   [`HasPlaceholders`](`Applicability::HasPlaceholders`)
-    pub fn snippet_with_applicability(&self, default: &str, applicability: &mut Applicability) -> String {
-        if *applicability != Applicability::Unspecified && self.is_from_macro() {
-            *applicability = Applicability::MaybeIncorrect;
-        }
-        self.snippet().unwrap_or_else(|| {
-            if *applicability == Applicability::MachineApplicable {
-                *applicability = Applicability::HasPlaceholders;
-            }
-            default.to_string()
-        })
+    #[must_use]
+    pub fn source(&self) -> SpanSource<'ast> {
+        with_cx(self, |cx| cx.span_source(self))
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Span<'ast> {
-    pub fn new(source: &'ast SpanSource<'ast>, start: usize, end: usize) -> Self {
-        Self { source, start, end }
+    #[must_use]
+    pub fn new(source_id: SpanSrcId, from_expansion: bool, start: SpanPos, end: SpanPos) -> Self {
+        Self {
+            _lifetime: PhantomData,
+            source_id,
+            from_expansion,
+            start,
+            end,
+        }
     }
 
-    pub fn source(&self) -> &'ast SpanSource<'ast> {
-        self.source
+    pub fn source_id(&self) -> SpanSrcId {
+        self.source_id
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum SpanSource<'ast> {
+    File(&'ast FileInfo<'ast>),
+    Macro(&'ast ExpnInfo<'ast>),
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct FileInfo<'ast> {
+    file: ffi::FfiStr<'ast>,
+    span_src: SpanSrcId,
+}
+
+impl<'ast> FileInfo<'ast> {
+    pub fn file(&self) -> &str {
+        self.file.get()
+    }
+
+    /// Tries to map the given [`SpanPos`] to a [`FilePos`]. It will return [`None`]
+    /// if the given [`FilePos`] belongs to a different [`FileInfo`].
+    pub fn try_to_file_pos(&self, span_pos: SpanPos) -> Option<FilePos> {
+        with_cx(self, |cx| cx.span_pos_to_file_loc(self, span_pos))
+    }
+
+    /// Map the given [`SpanPos`] to a [`FilePos`]. This will panic, if the
+    /// [`SpanPos`] doesn't belong to this [`FileInfo`]
+    pub fn to_file_pos(&self, span_pos: SpanPos) -> FilePos {
+        self.try_to_file_pos(span_pos).unwrap_or_else(|| {
+            panic!(
+                "the given span position `{span_pos:#?}` is out of range of the file `{}`",
+                self.file.get()
+            )
+        })
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> FileInfo<'ast> {
+    #[must_use]
+    pub fn new(file: &'ast str, span_src: SpanSrcId) -> Self {
+        Self {
+            file: file.into(),
+            span_src,
+        }
+    }
+
+    pub fn span_src(&self) -> SpanSrcId {
+        self.span_src
+    }
+}
+
+/// A location inside a file.
+///
+/// [`SpanPos`] instances belonging to files can be mapped to [`FilePos`] with
+/// the [`FileInfo`] from the [`SpanSource`] of the [`Span`] they belong to. See:
+/// [`FileInfo::to_file_pos`].
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+pub struct FilePos<'ast> {
+    /// The lifetime is not needed right now, but I want to have it, to potentualy
+    /// add more behavior to this struct.
+    _lifetime: PhantomData<&'ast ()>,
+    /// The 1-indexed line in bytes
+    line: usize,
+    /// The 1-indexed column in bytes
+    column: usize,
+}
+
+impl<'ast> FilePos<'ast> {
+    /// Returns the 1-indexed line location in bytes
+    pub fn line(&self) -> usize {
+        self.line
+    }
+
+    /// Returns the 1-indexed column location in bytes
+    pub fn column(&self) -> usize {
+        self.column
+    }
+}
+
+#[cfg(feature = "driver-api")]
+impl<'ast> FilePos<'ast> {
+    pub fn new(line: usize, column: usize) -> Self {
+        Self {
+            _lifetime: PhantomData,
+            line,
+            column,
+        }
     }
 }
 

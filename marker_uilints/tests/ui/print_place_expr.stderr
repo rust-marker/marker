@@ -26,13 +26,7 @@ warning: print test
                                        AstPathSegment {
                                            ident: Ident {
                                                name: "object",
-                                               span: Span {
-                                                   source: File(
-                                                       "$DIR/print_place_expr.rs",
-                                                   ),
-                                                   start: 192,
-                                                   end: 198,
-                                               },
+                                               span: $DIR/print_place_expr.rs:11:31 - 11:37,
                                            },
                                            generics: SynGenericArgs {
                                                args: [],
@@ -48,13 +42,7 @@ warning: print test
                    ),
                    field: Ident {
                        name: "a",
-                       span: Span {
-                           source: File(
-                               "$DIR/print_place_expr.rs",
-                           ),
-                           start: 199,
-                           end: 200,
-                       },
+                       span: $DIR/print_place_expr.rs:11:38 - 11:39,
                    },
                },
            )
@@ -88,13 +76,7 @@ warning: print test
                                        AstPathSegment {
                                            ident: Ident {
                                                name: "tuple",
-                                               span: Span {
-                                                   source: File(
-                                                       "$DIR/print_place_expr.rs",
-                                                   ),
-                                                   start: 231,
-                                                   end: 236,
-                                               },
+                                               span: $DIR/print_place_expr.rs:12:30 - 12:35,
                                            },
                                            generics: SynGenericArgs {
                                                args: [],
@@ -110,13 +92,7 @@ warning: print test
                    ),
                    field: Ident {
                        name: "0",
-                       span: Span {
-                           source: File(
-                               "$DIR/print_place_expr.rs",
-                           ),
-                           start: 237,
-                           end: 238,
-                       },
+                       span: $DIR/print_place_expr.rs:12:36 - 12:37,
                    },
                },
            )
@@ -149,13 +125,7 @@ warning: print test
                                        AstPathSegment {
                                            ident: Ident {
                                                name: "array",
-                                               span: Span {
-                                                   source: File(
-                                                       "$DIR/print_place_expr.rs",
-                                                   ),
-                                                   start: 269,
-                                                   end: 274,
-                                               },
+                                               span: $DIR/print_place_expr.rs:13:30 - 13:35,
                                            },
                                            generics: SynGenericArgs {
                                                args: [],

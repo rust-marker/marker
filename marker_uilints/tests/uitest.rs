@@ -14,6 +14,7 @@ fn main() -> color_eyre::Result<()> {
         (r"ui//", "ui/"),
         (r"item//", "item/"),
         (r"expr//", "expr/"),
+        (r"sugar//", "sugar/"),
     ];
     for (pat, repl) in filters {
         config.stderr_filter(pat, repl);

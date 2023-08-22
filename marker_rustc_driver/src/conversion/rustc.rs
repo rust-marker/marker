@@ -1,12 +1,10 @@
 mod common;
 mod unstable;
 
-use std::cell::RefCell;
+use std::{cell::RefCell, marker::PhantomData};
 
 use marker_api::lint::Lint;
 use rustc_hash::FxHashMap;
-
-use crate::context::storage::Storage;
 
 thread_local! {
     /// This maps marker lints to lint instances used by rustc.
@@ -23,12 +21,17 @@ thread_local! {
 }
 
 pub struct RustcConverter<'ast, 'tcx> {
+    /// It's likely that this converter will need the lifetime at some point
+    _lifetime: PhantomData<&'ast ()>,
     rustc_cx: rustc_middle::ty::TyCtxt<'tcx>,
-    storage: &'ast Storage<'ast>,
 }
 
 impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
-    pub fn new(rustc_cx: rustc_middle::ty::TyCtxt<'tcx>, storage: &'ast Storage<'ast>) -> Self {
-        Self { rustc_cx, storage }
+    #[must_use]
+    pub fn new(rustc_cx: rustc_middle::ty::TyCtxt<'tcx>) -> Self {
+        Self {
+            _lifetime: PhantomData,
+            rustc_cx,
+        }
     }
 }

@@ -19,7 +19,7 @@ use marker_api::{
         expr::ExprKind,
         item::{Body, ItemKind},
         ty::SemTyKind,
-        BodyId, Crate, ExprId, ItemId, Span, SymbolId, TyDefId,
+        BodyId, Crate, ExpnInfo, ExprId, FilePos, ItemId, Span, SpanSource, SymbolId, TyDefId,
     },
     lint::Level,
 };
@@ -76,6 +76,13 @@ impl<'ast, 'tcx> MarkerConverter<'ast, 'tcx> {
     forward_to_inner!(pub fn to_body(&self, body: &hir::Body<'tcx>) -> &'ast Body<'ast>);
     forward_to_inner!(pub fn to_ty_def_id(&self, id: hir::def_id::DefId) -> TyDefId);
     forward_to_inner!(pub fn to_span(&self, rustc_span: rustc_span::Span) -> Span<'ast>);
+    forward_to_inner!(pub fn to_span_source(&self, rust_span: rustc_span::Span) -> SpanSource<'ast>);
+    forward_to_inner!(pub fn try_to_expn_info(&self, expn_id: rustc_span::ExpnId) -> Option<&'ast ExpnInfo<'ast>>);
+    forward_to_inner!(pub fn try_to_span_pos(
+        &self,
+        scx: rustc_span::SyntaxContext,
+        pos: rustc_span::BytePos,
+    ) -> Option<FilePos<'ast>>);
     forward_to_inner!(pub fn to_crate(
         &self,
         rustc_crate_id: hir::def_id::CrateNum,

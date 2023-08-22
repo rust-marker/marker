@@ -33,13 +33,7 @@ warning: print test
                                               AstPathSegment {
                                                   ident: Ident {
                                                       name: "foo",
-                                                      span: Span {
-                                                          source: File(
-                                                              "$DIR/print_await_expr.rs",
-                                                          ),
-                                                          start: 73,
-                                                          end: 76,
-                                                      },
+                                                      span: $DIR/print_await_expr.rs:6:24 - 6:27,
                                                   },
                                                   generics: SynGenericArgs {
                                                       args: [],
@@ -88,13 +82,7 @@ warning: print test
                                       AstPathSegment {
                                           ident: Ident {
                                               name: "future",
-                                              span: Span {
-                                                  source: File(
-                                                      "$DIR/print_await_expr.rs",
-                                                  ),
-                                                  start: 138,
-                                                  end: 144,
-                                              },
+                                              span: $DIR/print_await_expr.rs:9:24 - 9:30,
                                           },
                                           generics: SynGenericArgs {
                                               args: [],

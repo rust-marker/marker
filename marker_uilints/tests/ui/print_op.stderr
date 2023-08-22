@@ -200,13 +200,7 @@ warning: print test
                                       AstPathSegment {
                                           ident: Ident {
                                               name: "value",
-                                              span: Span {
-                                                  source: File(
-                                                      "$DIR/print_op.rs",
-                                                  ),
-                                                  start: 201,
-                                                  end: 206,
-                                              },
+                                              span: $DIR/print_op.rs:9:27 - 9:32,
                                           },
                                           generics: SynGenericArgs {
                                               args: [],

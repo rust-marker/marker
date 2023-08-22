@@ -5,7 +5,8 @@ use marker_api::{
     ast::{
         item::{Body, ItemKind},
         ty::SemTyKind,
-        BodyId, ExprId, ItemId, Span, SpanId, SymbolId, TyDefId,
+        BodyId, ExpnId, ExpnInfo, ExprId, FileInfo, FilePos, ItemId, Span, SpanId, SpanPos, SpanSource, SymbolId,
+        TyDefId,
     },
     context::DriverCallbacks,
     diagnostic::{Diagnostic, EmissionNode},
@@ -47,6 +48,9 @@ impl<'ast> DriverContextWrapper<'ast> {
             expr_ty,
             span,
             span_snippet,
+            span_source,
+            span_pos_to_file_loc,
+            span_expn_info,
             symbol_str,
             resolve_method_target,
         }
@@ -55,7 +59,7 @@ impl<'ast> DriverContextWrapper<'ast> {
 
 // False positive because `EmissionNode` are non-exhaustive
 #[allow(improper_ctypes_definitions)]
-extern "C" fn lint_level_at(data: &(), lint: &'static Lint, node: EmissionNode) -> Level {
+extern "C" fn lint_level_at<'ast>(data: &'ast (), lint: &'static Lint, node: EmissionNode) -> Level {
     unsafe { as_driver_cx(data) }.lint_level_at(lint, node)
 }
 
@@ -91,11 +95,29 @@ extern "C" fn span_snippet<'ast>(data: &'ast (), span: &Span<'ast>) -> ffi::FfiO
     unsafe { as_driver_cx(data) }.span_snippet(span).map(Into::into).into()
 }
 
+// False positive because `SpanSource` is non-exhaustive
+#[allow(improper_ctypes_definitions)]
+extern "C" fn span_source<'ast>(data: &'ast (), span: &Span<'_>) -> SpanSource<'ast> {
+    unsafe { as_driver_cx(data) }.span_source(span)
+}
+
+extern "C" fn span_pos_to_file_loc<'ast>(
+    data: &'ast (),
+    file: &FileInfo<'ast>,
+    pos: SpanPos,
+) -> ffi::FfiOption<FilePos<'ast>> {
+    unsafe { as_driver_cx(data) }.span_pos_to_file_loc(file, pos).into()
+}
+
+extern "C" fn span_expn_info<'ast>(data: &'ast (), expn_id: ExpnId) -> FfiOption<&'ast ExpnInfo<'ast>> {
+    unsafe { as_driver_cx(data) }.span_expn_info(expn_id).into()
+}
+
 extern "C" fn symbol_str<'ast>(data: &'ast (), sym: SymbolId) -> ffi::FfiStr<'ast> {
     unsafe { as_driver_cx(data) }.symbol_str(sym).into()
 }
 
-extern "C" fn resolve_method_target(data: &(), id: ExprId) -> ItemId {
+extern "C" fn resolve_method_target<'ast>(data: &'ast (), id: ExprId) -> ItemId {
     unsafe { as_driver_cx(data) }.resolve_method_target(id)
 }
 
@@ -117,7 +139,10 @@ pub trait DriverContext<'ast> {
 
     fn expr_ty(&'ast self, expr: ExprId) -> SemTyKind<'ast>;
     fn span(&'ast self, owner: SpanId) -> &'ast Span<'ast>;
-    fn span_snippet(&'ast self, span: &Span<'ast>) -> Option<&'ast str>;
+    fn span_snippet(&'ast self, span: &Span<'_>) -> Option<&'ast str>;
+    fn span_source(&'ast self, span: &Span<'_>) -> SpanSource<'ast>;
+    fn span_expn_info(&'ast self, expn_id: ExpnId) -> Option<&'ast ExpnInfo<'ast>>;
+    fn span_pos_to_file_loc(&'ast self, file: &FileInfo<'ast>, pos: SpanPos) -> Option<FilePos<'ast>>;
     fn symbol_str(&'ast self, api_id: SymbolId) -> &'ast str;
     fn resolve_method_target(&'ast self, id: ExprId) -> ItemId;
 }

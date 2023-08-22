@@ -70,6 +70,11 @@ new_id! {
 }
 
 new_id! {
+    /// This ID uniquely identifies a macro during linting.
+    pub MacroId: u64
+}
+
+new_id! {
     /// This ID uniquely identifies a body during linting.
     pub BodyId: u64
 }
@@ -115,6 +120,15 @@ new_id! {
     /// use. For now it's only intended for drivers to map spans back
     #[cfg_attr(feature = "driver-api", visibility::make(pub))]
     pub(crate) SpanSrcId: u32
+}
+
+new_id! {
+    /// **Unstable**
+    ///
+    /// This id is used to identify a specific expansion. This type is only intended for internal
+    /// use. For now it's only intended for drivers to map spans back
+    #[cfg_attr(feature = "driver-api", visibility::make(pub))]
+    pub(crate) ExpnId: u64
 }
 
 new_id! {

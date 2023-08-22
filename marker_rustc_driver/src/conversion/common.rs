@@ -27,10 +27,10 @@ pub struct HirIdLayout {
     pub index: u32,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct SpanSourceInfo {
-    pub rustc_span_cx: rustc_span::hygiene::SyntaxContext,
-    pub rustc_start_offset: usize,
+#[repr(C)]
+pub struct ExpnIdLayout {
+    pub krate: u32,
+    pub index: u32,
 }
 
 #[macro_export]

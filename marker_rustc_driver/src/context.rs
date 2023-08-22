@@ -53,7 +53,7 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
             lint_store,
             storage,
             marker_converter: MarkerConverter::new(rustc_cx, storage),
-            rustc_converter: RustcConverter::new(rustc_cx, storage),
+            rustc_converter: RustcConverter::new(rustc_cx),
             ast_cx: OnceCell::new(),
             resolved_ty_ids: RefCell::default(),
         });
@@ -219,10 +219,31 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         self.storage.alloc(self.marker_converter.to_span(rustc_span))
     }
 
-    fn span_snippet(&self, api_span: &Span<'ast>) -> Option<&'ast str> {
+    fn span_snippet(&self, api_span: &Span<'_>) -> Option<&'ast str> {
         let rust_span = self.rustc_converter.to_span(api_span);
         let snippet = self.rustc_cx.sess.source_map().span_to_snippet(rust_span).ok()?;
         Some(self.storage.alloc_str(&snippet))
+    }
+
+    fn span_source(&'ast self, api_span: &Span<'_>) -> marker_api::ast::SpanSource<'ast> {
+        let rust_span = self.rustc_converter.to_span(api_span);
+        self.marker_converter.to_span_source(rust_span)
+    }
+
+    fn span_pos_to_file_loc(
+        &'ast self,
+        file: &marker_api::ast::FileInfo<'ast>,
+        pos: marker_api::ast::SpanPos,
+    ) -> Option<marker_api::ast::FilePos<'ast>> {
+        self.marker_converter.try_to_span_pos(
+            self.rustc_converter.to_syntax_context(file.span_src()),
+            self.rustc_converter.to_byte_pos(pos),
+        )
+    }
+
+    fn span_expn_info(&'ast self, expn_id: marker_api::ast::ExpnId) -> Option<&'ast marker_api::ast::ExpnInfo<'ast>> {
+        let id = self.rustc_converter.to_expn_id(expn_id);
+        self.marker_converter.try_to_expn_info(id)
     }
 
     fn symbol_str(&'ast self, api_id: SymbolId) -> &'ast str {
