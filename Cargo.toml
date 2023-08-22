@@ -11,5 +11,34 @@ members = [
 ]
 resolver = "2"
 
+[workspace.package]
+edition    = "2021"
+keywords   = ["marker", "lint"]
+license    = "MIT OR Apache-2.0"
+repository = "https://github.com/rust-marker/marker"
+version    = "0.1.1"
+
+[workspace.dependencies]
+marker_adapter = { path = "./marker_adapter", version = "0.1.1" }
+marker_api     = { path = "./marker_api", version = "0.1.1" }
+marker_uitest  = { path = "./marker_uitest", features = ["dev-build"] }
+marker_utils   = { path = "./marker_utils", version = "0.1.1" }
+
+bumpalo          = "3.12"
+camino           = { version = "1.1", features = ["serde1"] }
+cargo_metadata   = "0.15.4"
+clap             = { version = "4.0", features = ["string", "derive"] }
+libloading       = "0.8.0"
+once_cell        = "1.17.0"
+rustc_tools_util = "0.3"
+semver           = "1.0"
+serde            = { version = "1.0", features = ["derive"] }
+serde_json       = "1.0"
+tempfile         = "3.6.0"
+thiserror        = "1.0.44"
+toml             = "0.7"
+ui_test          = "0.11.7"
+visibility       = "0.0.1"
+
 [workspace.metadata.marker.lints]
 marker_lints = { path = "./marker_lints" }
