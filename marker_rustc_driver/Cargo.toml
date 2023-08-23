@@ -1,25 +1,26 @@
 [package]
-name    = "marker_rustc_driver"
-version = "0.1.1"
+name = "marker_rustc_driver"
 
 build       = "build.rs"
 description = "Marker's lint driver for rustc"
-edition     = "2021"
-keywords    = ["marker", "linting"]
-license     = "MIT OR Apache-2.0"
-repository  = "https://github.com/rust-marker/marker"
+
+edition    = { workspace = true }
+keywords   = { workspace = true }
+license    = { workspace = true }
+repository = { workspace = true }
+version    = { workspace = true }
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-marker_adapter = { path = "../marker_adapter", version = "0.1.1" }
-marker_api     = { path = "../marker_api", version = "0.1.1", features = ["driver-api"] }
+marker_adapter = { workspace = true }
+marker_api     = { workspace = true, features = ["driver-api"] }
 
-bumpalo          = "3.12"
-rustc_tools_util = "0.3"
+bumpalo          = { workspace = true }
+rustc_tools_util = { workspace = true }
 
 [build-dependencies]
-rustc_tools_util = "0.3"
+rustc_tools_util = { workspace = true }
 
 [package.metadata.rust-analyzer]
 rustc_private = true

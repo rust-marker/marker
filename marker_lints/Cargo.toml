@@ -1,12 +1,13 @@
 [package]
-name    = "marker_lints"
-version = "0.1.1"
+name = "marker_lints"
 
 description = "Lints for the marker_api and marker_utils crate"
-edition     = "2021"
-keywords    = ["marker", "lint"]
-license     = "MIT OR Apache-2.0"
-repository  = "https://github.com/rust-marker/marker"
+
+edition    = { workspace = true }
+keywords   = { workspace = true }
+license    = { workspace = true }
+repository = { workspace = true }
+version    = { workspace = true }
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -14,10 +15,10 @@ repository  = "https://github.com/rust-marker/marker"
 crate-type = ["cdylib"]
 
 [dependencies]
-marker_api = { path = "../marker_api", version = "0.1.1" }
+marker_api = { workspace = true }
 
 [dev-dependencies]
-marker_uitest = { path = "../marker_uitest", features = ["dev-build"] }
+marker_uitest = { workspace = true }
 
 [[test]]
 harness = false
