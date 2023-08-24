@@ -241,7 +241,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     hir::def::DefKind::LifetimeParam
                     | hir::def::DefKind::TyParam
                     | hir::def::DefKind::ConstParam
-                    | hir::def::DefKind::TyAlias
+                    | hir::def::DefKind::TyAlias { .. }
                     | hir::def::DefKind::Enum
                     | hir::def::DefKind::Struct
                     | hir::def::DefKind::Union

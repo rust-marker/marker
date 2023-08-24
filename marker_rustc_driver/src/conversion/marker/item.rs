@@ -46,115 +46,114 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
         let ident = self.to_ident(rustc_item.ident);
         let data = CommonItemData::new(id, self.to_span_id(rustc_item.span), ident);
-        let item = match &rustc_item.kind {
-            hir::ItemKind::ExternCrate(original_name) => ItemKind::ExternCrate(self.alloc({
-                ExternCrateItem::new(data, self.to_symbol_id(original_name.unwrap_or(rustc_item.ident.name)))
-            })),
-            hir::ItemKind::Use(path, use_kind) => {
-                let use_kind = match use_kind {
-                    hir::UseKind::Single => UseKind::Single,
-                    hir::UseKind::Glob => UseKind::Glob,
-                    hir::UseKind::ListStem => return None,
-                };
-                ItemKind::Use(self.alloc(UseItem::new(data, self.to_path(path), use_kind)))
-            },
-            hir::ItemKind::Static(rustc_ty, rustc_mut, rustc_body_id) => ItemKind::Static(self.alloc({
-                StaticItem::new(
-                    data,
-                    self.to_mutability(*rustc_mut),
-                    Some(self.to_body_id(*rustc_body_id)),
-                    self.to_syn_ty(rustc_ty),
-                )
-            })),
-            hir::ItemKind::Const(rustc_ty, rustc_body_id) => ItemKind::Const(self.alloc(ConstItem::new(
-                data,
-                self.to_syn_ty(rustc_ty),
-                Some(self.to_body_id(*rustc_body_id)),
-            ))),
-            hir::ItemKind::Fn(fn_sig, generics, body_id) => {
-                #[cfg(debug_assertions)]
-                #[allow(clippy::manual_assert)]
-                if rustc_item.ident.name.as_str() == "rustc_driver_please_ice_on_this" {
-                    panic!("this is your captain talking, we are about to ICE");
-                }
-
-                ItemKind::Fn(self.alloc(self.to_fn_item(
-                    data,
-                    generics,
-                    fn_sig,
-                    false,
-                    hir::TraitFn::Provided(*body_id),
-                )))
-            },
-            hir::ItemKind::Mod(rustc_mod) => {
-                ItemKind::Mod(self.alloc(ModItem::new(data, self.to_items(rustc_mod.item_ids))))
-            },
-            hir::ItemKind::ForeignMod { abi, items } => ItemKind::ExternBlock(self.alloc({
-                let abi = self.to_abi(*abi);
-                ExternBlockItem::new(data, abi, self.to_external_items(items, abi))
-            })),
-            hir::ItemKind::Macro(_, _) | hir::ItemKind::GlobalAsm(_) => return None,
-            hir::ItemKind::TyAlias(rustc_ty, rustc_generics) => ItemKind::TyAlias(self.alloc({
-                TyAliasItem::new(
-                    data,
-                    self.to_syn_generic_params(rustc_generics),
-                    &[],
-                    Some(self.to_syn_ty(rustc_ty)),
-                )
-            })),
-            hir::ItemKind::OpaqueTy(_) => ItemKind::Unstable(self.alloc(UnstableItem::new(
-                data,
-                Some(self.to_symbol_id(rustc_span::sym::type_alias_impl_trait)),
-            ))),
-            hir::ItemKind::Enum(enum_def, generics) => {
-                let variants = self.alloc_slice(enum_def.variants.iter().map(|variant| {
-                    EnumVariant::new(
-                        self.to_variant_id(variant.def_id),
-                        self.to_symbol_id(variant.ident.name),
-                        self.to_span_id(variant.span),
-                        self.to_adt_kind(&variant.data),
-                        variant.disr_expr.map(|anon| self.to_const_expr(anon)),
+        let item =
+            match &rustc_item.kind {
+                hir::ItemKind::ExternCrate(original_name) => ItemKind::ExternCrate(self.alloc({
+                    ExternCrateItem::new(data, self.to_symbol_id(original_name.unwrap_or(rustc_item.ident.name)))
+                })),
+                hir::ItemKind::Use(path, use_kind) => {
+                    let use_kind = match use_kind {
+                        hir::UseKind::Single => UseKind::Single,
+                        hir::UseKind::Glob => UseKind::Glob,
+                        hir::UseKind::ListStem => return None,
+                    };
+                    ItemKind::Use(self.alloc(UseItem::new(data, self.to_path(path), use_kind)))
+                },
+                hir::ItemKind::Static(rustc_ty, rustc_mut, rustc_body_id) => ItemKind::Static(self.alloc({
+                    StaticItem::new(
+                        data,
+                        self.to_mutability(*rustc_mut),
+                        Some(self.to_body_id(*rustc_body_id)),
+                        self.to_syn_ty(rustc_ty),
                     )
-                }));
-                ItemKind::Enum(self.alloc(EnumItem::new(data, self.to_syn_generic_params(generics), variants)))
-            },
-            hir::ItemKind::Struct(var_data, generics) => ItemKind::Struct(self.alloc(StructItem::new(
-                data,
-                self.to_syn_generic_params(generics),
-                self.to_adt_kind(var_data),
-            ))),
-            hir::ItemKind::Union(var_data, generics) => ItemKind::Union(self.alloc({
-                UnionItem::new(
+                })),
+                hir::ItemKind::Const(rustc_ty, _generics, rustc_body_id) => ItemKind::Const(self.alloc(
+                    ConstItem::new(data, self.to_syn_ty(rustc_ty), Some(self.to_body_id(*rustc_body_id))),
+                )),
+                hir::ItemKind::Fn(fn_sig, generics, body_id) => {
+                    #[cfg(debug_assertions)]
+                    #[allow(clippy::manual_assert)]
+                    if rustc_item.ident.name.as_str() == "rustc_driver_please_ice_on_this" {
+                        panic!("this is your captain talking, we are about to ICE");
+                    }
+
+                    ItemKind::Fn(self.alloc(self.to_fn_item(
+                        data,
+                        generics,
+                        fn_sig,
+                        false,
+                        hir::TraitFn::Provided(*body_id),
+                    )))
+                },
+                hir::ItemKind::Mod(rustc_mod) => {
+                    ItemKind::Mod(self.alloc(ModItem::new(data, self.to_items(rustc_mod.item_ids))))
+                },
+                hir::ItemKind::ForeignMod { abi, items } => ItemKind::ExternBlock(self.alloc({
+                    let abi = self.to_abi(*abi);
+                    ExternBlockItem::new(data, abi, self.to_external_items(items, abi))
+                })),
+                hir::ItemKind::Macro(_, _) | hir::ItemKind::GlobalAsm(_) => return None,
+                hir::ItemKind::TyAlias(rustc_ty, rustc_generics) => ItemKind::TyAlias(self.alloc({
+                    TyAliasItem::new(
+                        data,
+                        self.to_syn_generic_params(rustc_generics),
+                        &[],
+                        Some(self.to_syn_ty(rustc_ty)),
+                    )
+                })),
+                hir::ItemKind::OpaqueTy(_) => ItemKind::Unstable(self.alloc(UnstableItem::new(
+                    data,
+                    Some(self.to_symbol_id(rustc_span::sym::type_alias_impl_trait)),
+                ))),
+                hir::ItemKind::Enum(enum_def, generics) => {
+                    let variants = self.alloc_slice(enum_def.variants.iter().map(|variant| {
+                        EnumVariant::new(
+                            self.to_variant_id(variant.def_id),
+                            self.to_symbol_id(variant.ident.name),
+                            self.to_span_id(variant.span),
+                            self.to_adt_kind(&variant.data),
+                            variant.disr_expr.map(|anon| self.to_const_expr(anon)),
+                        )
+                    }));
+                    ItemKind::Enum(self.alloc(EnumItem::new(data, self.to_syn_generic_params(generics), variants)))
+                },
+                hir::ItemKind::Struct(var_data, generics) => ItemKind::Struct(self.alloc(StructItem::new(
                     data,
                     self.to_syn_generic_params(generics),
-                    self.to_adt_kind(var_data).fields(),
-                )
-            })),
-            hir::ItemKind::Trait(_is_auto, unsafety, generics, bounds, items) => ItemKind::Trait(self.alloc({
-                TraitItem::new(
+                    self.to_adt_kind(var_data),
+                ))),
+                hir::ItemKind::Union(var_data, generics) => ItemKind::Union(self.alloc({
+                    UnionItem::new(
+                        data,
+                        self.to_syn_generic_params(generics),
+                        self.to_adt_kind(var_data).fields(),
+                    )
+                })),
+                hir::ItemKind::Trait(_is_auto, unsafety, generics, bounds, items) => ItemKind::Trait(self.alloc({
+                    TraitItem::new(
+                        data,
+                        matches!(unsafety, hir::Unsafety::Unsafe),
+                        self.to_syn_generic_params(generics),
+                        self.to_syn_ty_param_bound(bounds),
+                        self.to_assoc_items(items),
+                    )
+                })),
+                hir::ItemKind::TraitAlias(_, _) => ItemKind::Unstable(self.alloc(UnstableItem::new(
                     data,
-                    matches!(unsafety, hir::Unsafety::Unsafe),
-                    self.to_syn_generic_params(generics),
-                    self.to_syn_ty_param_bound(bounds),
-                    self.to_assoc_items(items),
-                )
-            })),
-            hir::ItemKind::TraitAlias(_, _) => ItemKind::Unstable(self.alloc(UnstableItem::new(
-                data,
-                Some(self.to_symbol_id(rustc_span::sym::trait_alias)),
-            ))),
-            hir::ItemKind::Impl(imp) => ItemKind::Impl(self.alloc({
-                ImplItem::new(
-                    data,
-                    matches!(imp.unsafety, hir::Unsafety::Unsafe),
-                    matches!(imp.polarity, rustc_ast::ImplPolarity::Positive),
-                    imp.of_trait.as_ref().map(|trait_ref| self.to_trait_ref(trait_ref)),
-                    self.to_syn_generic_params(imp.generics),
-                    self.to_syn_ty(imp.self_ty),
-                    self.to_assoc_items_from_impl(imp.items),
-                )
-            })),
-        };
+                    Some(self.to_symbol_id(rustc_span::sym::trait_alias)),
+                ))),
+                hir::ItemKind::Impl(imp) => ItemKind::Impl(self.alloc({
+                    ImplItem::new(
+                        data,
+                        matches!(imp.unsafety, hir::Unsafety::Unsafe),
+                        matches!(imp.polarity, rustc_ast::ImplPolarity::Positive),
+                        imp.of_trait.as_ref().map(|trait_ref| self.to_trait_ref(trait_ref)),
+                        self.to_syn_generic_params(imp.generics),
+                        self.to_syn_ty(imp.self_ty),
+                        self.to_assoc_items_from_impl(imp.items),
+                    )
+                })),
+            };
 
         self.items.borrow_mut().insert(id, item);
         Some(item)

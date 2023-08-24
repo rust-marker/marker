@@ -74,7 +74,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             let main = main.skip_binder();
 
             let mut generics: Vec<_> = main
-                .substs
+                .args
                 .iter()
                 .filter_map(|arg| self.to_sem_generic_arg_kind(arg))
                 .collect();

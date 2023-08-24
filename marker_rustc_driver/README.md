@@ -17,7 +17,7 @@ The rustc driver for [Marker], an experimental linting interface for Rust. This 
 
 ## Toolchain
 
-The driver is linked to a specific nightly rust toolchain. The crate will be updated about every six weeks with a new release of Rust. This version of the driver has been developed for: `nightly-2023-07-13`
+The driver is linked to a specific nightly rust toolchain. The crate will be updated about every six weeks with a new release of Rust. This version of the driver has been developed for: `nightly-2023-08-24`
 
 ## Contributing
 

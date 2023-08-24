@@ -14,7 +14,7 @@ pub const MARKER_DRIVER_BIN_NAME: &str = "marker_rustc_driver.exe";
 /// This is the driver version and toolchain, that is used by the setup command
 /// to install the driver.
 pub static DEFAULT_DRIVER_INFO: Lazy<DriverVersionInfo> = Lazy::new(|| DriverVersionInfo {
-    toolchain: "nightly-2023-07-13".to_string(),
+    toolchain: "nightly-2023-08-24".to_string(),
     version: "0.3.0-dev".to_string(),
     api_version: "0.3.0-dev".to_string(),
 });

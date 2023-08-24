@@ -190,7 +190,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     }))
                 },
             },
-            hir::ExprKind::Index(operand, index) => {
+            hir::ExprKind::Index(operand, index, _) => {
                 ExprKind::Index(self.alloc(IndexExpr::new(data, self.to_expr(operand), self.to_expr(index))))
             },
             hir::ExprKind::Field(operand, field) => {
@@ -209,7 +209,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::ExprKind::Match(scrutinee, arms, hir::MatchSource::Normal | hir::MatchSource::FormatArgs) => {
                 ExprKind::Match(self.alloc(MatchExpr::new(data, self.to_expr(scrutinee), self.to_match_arms(arms))))
             },
-            hir::ExprKind::Match(_scrutinee, [_early_return, _continue], hir::MatchSource::TryDesugar) => {
+            hir::ExprKind::Match(_scrutinee, [_early_return, _continue], hir::MatchSource::TryDesugar(_)) => {
                 ExprKind::QuestionMark(self.alloc(self.to_try_expr_from_desugar(expr)))
             },
             hir::ExprKind::Match(_scrutinee, [_awaitee_arm], hir::MatchSource::AwaitDesugar) => {
@@ -553,7 +553,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     fn to_try_expr_from_desugar(&self, try_desugar: &hir::Expr<'tcx>) -> QuestionMarkExpr<'ast> {
-        if let hir::ExprKind::Match(scrutinee, [_ret, _con], hir::MatchSource::TryDesugar) = try_desugar.kind {
+        if let hir::ExprKind::Match(scrutinee, [_ret, _con], hir::MatchSource::TryDesugar(_)) = try_desugar.kind {
             if let hir::ExprKind::Call(_try_path, [tested_expr]) = scrutinee.kind {
                 return QuestionMarkExpr::new(
                     CommonExprData::new(self.to_expr_id(try_desugar.hir_id), self.to_span_id(try_desugar.span)),
