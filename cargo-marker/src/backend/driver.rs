@@ -139,7 +139,7 @@ fn build_driver(toolchain: &str, version: &str, additional_rustc_flags: &str) ->
         cmd.args(["build", "--bin", "marker_rustc_driver"]);
     } else {
         cmd.env("RUSTUP_TOOLCHAIN", toolchain);
-        cmd.args(["install", "marker_rustc_driver", "--version", version]);
+        cmd.args(["install", "marker_rustc_driver", "--version", version, "--force"]);
         rustc_flags += " --cap-lints=allow";
 
         let install_root = get_toolchain_folder(toolchain)?;
