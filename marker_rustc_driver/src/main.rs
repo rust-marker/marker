@@ -45,7 +45,7 @@ use rustc_session::EarlyErrorHandler;
 
 use crate::conversion::rustc::RustcConverter;
 
-const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-07-13";
+const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-08-24";
 
 struct DefaultCallbacks {
     env_vars: Vec<(&'static str, String)>,

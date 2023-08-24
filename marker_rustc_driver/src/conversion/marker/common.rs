@@ -356,7 +356,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 id,
             ) => AstPathTarget::Generic(self.to_generic_id(*id)),
             hir::def::Res::Def(
-                hir::def::DefKind::TyAlias
+                hir::def::DefKind::TyAlias { .. }
                 | hir::def::DefKind::Fn
                 | hir::def::DefKind::Enum
                 | hir::def::DefKind::Struct

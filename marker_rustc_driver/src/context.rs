@@ -195,7 +195,7 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
                         | hir::def::DefKind::Union
                         | hir::def::DefKind::Enum
                         | hir::def::DefKind::Trait
-                        | hir::def::DefKind::TyAlias
+                        | hir::def::DefKind::TyAlias { .. }
                 )
             })
             .map(|def_id| self.marker_converter.to_ty_def_id(def_id))
