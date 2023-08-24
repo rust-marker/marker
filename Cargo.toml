@@ -16,13 +16,13 @@ edition    = "2021"
 keywords   = ["marker", "lint"]
 license    = "MIT OR Apache-2.0"
 repository = "https://github.com/rust-marker/marker"
-version    = "0.2.1"
+version    = "0.3.0-dev"
 
 [workspace.dependencies]
-marker_adapter = { path = "./marker_adapter", version = "0.2.1" }
-marker_api     = { path = "./marker_api", version = "0.2.1" }
+marker_adapter = { path = "./marker_adapter", version = "0.3.0-dev" }
+marker_api     = { path = "./marker_api", version = "0.3.0-dev" }
 marker_uitest  = { path = "./marker_uitest", features = ["dev-build"] }
-marker_utils   = { path = "./marker_utils", version = "0.2.1" }
+marker_utils   = { path = "./marker_utils", version = "0.3.0-dev" }
 
 bumpalo          = "3.12"
 camino           = { version = "1.1", features = ["serde1"] }
