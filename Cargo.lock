@@ -145,7 +145,7 @@ dependencies = [
 
 [[package]]
 name = "cargo_marker"
-version = "0.3.0-dev"
+version = "0.2.1"
 dependencies = [
  "camino",
  "cargo_metadata",
@@ -431,7 +431,7 @@ checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
 
 [[package]]
 name = "marker_adapter"
-version = "0.3.0-dev"
+version = "0.2.1"
 dependencies = [
  "libloading",
  "marker_api",
@@ -441,14 +441,14 @@ dependencies = [
 
 [[package]]
 name = "marker_api"
-version = "0.3.0-dev"
+version = "0.2.1"
 dependencies = [
  "visibility",
 ]
 
 [[package]]
 name = "marker_lints"
-version = "0.3.0-dev"
+version = "0.2.1"
 dependencies = [
  "marker_api",
  "marker_uitest",
@@ -456,7 +456,7 @@ dependencies = [
 
 [[package]]
 name = "marker_rustc_driver"
-version = "0.3.0-dev"
+version = "0.2.1"
 dependencies = [
  "bumpalo",
  "marker_adapter",
@@ -466,7 +466,7 @@ dependencies = [
 
 [[package]]
 name = "marker_uilints"
-version = "0.3.0-dev"
+version = "0.2.1"
 dependencies = [
  "marker_api",
  "marker_uitest",
@@ -474,7 +474,7 @@ dependencies = [
 
 [[package]]
 name = "marker_uitest"
-version = "0.3.0-dev"
+version = "0.2.1"
 dependencies = [
  "semver",
  "tempfile",
@@ -483,7 +483,7 @@ dependencies = [
 
 [[package]]
 name = "marker_utils"
-version = "0.3.0-dev"
+version = "0.2.1"
 dependencies = [
  "marker_api",
 ]

@@ -15,8 +15,8 @@ pub const MARKER_DRIVER_BIN_NAME: &str = "marker_rustc_driver.exe";
 /// to install the driver.
 pub static DEFAULT_DRIVER_INFO: Lazy<DriverVersionInfo> = Lazy::new(|| DriverVersionInfo {
     toolchain: "nightly-2023-07-13".to_string(),
-    version: "0.3.0-dev".to_string(),
-    api_version: "0.3.0-dev".to_string(),
+    version: "0.2.1".to_string(),
+    api_version: "0.2.1".to_string(),
 });
 
 /// The version info of one specific driver
@@ -139,7 +139,7 @@ fn build_driver(toolchain: &str, version: &str, additional_rustc_flags: &str) ->
         cmd.args(["build", "--bin", "marker_rustc_driver"]);
     } else {
         cmd.env("RUSTUP_TOOLCHAIN", toolchain);
-        cmd.args(["install", "marker_rustc_driver", "--version", version]);
+        cmd.args(["install", "marker_rustc_driver", "--version", version, "--force"]);
         rustc_flags += " --cap-lints=allow";
 
         let install_root = get_toolchain_folder(toolchain)?;

@@ -49,7 +49,7 @@ marker_lints = { path = './marker_lints' }
 # An external crate via git
 marker_lints = { git = "https://github.com/rust-marker/marker" }
 # An external crate from a registry
-marker_lints = "0.2.0"
+marker_lints = "0.2.1"
 ```
 
 ### Running Marker

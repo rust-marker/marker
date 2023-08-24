@@ -27,7 +27,7 @@ To use `marker_lints` in your project, simply add it to your `Cargo.toml` under 
 
 ```toml
 [workspace.metadata.marker.lints]
-marker_lints = "0.2.0"
+marker_lints = "0.2.1"
 ```
 
 If you want to develop something with Marker, you might want to check out the [lint crate template] which already contains everything you need to get started.
