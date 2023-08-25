@@ -12,7 +12,7 @@ pub(crate) fn cli(cli: &str) -> String {
         .unwrap_or_else(|| {
             panic!(
                 "BUG: invalid CLI string; it is supposed to be a valid \
-                string from the trusted source, but got:---\n{cli}\n---"
+                string from the trusted source, but got:\n---\n{cli}\n---"
             )
         })
         .into_iter()

@@ -12,8 +12,9 @@ use crate::observability::prelude::*;
 use std::{
     collections::HashMap,
     ffi::{OsStr, OsString},
-    path::PathBuf,
 };
+
+use camino::Utf8PathBuf;
 
 pub mod cargo;
 pub mod driver;
@@ -31,7 +32,7 @@ pub struct Config {
     /// This should generally be used as a base path for everything. Notable
     /// exceptions can be the installation of a driver or the compilation of
     /// a lint for uitests.
-    pub marker_dir: PathBuf,
+    pub marker_dir: Utf8PathBuf,
     /// The list of lints.
     pub lints: HashMap<String, LintDependencyEntry>,
     /// Additional flags, which should be passed to rustc during the compilation
@@ -53,11 +54,11 @@ impl Config {
         })
     }
 
-    fn markers_target_dir(&self) -> PathBuf {
+    fn markers_target_dir(&self) -> Utf8PathBuf {
         self.marker_dir.join("target")
     }
 
-    fn lint_crate_dir(&self) -> PathBuf {
+    fn lint_crate_dir(&self) -> Utf8PathBuf {
         self.marker_dir.join("lints")
     }
 }

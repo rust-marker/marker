@@ -16,6 +16,7 @@ marker_api   = { workspace = true, features = ["driver-api"] }
 marker_error = { workspace = true }
 marker_utils = { workspace = true }
 
+camino     = { workspace = true }
 libloading = { workspace = true }
 miette     = { workspace = true }
 thiserror  = { workspace = true }

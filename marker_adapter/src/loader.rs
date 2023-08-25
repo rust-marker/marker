@@ -1,8 +1,8 @@
 use crate::error::prelude::*;
+use camino::Utf8PathBuf;
 use libloading::Library;
 use marker_api::{interface::LintCrateBindings, AstContext};
 use marker_api::{LintPass, LintPassInfo, MARKER_API_VERSION};
-use std::path::PathBuf;
 
 use super::LINT_CRATES_ENV;
 
@@ -12,7 +12,7 @@ pub struct LintCrateInfo {
     /// The name of the lint crate
     pub name: String,
     /// The absolute path of the compiled dynamic library, which can be loaded as a lint crate.
-    pub path: PathBuf,
+    pub path: Utf8PathBuf,
 }
 
 impl LintCrateInfo {
@@ -40,7 +40,7 @@ impl LintCrateInfo {
 
             lint_crates.push(LintCrateInfo {
                 name: name.to_string(),
-                path: PathBuf::from(path),
+                path: path.into(),
             });
         }
         Ok(Some(lint_crates))
@@ -189,7 +189,7 @@ unsafe fn get_symbol<T>(
             info.name,
             // String ignores the trailing nul byte
             String::from_utf8_lossy(symbol_with_nul),
-            info.path.display()
+            info.path
         )
     })
 }

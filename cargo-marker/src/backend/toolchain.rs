@@ -1,10 +1,9 @@
 use crate::error::prelude::*;
 use crate::observability::prelude::*;
-use crate::{utils::is_local_driver, Result};
-use std::{
-    path::{Path, PathBuf},
-    process::Command,
-};
+use crate::utils::{is_local_driver, utf8::IntoUtf8};
+use crate::Result;
+use camino::{Utf8Path, Utf8PathBuf};
+use std::process::Command;
 use yansi::Paint;
 
 use super::{
@@ -15,7 +14,7 @@ use super::{
 
 #[derive(Debug)]
 pub struct Toolchain {
-    pub(crate) driver_path: PathBuf,
+    pub(crate) driver_path: Utf8PathBuf,
     /// A type containing toolchain to which the driver belongs.
     /// May not have a toolchain during custom builds when
     /// a driver was found but not the connected toolchain.
@@ -31,7 +30,7 @@ impl Toolchain {
         cmd
     }
 
-    pub fn cargo_build_command(&self, config: &Config, manifest: &Path) -> Command {
+    pub fn cargo_build_command(&self, config: &Config, manifest: &Utf8Path) -> Command {
         let mut cmd = self.cargo.command();
         cmd.arg("build");
 
@@ -54,14 +53,14 @@ impl Toolchain {
         cmd
     }
 
-    pub fn find_target_dir(&self) -> Result<PathBuf> {
+    pub fn find_target_dir(&self) -> Result<Utf8PathBuf> {
         let metadata = self
             .cargo
             .metadata()
             .exec()
             .context(|| "Coudln't find the target directory")?;
 
-        Ok(metadata.target_directory.into())
+        Ok(metadata.target_directory)
     }
 
     pub fn try_find_toolchain() -> Result<Toolchain> {
@@ -107,18 +106,20 @@ impl Toolchain {
     }
 
     fn search_next_to_cargo_marker() -> Result<Toolchain> {
-        let current_exe = std::env::current_exe().context(|| "Failed to get the current exe path")?;
+        let current_exe = std::env::current_exe()
+            .context(|| "Failed to get the current exe path")?
+            .into_utf8()?;
 
         let driver_path = current_exe.with_file_name(marker_driver_bin_name());
 
-        let _span = info_span!("search_next_to_cargo_marker", path = %driver_path.display()).entered();
+        let _span = info_span!("search_next_to_cargo_marker", path = %driver_path).entered();
 
         info!("Searching for driver");
 
         if !driver_path.is_file() {
             return Err(Error::root(format!(
                 "Could not find driver next to the cargo-marker binary at {}",
-                driver_path.display().red().bold()
+                driver_path.red().bold()
             )));
         }
 
@@ -131,22 +132,21 @@ impl Toolchain {
     }
 }
 
-pub(crate) fn get_toolchain_folder(toolchain: &str) -> Result<PathBuf> {
+pub(crate) fn get_toolchain_folder(toolchain: &str) -> Result<Utf8PathBuf> {
     let toolchain_cargo = rustup_which(toolchain, "cargo")?;
 
     // ../toolchain/bin/cargo -> ../toolchain
     let path = toolchain_cargo.ancestors().nth(2).context(|| {
         format!(
             "Unexpected layout of the rustup toolchain binary dir. There are not \
-            enough ancestors in the path `{}`",
-            toolchain_cargo.display()
+            enough ancestors in the path `{toolchain_cargo}`"
         )
     })?;
 
     Ok(path.to_path_buf())
 }
 
-pub(crate) fn rustup_which(toolchain: &str, tool: &str) -> Result<PathBuf> {
+pub(crate) fn rustup_which(toolchain: &str, tool: &str) -> Result<Utf8PathBuf> {
     let mut cmd = Command::new("rustup");
     cmd.args(["which", "--toolchain", toolchain, tool]);
 
@@ -158,10 +158,10 @@ pub(crate) fn rustup_which(toolchain: &str, tool: &str) -> Result<PathBuf> {
         return Err(Error::wrap(stderr.trim(), format!("Command failed: {}", cmd.display())));
     }
 
-    let string_path = String::from_utf8(output.stdout).context(|| "Incorrect bytes")?;
-    let path = PathBuf::from(string_path.trim());
+    let string_path = output.stdout.into_utf8()?;
+    let path = Utf8PathBuf::from(string_path.trim());
 
-    info!(%tool, %toolchain, path = %path.display(), "Found the tool");
+    info!(%tool, %toolchain, path = %path, "Found the tool");
 
     Ok(path)
 }
