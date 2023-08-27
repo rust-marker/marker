@@ -109,7 +109,7 @@ fn panic_hook(panic_info: &std::panic::PanicInfo<'_>) {
 #[derive(thiserror::Error, Debug, miette::Diagnostic)]
 #[diagnostic(
     help(
-        "we would be grateful if you report this to us at {}",
+        "we will be grateful if you report this to us at {}",
         "https://github.com/rust-marker/marker/issues".underline().cyan()
     ),
     url("https://github.com/rust-marker/marker/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+panic"),

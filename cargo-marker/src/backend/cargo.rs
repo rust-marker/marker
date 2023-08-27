@@ -66,7 +66,7 @@ impl Cargo {
 
         let manifest_location: ProjectLocation = serde_json::from_slice(&output.stdout).context(|| {
             format!(
-                "failed to deserialize cargo locate-project output (dumped it on the line bellow) \
+                "failed to deserialize cargo locate-project output (dumped it on the line bellow)\n\
                 ---\n{}\n---",
                 String::from_utf8_lossy(&output.stdout)
             )

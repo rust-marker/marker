@@ -26,7 +26,7 @@ Users want to see a succinct but informative error message in case they do somet
 
 It is enough to print the error message into `stderr` of the process. The users will be able to see it in their terminal or CI logs. The error should not contain any verbose diagnostic information like backtraces or spantraces by default.
 
-Use `Result` type for reporting such errors. The crate that is responsible for rendering this type of errors was selected to be [`miette`]. This crate renders the chain of errors that happened during the execution of `marker`` code in a readable colorful way. It also allows including the snippets of text that the error refers to; for example, if the config is invalid, we may show the snippet of the config that is invalid and describe what part of it is wrong.
+Use `Result` type for reporting such errors. The crate that is responsible for rendering this type of errors was selected to be [`miette`]. This crate renders the chain of errors that happened during the execution of `marker` code in a readable colorful way. It also allows including the snippets of text that the error refers to; for example, if the config is invalid, we may show the snippet of the config that is invalid and describe what part of it is wrong.
 
 [`miette`] builds on top of [`thiserror`] and extends the `std::error::Error` with additional functionality like the one mentioned above, error codes, help messages, multiple error handling, etc. This crate propagates using both [`miette`] and `thiserror` in combination to achieve the goal of user-friendly error reporting.
 
