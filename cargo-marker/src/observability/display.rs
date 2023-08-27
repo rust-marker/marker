@@ -12,7 +12,7 @@ use yansi::Paint;
 pub(crate) fn toml(toml: &str) -> String {
     toml.lines()
         .map(|line| {
-            let punct = ["[", "]", "{", "}", "="];
+            let punct = ['[', ']', '{', '}', '='];
 
             let line = punct.into_iter().fold(line.to_string(), |line, punct| {
                 line.replace(punct, &punct.yellow().to_string())
