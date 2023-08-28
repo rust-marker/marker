@@ -2,14 +2,70 @@ use std::ops::ControlFlow;
 
 use marker_api::{
     ast::{
-        expr::ExprKind,
-        item::{Body, EnumVariant, Field, ItemKind},
-        stmt::StmtKind,
+        item::{EnumVariant, Field},
+        BodyId,
     },
-    context::AstContext,
+    prelude::*,
 };
 
+/// This enum defines the scope that a given [`Visitor`] should traverse.
+///
+/// By default, it's recommended to not visit any nested bodies. Most analysis operates
+/// on the item or expression level. Variables and control flow statements are only
+/// effective in the current body. Visiting nested bodies, can add a bunch of noise and
+/// cause confusing results. Here is an example:
+///
+/// ```
+/// fn foo() {
+///     let x = 0;
+///     let a = 1;
+///
+///     // A function inside `foo()` with it's own body. This one will only
+///     // be visited if `VisitorScope::AllBodies` is specified.
+///     fn bar(x: u32) {
+///         // The printed `x` is different from the `x` of `foo()`
+///         // since it comes from the function parameter of `bar()`
+///         println!("The magic number is {x}");
+///         // The `return` statement only effects the `bar` function.
+///         // `foo()` will just continue executing, when this is called
+///         return;
+///     }
+///
+///     bar(a);
+/// }
+/// ```
+///
+/// The target scope, is checked when the respective `traverse_*` function is called
+/// For example, [`traverse_body`] will visit a given body [`Body`], but will not enter
+/// nested bodies, unless [`AllBodies`](VisitorScope::AllBodies) is defined.
+#[derive(Debug, Copy, Clone, Default)]
+pub enum VisitorScope {
+    /// All bodies are visited, this includes bodies from nested items and closures.
+    ///
+    /// Only use this, if you're sure that you need the context of nested bodies, as the
+    /// traversal of everything, can be expensive in comparison to the
+    /// [`NoBodies`](VisitorScope::NoBodies) scope.
+    AllBodies,
+    /// This visits every node, in the current scope, but won't enter nested bodies.
+    ///
+    /// This is a good default, if you only want to analyze the context of the current
+    /// item or expression
+    ///
+    /// If you want to visit an entire [`Body`], without visiting potentially nested bodies,
+    /// you can pass the body expression to the [`traverse_expr`] function.
+    #[default]
+    NoBodies,
+}
+
 pub trait Visitor<B> {
+    /// Defines the [`scope`](VisitorScope) this visitor should use.
+    ///
+    /// This should return a constant value. The `traverse_*` functions might only
+    /// check the scope once and cache the result.
+    fn scope(&self) -> VisitorScope {
+        VisitorScope::NoBodies
+    }
+
     fn visit_item<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _item: ItemKind<'ast>) -> ControlFlow<B> {
         ControlFlow::Continue(())
     }
@@ -45,6 +101,27 @@ pub fn traverse_item<'ast, B>(
     kind: ItemKind<'ast>,
 ) -> ControlFlow<B> {
     visitor.visit_item(cx, kind)?;
+
+    /// A small wrapper around [`traverse_body`] that checks the defined scope
+    /// and validity of the [`BodyId`]
+    fn traverse_body_id<'ast, B>(
+        cx: &'ast AstContext<'ast>,
+        visitor: &mut dyn Visitor<B>,
+        id: Option<BodyId>,
+    ) -> ControlFlow<B> {
+        // Requesting the body from the API might be expensive. This check
+        // prevents the requests if the body will not be used.
+        if let VisitorScope::NoBodies = visitor.scope() {
+            return ControlFlow::Continue(());
+        }
+
+        if let Some(body_id) = id {
+            traverse_body(cx, visitor, cx.body(body_id))?;
+        }
+
+        ControlFlow::Continue(())
+    }
+
     match kind {
         ItemKind::Mod(module) => {
             for mod_item in module.items() {
@@ -52,19 +129,13 @@ pub fn traverse_item<'ast, B>(
             }
         },
         ItemKind::Static(item) => {
-            if let Some(body_id) = item.body_id() {
-                traverse_body(cx, visitor, cx.body(body_id))?;
-            }
+            traverse_body_id(cx, visitor, item.body_id())?;
         },
         ItemKind::Const(item) => {
-            if let Some(body_id) = item.body_id() {
-                traverse_body(cx, visitor, cx.body(body_id))?;
-            }
+            traverse_body_id(cx, visitor, item.body_id())?;
         },
         ItemKind::Fn(item) => {
-            if let Some(body_id) = item.body_id() {
-                traverse_body(cx, visitor, cx.body(body_id))?;
-            }
+            traverse_body_id(cx, visitor, item.body_id())?;
         },
         ItemKind::Struct(item) => {
             for field in item.fields() {
@@ -79,6 +150,9 @@ pub fn traverse_item<'ast, B>(
         ItemKind::Enum(item) => {
             for variant in item.variants() {
                 visitor.visit_variant(cx, variant)?;
+                if let Some(const_expr) = variant.discriminant() {
+                    traverse_expr(cx, visitor, const_expr.expr())?
+                }
             }
         },
         ItemKind::Trait(item) => {
@@ -109,6 +183,10 @@ pub fn traverse_body<'ast, B>(
     visitor: &mut dyn Visitor<B>,
     body: &'ast Body<'ast>,
 ) -> ControlFlow<B> {
+    if let VisitorScope::NoBodies = visitor.scope() {
+        return ControlFlow::Continue(());
+    }
+
     visitor.visit_body(cx, body)?;
 
     traverse_expr(cx, visitor, body.expr())?;
@@ -162,7 +240,9 @@ pub fn traverse_expr<'ast, B>(
             }
         },
         ExprKind::Closure(e) => {
-            traverse_body(cx, visitor, cx.body(e.body_id()))?;
+            if let VisitorScope::AllBodies = visitor.scope() {
+                traverse_body(cx, visitor, cx.body(e.body_id()))?;
+            }
         },
         ExprKind::UnaryOp(e) => {
             traverse_expr(cx, visitor, e.expr())?;

@@ -76,6 +76,10 @@ impl Adapter {
 }
 
 impl Visitor<()> for AdapterInner {
+    fn scope(&self) -> visitor::VisitorScope {
+        visitor::VisitorScope::AllBodies
+    }
+
     fn visit_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) -> ControlFlow<()> {
         self.external_lint_crates.check_item(cx, item);
         ControlFlow::Continue(())
