@@ -21,6 +21,6 @@ pub fn check_item<'ast>(cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
             format!("testing `contains_return` -> {res}"),
             ident.span(),
             |_| {},
-        )
+        );
     }
 }

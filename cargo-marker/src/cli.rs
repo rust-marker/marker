@@ -105,27 +105,27 @@ mod tests {
 
     #[test]
     fn test_marker_cli() {
-        let cli = MarkerCli::parse_from(&["cargo-marker", "check"]);
+        let cli = MarkerCli::parse_from(["cargo-marker", "check"]);
         assert!(matches!(cli.command, Some(CliCommand::Check(_))));
 
-        let cli = MarkerCli::parse_from(&["cargo-marker"]);
-        assert!(matches!(cli.command, None));
+        let cli = MarkerCli::parse_from(["cargo-marker"]);
+        assert!(cli.command.is_none());
         assert!(cli.check_args.cargo_args.is_empty());
 
-        let cli = MarkerCli::parse_from(&["cargo-marker", "--", "ducks", "penguins"]);
-        assert!(matches!(cli.command, None));
+        let cli = MarkerCli::parse_from(["cargo-marker", "--", "ducks", "penguins"]);
+        assert!(cli.command.is_none());
         assert!(cli.check_args.cargo_args.len() == 2);
         assert!(cli.check_args.cargo_args[0] == "ducks");
         assert!(cli.check_args.cargo_args[1] == "penguins");
 
-        let cli = MarkerCli::parse_from(&["cargo-marker", "check", "--", "ducks", "penguins"]);
+        let cli = MarkerCli::parse_from(["cargo-marker", "check", "--", "ducks", "penguins"]);
         assert!(cli.check_args.cargo_args.is_empty());
         if let Some(CliCommand::Check(check_args)) = cli.command {
             assert!(check_args.cargo_args.len() == 2);
             assert!(check_args.cargo_args[0] == "ducks");
             assert!(check_args.cargo_args[1] == "penguins");
         } else {
-            assert!(false, "the `check` subcommand was not detected");
+            panic!("the `check` subcommand was not detected");
         }
     }
 }

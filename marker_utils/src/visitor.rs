@@ -38,6 +38,7 @@ use marker_api::{
 /// The target scope, is checked when the respective `traverse_*` function is called
 /// For example, [`traverse_body`] will visit a given body [`Body`], but will not enter
 /// nested bodies, unless [`AllBodies`](VisitorScope::AllBodies) is defined.
+#[non_exhaustive]
 #[derive(Debug, Copy, Clone, Default)]
 pub enum VisitorScope {
     /// All bodies are visited, this includes bodies from nested items and closures.
@@ -49,10 +50,7 @@ pub enum VisitorScope {
     /// This visits every node, in the current scope, but won't enter nested bodies.
     ///
     /// This is a good default, if you only want to analyze the context of the current
-    /// item or expression
-    ///
-    /// If you want to visit an entire [`Body`], without visiting potentially nested bodies,
-    /// you can pass the body expression to the [`traverse_expr`] function.
+    /// item or expression.
     #[default]
     NoBodies,
 }
@@ -100,8 +98,6 @@ pub fn traverse_item<'ast, B>(
     visitor: &mut dyn Visitor<B>,
     kind: ItemKind<'ast>,
 ) -> ControlFlow<B> {
-    visitor.visit_item(cx, kind)?;
-
     /// A small wrapper around [`traverse_body`] that checks the defined scope
     /// and validity of the [`BodyId`]
     fn traverse_body_id<'ast, B>(
@@ -121,6 +117,8 @@ pub fn traverse_item<'ast, B>(
 
         ControlFlow::Continue(())
     }
+
+    visitor.visit_item(cx, kind)?;
 
     match kind {
         ItemKind::Mod(module) => {
@@ -151,7 +149,7 @@ pub fn traverse_item<'ast, B>(
             for variant in item.variants() {
                 visitor.visit_variant(cx, variant)?;
                 if let Some(const_expr) = variant.discriminant() {
-                    traverse_expr(cx, visitor, const_expr.expr())?
+                    traverse_expr(cx, visitor, const_expr.expr())?;
                 }
             }
         },
@@ -434,7 +432,7 @@ pub fn for_each_expr<'ast, B, F: for<'a> FnMut(ExprKind<'a>) -> ControlFlow<B>>(
     let mut visitor = ExprVisitor { f };
 
     match node.traverse(cx, &mut visitor) {
-        ControlFlow::Continue(_) => None,
+        ControlFlow::Continue(()) => None,
         ControlFlow::Break(b) => Some(b),
     }
 }
