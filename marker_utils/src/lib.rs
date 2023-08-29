@@ -5,4 +5,5 @@
 #![allow(clippy::unused_self)] // `self` is needed to potentualy change the behavior later
 #![allow(clippy::trivially_copy_pass_by_ref)] // Needed to potentualy change the behavior later
 
+pub mod search;
 pub mod visitor;

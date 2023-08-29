@@ -10,6 +10,7 @@ pub use crate::ast::ty::SynTyData;
 
 // Common types
 pub use crate::ast::expr::ExprKind;
+pub use crate::ast::item::Body;
 pub use crate::ast::item::ItemKind;
 pub use crate::ast::pat::PatKind;
 pub use crate::ast::stmt::StmtKind;

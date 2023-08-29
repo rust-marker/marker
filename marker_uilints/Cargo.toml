@@ -15,6 +15,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 marker_api = { workspace = true }
+marker_utils = { workspace = true }
 
 [dev-dependencies]
 marker_uitest = { workspace = true }

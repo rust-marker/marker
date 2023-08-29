@@ -1,6 +1,8 @@
 #![doc = include_str!("../README.md")]
 #![warn(clippy::pedantic)]
 
+mod utils;
+
 use marker_api::{
     ast::{
         item::{EnumVariant, Field, StaticItem},
@@ -66,10 +68,18 @@ fn emit_item_with_test_name_lint<'ast>(
 
 impl LintPass for TestLintPass {
     fn info(&self) -> LintPassInfo {
-        LintPassInfoBuilder::new(Box::new([TEST_LINT, ITEM_WITH_TEST_NAME, PRINT_EVERY_EXPR])).build()
+        LintPassInfoBuilder::new(Box::new([
+            TEST_LINT,
+            ITEM_WITH_TEST_NAME,
+            PRINT_EVERY_EXPR,
+            utils::TEST_CONTAINS_RETURN,
+        ]))
+        .build()
     }
 
     fn check_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
+        utils::check_item(cx, item);
+
         if let ItemKind::Fn(item) = item {
             if let Some(ident) = item.ident() {
                 if ident.name() == "test_ty_id_resolution_trigger" {

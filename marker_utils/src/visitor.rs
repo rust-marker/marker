@@ -183,10 +183,6 @@ pub fn traverse_body<'ast, B>(
     visitor: &mut dyn Visitor<B>,
     body: &'ast Body<'ast>,
 ) -> ControlFlow<B> {
-    if let VisitorScope::NoBodies = visitor.scope() {
-        return ControlFlow::Continue(());
-    }
-
     visitor.visit_body(cx, body)?;
 
     traverse_expr(cx, visitor, body.expr())?;
@@ -372,4 +368,73 @@ pub fn traverse_expr<'ast, B>(
     }
 
     ControlFlow::Continue(())
+}
+
+/// This trait is implemented for nodes, that can be traversed by a [`Visitor`].
+pub trait Traverseable<'ast, B> {
+    /// This calls the `traverse_*` function for the implementing node.
+    fn traverse(self, cx: &'ast AstContext<'ast>, visitor: &mut dyn Visitor<B>) -> ControlFlow<B>;
+}
+
+/// This macro implements the [`Traverseable`] trait for a given node that implements `Copy`
+macro_rules! impl_traversable_for {
+    ($ty:ty, $func:ident) => {
+        impl<'ast, B> Traverseable<'ast, B> for $ty {
+            fn traverse(self, cx: &'ast AstContext<'ast>, visitor: &mut dyn Visitor<B>) -> ControlFlow<B> {
+                $func(cx, visitor, self)
+            }
+        }
+    };
+}
+
+impl_traversable_for!(ExprKind<'ast>, traverse_expr);
+impl_traversable_for!(StmtKind<'ast>, traverse_stmt);
+impl_traversable_for!(ItemKind<'ast>, traverse_item);
+impl_traversable_for!(&'ast Body<'ast>, traverse_body);
+
+/// This function calls the given closure for every expression in the node. This
+/// traversal will not enter any nested bodies.
+///
+/// This function is a simple wrapper around the [`Visitor`] trait, that is good
+/// for most use cases. For example, the following code counts the number of `if`s
+/// in a body:
+///
+/// ```
+/// # use marker_api::prelude::*;
+/// # use std::ops::ControlFlow;
+/// # use marker_utils::visitor::for_each_expr;
+/// fn count_ifs<'ast>(cx: &'ast AstContext<'ast>, body: &'ast Body<'ast>) -> u32 {
+///     let mut count = 0;
+///     let _: Option<()> = for_each_expr(
+///         cx,
+///         body,
+///         |expr| {
+///             if matches!(expr, ExprKind::If(_)) {
+///                 count += 1;
+///             }
+///             ControlFlow::Continue(())
+///         }
+///     );
+///     count
+/// }
+/// ```
+pub fn for_each_expr<'ast, B, F: for<'a> FnMut(ExprKind<'a>) -> ControlFlow<B>>(
+    cx: &'ast AstContext<'ast>,
+    node: impl Traverseable<'ast, B>,
+    f: F,
+) -> Option<B> {
+    struct ExprVisitor<F> {
+        f: F,
+    }
+    impl<B, F: for<'a> FnMut(ExprKind<'a>) -> ControlFlow<B>> Visitor<B> for ExprVisitor<F> {
+        fn visit_expr<'v_ast>(&mut self, _cx: &'v_ast AstContext<'v_ast>, expr: ExprKind<'v_ast>) -> ControlFlow<B> {
+            (self.f)(expr)
+        }
+    }
+    let mut visitor = ExprVisitor { f };
+
+    match node.traverse(cx, &mut visitor) {
+        ControlFlow::Continue(_) => None,
+        ControlFlow::Break(b) => Some(b),
+    }
 }
