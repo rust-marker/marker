@@ -89,7 +89,7 @@ It should be simple to report bugs in the code. The result of the bug should be 
 
 ### Solution
 
-This is the same as [reporting errors to marker developers](#reporting-errors-to-marker-developers), but in case of bugs we collect the diagnostic info automatically, with as much user interaction as possible. For example, we collect the spantrace and backtrace in case of a panic regardless of the `RUST_BACKTRACE` env var. For that we have a custom panic hook in `cargo-marker` that does this.
+This is the same as [reporting errors to marker developers](#reporting-errors-to-marker-developers), but in case of bugs we collect the diagnostic info automatically, with as less user interaction as possible. For example, we collect the spantrace and backtrace in case of a panic regardless of the `RUST_BACKTRACE` env var. For that we have a custom panic hook in `cargo-marker` that does this.
 
 ## Reporting user-recoverable errors
 
