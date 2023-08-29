@@ -39,7 +39,7 @@ pub(crate) fn toml(toml: &str) -> String {
 /// This is specifically formatted to be aligned with the other cargo
 /// output like `Compiling` or `Checking`.
 pub(crate) fn print_stage(name: &str) {
-    println!("      {} {}", "Marker".bold().green(), stage(name));
+    println!("\n      {} {}", "Marker".bold().green(), stage(name));
 }
 
 pub(crate) fn stage(name: &str) -> impl fmt::Display + '_ {

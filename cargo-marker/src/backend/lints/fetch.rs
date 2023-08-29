@@ -46,7 +46,7 @@ fn setup_dummy_crate(config: &Config) -> Result<PathBuf> {
     let lints_as_deps = toml::to_string(&DepNamespace {
         dependencies: &config.lints,
     })
-    .expect("DepNamespace can be repseresented as TOML");
+    .expect("DepNamespace can be represented as TOML");
 
     let manifest_content = format!("{DUMMY_MANIFEST_TEMPLATE}{lints_as_deps}");
     let manifest_path = config.marker_dir.join("Cargo.toml");
@@ -63,9 +63,6 @@ fn write_to_file(path: &PathBuf, content: &str) -> Result {
         .parent()
         .unwrap_or_else(|| panic!("The file must have a parent directory. Path: {}", path.display()));
 
-    // The result is ignored in this case. If the creation failed an error
-    // will be emitted when the file creation fails. It's easier to handle
-    // that case only once.
     std::fs::create_dir_all(parent)
         .context(|| format!("Failed to create the ditectory structure for {}", parent.display()))?;
 
@@ -131,7 +128,12 @@ fn call_cargo_metadata(manifest: &PathBuf, config: &Config) -> Result<Metadata> 
         .metadata()
         .manifest_path(manifest)
         .exec()
-        .context(|| "Failed to get cargo metadata for the lint crates")
+        .context(|| {
+            format!(
+                "Failed to get cargo metadata for the lint crates at {}",
+                manifest.display()
+            )
+        })
 }
 
 fn extract_lint_crate_sources(metadata: &Metadata, marker_config: &Config) -> Vec<LintCrateSource> {

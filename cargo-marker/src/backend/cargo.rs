@@ -54,7 +54,7 @@ impl Cargo {
         let output = cmd
             .log()
             .output()
-            .context(|| "error locating workspace manifest Cargo.toml")?;
+            .context(|| "Error locating workspace manifest Cargo.toml")?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -66,7 +66,7 @@ impl Cargo {
 
         let manifest_location: ProjectLocation = serde_json::from_slice(&output.stdout).context(|| {
             format!(
-                "failed to deserialize cargo locate-project output (dumped it on the line bellow)\n\
+                "Failed to deserialize cargo locate-project output (dumped it on the line bellow)\n\
                 ---\n{}\n---",
                 String::from_utf8_lossy(&output.stdout)
             )

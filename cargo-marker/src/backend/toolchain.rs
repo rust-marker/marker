@@ -4,7 +4,6 @@ use crate::{utils::is_local_driver, Result};
 use std::{
     path::{Path, PathBuf},
     process::Command,
-    str::FromStr,
 };
 use yansi::Paint;
 
@@ -108,7 +107,7 @@ impl Toolchain {
     }
 
     fn search_next_to_cargo_marker() -> Result<Toolchain> {
-        let current_exe = std::env::current_exe().context(|| "failed to get the current exe path")?;
+        let current_exe = std::env::current_exe().context(|| "Failed to get the current exe path")?;
 
         let driver_path = current_exe.with_file_name(marker_driver_bin_name());
 
@@ -151,7 +150,7 @@ pub(crate) fn rustup_which(toolchain: &str, tool: &str) -> Result<PathBuf> {
     let mut cmd = Command::new("rustup");
     cmd.args(["which", "--toolchain", toolchain, tool]);
 
-    let output = cmd.log().output().context(|| "failed to execute rustup")?;
+    let output = cmd.log().output().context(|| "Failed to execute rustup")?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -159,8 +158,8 @@ pub(crate) fn rustup_which(toolchain: &str, tool: &str) -> Result<PathBuf> {
         return Err(Error::wrap(stderr.trim(), format!("Command failed: {}", cmd.display())));
     }
 
-    let string_path = String::from_utf8(output.stdout).context(|| "incorrect bytes")?;
-    let path = PathBuf::from_str(string_path.trim()).context(|| format!("failed to parse path for `{tool}`"))?;
+    let string_path = String::from_utf8(output.stdout).context(|| "Incorrect bytes")?;
+    let path = PathBuf::from(string_path.trim());
 
     info!(%tool, %toolchain, path = %path.display(), "Found the tool");
 

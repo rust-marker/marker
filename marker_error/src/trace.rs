@@ -32,11 +32,11 @@ impl fmt::Display for ErrorTrace {
         match backtrace.status() {
             BacktraceStatus::Captured => Self::write_trace(f, "Backtrace", backtrace)?,
             // This must never happen because we use `force_capture`, but let's
-            // be safe and not panic the second time in a row here if we this ever breaks
+            // be safe and not panic the second time in a row here if this ever breaks
             BacktraceStatus::Disabled => writeln!(
                 f,
                 "{}",
-                "⚠️  Backtrace wasn't captured. t is probably a bug in our error \
+                "⚠️  Backtrace wasn't captured. This is probably a bug in our error \
                 trace capturing code."
                     .red(),
             )?,
@@ -55,7 +55,9 @@ impl fmt::Display for ErrorTrace {
                     f,
                     "{}. It may be expected if the error happened outside of \
                     any spans, or those spans were not enabled. You may try \
-                    capturing it by enabling {} logging or increasing its level.",
+                    capturing it by enabling {} logging or increasing its level \
+                    via MARKER_LOG env variable in cargo-marker. Spantrace capturing \
+                    in marker_rustc_driver isn't supported yet.",
                     "⚠️  Spantrace wasn't captured".yellow(),
                     "tracing".bold()
                 )?;

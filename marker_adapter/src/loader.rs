@@ -33,7 +33,7 @@ impl LintCrateInfo {
         for item in env_str.split(';') {
             let (name, path) = item.split_once(':').context(|| {
                 format!(
-                    "the content of the `{LINT_CRATES_ENV}` environment value is malformed. \
+                    "The content of the `{LINT_CRATES_ENV}` environment variable is malformed. \
                     Dumped its content on the next line:\n---\n{env_str}\n---",
                 )
             })?;
@@ -140,7 +140,7 @@ impl LoadedLintCrate {
     fn try_from_info(info: LintCrateInfo) -> Result<Self> {
         let lib = unsafe { Library::new(&info.path) };
 
-        let lib = lib.context(|| format!("failed to load lint crate `{}`", info.name))?;
+        let lib = lib.context(|| format!("Failed to load lint crate `{}`", info.name))?;
 
         let lib: &'static Library = Box::leak(Box::new(lib));
 
@@ -184,7 +184,7 @@ unsafe fn get_symbol<T>(
 ) -> Result<libloading::Symbol<'static, T>> {
     lib.get::<T>(symbol_with_nul).context(|| {
         format!(
-            "the loaded lint crate {} doesn't contain the symbol {}.\n\
+            "The loaded lint crate {} doesn't contain the symbol {}.\n\
             Dynamic library path: {}",
             info.name,
             // String ignores the trailing nul byte

@@ -28,7 +28,7 @@ pub enum ErrorKind {
 
     #[error("Error: The required toolchain {} can't be found", toolchain.red())]
     #[diagnostic(help(
-        "You can install the toolchain by running: {}\n\
+         "You can install the toolchain by running:\n{}\n\n\
         Or by adding the {} flag",
         display::cli(&format!("rustup toolchain install {toolchain} --component rustc-dev llvm-tools")),
         display::cli("--auto-install-toolchain"),
@@ -39,7 +39,7 @@ pub enum ErrorKind {
     #[diagnostic(help(
         "\
 Make sure that you have the rustc-dev and llvm-tools components installed.
-Try running the following:
+Try running the following command:
 {}
 
 or:
@@ -78,7 +78,7 @@ marker_lints = "0.2.1""#
 
 fn help_for_driver_not_found() -> String {
     format!(
-        "Try installing the driver by running the following.\n\n{}",
+        "Try installing the driver by running the following command:\n{}",
         display::cli("cargo marker setup --auto-install-toolchain")
     )
 }

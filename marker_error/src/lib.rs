@@ -9,7 +9,7 @@ pub use trace::*;
 mod imp {
     /// This type is used when no additional kind information is needed for an error.
     /// It doesn't need to be referred outside of this crate, so it is under a private
-    /// module, event if nominally it is public.
+    /// module, even if nominally it is public.
     #[derive(Debug, thiserror::Error, miette::Diagnostic)]
     pub enum Never {}
 }
@@ -33,10 +33,10 @@ pub(crate) const MARKER_ERROR_TRACE: &str = "MARKER_ERROR_TRACE";
 pub struct Error<Kind = Never> {
     /// Let's keep the error type of a pointer size. With `Arc` we may also
     /// make it cloneable if such need ever arises.
-    imp: Arc<ErrorImp<Kind>>,
+    imp: Arc<ErrorImpl<Kind>>,
 }
 
-struct ErrorImp<Kind> {
+struct ErrorImpl<Kind> {
     category: ErrorCategory<Kind>,
 
     /// Only enabled if the `error_trace` target is enabled in `MARKER_LOG`.
@@ -106,7 +106,7 @@ impl<Kind> Error<Kind> {
             None
         };
 
-        let imp = ErrorImp { category, trace };
+        let imp = ErrorImpl { category, trace };
 
         Self { imp: Arc::new(imp) }
     }

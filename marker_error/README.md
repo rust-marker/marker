@@ -1,6 +1,8 @@
 [Marker]: https://github.com/rust-marker/marker
 [Marker's Readme]: https://github.com/rust-marker/marker/blob/master/README.md
 [`EnvFilter`]: https://docs.rs/tracing-subscriber/latest/tracing_subscriber/filter/struct.EnvFilter.html
+[`miette`]: https://docs.rs/miette
+[`thiserror`]: https://docs.rs/thiserror
 
 [![Crates.io](https://img.shields.io/crates/v/marker_error.svg)](https://crates.io/crates/marker_error)
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/marker_error.svg)](#license)
@@ -12,7 +14,6 @@ This crate provides a common error handling utilities for all [Marker] crates. Y
 > **Warning**
 >
 > This crate is not part of Marker's official API, it's only intended to be used by marker internally.
-
 
 The goal of error handling is to provide diagnostic information about the context of the error for both the user and the developers of `marker`. This means there are at least two actors here that need to observe the errors.
 
@@ -28,7 +29,7 @@ It is enough to print the error message into `stderr` of the process. The users 
 
 Use `Result` type for reporting such errors. The crate that is responsible for rendering this type of errors was selected to be [`miette`]. This crate renders the chain of errors that happened during the execution of `marker` code in a readable colorful way. It also allows including the snippets of text that the error refers to; for example, if the config is invalid, we may show the snippet of the config that is invalid and describe what part of it is wrong.
 
-[`miette`] builds on top of [`thiserror`] and extends the `std::error::Error` with additional functionality like the one mentioned above, error codes, help messages, multiple error handling, etc. This crate propagates using both [`miette`] and `thiserror` in combination to achieve the goal of user-friendly error reporting.
+[`miette`] builds on top of [`thiserror`] and extends the `std::error::Error` with additional functionality like the one mentioned above, error codes, help messages, multiple error handling, etc. This crate propagates using both [`miette`] and [`thiserror`] in combination to achieve the goal of user-friendly error reporting.
 
 #### Error chains
 
