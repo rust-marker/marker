@@ -37,9 +37,10 @@ mod lint_pass;
 use std::env;
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
-use std::process::{exit, Command};
+use std::process::Command;
 
 use marker_adapter::{LintCrateInfo, LINT_CRATES_ENV};
+use marker_error::Context;
 use rustc_session::config::ErrorOutputType;
 use rustc_session::EarlyErrorHandler;
 
@@ -228,97 +229,117 @@ fn main() {
         handler.note_without_error("Achievement Unlocked: [Free Ice Cream]");
     });
 
-    exit(rustc_driver::catch_with_exit_code(|| {
-        // Note: This driver has two different kinds of "arguments".
-        // 1. Normal arguments, passed directly to the binary. (Collected below)
-        // 2. Arguments provided to `cargo-marker` which are forwarded to this process as environment
-        //    values. These are usually driver-independent and handled by the adapter.
-        let mut orig_args: Vec<String> = env::args().collect();
-
-        let sys_root_arg = arg_value(&orig_args, "--sysroot", |_| true);
-        let has_sys_root_arg = sys_root_arg.is_some();
-
-        // Further invocation of rustc require the `--sysroot` flag. We add it here
-        // in preparation.
-        if !has_sys_root_arg {
-            let sys_root = find_sys_root(sys_root_arg);
-            orig_args.extend(["--sysroot".into(), sys_root]);
-        };
-
-        // make "marker_rustc_driver --rustc" work like a subcommand that passes
-        // all args to "rustc" for example `marker_rustc_driver --rustc --version`
-        // will print the rustc version that is used
-        if let Some(pos) = orig_args.iter().position(|arg| arg == "--rustc") {
-            orig_args.remove(pos);
-            orig_args[0] = "rustc".to_string();
-
-            return rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks { env_vars: vec![] }).run();
-        }
-
-        if orig_args.iter().any(|a| a == "--version" || a == "-V") {
-            let version_info = rustc_tools_util::get_version_info!();
-            println!("{version_info}");
-            exit(0);
-        }
-
-        if orig_args.iter().any(|a| a == "--toolchain") {
-            println!("toolchain: {RUSTC_TOOLCHAIN_VERSION}");
-            println!("driver: {}", env!("CARGO_PKG_VERSION"));
-            println!("marker-api: {}", marker_api::MARKER_API_VERSION);
-
-            exit(0);
-        }
-
-        // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
-        // We're invoking the compiler programmatically, so we'll ignore this.
-        let wrapper_mode = orig_args.get(1).map(Path::new).and_then(Path::file_stem) == Some("rustc".as_ref());
-
-        if wrapper_mode {
-            // we still want to be able to invoke rustc normally
-            orig_args.remove(1);
-        }
-
-        // The `--rustc` argument has already been handled, therefore we can just
-        // check for this argument without caring about the position.
-        if !wrapper_mode && orig_args.iter().any(|a| a == "--help" || a == "-h") {
-            display_help();
-            exit(0);
-        }
-
-        // We enable Marker if one of the following conditions is met
-        // - IF Marker is run on the main crate, not on deps (`!cap_lints_allow`) THEN
-        //    - IF `--no-deps` is not set (`!no_deps`) OR
-        //    - IF `--no-deps` is set and Marker is run on the specified primary package
-        let cap_lints_allow = arg_value(&orig_args, "--cap-lints", |val| val == "allow").is_some()
-            && arg_value(&orig_args, "--force-warn", |_| true).is_none();
-        let no_deps = orig_args.iter().any(|arg| arg == "--no-deps");
-        let in_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
-
-        let enable_marker = !cap_lints_allow && (!no_deps || in_primary_package);
-        let env_vars = vec![(LINT_CRATES_ENV, std::env::var(LINT_CRATES_ENV).unwrap_or_default())];
-        if enable_marker {
-            let lint_crates = match LintCrateInfo::list_from_env() {
-                Ok(lint_crates) => lint_crates,
-                Err(marker_adapter::AdapterError::LintCratesEnvUnset) => vec![],
-                Err(err) => panic!("Error while determining the lint crates to load: {err:#?}"),
+    std::process::exit(rustc_driver::catch_with_exit_code(|| {
+        try_main().map_err(|err| {
+            let err = match err {
+                MainError::Custom(err) => err,
+                MainError::Rustc(err) => return err,
             };
 
-            // We need to provide a marker cfg flag to allow conditional compilation,
-            // we add a simple `marker` config for the common use case, but also provide
-            // `marker=crate_name` for more complex uses
-            orig_args.push("--cfg=marker".into());
-            orig_args.extend(
-                lint_crates
-                    .iter()
-                    .map(|krate| format!(r#"--cfg=marker="{}""#, krate.name)),
-            );
+            // Emit the error to stderr
+            err.print();
 
-            let mut callback = MarkerCallback { env_vars, lint_crates };
-            rustc_driver::RunCompiler::new(&orig_args, &mut callback).run()
-        } else {
-            rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks { env_vars }).run()
-        }
+            // This is a bit of a hack, but this way we can emit our own errors
+            // without having to change the rustc driver.
+            #[expect(deprecated)]
+            rustc_span::ErrorGuaranteed::unchecked_claim_error_was_emitted()
+        })
     }))
+}
+
+fn try_main() -> Result<(), MainError> {
+    // Note: This driver has two different kinds of "arguments".
+    // 1. Normal arguments, passed directly to the binary. (Collected below)
+    // 2. Arguments provided to `cargo-marker` which are forwarded to this process as environment
+    //    values. These are usually driver-independent and handled by the adapter.
+    let mut orig_args: Vec<String> = env::args().collect();
+
+    let sys_root_arg = arg_value(&orig_args, "--sysroot", |_| true);
+    let has_sys_root_arg = sys_root_arg.is_some();
+
+    // Further invocation of rustc require the `--sysroot` flag. We add it here
+    // in preparation.
+    if !has_sys_root_arg {
+        let sys_root = find_sys_root(sys_root_arg);
+        orig_args.extend(["--sysroot".into(), sys_root]);
+    };
+
+    // make "marker_rustc_driver --rustc" work like a subcommand that passes
+    // all args to "rustc" for example `marker_rustc_driver --rustc --version`
+    // will print the rustc version that is used
+    if let Some(pos) = orig_args.iter().position(|arg| arg == "--rustc") {
+        orig_args.remove(pos);
+        orig_args[0] = "rustc".to_string();
+
+        rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks { env_vars: vec![] }).run()?;
+
+        return Ok(());
+    }
+
+    if orig_args.iter().any(|a| a == "--version" || a == "-V") {
+        let version_info = rustc_tools_util::get_version_info!();
+        println!("{version_info}");
+        return Ok(());
+    }
+
+    if orig_args.iter().any(|a| a == "--toolchain") {
+        println!("toolchain: {RUSTC_TOOLCHAIN_VERSION}");
+        println!("driver: {}", env!("CARGO_PKG_VERSION"));
+        println!("marker-api: {}", marker_api::MARKER_API_VERSION);
+
+        return Ok(());
+    }
+
+    // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
+    // We're invoking the compiler programmatically, so we'll ignore this.
+    let wrapper_mode = orig_args.get(1).map(Path::new).and_then(Path::file_stem) == Some("rustc".as_ref());
+
+    if wrapper_mode {
+        // we still want to be able to invoke rustc normally
+        orig_args.remove(1);
+    }
+
+    // The `--rustc` argument has already been handled, therefore we can just
+    // check for this argument without caring about the position.
+    if !wrapper_mode && orig_args.iter().any(|a| a == "--help" || a == "-h") {
+        display_help();
+        return Ok(());
+    }
+
+    // We enable Marker if one of the following conditions is met
+    // - IF Marker is run on the main crate, not on deps (`!cap_lints_allow`) THEN
+    //    - IF `--no-deps` is not set (`!no_deps`) OR
+    //    - IF `--no-deps` is set and Marker is run on the specified primary package
+    let cap_lints_allow = arg_value(&orig_args, "--cap-lints", |val| val == "allow").is_some()
+        && arg_value(&orig_args, "--force-warn", |_| true).is_none();
+    let no_deps = orig_args.iter().any(|arg| arg == "--no-deps");
+    let in_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
+
+    let enable_marker = !cap_lints_allow && (!no_deps || in_primary_package);
+    let env_vars = vec![(LINT_CRATES_ENV, std::env::var(LINT_CRATES_ENV).unwrap_or_default())];
+    if !enable_marker {
+        rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks { env_vars }).run()?;
+        return Ok(());
+    }
+
+    let lint_crates = LintCrateInfo::list_from_env()
+        .context(|| "Error while determining the lint crates to load")?
+        .unwrap_or_default();
+
+    // We need to provide a marker cfg flag to allow conditional compilation,
+    // we add a simple `marker` config for the common use case, but also provide
+    // `marker=crate_name` for more complex uses
+    orig_args.push("--cfg=marker".into());
+    orig_args.extend(
+        lint_crates
+            .iter()
+            .map(|krate| format!(r#"--cfg=marker="{}""#, krate.name)),
+    );
+
+    let mut callback = MarkerCallback { env_vars, lint_crates };
+    rustc_driver::RunCompiler::new(&orig_args, &mut callback).run()?;
+
+    Ok(())
 }
 
 /// Get the sysroot, looking from most specific to this invocation to the least:
@@ -364,4 +385,21 @@ fn find_sys_root(sys_root_arg: Option<&str>) -> String {
         })
         .map(|pb| pb.to_string_lossy().to_string())
         .expect("need to specify SYSROOT env var during marker compilation, or use rustup or multirust")
+}
+
+enum MainError {
+    Custom(marker_error::Error),
+    Rustc(rustc_span::ErrorGuaranteed),
+}
+
+impl From<marker_error::Error> for MainError {
+    fn from(err: marker_error::Error) -> Self {
+        Self::Custom(err)
+    }
+}
+
+impl From<rustc_span::ErrorGuaranteed> for MainError {
+    fn from(err: rustc_span::ErrorGuaranteed) -> Self {
+        Self::Rustc(err)
+    }
 }

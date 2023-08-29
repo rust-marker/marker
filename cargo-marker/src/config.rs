@@ -5,12 +5,12 @@
 //! ([source](https://toml.io/en/v1.0.0)) This allows Marker to just use
 //! strings here, without worrying about OS specific string magic.
 
-use std::{collections::HashMap, fs, io};
-
+use crate::error::prelude::*;
+use crate::observability::display;
 use camino::Utf8Path;
 use serde::{Deserialize, Serialize};
-
-use crate::ExitStatus;
+use std::{collections::HashMap, fs};
+use yansi::Paint;
 
 #[derive(Deserialize, Debug)]
 struct CargoToml {
@@ -29,6 +29,10 @@ struct WorkspaceMetadata {
 
 /// Markers metadata section `workspace.metadata.marker` in `Cargo.toml`
 #[derive(Deserialize, Debug)]
+// We want to make sure users don't mess up the configuration thinking that
+// the values that they specified are used, when they are not.
+// For example, `cargo` doesn't allow unknown fields in its config.
+#[serde(deny_unknown_fields)]
 pub struct Config {
     /// A list of lints.
     pub lints: HashMap<String, LintDependency>,
@@ -46,9 +50,9 @@ pub enum LintDependency {
 
 impl LintDependency {
     /// This function normalizes the struct, by making all paths absolute paths
-    fn normalize(&mut self, workspace_path: &Utf8Path) -> Result<(), ConfigFetchError> {
+    fn normalize(&mut self, package: &str, workspace_path: &Utf8Path) -> Result {
         match self {
-            LintDependency::Full(full) => full.source.normalize(workspace_path),
+            LintDependency::Full(full) => full.source.normalize(package, workspace_path),
             LintDependency::Simple(_) => Ok(()),
         }
     }
@@ -97,15 +101,21 @@ pub enum Source {
 
 impl Source {
     /// This function normalizes the struct, by making all paths absolute paths
-    fn normalize(&mut self, workspace_path: &Utf8Path) -> Result<(), ConfigFetchError> {
+    fn normalize(&mut self, package: &str, workspace_path: &Utf8Path) -> Result {
         let Source::Path { path } = self else {
             return Ok(());
         };
         *path = workspace_path
             .join(&path)
             .canonicalize_utf8()
-            .map_err(ConfigFetchError::IoError)?
+            .context(|| {
+                format!(
+                    "Path to a lint crate is invalid: {}",
+                    display::toml(&format!("{package} = {{ path = \"{path}\" }}",))
+                )
+            })?
             .into_string();
+
         Ok(())
     }
 }
@@ -118,60 +128,34 @@ pub enum GitRef {
     Branch(String),
 }
 
-#[derive(Debug)]
-pub enum ConfigFetchError {
-    /// Read failed
-    IoError(io::Error),
-    /// Couldn't parse `Cargo.toml`
-    ParseError(toml::de::Error),
-    /// `workspace.metadata.marker` doesn't exist
-    SectionNotFound,
-}
-
-impl ConfigFetchError {
-    pub fn emit_and_convert(self) -> ExitStatus {
-        match self {
-            ConfigFetchError::IoError(err) => eprintln!("IO error reading config: {err:?}"),
-            // Better to use Display than Debug for toml error because it
-            // will display the snippet of toml and highlight the error span
-            ConfigFetchError::ParseError(err) => eprintln!("Can't parse config: {err}"),
-            ConfigFetchError::SectionNotFound => eprintln!("Marker config wasn't found"),
-        };
-        ExitStatus::BadConfiguration
-    }
-}
-
 impl Config {
-    pub fn try_from_manifest(path: &Utf8Path) -> Result<Config, ConfigFetchError> {
-        let config_str = fs::read_to_string(path).map_err(ConfigFetchError::IoError)?;
+    pub fn try_from_manifest(path: &Utf8Path) -> Result<Option<Config>> {
+        let config_str = fs::read_to_string(path).context(|| format!("Failed to read config at {}", path.red()))?;
 
         Self::try_from_str(&config_str, path)
     }
 
-    pub(crate) fn try_from_str(config_str: &str, path: &Utf8Path) -> Result<Config, ConfigFetchError> {
-        let cargo_toml: CargoToml = toml::from_str(config_str).map_err(ConfigFetchError::ParseError)?;
+    pub(crate) fn try_from_str(config_str: &str, path: &Utf8Path) -> Result<Option<Config>> {
+        let cargo_toml: CargoToml =
+            toml::from_str(config_str).context(|| format!("Could't parse config at {}", path.red()))?;
 
-        let mut config = cargo_toml
-            .workspace
-            .ok_or(ConfigFetchError::SectionNotFound)?
-            .metadata
-            .ok_or(ConfigFetchError::SectionNotFound)?
-            .marker
-            .ok_or(ConfigFetchError::SectionNotFound)?;
+        let config = cargo_toml.workspace.and_then(|x| x.metadata).and_then(|x| x.marker);
+
+        let Some(mut config) = config else { return Ok(None) };
 
         let workspace_path = path
             .parent()
             .expect("path must have a parent after reading the `Cargo.toml` file");
         config.normalize(workspace_path)?;
 
-        Ok(config)
+        Ok(Some(config))
     }
 
     /// This function normalizes the config, to be generally applicable. Currently,
     /// it normalizes all relative paths to be absolute paths instead.
-    fn normalize(&mut self, workspace_path: &Utf8Path) -> Result<(), ConfigFetchError> {
-        for lint in &mut self.lints.values_mut() {
-            lint.normalize(workspace_path)?;
+    fn normalize(&mut self, workspace_path: &Utf8Path) -> Result {
+        for (package, lint) in &mut self.lints {
+            lint.normalize(package, workspace_path)?;
         }
         Ok(())
     }

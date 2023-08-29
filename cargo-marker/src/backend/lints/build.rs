@@ -1,8 +1,10 @@
-use std::{collections::HashSet, ffi::OsStr, path::Path};
-
-use crate::{backend::Config, ExitStatus};
-
 use super::{LintCrate, LintCrateSource};
+use crate::backend::Config;
+use crate::error::prelude::*;
+use crate::observability::prelude::*;
+use itertools::Itertools;
+use std::{collections::HashSet, ffi::OsStr, path::Path};
+use yansi::Paint;
 
 #[cfg(target_os = "linux")]
 const DYNAMIC_LIB_FILE_ENDING: &str = "so";
@@ -23,7 +25,7 @@ const ARTIFACT_ENDINGS: &[&str] = &[
     "pdb",
 ];
 
-pub fn build_lints(sources: &[LintCrateSource], config: &Config) -> Result<Vec<LintCrate>, ExitStatus> {
+pub fn build_lints(sources: &[LintCrateSource], config: &Config) -> Result<Vec<LintCrate>> {
     // By default Cargo doesn't provide the path of the compiled lint crate.
     // As a work around, we use the `--out-dir` option to make cargo copy all
     // created binaries into one folder. We then scan that folder as we build our crates
@@ -80,36 +82,43 @@ pub fn build_lints(sources: &[LintCrateSource], config: &Config) -> Result<Vec<L
 ///
 /// This is an extra function to not call `delete_dir_all` and just accidentally delete
 /// the entire system.
-fn clear_lints_dir(lints_dir: &Path) -> Result<(), ExitStatus> {
-    if lints_dir.exists() {
-        // Delete all files
-        match std::fs::read_dir(lints_dir) {
-            Ok(dir) => {
-                let endings: Vec<_> = ARTIFACT_ENDINGS.iter().map(OsStr::new).collect();
-                for file in dir {
-                    let file = file.unwrap().path();
-                    if file.extension().map_or(false, |ending| endings.contains(&ending)) {
-                        std::fs::remove_file(file).map_err(|_| ExitStatus::LintCrateBuildFail)?;
-                    } else {
-                        eprintln!(
-                            "Marker's lint directory contains an unexpected file: {}",
-                            file.display()
-                        );
-                        return Err(ExitStatus::LintCrateBuildFail);
-                    }
-                }
+fn clear_lints_dir(lints_dir: &Path) -> Result {
+    // Delete all files
+    let dir = match std::fs::read_dir(lints_dir) {
+        Ok(dir) => dir,
+        Err(err) if std::io::ErrorKind::NotFound == err.kind() => return Ok(()),
+        Err(err) => return Err(Error::wrap(err, "Failed to read lints artifacts directory")),
+    };
 
-                // The dir should now be empty
-                std::fs::remove_dir(lints_dir).map_err(|_| ExitStatus::LintCrateBuildFail)
-            },
-            Err(_) => Err(ExitStatus::LintCrateBuildFail),
-        }
-    } else {
-        Ok(())
+    let endings: Vec<_> = ARTIFACT_ENDINGS.iter().map(OsStr::new).collect();
+
+    let (files, errors): (Vec<_>, Vec<_>) = dir.map(|result| result.map_err(Error::transparent)).partition_result();
+
+    if !errors.is_empty() {
+        return Err(Error::many(errors, "Failed to read the lints directory entries"));
     }
+
+    for file in files {
+        let file = file.path();
+
+        let is_expected_ending = file.extension().map(|ending| endings.contains(&ending)) == Some(true);
+
+        if !is_expected_ending {
+            return Err(Error::root(format!(
+                "Marker's lint directory contains an unexpected file: {}",
+                file.display()
+            )));
+        }
+
+        std::fs::remove_file(&file)
+            .context(|| format!("Failed to remove the lint artifact file {}", file.display()))?;
+    }
+
+    // The dir should now be empty
+    std::fs::remove_dir(lints_dir).context(|| format!("Failed to remove lints directory {}", lints_dir.display()))
 }
 
-fn build_lint(lint_src: &LintCrateSource, config: &Config) -> Result<(), ExitStatus> {
+fn build_lint(lint_src: &LintCrateSource, config: &Config) -> Result {
     let mut cmd = config.toolchain.cargo_build_command(config, &lint_src.manifest);
 
     // Set output dir. This currently requires unstable options
@@ -119,14 +128,18 @@ fn build_lint(lint_src: &LintCrateSource, config: &Config) -> Result<(), ExitSta
     cmd.arg(config.lint_crate_dir().as_os_str());
 
     let exit_status = cmd
+        .log()
         .spawn()
         .expect("could not run cargo")
         .wait()
         .expect("failed to wait for cargo?");
 
-    if !exit_status.success() {
-        return Err(ExitStatus::LintCrateBuildFail);
+    if exit_status.success() {
+        return Ok(());
     }
 
-    Ok(())
+    Err(Error::root(format!(
+        "Failed to compile the lint crate {}",
+        lint_src.name.red().bold()
+    )))
 }

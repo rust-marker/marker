@@ -4,15 +4,16 @@
 //! `cargo-marker` CLI. However, `cargo-marker` might also be used as a library for UI
 //! tests later down the line.
 
+use self::{lints::LintCrate, toolchain::Toolchain};
+use crate::config::LintDependencyEntry;
+use crate::error::prelude::*;
+use crate::observability::display::{self, print_stage};
+use crate::observability::prelude::*;
 use std::{
     collections::HashMap,
     ffi::{OsStr, OsString},
     path::PathBuf,
 };
-
-use crate::{config::LintDependencyEntry, ExitStatus};
-
-use self::{lints::LintCrate, toolchain::Toolchain};
 
 pub mod cargo;
 pub mod driver;
@@ -42,7 +43,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn try_base_from(toolchain: Toolchain) -> Result<Self, ExitStatus> {
+    pub fn try_base_from(toolchain: Toolchain) -> Result<Self> {
         Ok(Self {
             marker_dir: toolchain.find_target_dir()?.join("marker"),
             lints: HashMap::default(),
@@ -66,9 +67,8 @@ pub struct CheckInfo {
     pub env: Vec<(&'static str, OsString)>,
 }
 
-pub fn prepare_check(config: &Config) -> Result<CheckInfo, ExitStatus> {
-    println!();
-    println!("Compiling Lints:");
+pub fn prepare_check(config: &Config) -> Result<CheckInfo> {
+    print_stage("compiling lints");
     let lints = lints::build_lints(config)?;
 
     #[rustfmt::skip]
@@ -83,9 +83,9 @@ pub fn prepare_check(config: &Config) -> Result<CheckInfo, ExitStatus> {
     Ok(CheckInfo { env })
 }
 
-pub fn run_check(config: &Config, info: CheckInfo, additional_cargo_args: &[String]) -> Result<(), ExitStatus> {
-    println!();
-    println!("Start linting:");
+pub fn run_check(config: &Config, info: CheckInfo, additional_cargo_args: &[String]) -> Result {
+    let stage = "linting";
+    print_stage(stage);
 
     let mut cmd = config.toolchain.cargo_with_driver();
     cmd.arg("check");
@@ -94,16 +94,17 @@ pub fn run_check(config: &Config, info: CheckInfo, additional_cargo_args: &[Stri
     cmd.envs(info.env);
 
     let exit_status = cmd
+        .log()
         .spawn()
         .expect("could not run cargo")
         .wait()
         .expect("failed to wait for cargo?");
 
     if exit_status.success() {
-        Ok(())
-    } else {
-        Err(ExitStatus::MarkerCheckFailed)
+        return Ok(());
     }
+
+    Err(Error::root(format!("{} finished with an error", display::stage(stage))))
 }
 
 pub fn to_marker_lint_crates_env(lints: &[LintCrate]) -> OsString {

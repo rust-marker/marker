@@ -24,7 +24,7 @@ Marker's API requires some callbacks from the lint crates into the driver. The a
 
 ### Creating an adapter instance
 
-An adapter instance can be crated from the environment. For this, the following environment values are read:
+An adapter instance can be created from the environment. For this, the following environment values are read:
 
 * `MARKER_LINT_CRATES`: A semicolon separated list of crate name and absolute path pairs. Each pair is internally separated by a colon.
 

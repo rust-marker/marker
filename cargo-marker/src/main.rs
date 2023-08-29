@@ -1,47 +1,54 @@
 #![doc = include_str!("../README.md")]
 #![warn(clippy::pedantic)]
 #![allow(clippy::module_name_repetitions)]
-#![allow(clippy::manual_let_else)] // Rustfmt doesn't like `let ... else {` rn
+// Subjectively `.map_or_else(default_fn, map_fn)`
+// reads worse then `.map(map_fn).unwrap_or_else(default_fn)`
+#![allow(clippy::map_unwrap_or)]
 
 mod backend;
 mod cli;
 mod config;
-mod exit;
+mod error;
+mod observability;
 mod utils;
 
+use error::prelude::*;
 use std::{collections::HashMap, ffi::OsString};
 
+use crate::backend::driver::DriverVersionInfo;
 use backend::CheckInfo;
 use cli::{CheckArgs, CliCommand, MarkerCli};
 use config::Config;
+use std::process::ExitCode;
 
-pub use exit::ExitStatus;
+fn main() -> ExitCode {
+    observability::init();
 
-use crate::backend::driver::DriverVersionInfo;
+    let Err(err) = try_main() else {
+        return ExitCode::SUCCESS;
+    };
 
-#[allow(unreachable_code)]
-fn main() -> Result<(), ExitStatus> {
+    err.print();
+
+    ExitCode::FAILURE
+}
+
+fn try_main() -> Result {
     let cli = MarkerCli::parse_args();
 
     let cargo = backend::cargo::Cargo::default();
 
     let path = cargo.cargo_locate_project()?;
-    let config = match Config::try_from_manifest(&path) {
-        Ok(v) => Some(v),
-        Err(e) => match e {
-            config::ConfigFetchError::SectionNotFound => None,
-            _ => return Err(e.emit_and_convert()),
-        },
-    };
+    let config = Config::try_from_manifest(&path)?;
 
     match &cli.command {
         Some(CliCommand::Setup(args)) => {
-            let rustc_flags = if args.forward_rust_flags {
-                std::env::var("RUSTFLAGS").unwrap_or_default()
-            } else {
-                String::new()
-            };
-            backend::driver::install_driver(args.auto_install_toolchain, &rustc_flags)
+            let rustc_flags = args
+                .forward_rust_flags
+                .then(|| std::env::var("RUSTFLAGS").ok())
+                .flatten();
+
+            backend::driver::install_driver(args.auto_install_toolchain, rustc_flags)
         },
         Some(CliCommand::Check(args)) => run_check(args, config, CheckKind::Normal),
         Some(CliCommand::TestSetup(args)) => run_check(args, config, CheckKind::TestSetup),
@@ -55,38 +62,27 @@ enum CheckKind {
     TestSetup,
 }
 
-fn run_check(args: &CheckArgs, config: Option<Config>, kind: CheckKind) -> Result<(), ExitStatus> {
+fn run_check(args: &CheckArgs, config: Option<Config>, kind: CheckKind) -> Result {
     // determine lints
-    let deps = match cli::collect_lint_deps(args) {
-        Ok(deps) => deps,
-        Err(ExitStatus::NoLints) => {
-            if let Some(config) = config {
-                config.lints
-            } else {
-                HashMap::new()
-            }
-        },
-        Err(err) => return Err(err),
-    };
-    let mut lints = HashMap::new();
-    for (name, dep) in deps {
-        lints.insert(name, dep.to_dep_entry());
-    }
+    let lints: HashMap<_, _> = cli::collect_lint_deps(args)?
+        .or_else(|| config.map(|config| config.lints))
+        .into_iter()
+        .flatten()
+        .map(|(name, dep)| (name, dep.to_dep_entry()))
+        .collect();
 
     // Validation
     if lints.is_empty() {
-        return Err(ExitStatus::NoLints);
+        return Err(Error::from_kind(ErrorKind::LintsNotFound));
     }
 
     // If this is a dev build, we want to rebuild the driver before checking
     if utils::is_local_driver() {
-        backend::driver::install_driver(false, "")?;
+        backend::driver::install_driver(false, None)?;
     }
 
     // Configure backend
-    // FIXME(xFrednet): Implement better logging and remove verbose boolean in
-    // favor of debug logging.
-    let toolchain = backend::toolchain::Toolchain::try_find_toolchain(false)?;
+    let toolchain = backend::toolchain::Toolchain::try_find_toolchain()?;
     let backend_conf = backend::Config {
         lints,
         ..backend::Config::try_base_from(toolchain)?
@@ -98,14 +94,11 @@ fn run_check(args: &CheckArgs, config: Option<Config>, kind: CheckKind) -> Resul
     // Run backend
     match kind {
         CheckKind::Normal => backend::run_check(&backend_conf, info, &args.cargo_args),
-        CheckKind::TestSetup => {
-            print_test_info(&backend_conf, &info).unwrap();
-            Ok(())
-        },
+        CheckKind::TestSetup => print_test_info(&backend_conf, &info),
     }
 }
 
-fn print_test_info(config: &backend::Config, check: &CheckInfo) -> Result<(), ExitStatus> {
+fn print_test_info(config: &backend::Config, check: &CheckInfo) -> Result {
     print_env(&check.env).unwrap();
 
     let info = DriverVersionInfo::try_from_toolchain(&config.toolchain, &config.marker_dir.join("Cargo.toml"))?;

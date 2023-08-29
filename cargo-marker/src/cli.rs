@@ -1,7 +1,8 @@
-use std::collections::HashMap;
-
+use crate::config::{Config, LintDependency};
+use crate::error::prelude::*;
 use camino::Utf8Path;
 use clap::{Args, Parser, Subcommand};
+use std::collections::HashMap;
 
 /// Marker's CLI interface
 ///
@@ -74,14 +75,9 @@ pub struct SetupArgs {
     pub forward_rust_flags: bool,
 }
 
-use crate::{
-    config::{Config, ConfigFetchError, LintDependency},
-    ExitStatus,
-};
-
-pub fn collect_lint_deps(args: &CheckArgs) -> Result<HashMap<String, LintDependency>, ExitStatus> {
+pub fn collect_lint_deps(args: &CheckArgs) -> Result<Option<HashMap<String, LintDependency>>> {
     if args.lints.is_empty() {
-        return Err(ExitStatus::NoLints);
+        return Ok(None);
     }
 
     let mut virtual_manifest = "[workspace.metadata.marker.lints]\n".to_string();
@@ -92,8 +88,10 @@ pub fn collect_lint_deps(args: &CheckArgs) -> Result<HashMap<String, LintDepende
 
     let path = Utf8Path::new(".");
 
-    let Config { lints } = Config::try_from_str(&virtual_manifest, path).map_err(ConfigFetchError::emit_and_convert)?;
-    Ok(lints)
+    let Config { lints } = Config::try_from_str(&virtual_manifest, path)?.unwrap_or_else(|| {
+        panic!("BUG: the config must definitely contain the marker metadata:\n---\n{virtual_manifest}\n---");
+    });
+    Ok(Some(lints))
 }
 
 #[cfg(test)]
