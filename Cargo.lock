@@ -535,6 +535,7 @@ version = "0.3.0-dev"
 dependencies = [
  "marker_api",
  "marker_uitest",
+ "marker_utils",
 ]
 
 [[package]]

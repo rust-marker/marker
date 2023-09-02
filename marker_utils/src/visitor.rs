@@ -2,14 +2,68 @@ use std::ops::ControlFlow;
 
 use marker_api::{
     ast::{
-        expr::ExprKind,
-        item::{Body, EnumVariant, Field, ItemKind},
-        stmt::StmtKind,
+        item::{EnumVariant, Field},
+        BodyId,
     },
-    context::AstContext,
+    prelude::*,
 };
 
+/// This enum defines the scope that a given [`Visitor`] should traverse.
+///
+/// By default, it's recommended to not visit any nested bodies. Most analysis operates
+/// on the item or expression level. Variables and control flow statements are only
+/// effective in the current body. Visiting nested bodies, can add a bunch of noise and
+/// cause confusing results. Here is an example:
+///
+/// ```
+/// fn foo() {
+///     let x = 0;
+///     let a = 1;
+///
+///     // A function inside `foo()` with it's own body. This one will only
+///     // be visited if `VisitorScope::AllBodies` is specified.
+///     fn bar(x: u32) {
+///         // The printed `x` is different from the `x` of `foo()`
+///         // since it comes from the function parameter of `bar()`
+///         println!("The magic number is {x}");
+///         // The `return` statement only affects the `bar` function.
+///         // `foo()` will just continue executing, when this is called
+///         return;
+///     }
+///
+///     bar(a);
+/// }
+/// ```
+///
+/// The target scope is checked when the respective `traverse_*` function is called
+/// For example, [`traverse_body`] will visit a given body [`Body`], but will not enter
+/// nested bodies, unless [`AllBodies`](VisitorScope::AllBodies) is defined.
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, Default)]
+pub enum VisitorScope {
+    /// All bodies are visited, this includes bodies from nested items and closures.
+    ///
+    /// Only use this, if you're sure that you need the context of nested bodies, as the
+    /// traversal of everything, can be expensive in comparison to the
+    /// [`NoBodies`](VisitorScope::NoBodies) scope.
+    AllBodies,
+    /// This visits every node, in the current scope, but won't enter nested bodies.
+    ///
+    /// This is a good default, if you only want to analyze the context of the current
+    /// item or expression.
+    #[default]
+    NoBodies,
+}
+
 pub trait Visitor<B> {
+    /// Defines the [`scope`](VisitorScope) this visitor should use.
+    ///
+    /// This should return a constant value. The `traverse_*` functions might only
+    /// check the scope once and cache the result.
+    fn scope(&self) -> VisitorScope {
+        VisitorScope::NoBodies
+    }
+
     fn visit_item<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _item: ItemKind<'ast>) -> ControlFlow<B> {
         ControlFlow::Continue(())
     }
@@ -44,7 +98,28 @@ pub fn traverse_item<'ast, B>(
     visitor: &mut dyn Visitor<B>,
     kind: ItemKind<'ast>,
 ) -> ControlFlow<B> {
+    /// A small wrapper around [`traverse_body`] that checks the defined scope
+    /// and validity of the [`BodyId`]
+    fn traverse_body_id<'ast, B>(
+        cx: &'ast AstContext<'ast>,
+        visitor: &mut dyn Visitor<B>,
+        id: Option<BodyId>,
+    ) -> ControlFlow<B> {
+        // Requesting the body from the API might be expensive. This check
+        // prevents the requests if the body will not be used.
+        if let VisitorScope::NoBodies = visitor.scope() {
+            return ControlFlow::Continue(());
+        }
+
+        if let Some(body_id) = id {
+            traverse_body(cx, visitor, cx.body(body_id))?;
+        }
+
+        ControlFlow::Continue(())
+    }
+
     visitor.visit_item(cx, kind)?;
+
     match kind {
         ItemKind::Mod(module) => {
             for mod_item in module.items() {
@@ -52,19 +127,13 @@ pub fn traverse_item<'ast, B>(
             }
         },
         ItemKind::Static(item) => {
-            if let Some(body_id) = item.body_id() {
-                traverse_body(cx, visitor, cx.body(body_id))?;
-            }
+            traverse_body_id(cx, visitor, item.body_id())?;
         },
         ItemKind::Const(item) => {
-            if let Some(body_id) = item.body_id() {
-                traverse_body(cx, visitor, cx.body(body_id))?;
-            }
+            traverse_body_id(cx, visitor, item.body_id())?;
         },
         ItemKind::Fn(item) => {
-            if let Some(body_id) = item.body_id() {
-                traverse_body(cx, visitor, cx.body(body_id))?;
-            }
+            traverse_body_id(cx, visitor, item.body_id())?;
         },
         ItemKind::Struct(item) => {
             for field in item.fields() {
@@ -79,6 +148,9 @@ pub fn traverse_item<'ast, B>(
         ItemKind::Enum(item) => {
             for variant in item.variants() {
                 visitor.visit_variant(cx, variant)?;
+                if let Some(const_expr) = variant.discriminant() {
+                    traverse_expr(cx, visitor, const_expr.expr())?;
+                }
             }
         },
         ItemKind::Trait(item) => {
@@ -162,7 +234,9 @@ pub fn traverse_expr<'ast, B>(
             }
         },
         ExprKind::Closure(e) => {
-            traverse_body(cx, visitor, cx.body(e.body_id()))?;
+            if let VisitorScope::AllBodies = visitor.scope() {
+                traverse_body(cx, visitor, cx.body(e.body_id()))?;
+            }
         },
         ExprKind::UnaryOp(e) => {
             traverse_expr(cx, visitor, e.expr())?;
@@ -293,3 +367,102 @@ pub fn traverse_expr<'ast, B>(
 
     ControlFlow::Continue(())
 }
+
+/// This trait is implemented for nodes, that can be traversed by a [`Visitor`].
+pub trait Traversable<'ast, B>
+where
+    Self: Sized + Copy,
+{
+    /// This calls the `traverse_*` function for the implementing node.
+    fn traverse(self, cx: &'ast AstContext<'ast>, visitor: &mut dyn Visitor<B>) -> ControlFlow<B>;
+
+    /// This function calls the given closure for every expression in the node. This
+    /// traversal will not enter any nested bodies.
+    ///
+    /// This function is a simple wrapper around the [`Visitor`] trait, that is good
+    /// for most use cases. For example, the following code counts the number of `if`s
+    /// in a body:
+    ///
+    /// ```
+    /// # use marker_api::prelude::*;
+    /// # use std::ops::ControlFlow;
+    /// # use marker_utils::visitor::Traversable;
+    /// fn count_ifs<'ast>(cx: &'ast AstContext<'ast>, body: &'ast Body<'ast>) -> u32 {
+    ///     let mut count = 0;
+    ///     let _: Option<()> = body.for_each_expr(
+    ///         cx,
+    ///         |expr| {
+    ///             if matches!(expr, ExprKind::If(_)) {
+    ///                 count += 1;
+    ///             }
+    ///             ControlFlow::Continue(())
+    ///         }
+    ///     );
+    ///     count
+    /// }
+    /// ```
+    fn for_each_expr<F: for<'a> FnMut(ExprKind<'a>) -> ControlFlow<B>>(
+        self,
+        cx: &'ast AstContext<'ast>,
+        f: F,
+    ) -> Option<B> {
+        struct ExprVisitor<F> {
+            f: F,
+        }
+        impl<B, F: for<'a> FnMut(ExprKind<'a>) -> ControlFlow<B>> Visitor<B> for ExprVisitor<F> {
+            fn visit_expr<'v_ast>(
+                &mut self,
+                _cx: &'v_ast AstContext<'v_ast>,
+                expr: ExprKind<'v_ast>,
+            ) -> ControlFlow<B> {
+                (self.f)(expr)
+            }
+        }
+        let mut visitor = ExprVisitor { f };
+
+        match self.traverse(cx, &mut visitor) {
+            ControlFlow::Continue(()) => None,
+            ControlFlow::Break(b) => Some(b),
+        }
+    }
+}
+
+/// This macro implements the [`Traversable`] trait for a given node that implements `Copy`
+macro_rules! impl_traversable_for {
+    ($ty:ty, $func:ident) => {
+        impl<'ast, B> Traversable<'ast, B> for $ty {
+            fn traverse(self, cx: &'ast AstContext<'ast>, visitor: &mut dyn Visitor<B>) -> ControlFlow<B> {
+                $func(cx, visitor, self)
+            }
+        }
+    };
+}
+
+impl_traversable_for!(ExprKind<'ast>, traverse_expr);
+impl_traversable_for!(StmtKind<'ast>, traverse_stmt);
+impl_traversable_for!(ItemKind<'ast>, traverse_item);
+impl_traversable_for!(&'ast Body<'ast>, traverse_body);
+
+/// This trait extends the [`Traversable`] trait with more functions, specific to
+/// the `bool` return type.
+pub trait BoolTraversable<'ast>: Traversable<'ast, bool> {
+    /// Checks if the given node contains an early return, in the form of an
+    /// [`ReturnExpr`](marker_api::ast::expr::ReturnExpr) or
+    /// [`QuestionMarkExpr`](marker_api::ast::expr::QuestionMarkExpr).
+    ///
+    /// This function is useful, for lints which suggest moving code snippets into
+    /// a closure or different function. Return statements might prevent the suggested
+    /// refactoring.
+    fn contains_return(&self, cx: &'ast AstContext<'ast>) -> bool {
+        self.for_each_expr(cx, |expr| {
+            if matches!(expr, ExprKind::Return(_) | ExprKind::QuestionMark(_)) {
+                ControlFlow::Break(true)
+            } else {
+                ControlFlow::Continue(())
+            }
+        })
+        .is_some()
+    }
+}
+
+impl<'ast, T: Traversable<'ast, bool>> BoolTraversable<'ast> for T {}
