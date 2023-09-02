@@ -1,0 +1,15 @@
+name: release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description:
+          May be a specific version or one of the three keywords 'patch' 'minor' or 'major'.
+          If one of the keywords is used, the version will be bumped by 1 based on the current
+          version number as defined in the Cargo.toml
+        required: true
+jobs:
+  create-github-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3

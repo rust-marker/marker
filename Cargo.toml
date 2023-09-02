@@ -18,6 +18,9 @@ license    = "MIT OR Apache-2.0"
 repository = "https://github.com/rust-marker/marker"
 version    = "0.3.0-dev"
 
+# The MSRV is applied to the public library crates published to crates.io
+rust-version = "1.66"
+
 [workspace.dependencies]
 marker_adapter = { path = "./marker_adapter", version = "0.3.0-dev" }
 marker_api     = { path = "./marker_api", version = "0.3.0-dev" }

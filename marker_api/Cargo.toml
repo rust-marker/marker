@@ -4,19 +4,18 @@ name = "marker_api"
 categories  = ["development-tools"]
 description = "Marker's API, designed for stability and usability"
 
-edition    = { workspace = true }
-keywords   = { workspace = true }
-license    = { workspace = true }
-repository = { workspace = true }
-version    = { workspace = true }
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+edition      = { workspace = true }
+keywords     = { workspace = true }
+license      = { workspace = true }
+repository   = { workspace = true }
+rust-version = { workspace = true }
+version      = { workspace = true }
 
 [dependencies]
-visibility = { workspace = true }
+visibility = { optional = true, workspace = true }
 
 [features]
 # Some items should only be used by the driver implementing the functionality,
 # this feature enables the export of these items. Note that this interface is
 # unstable. All usage of the driver api can change between releases.
-driver-api = []
+driver-api = ["dep:visibility"]
