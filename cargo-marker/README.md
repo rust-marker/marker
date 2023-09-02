@@ -42,6 +42,7 @@ cargo marker setup --auto-install-toolchain
 
 Marker requires lint crates to be specified. The best way is to add them to the `Cargo.toml` file, like this:
 
+<!-- region replace-version stable -->
 ```toml
 [workspace.metadata.marker.lints]
 # A local crate as a path
@@ -51,6 +52,7 @@ marker_lints = { git = "https://github.com/rust-marker/marker" }
 # An external crate from a registry
 marker_lints = "0.2.1"
 ```
+<!-- endregion replace-version stable -->
 
 ### Running Marker
 
@@ -75,4 +77,3 @@ Copyright (c) 2022-2023 Rust-Marker
 Rust-marker is distributed under the terms of the MIT license or the Apache License (Version 2.0).
 
 See [LICENSE-APACHE](https://github.com/rust-marker/marker/blob/master/LICENSE-APACHE), [LICENSE-MIT](https://github.com/rust-marker/marker/blob/master/LICENSE-MIT).
-

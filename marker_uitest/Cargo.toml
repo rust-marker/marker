@@ -3,13 +3,12 @@ name = "marker_uitest"
 
 description = "A thin wrapper around the ui_test crate for Marker"
 
-edition    = { workspace = true }
-keywords   = { workspace = true }
-license    = { workspace = true }
-repository = { workspace = true }
-version    = { workspace = true }
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+edition      = { workspace = true }
+keywords     = { workspace = true }
+license      = { workspace = true }
+repository   = { workspace = true }
+rust-version = { workspace = true }
+version      = { workspace = true }
 
 [dependencies]
 semver   = { workspace = true }

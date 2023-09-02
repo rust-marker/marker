@@ -1,0 +1,187 @@
+# This workflow is subscribed only to the `tag` events, and it assumes that
+# the version bumps were already done in the `release` workflow.
+# See the docs/internal/release.md for more details.
+
+name: release-on-tag
+on:
+  push:
+    tags: ['v*']
+
+defaults:
+  run:
+    shell: bash
+
+# Contrary to intuition, "contents" covers not only the repository commits
+# but also GitHub releases.
+permissions:
+  contents: write
+
+# It's technically possible to run several releases in parallel if they are
+# a regular release and a hotfix from a different branch, but let's try not
+# to do that for our own sanity (🦶🔫).
+concurrency:
+  group: ${{ github.workflow }}/${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  github-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/create-gh-release-action@v1
+        with:
+          changelog: CHANGELOG.md
+          token: ${{ github.token }}
+
+  build:
+    needs: [github-release]
+    # GitHub doesn't let you split the `${{ }}` syntax into multiple lines 🤦.
+    # Anyway, let's return to the topic... The reason why we pin the specific
+    # versions of OSes is described in the docs under `docs/internal/release.md`
+    runs-on: ${{ contains(matrix.target, 'windows') && 'windows-2019' || contains(matrix.target, 'darwin') && 'macos-11' || 'ubuntu-20.04' }}
+
+    strategy:
+      # If it happens so that some binaries fail to build, then we can have a
+      # release anyway, but just without those binaries that failed to build.
+      # A build failure, of course would be a very rare event and would be bad,
+      # but it won't be the end of the world. We can rerun the CI job to try again
+      # if it was something flaky. GitHub allows rerunning only the failed jobs.
+      #
+      # If the failure was something deterministic and specific to the platform,
+      # then a new hotfix patch should be created for this.
+      fail-fast: false
+      matrix:
+        include:
+          - { bin: cargo-marker, target: x86_64-pc-windows-msvc }
+          - { bin: cargo-marker, target: x86_64-apple-darwin }
+          - { bin: cargo-marker, target: x86_64-unknown-linux-gnu }
+          - { bin: cargo-marker, target: x86_64-unknown-linux-musl }
+
+          # Who could know that cross-compiling for ARM on windows and macos "just works"?!
+          # I hope one day it will just work for Linux too, but that's really surprising to
+          # see how windows and macos beat linux in this regard 👀.
+          #
+          # We use `cargo-zigbuild` instead of the default `cross` build tool because the latter
+          # is more heavyweight as it depends on `docker`, but `cargo-zigbuild` doesn't.
+          - { bin: cargo-marker, target: aarch64-pc-windows-msvc }
+          - { bin: cargo-marker, target: aarch64-apple-darwin }
+          - { bin: cargo-marker, target: aarch64-unknown-linux-gnu,  build_tool: cargo-zigbuild }
+          - { bin: cargo-marker, target: aarch64-unknown-linux-musl, build_tool: cargo-zigbuild }
+
+          # Unfortunatelly, the driver depends on the dynamic libraries `rustc_driver` and `LLVM`.
+          # It means we can't have a static `musl` binary for it. It also significantly complicates
+          # the build for the ARM targets, so in this matrix we have only x86_64 targets. The ARM
+          # build is handled in a separate job.
+          - { bin: marker_rustc_driver, target: x86_64-pc-windows-msvc }
+          - { bin: marker_rustc_driver, target: x86_64-apple-darwin }
+          - { bin: marker_rustc_driver, target: x86_64-unknown-linux-gnu }
+    env:
+      MARKER_ALLOW_DRIVER_BUILD: 1
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          # Release is a rare event. We don't need any caching for it,
+          # and even if we did use the cache it would already be evicted
+          # at the time we run the next release because GitHub clears the
+          # cache after 7 days of inactivity.
+          cache: false
+          target: ${{ matrix.target }}
+
+      - uses: taiki-e/upload-rust-binary-action@v1
+        with:
+          bin: ${{ matrix.bin }}
+          target: ${{ matrix.target }}
+          token: ${{ github.token }}
+          checksum: sha256
+          tar: all
+          zip: all
+          build_tool: ${{ matrix.build_tool || 'cargo' }}
+
+  # This job is the result of desperation. Unfortunatelly we can't easily cross-compile
+  # the driver for ARM targets, because we need to have the `rustc_private` DLLs to
+  # be compiled for ARM, but their proc macros need to be compiled for the host x86_64
+  # architecture. However, this isn't the case today, and those proc macros are distributed
+  # pre-compiled only for the architecture of the target machine by `rustup`.
+  #
+  # So this job uses docker + QEMU to emulate an ARM machine and build the driver there.
+  # This, however, is a very slow process, and it's not possible to use this approach
+  # to build the driver for windows and macos that easily. I have high confidence it's
+  # possible to hack something for windows, but given the Apple's closed ecosystem...
+  #
+  # I don't think it's reasonably possible to compile for macos ARM. They really want
+  # you to buy their hardware. There is a gossip that GitHub will provide Apple M1 managed
+  # runners somewhere in the observable future, but until that happens the only option
+  # to compile for macos on ARM is to buy an Apple M1 machine and make a self-hosted runner,
+  # but that is ridiculously expensive.
+  # https://github.com/actions/runner/issues/805#issuecomment-1438149537
+  #
+  # See also the discussion in zulip:
+  # https://rust-lang.zulipchat.com/#narrow/stream/131828-t-compiler/topic/Cross-compile.20with.20rustc_private
+  build-driver-on-arm:
+    needs: [github-release]
+    runs-on: ubuntu-20.04
+    env:
+      artifact: marker_rustc_driver-aarch64-unknown-linux-gnu
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Concatenate dependent bash files. Unfortunately, the install script
+      # runs without the repository mounted, so we have to do this to not
+      # use anything from the repo.
+      - run: |
+          cat <<EOF >> $GITHUB_ENV
+          install_script<<DELIM
+            rust_version=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+            $(cat scripts/lib.sh scripts/release/qemu-install.sh)
+          DELIM
+          EOF
+
+      - uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: aarch64
+          distro: ubuntu20.04
+          dockerRunArgs: --volume .:/artifacts
+          setup: mkdir -p artifacts
+          install: ${{ env.install_script }}
+          env: |
+            MARKER_ALLOW_DRIVER_BUILD: 1
+
+          # Produce a binary artifact and place it in the mounted volume
+          run: |
+            export PATH="/root/.cargo/bin:$PATH"
+            cargo build -p marker_rustc_driver --release
+            cp target/release/marker_rustc_driver /artifacts/${{ env.artifact }}
+
+      - run: ./scripts/release/upload.sh ${{ github.ref_name }} ${{ env.artifact }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  # Publish the crates to crates.io
+  crates-io:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with: { cache: false }
+      - run: ./scripts/download/cargo-release.sh
+
+      # For extra security we set the env variable with the token only
+      # for the steps that require them.
+      #
+      # There are two `cargo release` invocations here. One without the
+      # `cargo_marker` package, and one with it.
+      #
+      # Keep in mind that `cargo-marker` may install `marker_rustc_driver`
+      # from crates.io via `cargo install`.
+      #
+      # That being said, we will be extra safe if `cargo_marker` is published
+      # after `marker_rustc_driver`.
+      - run: cargo release publish --exclude cargo_marker --execute --no-confirm --no-verify --allow-branch '*'
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+      - run: cargo release publish --package cargo_marker --execute --no-confirm --no-verify --allow-branch '*'
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}

@@ -35,7 +35,7 @@ jobs:
         os: [ubuntu, windows, macos]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - run: cargo test --locked
@@ -48,21 +48,21 @@ jobs:
         os: [ubuntu, windows, macos]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
 
-      - run: cargo clippy
+      - run: cargo clippy --all-features --all-targets --locked
       - run: cargo doc --no-deps
 
   rust-formatting:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       # We don't need any cache here, so use dtolnay action directly
       # The version of toolchain here should track the latest stable
       # version of Rust. The version of `cargo fmt` we use here doesn't
       # influence the version of Rust that is used when `cargo-marker` is built.
-      - uses: dtolnay/rust-toolchain@1.71.1
+      - uses: dtolnay/rust-toolchain@1.72.0
       - run: cargo fmt --check
 
   # This job ensures required packages can be built with a stable toolchain
@@ -75,7 +75,7 @@ jobs:
         os: [ubuntu, windows, macos]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: rm rust-toolchain.toml
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -100,7 +100,7 @@ jobs:
   rust-unused-dependencies:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: scripts/download/cargo-machete.sh
       - run: cargo-machete
 
@@ -108,7 +108,7 @@ jobs:
   toml:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: scripts/download/taplo.sh
       - run: taplo fmt --check
 
@@ -116,7 +116,7 @@ jobs:
   typos:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: scripts/download/typos.sh
       - run: typos
 
@@ -124,6 +124,14 @@ jobs:
   mdbook:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: scripts/download/mdbook.sh
       - run: mdbook build docs/book
+
+  bash-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Check that the release automation works as expected
+      - run: scripts/release/test.sh

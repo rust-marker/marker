@@ -20,4 +20,4 @@ file_stem=typos-$version-x86_64-unknown-linux-musl
 
 download_and_decompress $base_url/$file_stem.tar.gz ./typos
 
-with_log mv typos$exe ~/.cargo/bin
+move_to_path typos

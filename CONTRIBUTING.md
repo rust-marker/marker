@@ -1,6 +1,6 @@
 # Contributing to Marker
 
-Thank you for your interest in contributing to Marker. All contributions are appreciated! 
+Thank you for your interest in contributing to Marker. All contributions are appreciated!
 
 ## Table of Content
 
@@ -140,11 +140,14 @@ The current versions of Marker are intended for testing. All feedback is appreci
 The following is a small collection of ways you can test Marker right now:
 
 1. **Run Marker**
-    
+
     Simply run Marker on any Rust project you can find and report bugs or unexpected behavior. Once you've installed Marker, you can use the following command to run Marker with the `marker_lints` lint crate:
+
+<!-- region replace-version stable -->
     ```sh
     cargo marker --lints "marker_lints = '0.2.1'"
     ```
+<!-- endregion replace-version stable -->
 
     If you find any bugs or unexpected behavior, please [create an issue]. [rust-marker/marker#198] is a collection of all crates that were linted successfully. You can also add your own crates to the ever-growing list by commenting on the issue.
 
@@ -239,4 +242,3 @@ You can also contact me, @xFrednet, directly:
 ## Legal Notice
 
 Rust-marker is distributed under the terms of the MIT or Apache License (Version 2.0). All contributions fall under these licenses, and as such, it's expected that you authored 100% of the content you contribute and that you have the necessary rights to the content.
-

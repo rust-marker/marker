@@ -8,6 +8,7 @@ Marker in itself, is a linting interface. The actual code analysis is implemente
 
 The main way to declare lint crates, is to add them to the `Cargo.toml` file under the `[workspace.metadata.marker.lints]` section. There they can be defined like a normal dependency, with a version, git repository, or path. This is a short example of the three methods:
 
+<!-- region replace-version stable -->
 ```toml
 [workspace.metadata.marker.lints]
 # An external crate from a registry
@@ -19,6 +20,7 @@ marker_lints = { git = "https://github.com/rust-marker/marker" }
 # A local crate as a path
 marker_lints = { path = './marker_lints' }
 ```
+<!-- endregion replace-version stable -->
 
 ## Declaration as arguments
 
@@ -26,6 +28,7 @@ Lints can also be declared as arguments to the `cargo marker` command. Marker wi
 
 A lint crate can be specified with the `--lints` option. The string is expected to have the same format, that would be used in the `Cargo.toml` file. Here is an example for the same lint crates specified above:
 
+<!-- region replace-version stable -->
 ```sh
 # An external crate from a registry
 cargo marker --lint "marker_lints = '0.2.1'"
@@ -36,3 +39,4 @@ cargo marker --lint "marker_lints = { git = 'https://github.com/rust-marker/mark
 # A local crate as a path
 cargo marker --lint "marker_lints = { path = './marker_lints' }"
 ```
+<!-- endregion replace-version stable -->
