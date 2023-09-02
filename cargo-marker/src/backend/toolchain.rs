@@ -161,7 +161,7 @@ pub(crate) fn rustup_which(toolchain: &str, tool: &str) -> Result<Utf8PathBuf> {
     let string_path = output.stdout.into_utf8()?;
     let path = Utf8PathBuf::from(string_path.trim());
 
-    info!(%tool, %toolchain, path = %path, "Found the tool");
+    info!(%tool, %toolchain, %path, "Found the tool");
 
     Ok(path)
 }
