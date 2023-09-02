@@ -1,5 +1,5 @@
 use marker_api::prelude::*;
-use marker_utils::search::contains_return;
+use marker_utils::visitor::BoolTraversable;
 
 marker_api::declare_lint! {
     /// # What it does
@@ -13,7 +13,8 @@ pub fn check_item<'ast>(cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
     let Some(ident) = fn_item.ident() else { return };
 
     if ident.name().starts_with("test_contains_return") {
-        let res = contains_return(cx, cx.body(fn_item.body_id().unwrap()).expr());
+        let body = cx.body(fn_item.body_id().unwrap());
+        let res = body.contains_return(cx);
 
         cx.emit_lint(
             TEST_CONTAINS_RETURN,
