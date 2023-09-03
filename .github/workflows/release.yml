@@ -3,49 +3,47 @@ on:
   workflow_dispatch:
     inputs:
       version:
+        required: false
         description:
-          May be a specific version or one of the three keywords 'patch' 'minor' or 'major'.
-          If one of the keywords is used, the version will be bumped by 1 based on the current
-          version number as defined in the Cargo.toml
-        required: true
-
-defaults:
-  run:
-    shell: bash
+          (Optional) Version to set for the release. If not specified, the latest
+          numbered version found in the changelog will be used.
+      dev-version:
+        required: false
+        description:
+          (Optional) Version to set for the next development cycle. If not specified,
+          then the `version` with the incremented minor will be used.
 
 env:
-  RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
-  RUSTDOCFLAGS: --deny warnings
-  RUSTFLAGS: --deny warnings
-  # This disables incremental compilation for workspace packages and path deps.
-  # All other dependencies including registry deps will still use the incremental cache.
-  CARGO_INCREMENTAL: 0
 
 jobs:
-  create-github-release:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - uses: MarcoIeni/release-plz-action@v0.5
-        with:
-          command: release-pr
-          version: release-plz-v0.3.20
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    #   - uses: taiki-e/create-gh-release-action@v1
-    #     id: create-gh-release
-    #     with:
-    #       prefix: cargo-nextest
-    #       # The changelog for cargo-nextest is hosted on the website
-    #       changelog: site/src/CHANGELOG.md
-    #       title: $prefix $version
-    #       branch: main
-    #     env:
-    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    # outputs:
-    #   version: ${{ steps.create-gh-release.outputs.version }}
+      - id: version
+        run: >
+          echo "version=${{
+              github.event.inputs.version || '$(scripts/release/get-version-from-changelog.sh)'
+          }}"
+          >> "$GITHUB_OUTPUT"
+      - id: dev-version
+        run: >
+          echo "dev-version=${{
+              github.event.inputs.dev-version || '$(scripts/release/get-next-dev-version.sh)'
+          }}"
+          >> "$GITHUB_OUTPUT"
+
+      # Create a release commit and tag
+      - run: scripts/release/set-version.sh ${{ steps.version.outputs.version }}
+      - run: git commit -am "Release v${{ steps.version.outputs.version }}"
+      - run: git tag v${{ steps.get-version.outputs.version }}"
+
+      # Craete a next dev version commit
+      - run: scripts/release/set-version.sh ${{ steps.dev-version.outputs.dev-version }}
+      - run: git commit -am "Development v${{ steps.dev-version.outputs.dev-version }}"
+
+      # Push the commits and tags
+      - run: git push --atomic --follow-tags

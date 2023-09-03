@@ -1,3 +1,10 @@
+[Unreleased]: https://github.com/rust-marker/marker/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/rust-marker/marker/releases/tag/v0.3.0
+[0.2.1]: https://github.com/rust-marker/marker/releases/tag/v0.2.1
+[0.1.1]: https://github.com/rust-marker/marker/releases/tag/v0.1.1
+
+[#174]: https://github.com/rust-marker/marker/issues/174
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -6,6 +13,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.3.0] - 2023-09-03
+
+### Other
+
+- More fixes in grammar and wording
+- Fix wording
+- Fixes from the review
+- Fix small typos and grammar mistakes
+- Improve error handling and observability
 
 
 ## [0.2.1] - 2023-08-24
@@ -75,9 +92,3 @@ You might want to check out Marker's [lint crate template](https://github.com/ru
 This release is intended to collect feedback of any kind. If you encounter any bugs, have any thoughts or suggestions, please create an issue or reach out to me directly.
 
 Happy linting everyone! 🦀 🖊️ 🎉
-
-[Unreleased]: https://github.com/rust-marker/marker/compare/v0.2.1...HEAD
-[0.2.1]: https://github.com/rust-marker/marker/compare/v0.1.1...v0.2.1
-[0.1.1]: https://github.com/rust-marker/marker/compare/23d110...v0.1.1
-
-[#174]: https://github.com/rust-marker/marker/issues/174
