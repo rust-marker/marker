@@ -8,8 +8,44 @@ on:
           If one of the keywords is used, the version will be bumped by 1 based on the current
           version number as defined in the Cargo.toml
         required: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+  RUSTDOCFLAGS: --deny warnings
+  RUSTFLAGS: --deny warnings
+  # This disables incremental compilation for workspace packages and path deps.
+  # All other dependencies including registry deps will still use the incremental cache.
+  CARGO_INCREMENTAL: 0
+
 jobs:
   create-github-release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: MarcoIeni/release-plz-action@v0.5
+        with:
+          command: release-pr
+          version: release-plz-v0.3.20
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    #   - uses: taiki-e/create-gh-release-action@v1
+    #     id: create-gh-release
+    #     with:
+    #       prefix: cargo-nextest
+    #       # The changelog for cargo-nextest is hosted on the website
+    #       changelog: site/src/CHANGELOG.md
+    #       title: $prefix $version
+    #       branch: main
+    #     env:
+    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # outputs:
+    #   version: ${{ steps.create-gh-release.outputs.version }}

@@ -63,7 +63,7 @@ jobs:
       # The version of toolchain here should track the latest stable
       # version of Rust. The version of `cargo fmt` we use here doesn't
       # influence the version of Rust that is used when `cargo-marker` is built.
-      - uses: dtolnay/rust-toolchain@1.71.1
+      - uses: dtolnay/rust-toolchain@1.72.0
       - run: cargo fmt --check
 
   # This job ensures required packages can be built with a stable toolchain
