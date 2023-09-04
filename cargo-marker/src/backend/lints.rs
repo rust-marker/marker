@@ -1,6 +1,6 @@
 use super::Config;
 use crate::error::prelude::*;
-use std::path::PathBuf;
+use camino::Utf8PathBuf;
 
 mod build;
 mod fetch;
@@ -14,7 +14,7 @@ pub struct LintCrateSource {
     /// that will be used to construct the dynamic library.
     name: String,
     /// The absolute path to the manifest of this lint crate
-    manifest: PathBuf,
+    manifest: Utf8PathBuf,
 }
 
 /// The information of a compiled lint crate.
@@ -23,7 +23,7 @@ pub struct LintCrate {
     /// The name of the crate
     pub name: String,
     /// The absolute path of the compiled crate, as a dynamic library.
-    pub file: PathBuf,
+    pub file: Utf8PathBuf,
 }
 
 /// This function fetches and builds all lints specified in the given [`Config`]

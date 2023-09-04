@@ -36,9 +36,9 @@ mod lint_pass;
 
 use std::env;
 use std::ops::Deref;
-use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use camino::{Utf8Path, Utf8PathBuf};
 use marker_adapter::{LintCrateInfo, LINT_CRATES_ENV};
 use marker_error::Context;
 use rustc_session::config::ErrorOutputType;
@@ -113,7 +113,7 @@ fn register_tracked_files(sess: &mut rustc_session::parse::ParseSess, lint_crate
 
     // Cargo sets the current directory, to the folder containing the `Cargo.toml`
     // file of the compiled crate. Therefore, we can use the relative path.
-    let cargo_file = Path::new("./Cargo.toml");
+    let cargo_file = Utf8Path::new("./Cargo.toml");
     if cargo_file.exists() {
         files.insert(Symbol::intern("./Cargo.toml"));
     }
@@ -121,14 +121,7 @@ fn register_tracked_files(sess: &mut rustc_session::parse::ParseSess, lint_crate
     // At this point, the lint crate paths should be absolute. Therefore, we
     // can just throw it in the `files` set.
     for lint_crate in lint_crates {
-        if let Some(name) = lint_crate.path.to_str() {
-            files.insert(Symbol::intern(name));
-        } else {
-            // The name is not a valid UTF-8 String. This is not ideal but at the
-            // same time not problematic enough to throw an error. It just means
-            // that the lint crate can't be tracked and the driver might reuse
-            // a cache if only that crate was changed.
-        }
+        files.insert(Symbol::intern(lint_crate.path.as_str()));
     }
 
     // Track the driver executable in debug builds
@@ -166,24 +159,10 @@ fn arg_value<'a, T: Deref<Target = str>>(
     None
 }
 
-#[test]
-fn test_arg_value() {
-    let args = &["--bar=bar", "--foobar", "123", "--foo"];
-
-    assert_eq!(arg_value(&[] as &[&str], "--foobar", |_| true), None);
-    assert_eq!(arg_value(args, "--bar", |_| false), None);
-    assert_eq!(arg_value(args, "--bar", |_| true), Some("bar"));
-    assert_eq!(arg_value(args, "--bar", |p| p == "bar"), Some("bar"));
-    assert_eq!(arg_value(args, "--bar", |p| p == "foo"), None);
-    assert_eq!(arg_value(args, "--foobar", |p| p == "foo"), None);
-    assert_eq!(arg_value(args, "--foobar", |p| p == "123"), Some("123"));
-    assert_eq!(arg_value(args, "--foo", |_| true), None);
-}
-
-fn toolchain_path(home: Option<String>, toolchain: Option<String>) -> Option<PathBuf> {
+fn toolchain_path(home: Option<String>, toolchain: Option<String>) -> Option<Utf8PathBuf> {
     home.and_then(|home| {
         toolchain.map(|toolchain| {
-            let mut path = PathBuf::from(home);
+            let mut path = Utf8PathBuf::from(home);
             path.push("toolchains");
             path.push(toolchain);
             path
@@ -292,7 +271,7 @@ fn try_main() -> Result<(), MainError> {
 
     // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
     // We're invoking the compiler programmatically, so we'll ignore this.
-    let wrapper_mode = orig_args.get(1).map(Path::new).and_then(Path::file_stem) == Some("rustc".as_ref());
+    let wrapper_mode = orig_args.get(1).map(Utf8Path::new).and_then(Utf8Path::file_stem) == Some("rustc");
 
     if wrapper_mode {
         // we still want to be able to invoke rustc normally
@@ -353,8 +332,8 @@ fn try_main() -> Result<(), MainError> {
 ///    - `RUSTUP_HOME`, `MULTIRUST_HOME`, `RUSTUP_TOOLCHAIN`, `MULTIRUST_TOOLCHAIN`
 fn find_sys_root(sys_root_arg: Option<&str>) -> String {
     sys_root_arg
-        .map(PathBuf::from)
-        .or_else(|| std::env::var("SYSROOT").ok().map(PathBuf::from))
+        .map(Utf8PathBuf::from)
+        .or_else(|| std::env::var("SYSROOT").ok().map(Utf8PathBuf::from))
         .or_else(|| {
             let home = std::env::var("RUSTUP_HOME")
                 .or_else(|_| std::env::var("MULTIRUST_HOME"))
@@ -371,9 +350,9 @@ fn find_sys_root(sys_root_arg: Option<&str>) -> String {
                 .output()
                 .ok()
                 .and_then(|out| String::from_utf8(out.stdout).ok())
-                .map(|s| PathBuf::from(s.trim()))
+                .map(|s| Utf8PathBuf::from(s.trim()))
         })
-        .or_else(|| option_env!("SYSROOT").map(PathBuf::from))
+        .or_else(|| option_env!("SYSROOT").map(Utf8PathBuf::from))
         .or_else(|| {
             let home = option_env!("RUSTUP_HOME")
                 .or(option_env!("MULTIRUST_HOME"))
@@ -383,7 +362,7 @@ fn find_sys_root(sys_root_arg: Option<&str>) -> String {
                 .map(ToString::to_string);
             toolchain_path(home, toolchain)
         })
-        .map(|pb| pb.to_string_lossy().to_string())
+        .map(Utf8PathBuf::into_string)
         .expect("need to specify SYSROOT env var during marker compilation, or use rustup or multirust")
 }
 
@@ -401,5 +380,24 @@ impl From<marker_error::Error> for MainError {
 impl From<rustc_span::ErrorGuaranteed> for MainError {
     fn from(err: rustc_span::ErrorGuaranteed) -> Self {
         Self::Rustc(err)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_arg_value() {
+        let args = &["--bar=bar", "--foobar", "123", "--foo"];
+
+        assert_eq!(arg_value(&[] as &[&str], "--foobar", |_| true), None);
+        assert_eq!(arg_value(args, "--bar", |_| false), None);
+        assert_eq!(arg_value(args, "--bar", |_| true), Some("bar"));
+        assert_eq!(arg_value(args, "--bar", |p| p == "bar"), Some("bar"));
+        assert_eq!(arg_value(args, "--bar", |p| p == "foo"), None);
+        assert_eq!(arg_value(args, "--foobar", |p| p == "foo"), None);
+        assert_eq!(arg_value(args, "--foobar", |p| p == "123"), Some("123"));
+        assert_eq!(arg_value(args, "--foo", |_| true), None);
     }
 }

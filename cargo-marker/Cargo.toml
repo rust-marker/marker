@@ -34,3 +34,6 @@ tracing            = { workspace = true }
 tracing-error      = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 yansi              = { workspace = true }
+
+[dev-dependencies]
+expect-test = { workspace = true }
