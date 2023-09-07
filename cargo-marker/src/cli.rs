@@ -9,6 +9,8 @@ use std::collections::HashMap;
 /// This binary should be invoked by Cargo with the new `marker` subcommand. If
 /// you're reading this, consider manually adding `marker` as the first argument.
 #[derive(Parser, Debug)]
+#[command(name = "cargo")]
+#[command(author, version, about)]
 struct MarkerApp {
     #[clap(subcommand)]
     subcommand: MarkerSubcommand,
