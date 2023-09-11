@@ -61,7 +61,7 @@ pub enum ExprKind<'ast> {
     UnaryOp(&'ast UnaryOpExpr<'ast>),
     Ref(&'ast RefExpr<'ast>),
     BinaryOp(&'ast BinaryOpExpr<'ast>),
-    QuestionMark(&'ast QuestionMarkExpr<'ast>),
+    QuestionMark(&'ast TryExpr<'ast>),
     Assign(&'ast AssignExpr<'ast>),
     As(&'ast AsExpr<'ast>),
     Path(&'ast PathExpr<'ast>),
@@ -384,7 +384,7 @@ mod test {
         assert_eq!(40, size_of::<UnaryOpExpr<'_>>(), "UnaryOpExpr<'_>");
         assert_eq!(40, size_of::<RefExpr<'_>>(), "RefExpr<'_>");
         assert_eq!(56, size_of::<BinaryOpExpr<'_>>(), "BinaryOpExpr<'_>");
-        assert_eq!(32, size_of::<QuestionMarkExpr<'_>>(), "QuestionMarkExpr<'_>");
+        assert_eq!(32, size_of::<TryExpr<'_>>(), "TryExpr<'_>");
         assert_eq!(80, size_of::<AssignExpr<'_>>(), "AssignExpr<'_>");
         assert_eq!(48, size_of::<AsExpr<'_>>(), "AsExpr<'_>");
         assert_eq!(96, size_of::<PathExpr<'_>>(), "PathExpr<'_>");

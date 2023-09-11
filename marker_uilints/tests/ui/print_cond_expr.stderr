@@ -1019,7 +1019,7 @@ warning: print test
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: QuestionMark(
-               QuestionMarkExpr {
+               TryExpr {
                    data: CommonExprData {
                        _lifetime: PhantomData<&()>,
                        id: ExprId(..),
@@ -1064,7 +1064,7 @@ warning: print test
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: QuestionMark(
-               QuestionMarkExpr {
+               TryExpr {
                    data: CommonExprData {
                        _lifetime: PhantomData<&()>,
                        id: ExprId(..),

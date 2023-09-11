@@ -448,7 +448,7 @@ impl_traversable_for!(&'ast Body<'ast>, traverse_body);
 pub trait BoolTraversable<'ast>: Traversable<'ast, bool> {
     /// Checks if the given node contains an early return, in the form of an
     /// [`ReturnExpr`](marker_api::ast::expr::ReturnExpr) or
-    /// [`QuestionMarkExpr`](marker_api::ast::expr::QuestionMarkExpr).
+    /// [`TryExpr`](marker_api::ast::expr::TryExpr).
     ///
     /// This function is useful, for lints which suggest moving code snippets into
     /// a closure or different function. Return statements might prevent the suggested

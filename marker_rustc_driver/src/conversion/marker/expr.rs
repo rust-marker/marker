@@ -4,9 +4,9 @@ use marker_api::{
             ArrayExpr, AsExpr, AssignExpr, AwaitExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr,
             CallExpr, CaptureKind, CharLitExpr, ClosureExpr, ClosureParam, CommonExprData, ConstExpr, ContinueExpr,
             CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr,
-            IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr,
-            QuestionMarkExpr, RangeExpr, RefExpr, ReturnExpr, StrLitData, StrLitExpr, TupleExpr, UnaryOpExpr,
-            UnaryOpKind, UnstableExpr, WhileExpr,
+            IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr,
+            RefExpr, ReturnExpr, StrLitData, StrLitExpr, TryExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
+            WhileExpr,
         },
         pat::PatKind,
         Ident, Safety, Syncness,
@@ -552,10 +552,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
     }
 
-    fn to_try_expr_from_desugar(&self, try_desugar: &hir::Expr<'tcx>) -> QuestionMarkExpr<'ast> {
+    fn to_try_expr_from_desugar(&self, try_desugar: &hir::Expr<'tcx>) -> TryExpr<'ast> {
         if let hir::ExprKind::Match(scrutinee, [_ret, _con], hir::MatchSource::TryDesugar(_)) = try_desugar.kind {
             if let hir::ExprKind::Call(_try_path, [tested_expr]) = scrutinee.kind {
-                return QuestionMarkExpr::new(
+                return TryExpr::new(
                     CommonExprData::new(self.to_expr_id(try_desugar.hir_id), self.to_span_id(try_desugar.span)),
                     self.to_expr(tested_expr),
                 );
