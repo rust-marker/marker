@@ -248,7 +248,7 @@ pub fn traverse_expr<'ast, B>(
             traverse_expr(cx, visitor, e.left())?;
             traverse_expr(cx, visitor, e.right())?;
         },
-        ExprKind::QuestionMark(e) => {
+        ExprKind::Try(e) => {
             traverse_expr(cx, visitor, e.expr())?;
         },
         ExprKind::Assign(e) => {
@@ -455,7 +455,7 @@ pub trait BoolTraversable<'ast>: Traversable<'ast, bool> {
     /// refactoring.
     fn contains_return(&self, cx: &'ast AstContext<'ast>) -> bool {
         self.for_each_expr(cx, |expr| {
-            if matches!(expr, ExprKind::Return(_) | ExprKind::QuestionMark(_)) {
+            if matches!(expr, ExprKind::Return(_) | ExprKind::Try(_)) {
                 ControlFlow::Break(true)
             } else {
                 ControlFlow::Continue(())

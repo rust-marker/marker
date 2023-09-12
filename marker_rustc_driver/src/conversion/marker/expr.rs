@@ -210,7 +210,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 ExprKind::Match(self.alloc(MatchExpr::new(data, self.to_expr(scrutinee), self.to_match_arms(arms))))
             },
             hir::ExprKind::Match(_scrutinee, [_early_return, _continue], hir::MatchSource::TryDesugar(_)) => {
-                ExprKind::QuestionMark(self.alloc(self.to_try_expr_from_desugar(expr)))
+                ExprKind::Try(self.alloc(self.to_try_expr_from_desugar(expr)))
             },
             hir::ExprKind::Match(_scrutinee, [_awaitee_arm], hir::MatchSource::AwaitDesugar) => {
                 ExprKind::Await(self.alloc(self.to_await_expr_from_desugar(expr)))

@@ -189,7 +189,7 @@ impl<'ast> TryExpr<'ast> {
     }
 }
 
-super::impl_expr_data!(TryExpr<'ast>, QuestionMark);
+super::impl_expr_data!(TryExpr<'ast>, Try);
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TryExpr<'ast> {

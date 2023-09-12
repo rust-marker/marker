@@ -1018,7 +1018,7 @@ warning: print test
 48 |         let _print_option_match = x?;
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: QuestionMark(
+   = note: Try(
                TryExpr {
                    data: CommonExprData {
                        _lifetime: PhantomData<&()>,
@@ -1063,7 +1063,7 @@ warning: print test
 54 |         let _print_result_match = x?;
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: QuestionMark(
+   = note: Try(
                TryExpr {
                    data: CommonExprData {
                        _lifetime: PhantomData<&()>,
