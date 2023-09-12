@@ -61,7 +61,7 @@ pub enum ExprKind<'ast> {
     UnaryOp(&'ast UnaryOpExpr<'ast>),
     Ref(&'ast RefExpr<'ast>),
     BinaryOp(&'ast BinaryOpExpr<'ast>),
-    QuestionMark(&'ast QuestionMarkExpr<'ast>),
+    Try(&'ast TryExpr<'ast>),
     Assign(&'ast AssignExpr<'ast>),
     As(&'ast AsExpr<'ast>),
     Path(&'ast PathExpr<'ast>),
@@ -180,7 +180,7 @@ pub enum ExprPrecedence {
     Fn = 0x1000_0000,
     Index = 0x1000_0001,
 
-    QuestionMark = 0x0F00_0000,
+    Try = 0x0F00_0000,
 
     /// The unary `-` operator
     Neg = 0x0E00_0000,
@@ -249,7 +249,7 @@ macro_rules! impl_expr_kind_fn {
         impl_expr_kind_fn!((ExprKind) $method() -> $return_ty,
             IntLit, FloatLit, StrLit, CharLit, BoolLit,
             Block, Closure,
-            UnaryOp, Ref, BinaryOp, QuestionMark, As, Assign,
+            UnaryOp, Ref, BinaryOp, Try, As, Assign,
             Path, Index, Field,
             Call, Method,
             Array, Tuple, Ctor, Range,
@@ -384,7 +384,7 @@ mod test {
         assert_eq!(40, size_of::<UnaryOpExpr<'_>>(), "UnaryOpExpr<'_>");
         assert_eq!(40, size_of::<RefExpr<'_>>(), "RefExpr<'_>");
         assert_eq!(56, size_of::<BinaryOpExpr<'_>>(), "BinaryOpExpr<'_>");
-        assert_eq!(32, size_of::<QuestionMarkExpr<'_>>(), "QuestionMarkExpr<'_>");
+        assert_eq!(32, size_of::<TryExpr<'_>>(), "TryExpr<'_>");
         assert_eq!(80, size_of::<AssignExpr<'_>>(), "AssignExpr<'_>");
         assert_eq!(48, size_of::<AsExpr<'_>>(), "AsExpr<'_>");
         assert_eq!(96, size_of::<PathExpr<'_>>(), "PathExpr<'_>");

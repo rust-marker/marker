@@ -248,7 +248,7 @@ pub fn traverse_expr<'ast, B>(
             traverse_expr(cx, visitor, e.left())?;
             traverse_expr(cx, visitor, e.right())?;
         },
-        ExprKind::QuestionMark(e) => {
+        ExprKind::Try(e) => {
             traverse_expr(cx, visitor, e.expr())?;
         },
         ExprKind::Assign(e) => {
@@ -448,14 +448,14 @@ impl_traversable_for!(&'ast Body<'ast>, traverse_body);
 pub trait BoolTraversable<'ast>: Traversable<'ast, bool> {
     /// Checks if the given node contains an early return, in the form of an
     /// [`ReturnExpr`](marker_api::ast::expr::ReturnExpr) or
-    /// [`QuestionMarkExpr`](marker_api::ast::expr::QuestionMarkExpr).
+    /// [`TryExpr`](marker_api::ast::expr::TryExpr).
     ///
     /// This function is useful, for lints which suggest moving code snippets into
     /// a closure or different function. Return statements might prevent the suggested
     /// refactoring.
     fn contains_return(&self, cx: &'ast AstContext<'ast>) -> bool {
         self.for_each_expr(cx, |expr| {
-            if matches!(expr, ExprKind::Return(_) | ExprKind::QuestionMark(_)) {
+            if matches!(expr, ExprKind::Return(_) | ExprKind::Try(_)) {
                 ControlFlow::Break(true)
             } else {
                 ControlFlow::Continue(())

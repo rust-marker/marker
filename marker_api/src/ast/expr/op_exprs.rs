@@ -142,23 +142,57 @@ impl<'ast> RefExpr<'ast> {
     }
 }
 
+/// The `?` operator that unwraps valid values or propagates erroneous values to
+/// the the calling function.
+///
+/// Here is an example of the operator:
+///
+/// ```
+/// fn try_option_example(opt: Option<i32>) -> Option<String> {
+///     // The `?` operator unwraps the value if `opt` is `Some` or
+///     // propagates `None` if `opt` is empty.
+///     //             v
+///     let value = opt?;
+///     // `value` has the type `i32`
+///     
+///     // [...]
+///     # Some(value.to_string())
+/// }
+///
+/// fn try_result_example(res: Result<i32, ()>) -> Result<String, ()> {
+///     // The `?` operator unwraps the value if `res` is `Ok` or
+///     // propagates the value of `Err` if `res` is an error.
+///     //             v
+///     let value = res?;
+///     // `value` has the type `i32`
+///     
+///     // [...]
+///     # Ok(value.to_string())
+/// }
+/// ```
+///
+/// This operator is also known as the *question mark* or *error propagation* operator.
+///
+/// See <https://doc.rust-lang.org/reference/expressions/operator-expr.html#the-question-mark-operator>
 #[repr(C)]
 #[derive(Debug)]
-pub struct QuestionMarkExpr<'ast> {
+pub struct TryExpr<'ast> {
     data: CommonExprData<'ast>,
     expr: ExprKind<'ast>,
 }
 
-impl<'ast> QuestionMarkExpr<'ast> {
+impl<'ast> TryExpr<'ast> {
+    /// The expression that might produce an error, that would be propagated by
+    /// this operator.
     pub fn expr(&self) -> ExprKind<'ast> {
         self.expr
     }
 }
 
-super::impl_expr_data!(QuestionMarkExpr<'ast>, QuestionMark);
+super::impl_expr_data!(TryExpr<'ast>, Try);
 
 #[cfg(feature = "driver-api")]
-impl<'ast> QuestionMarkExpr<'ast> {
+impl<'ast> TryExpr<'ast> {
     pub fn new(data: CommonExprData<'ast>, expr: ExprKind<'ast>) -> Self {
         Self { data, expr }
     }

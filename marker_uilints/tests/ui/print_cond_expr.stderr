@@ -1018,8 +1018,8 @@ warning: print test
 48 |         let _print_option_match = x?;
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: QuestionMark(
-               QuestionMarkExpr {
+   = note: Try(
+               TryExpr {
                    data: CommonExprData {
                        _lifetime: PhantomData<&()>,
                        id: ExprId(..),
@@ -1063,8 +1063,8 @@ warning: print test
 54 |         let _print_result_match = x?;
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: QuestionMark(
-               QuestionMarkExpr {
+   = note: Try(
+               TryExpr {
                    data: CommonExprData {
                        _lifetime: PhantomData<&()>,
                        id: ExprId(..),
