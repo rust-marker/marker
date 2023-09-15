@@ -15,6 +15,9 @@ version    = { workspace = true }
 [dependencies]
 visibility = { workspace = true }
 
+[dev-dependencies]
+expect-test = { workspace = true }
+
 [features]
 # Some items should only be used by the driver implementing the functionality,
 # this feature enables the export of these items. Note that this interface is

@@ -515,6 +515,7 @@ dependencies = [
 name = "marker_api"
 version = "0.3.0-dev"
 dependencies = [
+ "expect-test",
  "visibility",
 ]
 
