@@ -2,8 +2,8 @@ use std::mem::{size_of, transmute};
 
 use marker_api::{
     ast::{
-        BodyId, CrateId, ExpnId, ExprId, FieldId, GenericId, ItemId, LetStmtId, Span, SpanId, SpanPos, SpanSrcId,
-        StmtIdInner, SymbolId, TyDefId, VarId, VariantId,
+        BodyId, CrateId, ExpnId, ExprId, FieldId, GenericId, ItemId, Span, SpanId, SpanPos, SpanSrcId, StmtId,
+        SymbolId, TyDefId, VarId, VariantId,
     },
     diagnostic::{Applicability, EmissionNode},
     lint::Level,
@@ -55,7 +55,7 @@ macro_rules! impl_into_hir_id_for {
 
 impl_into_hir_id_for!(ExprId);
 impl_into_hir_id_for!(VarId);
-impl_into_hir_id_for!(LetStmtId);
+impl_into_hir_id_for!(StmtId);
 impl_into_hir_id_for!(FieldId);
 
 #[derive(Debug, Clone, Copy)]
@@ -134,11 +134,7 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
         let def_id = match node {
             EmissionNode::Expr(id) => return Some(self.to_hir_id(id)),
             EmissionNode::Item(id) => self.to_def_id(id),
-            EmissionNode::Stmt(stmt_id) => match stmt_id.data() {
-                StmtIdInner::Expr(id) => return Some(self.to_hir_id(id)),
-                StmtIdInner::Item(id) => self.to_def_id(id),
-                StmtIdInner::LetStmt(id) => return Some(self.to_hir_id(id)),
-            },
+            EmissionNode::Stmt(id) => return Some(self.to_hir_id(id)),
             EmissionNode::Field(id) => return Some(self.to_hir_id(id)),
             EmissionNode::Variant(id) => self.to_def_id(id),
             _ => unreachable!(),

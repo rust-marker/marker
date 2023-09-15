@@ -31,7 +31,7 @@ pub use tuple_pat::*;
 pub use unstable_pat::*;
 pub use wildcard_pat::*;
 
-/// This trait combines methods, which are common between all patterns.
+/// This trait combines methods, which all patterns have in common.
 ///
 /// This trait is only meant to be implemented inside this crate. The `Sealed`
 /// super trait prevents external implementations.
@@ -82,7 +82,7 @@ pub enum PatKind<'ast> {
     /// [`FnItem`](crate::ast::item::FnItem) will never contain place expressions.
     /// Static paths identifying [`ConstItem`](crate::ast::item::ConstItem)s or
     /// [`EnumItem`](crate::ast::item::EnumItem) variants are expressed with the
-    /// [`PatKind::Path`](PatKind::Path) variant.
+    /// [`PatKind::Path`] variant.
     Place(&'ast PlacePat<'ast>),
     Lit(&'ast LitPat<'ast>),
     Path(&'ast PathPat<'ast>),

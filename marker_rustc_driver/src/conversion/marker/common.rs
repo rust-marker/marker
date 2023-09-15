@@ -4,7 +4,7 @@ use marker_api::ast::generic::SynGenericArgs;
 use marker_api::ast::ty::SynTyKind;
 use marker_api::ast::{
     Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, Constness, CrateId, ExpnId, ExprId, FieldId,
-    GenericId, Ident, ItemId, LetStmtId, MacroId, Mutability, Safety, SpanId, SpanSrcId, SymbolId, Syncness, TraitRef,
+    GenericId, Ident, ItemId, MacroId, Mutability, Safety, SpanId, SpanSrcId, StmtId, SymbolId, Syncness, TraitRef,
     TyDefId, VarId, VariantId,
 };
 use marker_api::lint::Level;
@@ -155,8 +155,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
-    pub fn to_let_stmt_id(&self, id: impl Into<HirIdLayout>) -> LetStmtId {
-        transmute_id!(HirIdLayout as LetStmtId = id.into())
+    pub fn to_stmt_id(&self, id: impl Into<HirIdLayout>) -> StmtId {
+        transmute_id!(HirIdLayout as StmtId = id.into())
     }
 
     #[must_use]
