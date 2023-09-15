@@ -55,7 +55,7 @@ pub(crate) mod private {
 /// `*Kind` enums. In those cases, this struct is used, to block the user from
 /// constructing the variant manually. This allows tools to handle the variants
 /// confidently without additional verification. An example for this would be the
-/// [`PatKind::Place`](ast::pat::PatKind::Place) variant.
+/// [`LitExprKind::UnaryOp`](ast::expr::LitExprKind::UnaryOp) variant.
 ///
 /// This basically acts like a `#[non_exhaustive]` attribute, with the difference
 /// that it also works on tuple variants. Attaching `#[non_exhaustive]` to a tuple
