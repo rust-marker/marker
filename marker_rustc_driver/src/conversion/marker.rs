@@ -19,9 +19,10 @@ use marker_api::{
         expr::ExprKind,
         item::{Body, ItemKind},
         ty::SemTyKind,
-        BodyId, Crate, ExpnInfo, ExprId, FilePos, ItemId, Span, SpanSource, SymbolId, TyDefId,
+        BodyId, Crate, ExpnInfo, ExprId, FilePos, ItemId, Span, SpanSource, StmtId, SymbolId, TyDefId,
     },
     lint::Level,
+    prelude::StmtKind,
 };
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
@@ -107,6 +108,7 @@ struct MarkerConverterInner<'ast, 'tcx> {
     items: RefCell<FxHashMap<ItemId, ItemKind<'ast>>>,
     bodies: RefCell<FxHashMap<BodyId, &'ast Body<'ast>>>,
     exprs: RefCell<FxHashMap<ExprId, ExprKind<'ast>>>,
+    stmts: RefCell<FxHashMap<StmtId, StmtKind<'ast>>>,
     num_symbols: RefCell<FxHashMap<u32, SymbolId>>,
 
     /// Lang-items are weird, and if I'm being honest, I'm uncertain that I
@@ -155,6 +157,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             items: RefCell::default(),
             bodies: RefCell::default(),
             exprs: RefCell::default(),
+            stmts: RefCell::default(),
             num_symbols: RefCell::default(),
             lang_item_map: RefCell::default(),
             rustc_body: RefCell::default(),
