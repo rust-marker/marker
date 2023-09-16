@@ -26,7 +26,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 },
                 hir::LocalSource::AsyncFn | hir::LocalSource::AwaitDesugar => {
                     eprintln!("skipping not implemented statement at: {:?}", stmt.span);
-                    None?
+                    return None;
                 },
             },
             hir::StmtKind::Item(item) => {

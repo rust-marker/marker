@@ -21,7 +21,7 @@ pub struct LitPat<'ast> {
 
 impl<'ast> LitPat<'ast> {
     /// The literal expression used as a pattern.
-    pub fn lit_expr(&self) -> LitExprKind<'ast> {
+    pub fn lit(&self) -> LitExprKind<'ast> {
         self.lit
     }
 }

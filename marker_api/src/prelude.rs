@@ -6,6 +6,7 @@
 pub use crate::ast::expr::ExprData;
 pub use crate::ast::item::ItemData;
 pub use crate::ast::pat::PatData;
+pub use crate::ast::stmt::StmtData;
 pub use crate::ast::ty::SynTyData;
 
 // Common types
