@@ -5,7 +5,7 @@ use std::fmt::Debug;
 
 use crate::{
     ast::{ExprId, FieldId, ItemId, Span, StmtId, VariantId},
-    context::AstContext,
+    context::{with_cx, AstContext},
     ffi::{FfiSlice, FfiStr},
     lint::Lint,
 };
@@ -17,19 +17,34 @@ pub struct DiagnosticBuilder<'ast> {
     lint: &'static Lint,
     node: EmissionNodeId,
     msg: String,
-    span: Span<'ast>,
+    span: Option<Span<'ast>>,
     parts: Vec<DiagnosticPart<String, Span<'ast>>>,
+    /// This flag indicates, if the diagnostic messages should actually be emitted
+    /// at the end. This might be false, if the lint is allowed at the emission location.
+    emit_lint: bool,
 }
 
 #[allow(clippy::needless_pass_by_value)] // `&impl ToString` doesn't work
 impl<'ast> DiagnosticBuilder<'ast> {
+    pub(crate) fn new_dummy(lint: &'static Lint, node: EmissionNodeId) -> Self {
+        Self {
+            lint,
+            node,
+            msg: String::new(),
+            span: None,
+            parts: vec![],
+            emit_lint: false,
+        }
+    }
+
     pub(crate) fn new(lint: &'static Lint, node: EmissionNodeId, msg: String, span: Span<'ast>) -> Self {
         Self {
             lint,
             msg,
             node,
-            span,
+            span: Some(span),
             parts: vec![],
+            emit_lint: true,
         }
     }
 
@@ -45,7 +60,9 @@ impl<'ast> DiagnosticBuilder<'ast> {
     ///   |
     /// ```
     pub fn set_main_message(&mut self, msg: impl ToString) -> &mut Self {
-        self.msg = msg.to_string();
+        if self.emit_lint {
+            self.msg = msg.to_string();
+        }
         self
     }
 
@@ -63,7 +80,10 @@ impl<'ast> DiagnosticBuilder<'ast> {
     ///   |
     /// ```
     pub fn set_main_span(&mut self, span: &Span<'ast>) -> &mut Self {
-        self.span = span.clone();
+        if self.emit_lint {
+            self.span = Some(span.clone());
+        }
+
         self
     }
 
@@ -82,8 +102,12 @@ impl<'ast> DiagnosticBuilder<'ast> {
     /// ```
     ///
     /// [`Self::span_note`] can be used to highlight a relevant [`Span`].
-    pub fn note(&mut self, msg: impl ToString) {
-        self.parts.push(DiagnosticPart::Note { msg: msg.to_string() });
+    pub fn note(&mut self, msg: impl ToString) -> &mut Self {
+        if self.emit_lint {
+            self.parts.push(DiagnosticPart::Note { msg: msg.to_string() });
+        }
+
+        self
     }
 
     /// This function adds a note with a [`Span`] to the diagnostic message.
@@ -106,11 +130,15 @@ impl<'ast> DiagnosticBuilder<'ast> {
     /// ```
     ///
     /// [`Self::note`] can be used to add text notes without a span.
-    pub fn span_note(&mut self, msg: impl ToString, span: &Span<'ast>) {
-        self.parts.push(DiagnosticPart::NoteSpan {
-            msg: msg.to_string(),
-            span: span.clone(),
-        });
+    pub fn span_note(&mut self, msg: impl ToString, span: &Span<'ast>) -> &mut Self {
+        if self.emit_lint {
+            self.parts.push(DiagnosticPart::NoteSpan {
+                msg: msg.to_string(),
+                span: span.clone(),
+            });
+        }
+
+        self
     }
 
     /// This function adds a help message. Help messages are intended to provide
@@ -130,7 +158,10 @@ impl<'ast> DiagnosticBuilder<'ast> {
     /// [`Self::span_help`] can be used to highlight a relevant [`Span`].
     /// [`Self::span_suggestion`] can be used to add a help message with a suggestion.
     pub fn help(&mut self, msg: impl ToString) -> &mut Self {
-        self.parts.push(DiagnosticPart::Help { msg: msg.to_string() });
+        if self.emit_lint {
+            self.parts.push(DiagnosticPart::Help { msg: msg.to_string() });
+        }
+
         self
     }
 
@@ -155,11 +186,15 @@ impl<'ast> DiagnosticBuilder<'ast> {
     ///
     /// [`Self::help`] can be used to add a text help message without a [`Span`].
     /// [`Self::span_suggestion`] can be used to add a help message with a suggestion.
-    pub fn span_help(&mut self, msg: impl ToString, span: &Span<'ast>) {
-        self.parts.push(DiagnosticPart::HelpSpan {
-            msg: msg.to_string(),
-            span: span.clone(),
-        });
+    pub fn span_help(&mut self, msg: impl ToString, span: &Span<'ast>) -> &mut Self {
+        if self.emit_lint {
+            self.parts.push(DiagnosticPart::HelpSpan {
+                msg: msg.to_string(),
+                span: span.clone(),
+            });
+        }
+
+        self
     }
 
     /// This function adds a spanned help message with a suggestion. The suggestion
@@ -184,25 +219,70 @@ impl<'ast> DiagnosticBuilder<'ast> {
         span: &Span<'ast>,
         suggestion: impl ToString,
         app: Applicability,
-    ) {
-        self.parts.push(DiagnosticPart::Suggestion {
-            msg: msg.to_string(),
-            span: span.clone(),
-            sugg: suggestion.to_string(),
-            app,
-        });
+    ) -> &mut Self {
+        if self.emit_lint {
+            self.parts.push(DiagnosticPart::Suggestion {
+                msg: msg.to_string(),
+                span: span.clone(),
+                sugg: suggestion.to_string(),
+                app,
+            });
+        }
+        self
+    }
+
+    /// This function takes a closure, that is only executed, if the created
+    /// diagnostic is actually emitted in the end. This is useful for crafting
+    /// suggestions. Having them in a conditional closure will speedup the
+    /// linting process if the lint is allowed at a given location.
+    ///
+    /// ```
+    /// # use marker_api::prelude::*;
+    /// # marker_api::declare_lint!(
+    /// #     /// Dummy
+    /// #     LINT,
+    /// #     Warn,
+    /// # );
+    /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
+    ///     cx.emit_lint(LINT, node, "<lint message>").decorate(|diag| {
+    ///         // This closure is only called, if the lint is enabled. Here you
+    ///         // can create a beautiful help message.
+    ///         diag.help("<text>");
+    ///     });
+    /// # }
+    /// ```
+    pub fn decorate<F>(&mut self, decorate: F) -> &mut Self
+    where
+        F: FnOnce(&mut DiagnosticBuilder<'ast>),
+    {
+        if self.emit_lint {
+            decorate(self);
+        }
+        self
     }
 
     pub(crate) fn emit<'builder>(&'builder self, cx: &AstContext<'ast>) {
-        let parts: Vec<_> = self.parts.iter().map(DiagnosticPart::to_ffi_part).collect();
-        let diag = Diagnostic {
-            lint: self.lint,
-            msg: self.msg.as_str().into(),
-            node: self.node,
-            span: &self.span,
-            parts: parts.as_slice().into(),
-        };
-        cx.emit_diagnostic(&diag);
+        if self.emit_lint {
+            let parts: Vec<_> = self.parts.iter().map(DiagnosticPart::to_ffi_part).collect();
+            let span = self
+                .span
+                .as_ref()
+                .expect("always Some, if `DiagnosticBuilder::emit_lint` is true");
+            let diag = Diagnostic {
+                lint: self.lint,
+                msg: self.msg.as_str().into(),
+                node: self.node,
+                span,
+                parts: parts.as_slice().into(),
+            };
+            cx.emit_diagnostic(&diag);
+        }
+    }
+}
+
+impl<'ast> Drop for DiagnosticBuilder<'ast> {
+    fn drop(&mut self) {
+        with_cx(self, |cx| self.emit(cx));
     }
 }
 

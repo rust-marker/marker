@@ -20,9 +20,9 @@ pub fn check_item<'ast>(cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
             TEST_CONTAINS_RETURN,
             item,
             format!("testing `contains_return` -> {res}"),
-            |diag| {
-                diag.set_main_span(ident.span());
-            },
-        );
+        )
+        .decorate(|diag| {
+            diag.set_main_span(ident.span());
+        });
     }
 }

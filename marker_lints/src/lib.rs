@@ -50,7 +50,6 @@ fn check_msg<'ast>(cx: &AstContext<'ast>, msg_expr: ExprKind<'ast>) {
             DIAG_MSG_UPPERCASE_START,
             msg_expr,
             "this message starts with an uppercase character",
-            |_| {},
         );
     }
 }

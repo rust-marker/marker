@@ -105,24 +105,129 @@ impl<'ast> AstContext<'ast> {
         self.driver.call_lint_level_at(lint, node.emission_node_id())
     }
 
+    /// This function is used to emit a lint.
+    ///
+    /// Every lint emission, is bound to one specific node in the AST. This
+    /// node is used to check the lint level and as the main [`Span`] of the
+    /// diagnostic message. See [`EmissionNode`] for more information.
+    ///
+    /// The lint message, will be the main message at the start of the created
+    /// diagnostic. This message and all messages emitted as part of the created
+    /// diagnostic should start with a lower letter, according to [rustc's dev guide].
+    ///
+    /// The function will return a [`DiagnosticBuilder`] which can be used to decorate
+    /// the diagnostic message, with notes and help messages. The diagnostic message will
+    /// be emitted when the builder instance is dropped.
+    ///
+    /// [rustc's dev guide]: <https://rustc-dev-guide.rust-lang.org/diagnostics.html#diagnostic-output-style-guide>
+    ///
+    /// ## Example 1
+    ///
+    /// ```
+    /// # use marker_api::prelude::*;
+    /// # marker_api::declare_lint!(
+    /// #     /// Dummy
+    /// #     LINT,
+    /// #     Warn,
+    /// # );
+    /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
+    ///     cx.emit_lint(LINT, node, "<lint message>");
+    /// # }
+    /// ```
+    ///
+    /// The code above will roughly generate the following error message:
+    ///
+    /// ```text
+    ///  warning: <lint message>                <-- The message that is set by this function
+    ///  --> path/file.rs:1:1
+    ///   |
+    /// 1 | node
+    ///   | ^^^^
+    ///   |
+    /// ```
+    ///
+    /// ## Example 2
+    ///
+    /// ```
+    /// # use marker_api::prelude::*;
+    /// # marker_api::declare_lint!(
+    /// #     /// Dummy
+    /// #     LINT,
+    /// #     Warn,
+    /// # );
+    /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
+    ///     cx
+    ///         .emit_lint(LINT, node, "<lint message>")
+    ///         .help("<text>");
+    /// # }
+    /// ```
+    ///
+    /// The [`DiagnosticBuilder::help`] call will add a help message like this:
+    ///
+    /// ```text
+    ///  warning: <lint message>
+    ///  --> path/file.rs:1:1
+    ///   |
+    /// 1 | node
+    ///   | ^^^^
+    ///   |
+    ///   = help: <text>               <-- The added help message
+    /// ```
+    ///
+    /// ## Example 3
+    ///
+    /// Creating suggestions can impact the performance. The
+    /// [`DiagnosticBuilder::decorate`] function can be used, to only add more
+    /// context to the lint emission if it will actually be emitted. This will
+    /// save performance, when the lint is allowed at the [`EmissionNode`]
+    ///
+    /// ```
+    /// # use marker_api::prelude::*;
+    /// # marker_api::declare_lint!(
+    /// #     /// Dummy
+    /// #     LINT,
+    /// #     Warn,
+    /// # );
+    /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
+    ///     cx.emit_lint(LINT, node, "<lint message>").decorate(|diag| {
+    ///         // This closure is only called, if the lint is enabled. Here you
+    ///         // can create a beautiful help message.
+    ///         diag.help("<text>");
+    ///     });
+    /// # }
+    /// ```
+    ///
+    /// This will create the same help message as in example 2, but it will be faster
+    /// if the lint is enabled. The emitted message would look like this:
+    /// ```text
+    ///  warning: <lint message>
+    ///  --> path/file.rs:1:1
+    ///   |
+    /// 1 | node
+    ///   | ^^^^
+    ///   |
+    ///   = help: <text>               <-- The added help message
+    /// ```
     #[allow(clippy::needless_pass_by_value)] // `&impl ToString`
-    pub fn emit_lint<F>(&self, lint: &'static Lint, node: impl EmissionNode<'ast>, msg: impl ToString, decorate: F)
-    where
-        F: FnOnce(&mut DiagnosticBuilder<'ast>),
-    {
+    pub fn emit_lint(
+        &self,
+        lint: &'static Lint,
+        node: impl EmissionNode<'ast>,
+        msg: impl ToString,
+    ) -> DiagnosticBuilder<'ast> {
+        let id = node.emission_node_id();
         let Some(span) = node.emission_span(self) else {
             // If the `Span` is none, we can't emit a diagnostic message for it.
-            return;
+            return DiagnosticBuilder::new_dummy(lint, id);
         };
         if matches!(lint.report_in_macro, MacroReport::No) && span.is_from_expansion() {
-            return;
+            return DiagnosticBuilder::new_dummy(lint, id);
         }
-        let id = node.emission_node_id();
-        if self.lint_level_at(lint, node) != Level::Allow {
-            let mut builder = DiagnosticBuilder::new(lint, id, msg.to_string(), span);
-            decorate(&mut builder);
-            builder.emit(self);
+        if self.lint_level_at(lint, node) == Level::Allow {
+            return DiagnosticBuilder::new_dummy(lint, id);
         }
+
+        DiagnosticBuilder::new(lint, id, msg.to_string(), span)
     }
 
     pub(crate) fn emit_diagnostic<'a>(&self, diag: &'a Diagnostic<'a, 'ast>) {
