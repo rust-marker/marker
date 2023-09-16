@@ -51,6 +51,9 @@ impl<'ast> StmtKind<'ast> {
     pub fn attrs(&self) {}
 }
 
+crate::diagnostic::impl_emission_node_for_node!(StmtKind<'ast>);
+crate::diagnostic::impl_emission_node_for_node!(&StmtKind<'ast>);
+
 #[repr(C)]
 #[derive(Debug)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
@@ -128,6 +131,7 @@ impl<'ast> LetStmt<'ast> {
 }
 
 impl_stmt_data!(LetStmt<'ast>, Let);
+crate::diagnostic::impl_emission_node_for_node!(LetStmt<'ast>);
 
 #[repr(C)]
 #[derive(Debug)]
@@ -144,6 +148,7 @@ impl<'ast> ExprStmt<'ast> {
 }
 
 impl_stmt_data!(ExprStmt<'ast>, Expr);
+crate::diagnostic::impl_emission_node_for_node!(ExprStmt<'ast>);
 
 #[repr(C)]
 #[derive(Debug)]
@@ -160,3 +165,4 @@ impl<'ast> ItemStmt<'ast> {
 }
 
 impl_stmt_data!(ItemStmt<'ast>, Item);
+crate::diagnostic::impl_emission_node_for_node!(ItemStmt<'ast>);

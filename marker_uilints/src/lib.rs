@@ -7,9 +7,8 @@ use marker_api::{
     ast::{
         item::{EnumVariant, Field, StaticItem},
         ty::SemTyKind,
-        Span,
     },
-    diagnostic::{Applicability, EmissionNode},
+    diagnostic::Applicability,
     prelude::*,
     LintPass, LintPassInfo, LintPassInfoBuilder,
 };
@@ -58,12 +57,11 @@ marker_api::declare_lint! {
 
 fn emit_item_with_test_name_lint<'ast>(
     cx: &'ast AstContext<'ast>,
-    node: impl Into<EmissionNode>,
+    node: impl EmissionNode<'ast>,
     desc: impl std::fmt::Display,
-    span: &Span<'ast>,
 ) {
     let msg = format!("found {desc} with a test name");
-    cx.emit_lint(ITEM_WITH_TEST_NAME, node, msg, span, |_| {});
+    cx.emit_lint(ITEM_WITH_TEST_NAME, node, msg, |_| {});
 }
 
 impl LintPass for TestLintPass {
@@ -112,7 +110,7 @@ impl LintPass for TestLintPass {
             };
 
             if let Some(msg) = msg {
-                emit_item_with_test_name_lint(cx, item.id(), format!("a `{msg}` item"), item.span());
+                emit_item_with_test_name_lint(cx, item, format!("a `{msg}` item"));
             }
         }
 
@@ -120,15 +118,10 @@ impl LintPass for TestLintPass {
             item.ident().map(marker_api::ast::Ident::name),
             Some(name) if name.starts_with("PrintMe") || name.starts_with("PRINT_ME") || name.starts_with("print_me")
         ) {
-            cx.emit_lint(
-                TEST_LINT,
-                item.id(),
-                "printing item",
-                item.ident().unwrap().span(),
-                |diag| {
-                    diag.note(format!("{item:#?}"));
-                },
-            );
+            cx.emit_lint(TEST_LINT, item, "printing item", |diag| {
+                diag.set_main_span(item.ident().unwrap().span());
+                diag.note(format!("{item:#?}"));
+            });
         }
 
         if let ItemKind::Fn(func) = item {
@@ -136,29 +129,24 @@ impl LintPass for TestLintPass {
                 item.ident().map(marker_api::ast::Ident::name),
                 Some(name) if name.starts_with("print_with_body")
             ) {
-                cx.emit_lint(
-                    TEST_LINT,
-                    item.id(),
-                    "printing item with body",
-                    item.ident().unwrap().span(),
-                    |diag| {
-                        diag.note(format!("Item: {item:#?}"));
-                        diag.note(format!("Body: {:#?}", cx.body(func.body_id().unwrap())));
-                    },
-                );
+                cx.emit_lint(TEST_LINT, item, "printing item with body", |diag| {
+                    diag.set_main_span(item.ident().unwrap().span());
+                    diag.note(format!("Item: {item:#?}"));
+                    diag.note(format!("Body: {:#?}", cx.body(func.body_id().unwrap())));
+                });
             }
         }
     }
 
     fn check_field<'ast>(&mut self, cx: &'ast AstContext<'ast>, field: &'ast Field<'ast>) {
         if field.ident().starts_with("find_me") {
-            emit_item_with_test_name_lint(cx, field.id(), "a field", field.span());
+            emit_item_with_test_name_lint(cx, field, "a field");
         }
     }
 
     fn check_variant<'ast>(&mut self, cx: &'ast AstContext<'ast>, variant: &'ast EnumVariant<'ast>) {
         if variant.ident().starts_with("FindMe") {
-            emit_item_with_test_name_lint(cx, variant.id(), "an enum variant", variant.span());
+            emit_item_with_test_name_lint(cx, variant, "an enum variant");
         }
     }
 
@@ -169,22 +157,22 @@ impl LintPass for TestLintPass {
             let PatKind::Ident(ident) = lets.pat() else { return };
             let Some(expr) = lets.init() else { return };
             if ident.name().starts_with("_print") {
-                cx.emit_lint(TEST_LINT, stmt.id(), "print test", stmt.span(), |diag| {
+                cx.emit_lint(TEST_LINT, stmt, "print test", |diag| {
                     diag.note(format!("{expr:#?}"));
                 });
             } else if ident.name().starts_with("_span") {
-                cx.emit_lint(PRINT_SPAN_LINT, stmt.id(), "print span", stmt.span(), |diag| {
+                cx.emit_lint(PRINT_SPAN_LINT, stmt, "print span", |diag| {
                     let span = expr.span();
                     diag.note(format!("Debug: {span:#?}"));
                     diag.note(format!("Snippet: {}", span.snippet_or("..")));
                     diag.note(format!("Source: {:#?}", span.source()));
                 });
             } else if ident.name().starts_with("_ty") {
-                cx.emit_lint(TEST_LINT, stmt.id(), "print type test", stmt.span(), |diag| {
+                cx.emit_lint(TEST_LINT, stmt, "print type test", |diag| {
                     diag.note(format!("{:#?}", expr.ty()));
                 });
             } else if ident.name().starts_with("_check_path") {
-                cx.emit_lint(TEST_LINT, stmt.id(), "check type resolution", stmt.span(), |diag| {
+                cx.emit_lint(TEST_LINT, stmt, "check type resolution", |diag| {
                     let SemTyKind::Adt(adt) = expr.ty() else {
                         unreachable!("how? Everything should be an ADT")
                     };
@@ -209,7 +197,7 @@ impl LintPass for TestLintPass {
     }
 
     fn check_expr<'ast>(&mut self, cx: &'ast AstContext<'ast>, expr: ExprKind<'ast>) {
-        cx.emit_lint(PRINT_EVERY_EXPR, expr.id(), "expr", expr.span(), |diag| {
+        cx.emit_lint(PRINT_EVERY_EXPR, expr, "expr", |diag| {
             diag.note(&format!("SpanSource: {:#?}", expr.span().source()));
             diag.note(&format!("Snippet: {:#?}", expr.span().snippet_or("<..>")));
         });
@@ -220,22 +208,18 @@ fn check_static_item<'ast>(cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'a
     if let Some(name) = item.ident() {
         let name = name.name();
         if name.starts_with("PRINT_TYPE") {
-            cx.emit_lint(TEST_LINT, item.id(), "printing type for", item.ty().span(), |_| {});
+            cx.emit_lint(TEST_LINT, item, "printing type for", |diag| {
+                diag.set_main_span(item.ty().span());
+            });
             eprintln!("{:#?}\n\n", item.ty());
         } else if name.starts_with("FIND_ITEM") {
-            cx.emit_lint(
-                TEST_LINT,
-                item.id(),
-                "hey there is a static item here",
-                item.span(),
-                |diag| {
-                    diag.note("a note");
-                    diag.help("a help");
-                    diag.span_note("a spanned note", item.span());
-                    diag.span_help("a spanned help", item.span());
-                    diag.span_suggestion("try", item.span(), "duck", Applicability::Unspecified);
-                },
-            );
+            cx.emit_lint(TEST_LINT, item, "hey there is a static item here", |diag| {
+                diag.note("a note");
+                diag.help("a help");
+                diag.span_note("a spanned note", item.span());
+                diag.span_help("a spanned help", item.span());
+                diag.span_suggestion("try", item.span(), "duck", Applicability::Unspecified);
+            });
         }
     }
 }

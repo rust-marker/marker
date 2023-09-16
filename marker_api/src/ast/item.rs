@@ -1,5 +1,6 @@
 use std::{fmt::Debug, marker::PhantomData};
 
+use crate::diagnostic::EmissionNode;
 use crate::private::Sealed;
 use crate::CtorBlocker;
 
@@ -36,7 +37,10 @@ pub use unstable_item::*;
 ///
 /// This trait is only meant to be implemented inside this crate. The `Sealed`
 /// super trait prevents external implementations.
-pub trait ItemData<'ast>: Debug + Sealed {
+pub trait ItemData<'ast>: Debug + Sealed
+where
+    for<'a> &'a Self: EmissionNode<'ast>,
+{
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
     /// and to request items from the [`AstContext`](`crate::context::AstContext`).
     fn id(&self) -> ItemId;
@@ -93,8 +97,11 @@ impl<'ast> ItemKind<'ast> {
     impl_item_type_fn!(ItemKind: attrs() -> ());
 }
 
+crate::diagnostic::impl_emission_node_for_node!(ItemKind<'ast>);
+crate::diagnostic::impl_emission_node_for_node!(&ItemKind<'ast>);
+
 #[non_exhaustive]
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum AssocItemKind<'ast> {
     TyAlias(&'ast TyAliasItem<'ast>, CtorBlocker),
     Const(&'ast ConstItem<'ast>, CtorBlocker),
@@ -111,6 +118,9 @@ impl<'ast> AssocItemKind<'ast> {
     // FIXME: Potentially add a field to the items to optionally store the owner id
 }
 
+crate::diagnostic::impl_emission_node_for_node!(AssocItemKind<'ast>);
+crate::diagnostic::impl_emission_node_for_node!(&AssocItemKind<'ast>);
+
 impl<'ast> From<AssocItemKind<'ast>> for ItemKind<'ast> {
     fn from(value: AssocItemKind<'ast>) -> Self {
         match value {
@@ -122,7 +132,7 @@ impl<'ast> From<AssocItemKind<'ast>> for ItemKind<'ast> {
 }
 
 #[non_exhaustive]
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum ExternItemKind<'ast> {
     Static(&'ast StaticItem<'ast>, CtorBlocker),
     Fn(&'ast FnItem<'ast>, CtorBlocker),
@@ -136,6 +146,9 @@ impl<'ast> ExternItemKind<'ast> {
     impl_item_type_fn!(ExternItemKind: attrs() -> ());
     impl_item_type_fn!(ExternItemKind: as_item() -> ItemKind<'ast>);
 }
+
+crate::diagnostic::impl_emission_node_for_node!(ExternItemKind<'ast>);
+crate::diagnostic::impl_emission_node_for_node!(&ExternItemKind<'ast>);
 
 impl<'ast> From<ExternItemKind<'ast>> for ItemKind<'ast> {
     fn from(value: ExternItemKind<'ast>) -> Self {
@@ -213,6 +226,7 @@ macro_rules! impl_item_data {
         }
 
         impl $crate::private::Sealed for $self_name<'_> {}
+        $crate::diagnostic::impl_emission_node_for_node!(&$self_name<'ast>, use super::ItemData);
 
         impl<'ast> From<&'ast $self_name<'ast>> for crate::ast::item::ItemKind<'ast> {
             fn from(value: &'ast $self_name<'ast>) -> Self {

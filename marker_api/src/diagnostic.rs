@@ -1,6 +1,8 @@
 //! This module is responsible for the construction of diagnostic messages. The
 //! [`DiagnosticBuilder`] is the public stable interface, to construct messages.
 
+use std::fmt::Debug;
+
 use crate::{
     ast::{ExprId, FieldId, ItemId, Span, StmtId, VariantId},
     context::AstContext,
@@ -13,15 +15,15 @@ use crate::{
 /// the actual display depends on the driver.
 pub struct DiagnosticBuilder<'ast> {
     lint: &'static Lint,
+    node: EmissionNodeId,
     msg: String,
-    node: EmissionNode,
     span: Span<'ast>,
     parts: Vec<DiagnosticPart<String, Span<'ast>>>,
 }
 
 #[allow(clippy::needless_pass_by_value)] // `&impl ToString` doesn't work
 impl<'ast> DiagnosticBuilder<'ast> {
-    pub(crate) fn new(lint: &'static Lint, node: EmissionNode, msg: String, span: Span<'ast>) -> Self {
+    pub(crate) fn new(lint: &'static Lint, node: EmissionNodeId, msg: String, span: Span<'ast>) -> Self {
         Self {
             lint,
             msg,
@@ -29,6 +31,40 @@ impl<'ast> DiagnosticBuilder<'ast> {
             span,
             parts: vec![],
         }
+    }
+
+    /// This function sets the main message of this diagnostic message.
+    ///
+    /// From rustc a lint emission would look like this:
+    /// ```text
+    ///  warning: <lint message>                <-- The message that is set by this function
+    ///  --> path/file.rs:1:1
+    ///   |
+    /// 1 | expression
+    ///   | ^^^^^^^^^^
+    ///   |
+    /// ```
+    pub fn set_main_message(&mut self, msg: impl ToString) -> &mut Self {
+        self.msg = msg.to_string();
+        self
+    }
+
+    /// This function sets the main [`Span`] of this diagnostic message.
+    /// [`AstContext::emit_lint`] will by default use the span of the given
+    /// [`EmissionNode`].
+    ///
+    /// From rustc a lint emission would look like this:
+    /// ```text
+    ///  warning: <lint message>
+    ///  --> path/file.rs:1:1
+    ///   |
+    /// 1 | node
+    ///   | ^^^^                 <-- The main span set by this function
+    ///   |
+    /// ```
+    pub fn set_main_span(&mut self, span: &Span<'ast>) -> &mut Self {
+        self.span = span.clone();
+        self
     }
 
     /// This function adds a note to the diagnostic message. Notes are intended
@@ -170,10 +206,72 @@ impl<'ast> DiagnosticBuilder<'ast> {
     }
 }
 
+/// Every lint emission is bound to a specific node. The node is used to
+/// determine the lint level and [`Span`] that is used for the main diagnostic
+/// message.
+///
+/// This trait is implemented for most AST nodes and node ids. When given the option,
+/// it's better to use the node directly, as the id might require some callbacks into
+/// the driver to fetch the actual node.
+//
+// FIXME(xFrednet): This trait should also be implemented for all ids that implement
+// `Into<LintEmissionId>`. However, for this we first need to add more methods to fetch
+// nodes by id, to provide a valid implementation for `emission_span`.
+//
+// The `Copy` super trait is not necessary, but it allows us to simply use `impl EmissionNode`,
+// without triggering `clippy::needless_pass_by_value`. Marker could use `&impl EmissionNode`
+// instead, but then these functions would complain about values of type `*Kind` and require the
+// user to add a reference to the value. Just using `impl EmissionNode` feels better to me.
+pub trait EmissionNode<'ast>: Debug + Copy {
+    /// The [`EmissionNodeId`] which is used to determine the lint level and
+    /// where the lint is emitted.
+    fn emission_node_id(&self) -> EmissionNodeId;
+
+    /// The [`Span`] which will be used for a lint emission, if it's not overwritten by
+    /// [`DiagnosticBuilder::set_main_span`].
+    ///
+    /// The [`AstContext`] can be used to fetch the [`Span`], if this is implemented on
+    /// a id.
+    fn emission_span(&self, _cx: &AstContext<'ast>) -> Option<Span<'ast>>;
+}
+
+macro_rules! impl_emission_node_for_node {
+    ($ty:ty$(, use $data_trait:path)?) => {
+        impl<'ast> $crate::diagnostic::EmissionNode<'ast> for $ty {
+            fn emission_node_id(&self) -> $crate::diagnostic::EmissionNodeId {
+                $(
+                    use $data_trait;
+                )*
+                self.id().into()
+            }
+
+            fn emission_span(&self, _cx: &$crate::AstContext<'ast>) -> Option<$crate::ast::Span<'ast>> {
+                $(
+                    use $data_trait;
+                )*
+                Some(self.span().clone())
+            }
+        }
+    };
+}
+pub(crate) use impl_emission_node_for_node;
+
+impl<'ast> EmissionNode<'ast> for crate::ast::ItemId {
+    fn emission_node_id(&self) -> EmissionNodeId {
+        self.into()
+    }
+
+    fn emission_span(&self, cx: &AstContext<'ast>) -> Option<Span<'ast>> {
+        cx.item(*self).map(|x| x.span().clone())
+    }
+}
+
+/// This is the id of an [`EmissionNode`]. It can be used to determine the
+/// lint level and to emit a lint.
 #[repr(C)]
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy)]
-pub enum EmissionNode {
+pub enum EmissionNodeId {
     Expr(ExprId),
     Item(ItemId),
     Stmt(StmtId),
@@ -181,27 +279,27 @@ pub enum EmissionNode {
     Variant(VariantId),
 }
 
-macro_rules! impl_into_emission_node_for {
+macro_rules! impl_into_emission_node_id_for {
     ($variant:ident, $ty:ty) => {
-        impl From<$ty> for EmissionNode {
+        impl From<$ty> for EmissionNodeId {
             fn from(value: $ty) -> Self {
-                EmissionNode::$variant(value)
+                EmissionNodeId::$variant(value)
             }
         }
 
-        impl From<&$ty> for EmissionNode {
+        impl From<&$ty> for EmissionNodeId {
             fn from(value: &$ty) -> Self {
-                EmissionNode::$variant(*value)
+                EmissionNodeId::$variant(*value)
             }
         }
     };
 }
 
-impl_into_emission_node_for!(Expr, ExprId);
-impl_into_emission_node_for!(Item, ItemId);
-impl_into_emission_node_for!(Stmt, StmtId);
-impl_into_emission_node_for!(Field, FieldId);
-impl_into_emission_node_for!(Variant, VariantId);
+impl_into_emission_node_id_for!(Expr, ExprId);
+impl_into_emission_node_id_for!(Item, ItemId);
+impl_into_emission_node_id_for!(Stmt, StmtId);
+impl_into_emission_node_id_for!(Field, FieldId);
+impl_into_emission_node_id_for!(Variant, VariantId);
 
 #[repr(C)]
 #[non_exhaustive]
@@ -286,7 +384,7 @@ pub enum Applicability {
 pub(crate) struct Diagnostic<'builder, 'ast> {
     pub lint: &'static Lint,
     pub msg: FfiStr<'builder>,
-    pub node: EmissionNode,
+    pub node: EmissionNodeId,
     pub span: &'builder Span<'ast>,
     pub parts: FfiSlice<'builder, DiagnosticPart<FfiStr<'builder>, &'builder Span<'ast>>>,
 }

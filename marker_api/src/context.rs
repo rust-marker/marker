@@ -11,7 +11,7 @@ use crate::{
         BodyId, ExpnId, ExpnInfo, ExprId, FileInfo, FilePos, ItemId, Span, SpanId, SpanPos, SpanSource, SymbolId,
         TyDefId,
     },
-    diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
+    diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode, EmissionNodeId},
     ffi,
     lint::{Level, Lint, MacroReport},
 };
@@ -93,17 +93,6 @@ impl<'ast> std::fmt::Debug for AstContext<'ast> {
     }
 }
 
-impl<'ast> std::hash::Hash for AstContext<'ast> {
-    fn hash<H: std::hash::Hasher>(&self, _state: &mut H) {}
-}
-
-impl<'ast> std::cmp::PartialEq for AstContext<'ast> {
-    fn eq(&self, other: &Self) -> bool {
-        std::ptr::eq(self, other)
-    }
-}
-impl<'ast> std::cmp::Eq for AstContext<'ast> {}
-
 #[cfg(feature = "driver-api")]
 impl<'ast> AstContext<'ast> {
     pub fn new(driver: &'ast DriverCallbacks<'ast>) -> Self {
@@ -112,27 +101,25 @@ impl<'ast> AstContext<'ast> {
 }
 
 impl<'ast> AstContext<'ast> {
-    pub fn lint_level_at(&self, lint: &'static Lint, node: impl Into<EmissionNode>) -> Level {
-        self.driver.call_lint_level_at(lint, node.into())
+    pub fn lint_level_at(&self, lint: &'static Lint, node: impl EmissionNode<'ast>) -> Level {
+        self.driver.call_lint_level_at(lint, node.emission_node_id())
     }
 
     #[allow(clippy::needless_pass_by_value)] // `&impl ToString`
-    pub fn emit_lint<F>(
-        &self,
-        lint: &'static Lint,
-        node: impl Into<EmissionNode>,
-        msg: impl ToString,
-        span: &Span<'ast>,
-        decorate: F,
-    ) where
+    pub fn emit_lint<F>(&self, lint: &'static Lint, node: impl EmissionNode<'ast>, msg: impl ToString, decorate: F)
+    where
         F: FnOnce(&mut DiagnosticBuilder<'ast>),
     {
+        let Some(span) = node.emission_span(self) else {
+            // If the `Span` is none, we can't emit a diagnostic message for it.
+            return;
+        };
         if matches!(lint.report_in_macro, MacroReport::No) && span.is_from_expansion() {
             return;
         }
-        let node = node.into();
+        let id = node.emission_node_id();
         if self.lint_level_at(lint, node) != Level::Allow {
-            let mut builder = DiagnosticBuilder::new(lint, node, msg.to_string(), span.clone());
+            let mut builder = DiagnosticBuilder::new(lint, id, msg.to_string(), span);
             decorate(&mut builder);
             builder.emit(self);
         }
@@ -247,7 +234,7 @@ struct DriverCallbacks<'ast> {
     // can't call them in safe Rust passing a &() pointer. This will trigger UB.
 
     // Lint emission and information
-    pub lint_level_at: extern "C" fn(&'ast (), &'static Lint, EmissionNode) -> Level,
+    pub lint_level_at: extern "C" fn(&'ast (), &'static Lint, EmissionNodeId) -> Level,
     pub emit_diag: for<'a> extern "C" fn(&'ast (), &'a Diagnostic<'a, 'ast>),
 
     // Public utility
@@ -268,7 +255,7 @@ struct DriverCallbacks<'ast> {
 }
 
 impl<'ast> DriverCallbacks<'ast> {
-    fn call_lint_level_at(&self, lint: &'static Lint, node: EmissionNode) -> Level {
+    fn call_lint_level_at(&self, lint: &'static Lint, node: EmissionNodeId) -> Level {
         (self.lint_level_at)(self.driver_context, lint, node)
     }
 

@@ -48,9 +48,8 @@ fn check_msg<'ast>(cx: &AstContext<'ast>, msg_expr: ExprKind<'ast>) {
     {
         cx.emit_lint(
             DIAG_MSG_UPPERCASE_START,
-            msg_expr.id(),
+            msg_expr,
             "this message starts with an uppercase character",
-            msg_expr.span(),
             |_| {},
         );
     }

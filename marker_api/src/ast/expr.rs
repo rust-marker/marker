@@ -1,4 +1,4 @@
-use crate::{private::Sealed, CtorBlocker};
+use crate::{prelude::EmissionNode, private::Sealed, CtorBlocker};
 
 use super::{ty::SemTyKind, ExprId, Span, SpanId};
 
@@ -27,7 +27,10 @@ pub use unstable_expr::*;
 ///
 /// This trait is only meant to be implemented inside this crate. The `Sealed`
 /// super trait prevents external implementations.
-pub trait ExprData<'ast>: Debug + Sealed {
+pub trait ExprData<'ast>: Debug + Sealed
+where
+    for<'a> &'a Self: EmissionNode<'ast>,
+{
     /// Returns the [`ExprId`] of this expression.
     fn id(&self) -> ExprId;
 
@@ -94,6 +97,8 @@ impl<'ast> ExprKind<'ast> {
 }
 
 impl Sealed for ExprKind<'_> {}
+crate::diagnostic::impl_emission_node_for_node!(ExprKind<'ast>);
+crate::diagnostic::impl_emission_node_for_node!(&ExprKind<'ast>);
 
 #[repr(C)]
 #[non_exhaustive]
@@ -116,6 +121,10 @@ impl<'ast> LitExprKind<'ast> {
     impl_expr_kind_fn!(LitExprKind: ty() -> SemTyKind<'ast>);
     impl_expr_kind_fn!(LitExprKind: precedence() -> ExprPrecedence);
 }
+
+impl Sealed for LitExprKind<'_> {}
+crate::diagnostic::impl_emission_node_for_node!(LitExprKind<'ast>);
+crate::diagnostic::impl_emission_node_for_node!(&LitExprKind<'ast>);
 
 impl<'ast> From<LitExprKind<'ast>> for ExprKind<'ast> {
     fn from(value: LitExprKind<'ast>) -> Self {
@@ -329,6 +338,7 @@ macro_rules! impl_expr_data {
         }
 
         impl<'ast> $crate::private::Sealed for $self_ty {}
+        $crate::diagnostic::impl_emission_node_for_node!(&$self_ty, use super::ExprData);
 
         impl<'ast> From<&'ast $self_ty> for $crate::ast::expr::ExprKind<'ast> {
             fn from(from: &'ast $self_ty) -> Self {

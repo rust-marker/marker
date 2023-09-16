@@ -171,6 +171,8 @@ impl<'ast> EnumVariant<'ast> {
     }
 }
 
+crate::diagnostic::impl_emission_node_for_node!(&EnumVariant<'ast>);
+
 #[cfg(feature = "driver-api")]
 impl<'ast> EnumVariant<'ast> {
     pub fn new(
@@ -318,6 +320,8 @@ impl<'ast> Field<'ast> {
 
     // FIXME(xFrednet): Add `fn attrs() -> ??? {}`, see rust-marker/marker#51
 }
+
+crate::diagnostic::impl_emission_node_for_node!(&Field<'ast>);
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Field<'ast> {

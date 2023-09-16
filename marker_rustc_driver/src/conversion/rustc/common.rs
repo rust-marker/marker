@@ -5,7 +5,7 @@ use marker_api::{
         BodyId, CrateId, ExpnId, ExprId, FieldId, GenericId, ItemId, Span, SpanId, SpanPos, SpanSrcId, StmtId,
         SymbolId, TyDefId, VarId, VariantId,
     },
-    diagnostic::{Applicability, EmissionNode},
+    diagnostic::{Applicability, EmissionNodeId},
     lint::Level,
 };
 use rustc_hir as hir;
@@ -130,13 +130,13 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
     }
 
     #[must_use]
-    pub fn try_to_hir_id_from_emission_node(&self, node: EmissionNode) -> Option<hir::HirId> {
+    pub fn try_to_hir_id_from_emission_node(&self, node: EmissionNodeId) -> Option<hir::HirId> {
         let def_id = match node {
-            EmissionNode::Expr(id) => return Some(self.to_hir_id(id)),
-            EmissionNode::Item(id) => self.to_def_id(id),
-            EmissionNode::Stmt(id) => return Some(self.to_hir_id(id)),
-            EmissionNode::Field(id) => return Some(self.to_hir_id(id)),
-            EmissionNode::Variant(id) => self.to_def_id(id),
+            EmissionNodeId::Expr(id) => return Some(self.to_hir_id(id)),
+            EmissionNodeId::Item(id) => self.to_def_id(id),
+            EmissionNodeId::Stmt(id) => return Some(self.to_hir_id(id)),
+            EmissionNodeId::Field(id) => return Some(self.to_hir_id(id)),
+            EmissionNodeId::Variant(id) => self.to_def_id(id),
             _ => unreachable!(),
         };
 

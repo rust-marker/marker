@@ -9,7 +9,7 @@ use marker_api::{
         TyDefId,
     },
     context::DriverCallbacks,
-    diagnostic::{Diagnostic, EmissionNode},
+    diagnostic::{Diagnostic, EmissionNodeId},
     ffi::{self, FfiOption},
     lint::{Level, Lint},
 };
@@ -59,7 +59,7 @@ impl<'ast> DriverContextWrapper<'ast> {
 
 // False positive because `EmissionNode` are non-exhaustive
 #[allow(improper_ctypes_definitions)]
-extern "C" fn lint_level_at<'ast>(data: &'ast (), lint: &'static Lint, node: EmissionNode) -> Level {
+extern "C" fn lint_level_at<'ast>(data: &'ast (), lint: &'static Lint, node: EmissionNodeId) -> Level {
     unsafe { as_driver_cx(data) }.lint_level_at(lint, node)
 }
 
@@ -129,7 +129,7 @@ unsafe fn as_driver_cx<'ast>(data: &'ast ()) -> &'ast dyn DriverContext<'ast> {
 }
 
 pub trait DriverContext<'ast> {
-    fn lint_level_at(&'ast self, lint: &'static Lint, node: EmissionNode) -> Level;
+    fn lint_level_at(&'ast self, lint: &'static Lint, node: EmissionNodeId) -> Level;
     fn emit_diag(&'ast self, diag: &Diagnostic<'_, 'ast>);
 
     fn item(&'ast self, api_id: ItemId) -> Option<ItemKind<'ast>>;
