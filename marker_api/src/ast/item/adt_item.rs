@@ -1,6 +1,7 @@
 use crate::ast::expr::ConstExpr;
 use crate::ast::generic::SynGenericParams;
 use crate::ast::ty::SynTyKind;
+use crate::ast::HasSpan;
 use crate::ast::{FieldId, Span, SpanId, SymbolId, VariantId};
 use crate::context::with_cx;
 use crate::ffi::{FfiOption, FfiSlice};
@@ -159,19 +160,20 @@ impl<'ast> EnumVariant<'ast> {
         }
     }
 
-    /// The [`Span`] of the entire item. This span should be used for general item related
-    /// diagnostics.
-    pub fn span(&self) -> &Span<'ast> {
-        with_cx(self, |cx| cx.span(self.span))
-    }
-
     /// The discriminant of this variant, if one has been defined
     pub fn discriminant(&self) -> Option<&ConstExpr<'ast>> {
         self.discriminant.get()
     }
 }
 
-crate::diagnostic::impl_emission_node_for_node!(&EnumVariant<'ast>);
+impl<'ast> HasSpan<'ast> for EnumVariant<'ast> {
+    fn span(&self) -> &Span<'ast> {
+        with_cx(self, |cx| cx.span(self.span))
+    }
+}
+
+crate::ast::impl_identifiable_for!(EnumVariant<'ast>);
+impl<'ast> crate::private::Sealed for EnumVariant<'ast> {}
 
 #[cfg(feature = "driver-api")]
 impl<'ast> EnumVariant<'ast> {
@@ -312,16 +314,17 @@ impl<'ast> Field<'ast> {
         self.ty
     }
 
-    /// The [`Span`] of the entire item. This span should be used for general item related
-    /// diagnostics.
-    pub fn span(&self) -> &Span<'ast> {
-        with_cx(self, |cx| cx.span(self.span))
-    }
-
     // FIXME(xFrednet): Add `fn attrs() -> ??? {}`, see rust-marker/marker#51
 }
 
-crate::diagnostic::impl_emission_node_for_node!(&Field<'ast>);
+impl<'ast> HasSpan<'ast> for Field<'ast> {
+    fn span(&self) -> &Span<'ast> {
+        with_cx(self, |cx| cx.span(self.span))
+    }
+}
+
+crate::ast::impl_identifiable_for!(Field<'ast>);
+impl<'ast> crate::private::Sealed for Field<'ast> {}
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Field<'ast> {

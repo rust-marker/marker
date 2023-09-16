@@ -119,7 +119,7 @@ impl LintPass for TestLintPass {
             Some(name) if name.starts_with("PrintMe") || name.starts_with("PRINT_ME") || name.starts_with("print_me")
         ) {
             cx.emit_lint(TEST_LINT, item, "printing item").decorate(|diag| {
-                diag.set_main_span(item.ident().unwrap().span());
+                diag.span(item.ident().unwrap().span());
                 diag.note(format!("{item:#?}"));
             });
         }
@@ -131,7 +131,7 @@ impl LintPass for TestLintPass {
             ) {
                 cx.emit_lint(TEST_LINT, item, "printing item with body")
                     .decorate(|diag| {
-                        diag.set_main_span(item.ident().unwrap().span());
+                        diag.span(item.ident().unwrap().span());
                         diag.note(format!("Item: {item:#?}"));
                         diag.note(format!("Body: {:#?}", cx.body(func.body_id().unwrap())));
                     });
@@ -210,7 +210,7 @@ fn check_static_item<'ast>(cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'a
         let name = name.name();
         if name.starts_with("PRINT_TYPE") {
             cx.emit_lint(TEST_LINT, item, "printing type for").decorate(|diag| {
-                diag.set_main_span(item.ty().span());
+                diag.span(item.ty().span());
             });
             eprintln!("{:#?}\n\n", item.ty());
         } else if name.starts_with("FIND_ITEM") {

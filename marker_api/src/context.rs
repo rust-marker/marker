@@ -8,10 +8,10 @@ use crate::{
     ast::{
         item::{Body, ItemKind},
         ty::SemTyKind,
-        BodyId, ExpnId, ExpnInfo, ExprId, FileInfo, FilePos, ItemId, Span, SpanId, SpanPos, SpanSource, SymbolId,
-        TyDefId,
+        BodyId, ExpnId, ExpnInfo, ExprId, FileInfo, FilePos, HasNodeId, ItemId, NodeId, Span, SpanId, SpanPos,
+        SpanSource, SymbolId, TyDefId,
     },
-    diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode, EmissionNodeId},
+    diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
     lint::{Level, Lint, MacroReport},
 };
@@ -101,23 +101,27 @@ impl<'ast> AstContext<'ast> {
 }
 
 impl<'ast> AstContext<'ast> {
-    pub fn lint_level_at(&self, lint: &'static Lint, node: impl EmissionNode<'ast>) -> Level {
-        self.driver.call_lint_level_at(lint, node.emission_node_id())
+    pub fn lint_level_at(&self, lint: &'static Lint, node: impl HasNodeId) -> Level {
+        self.driver.call_lint_level_at(lint, node.node_id())
     }
 
     /// This function is used to emit a lint.
     ///
     /// Every lint emission, is bound to one specific node in the AST. This
-    /// node is used to check the lint level and as the main [`Span`] of the
-    /// diagnostic message. See [`EmissionNode`] for more information.
+    /// node is used to check the lint level and is the default [`Span`] of
+    /// the diagnostic message. See [`EmissionNode`] for more information.
+    /// The [`Span`] can be overwritten with [`DiagnosticBuilder::span`].
     ///
-    /// The lint message, will be the main message at the start of the created
-    /// diagnostic. This message and all messages emitted as part of the created
-    /// diagnostic should start with a lower letter, according to [rustc's dev guide].
+    /// The message parameter, will be the main message of the created diagnostic.
+    /// This message and all messages emitted as part of the created diagnostic
+    /// should start with a lower letter, according to [rustc's dev guide].
     ///
     /// The function will return a [`DiagnosticBuilder`] which can be used to decorate
-    /// the diagnostic message, with notes and help messages. The diagnostic message will
-    /// be emitted when the builder instance is dropped.
+    /// the diagnostic message, with notes and help messages. These customizations can
+    /// be moved into a conditional closure, to improve performance under some circumstances.
+    /// See [`DiagnosticBuilder::decorate`] for more information.
+    ///
+    /// The diagnostic message will be emitted when the builder instance is dropped.
     ///
     /// [rustc's dev guide]: <https://rustc-dev-guide.rust-lang.org/diagnostics.html#diagnostic-output-style-guide>
     ///
@@ -125,11 +129,11 @@ impl<'ast> AstContext<'ast> {
     ///
     /// ```
     /// # use marker_api::prelude::*;
-    /// # marker_api::declare_lint!(
+    /// # marker_api::declare_lint!{
     /// #     /// Dummy
     /// #     LINT,
     /// #     Warn,
-    /// # );
+    /// # }
     /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
     ///     cx.emit_lint(LINT, node, "<lint message>");
     /// # }
@@ -138,7 +142,7 @@ impl<'ast> AstContext<'ast> {
     /// The code above will roughly generate the following error message:
     ///
     /// ```text
-    ///  warning: <lint message>                <-- The message that is set by this function
+    ///  warning: <lint message>        <-- The message that is set by this function
     ///  --> path/file.rs:1:1
     ///   |
     /// 1 | node
@@ -150,19 +154,17 @@ impl<'ast> AstContext<'ast> {
     ///
     /// ```
     /// # use marker_api::prelude::*;
-    /// # marker_api::declare_lint!(
+    /// # marker_api::declare_lint!{
     /// #     /// Dummy
     /// #     LINT,
     /// #     Warn,
-    /// # );
+    /// # }
     /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
-    ///     cx
-    ///         .emit_lint(LINT, node, "<lint message>")
-    ///         .help("<text>");
+    ///     cx.emit_lint(LINT, node, "<lint message>").help("<text>");
     /// # }
     /// ```
     ///
-    /// The [`DiagnosticBuilder::help`] call will add a help message like this:
+    /// The [`DiagnosticBuilder::help`] will add a help message like this:
     ///
     /// ```text
     ///  warning: <lint message>
@@ -171,34 +173,31 @@ impl<'ast> AstContext<'ast> {
     /// 1 | node
     ///   | ^^^^
     ///   |
-    ///   = help: <text>               <-- The added help message
+    ///   = help: <text>        <-- The added help message
     /// ```
     ///
     /// ## Example 3
     ///
-    /// Creating suggestions can impact the performance. The
-    /// [`DiagnosticBuilder::decorate`] function can be used, to only add more
-    /// context to the lint emission if it will actually be emitted. This will
-    /// save performance, when the lint is allowed at the [`EmissionNode`]
+    /// Adding a help message using [`DiagnosticBuilder::decorate`]:
     ///
     /// ```
     /// # use marker_api::prelude::*;
-    /// # marker_api::declare_lint!(
+    /// # marker_api::declare_lint!{
     /// #     /// Dummy
     /// #     LINT,
     /// #     Warn,
-    /// # );
+    /// # }
     /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
     ///     cx.emit_lint(LINT, node, "<lint message>").decorate(|diag| {
-    ///         // This closure is only called, if the lint is enabled. Here you
-    ///         // can create a beautiful help message.
+    ///         // This closure is only called, if the diagnostic will be emitted.
+    ///         // Here you can create a beautiful help message.
     ///         diag.help("<text>");
     ///     });
     /// # }
     /// ```
     ///
     /// This will create the same help message as in example 2, but it will be faster
-    /// if the lint is enabled. The emitted message would look like this:
+    /// if the lint is suppressed. The emitted message would look like this:
     /// ```text
     ///  warning: <lint message>
     ///  --> path/file.rs:1:1
@@ -206,28 +205,24 @@ impl<'ast> AstContext<'ast> {
     /// 1 | node
     ///   | ^^^^
     ///   |
-    ///   = help: <text>               <-- The added help message
+    ///   = help: <text>        <-- The added help message
     /// ```
-    #[allow(clippy::needless_pass_by_value)] // `&impl ToString`
     pub fn emit_lint(
         &self,
         lint: &'static Lint,
         node: impl EmissionNode<'ast>,
-        msg: impl ToString,
+        msg: impl Into<String>,
     ) -> DiagnosticBuilder<'ast> {
-        let id = node.emission_node_id();
-        let Some(span) = node.emission_span(self) else {
-            // If the `Span` is none, we can't emit a diagnostic message for it.
-            return DiagnosticBuilder::new_dummy(lint, id);
-        };
+        let id = node.node_id();
+        let span = node.span();
         if matches!(lint.report_in_macro, MacroReport::No) && span.is_from_expansion() {
-            return DiagnosticBuilder::new_dummy(lint, id);
+            return DiagnosticBuilder::dummy();
         }
-        if self.lint_level_at(lint, node) == Level::Allow {
-            return DiagnosticBuilder::new_dummy(lint, id);
+        if self.lint_level_at(lint, &node) == Level::Allow {
+            return DiagnosticBuilder::dummy();
         }
 
-        DiagnosticBuilder::new(lint, id, msg.to_string(), span)
+        DiagnosticBuilder::new(lint, id, msg.into(), span.clone())
     }
 
     pub(crate) fn emit_diagnostic<'a>(&self, diag: &'a Diagnostic<'a, 'ast>) {
@@ -339,7 +334,7 @@ struct DriverCallbacks<'ast> {
     // can't call them in safe Rust passing a &() pointer. This will trigger UB.
 
     // Lint emission and information
-    pub lint_level_at: extern "C" fn(&'ast (), &'static Lint, EmissionNodeId) -> Level,
+    pub lint_level_at: extern "C" fn(&'ast (), &'static Lint, NodeId) -> Level,
     pub emit_diag: for<'a> extern "C" fn(&'ast (), &'a Diagnostic<'a, 'ast>),
 
     // Public utility
@@ -360,7 +355,7 @@ struct DriverCallbacks<'ast> {
 }
 
 impl<'ast> DriverCallbacks<'ast> {
-    fn call_lint_level_at(&self, lint: &'static Lint, node: EmissionNodeId) -> Level {
+    fn call_lint_level_at(&self, lint: &'static Lint, node: NodeId) -> Level {
         (self.lint_level_at)(self.driver_context, lint, node)
     }
 

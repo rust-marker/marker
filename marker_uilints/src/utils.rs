@@ -22,7 +22,7 @@ pub fn check_item<'ast>(cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
             format!("testing `contains_return` -> {res}"),
         )
         .decorate(|diag| {
-            diag.set_main_span(ident.span());
+            diag.span(ident.span());
         });
     }
 }

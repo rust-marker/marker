@@ -62,7 +62,7 @@ impl<'ast> CharLitExpr<'ast> {
 /// can be hardware-dependent. For exact value checks, it might be better to check
 /// the written float literal by getting the code snipped from the expression span.
 /// See:
-/// * [`ExprData::span()`](`super::ExprData::span`)
+/// * [`HasSpan::span()`](`super::HasSpan::span`)
 /// * [`Span::snippet()`](`crate::ast::Span::snippet`)
 ///
 /// All integer literals are unsigned, negative numbers have a unary negation

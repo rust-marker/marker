@@ -2,11 +2,11 @@ extern crate marker_api;
 
 use marker_api::{ast::expr::ExprKind, context::AstContext};
 
-marker_api::declare_lint!(
+marker_api::declare_lint!{
     /// Dummy
     DUMMY,
     Warn,
-);
+}
 
 pub fn accept_message<'ast>(cx: &AstContext<'ast>, expr: ExprKind<'ast>) {
     cx.emit_lint(DUMMY, expr, "x <-- this is cool");

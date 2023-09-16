@@ -8,7 +8,12 @@ pub use crate::ast::item::ItemData;
 pub use crate::ast::pat::PatData;
 pub use crate::ast::stmt::StmtData;
 pub use crate::ast::ty::SynTyData;
+pub use crate::ast::HasNodeId;
+pub use crate::ast::HasSpan;
 pub use crate::diagnostic::EmissionNode;
+
+// IDs
+pub use crate::ast::{BodyId, ExprId, FieldId, GenericId, ItemId, NodeId, StmtId, TyDefId, VarId, VariantId};
 
 // Common types
 pub use crate::ast::expr::ExprKind;

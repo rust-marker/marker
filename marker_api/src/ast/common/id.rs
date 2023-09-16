@@ -39,6 +39,8 @@ macro_rules! new_id {
 
 use new_id;
 
+use crate::private::Sealed;
+
 new_id!(
     /// This ID uniquely identifies a crate during linting.
     pub CrateId: u32
@@ -144,3 +146,63 @@ new_id! {
     /// This ID uniquely identifies a statement during linting.
     pub StmtId: u64
 }
+
+#[repr(C)]
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy)]
+pub enum NodeId {
+    Expr(ExprId),
+    Item(ItemId),
+    Stmt(StmtId),
+    Body(BodyId),
+    Field(FieldId),
+    Variant(VariantId),
+}
+
+macro_rules! impl_into_node_id_for {
+    ($variant:ident, $ty:ty) => {
+        impl From<$ty> for NodeId {
+            fn from(value: $ty) -> Self {
+                NodeId::$variant(value)
+            }
+        }
+
+        impl From<&$ty> for NodeId {
+            fn from(value: &$ty) -> Self {
+                NodeId::$variant(*value)
+            }
+        }
+    };
+}
+
+impl_into_node_id_for!(Expr, ExprId);
+impl_into_node_id_for!(Item, ItemId);
+impl_into_node_id_for!(Stmt, StmtId);
+impl_into_node_id_for!(Body, BodyId);
+impl_into_node_id_for!(Field, FieldId);
+impl_into_node_id_for!(Variant, VariantId);
+
+pub trait HasNodeId: Sealed {
+    /// Returns the [`NodeId`] of the identifiable node
+    fn node_id(&self) -> NodeId;
+}
+
+impl<N: HasNodeId> HasNodeId for &N {
+    fn node_id(&self) -> NodeId {
+        (*self).node_id()
+    }
+}
+
+macro_rules! impl_identifiable_for {
+    ($ty:ty$(, use $data_trait:path)?) => {
+        impl<'ast> $crate::ast::HasNodeId for $ty {
+            fn node_id(&self) -> $crate::ast::NodeId {
+                $(
+                    use $data_trait;
+                )*
+                self.id().into()
+            }
+        }
+    };
+}
+pub(crate) use impl_identifiable_for;

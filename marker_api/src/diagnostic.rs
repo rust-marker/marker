@@ -4,70 +4,51 @@
 use std::fmt::Debug;
 
 use crate::{
-    ast::{ExprId, FieldId, ItemId, Span, StmtId, VariantId},
+    ast::{HasNodeId, NodeId, Span},
     context::{with_cx, AstContext},
     ffi::{FfiSlice, FfiStr},
     lint::Lint,
+    prelude::HasSpan,
 };
 
 /// This builder creates the diagnostic object which will be emitted by the driver.
 /// The documentation will showcase the messages in rustc's console emission style,
 /// the actual display depends on the driver.
 pub struct DiagnosticBuilder<'ast> {
-    lint: &'static Lint,
-    node: EmissionNodeId,
-    msg: String,
-    span: Option<Span<'ast>>,
-    parts: Vec<DiagnosticPart<String, Span<'ast>>>,
-    /// This flag indicates, if the diagnostic messages should actually be emitted
-    /// at the end. This might be false, if the lint is allowed at the emission location.
-    emit_lint: bool,
+    /// This field will be `Some` if the created diagnostic will be emitted, otherwise
+    /// it'll be `None`. See [`DiagnosticBuilder::decorate`] for more information, when the
+    /// lint might be suppressed.
+    inner: Option<DiagnosticBuilderInner<'ast>>,
 }
 
-#[allow(clippy::needless_pass_by_value)] // `&impl ToString` doesn't work
+struct DiagnosticBuilderInner<'ast> {
+    lint: &'static Lint,
+    node: NodeId,
+    msg: String,
+    span: Span<'ast>,
+    parts: Vec<DiagnosticPart<String, Span<'ast>>>,
+}
+
 impl<'ast> DiagnosticBuilder<'ast> {
-    pub(crate) fn new_dummy(lint: &'static Lint, node: EmissionNodeId) -> Self {
+    /// Creates a new dummy builder, which basically makes all operations a noop
+    pub(crate) fn dummy() -> Self {
+        Self { inner: None }
+    }
+
+    pub(crate) fn new(lint: &'static Lint, node: NodeId, msg: String, span: Span<'ast>) -> Self {
         Self {
-            lint,
-            node,
-            msg: String::new(),
-            span: None,
-            parts: vec![],
-            emit_lint: false,
+            inner: Some(DiagnosticBuilderInner {
+                lint,
+                msg,
+                node,
+                span,
+                parts: vec![],
+            }),
         }
     }
 
-    pub(crate) fn new(lint: &'static Lint, node: EmissionNodeId, msg: String, span: Span<'ast>) -> Self {
-        Self {
-            lint,
-            msg,
-            node,
-            span: Some(span),
-            parts: vec![],
-            emit_lint: true,
-        }
-    }
-
-    /// This function sets the main message of this diagnostic message.
-    ///
-    /// From rustc a lint emission would look like this:
-    /// ```text
-    ///  warning: <lint message>                <-- The message that is set by this function
-    ///  --> path/file.rs:1:1
-    ///   |
-    /// 1 | expression
-    ///   | ^^^^^^^^^^
-    ///   |
-    /// ```
-    pub fn set_main_message(&mut self, msg: impl ToString) -> &mut Self {
-        if self.emit_lint {
-            self.msg = msg.to_string();
-        }
-        self
-    }
-
-    /// This function sets the main [`Span`] of this diagnostic message.
-    /// [`AstContext::emit_lint`] will by default use the span of the given
+    /// This function sets the main [`Span`] of the created diagnostic.
+    /// [`AstContext::emit_lint`] will by default use the [`Span`] of the given
     /// [`EmissionNode`].
     ///
     /// From rustc a lint emission would look like this:
@@ -79,9 +60,9 @@ impl<'ast> DiagnosticBuilder<'ast> {
     ///   | ^^^^                 <-- The main span set by this function
     ///   |
     /// ```
-    pub fn set_main_span(&mut self, span: &Span<'ast>) -> &mut Self {
-        if self.emit_lint {
-            self.span = Some(span.clone());
+    pub fn span(&mut self, span: &Span<'ast>) -> &mut Self {
+        if let Some(inner) = self.inner.as_mut() {
+            inner.span = span.clone();
         }
 
         self
@@ -102,9 +83,9 @@ impl<'ast> DiagnosticBuilder<'ast> {
     /// ```
     ///
     /// [`Self::span_note`] can be used to highlight a relevant [`Span`].
-    pub fn note(&mut self, msg: impl ToString) -> &mut Self {
-        if self.emit_lint {
-            self.parts.push(DiagnosticPart::Note { msg: msg.to_string() });
+    pub fn note(&mut self, msg: impl Into<String>) -> &mut Self {
+        if let Some(inner) = self.inner.as_mut() {
+            inner.parts.push(DiagnosticPart::Note { msg: msg.into() });
         }
 
         self
@@ -130,10 +111,10 @@ impl<'ast> DiagnosticBuilder<'ast> {
     /// ```
     ///
     /// [`Self::note`] can be used to add text notes without a span.
-    pub fn span_note(&mut self, msg: impl ToString, span: &Span<'ast>) -> &mut Self {
-        if self.emit_lint {
-            self.parts.push(DiagnosticPart::NoteSpan {
-                msg: msg.to_string(),
+    pub fn span_note(&mut self, msg: impl Into<String>, span: &Span<'ast>) -> &mut Self {
+        if let Some(inner) = self.inner.as_mut() {
+            inner.parts.push(DiagnosticPart::NoteSpan {
+                msg: msg.into(),
                 span: span.clone(),
             });
         }
@@ -157,9 +138,9 @@ impl<'ast> DiagnosticBuilder<'ast> {
     ///
     /// [`Self::span_help`] can be used to highlight a relevant [`Span`].
     /// [`Self::span_suggestion`] can be used to add a help message with a suggestion.
-    pub fn help(&mut self, msg: impl ToString) -> &mut Self {
-        if self.emit_lint {
-            self.parts.push(DiagnosticPart::Help { msg: msg.to_string() });
+    pub fn help(&mut self, msg: impl Into<String>) -> &mut Self {
+        if let Some(inner) = self.inner.as_mut() {
+            inner.parts.push(DiagnosticPart::Help { msg: msg.into() });
         }
 
         self
@@ -186,10 +167,10 @@ impl<'ast> DiagnosticBuilder<'ast> {
     ///
     /// [`Self::help`] can be used to add a text help message without a [`Span`].
     /// [`Self::span_suggestion`] can be used to add a help message with a suggestion.
-    pub fn span_help(&mut self, msg: impl ToString, span: &Span<'ast>) -> &mut Self {
-        if self.emit_lint {
-            self.parts.push(DiagnosticPart::HelpSpan {
-                msg: msg.to_string(),
+    pub fn span_help(&mut self, msg: impl Into<String>, span: &Span<'ast>) -> &mut Self {
+        if let Some(inner) = self.inner.as_mut() {
+            inner.parts.push(DiagnosticPart::HelpSpan {
+                msg: msg.into(),
                 span: span.clone(),
             });
         }
@@ -215,64 +196,91 @@ impl<'ast> DiagnosticBuilder<'ast> {
     /// explanation is required.
     pub fn span_suggestion(
         &mut self,
-        msg: impl ToString,
+        msg: impl Into<String>,
         span: &Span<'ast>,
-        suggestion: impl ToString,
+        suggestion: impl Into<String>,
         app: Applicability,
     ) -> &mut Self {
-        if self.emit_lint {
-            self.parts.push(DiagnosticPart::Suggestion {
-                msg: msg.to_string(),
+        if let Some(inner) = self.inner.as_mut() {
+            inner.parts.push(DiagnosticPart::Suggestion {
+                msg: msg.into(),
                 span: span.clone(),
-                sugg: suggestion.to_string(),
+                sugg: suggestion.into(),
                 app,
             });
         }
+
         self
     }
 
-    /// This function takes a closure, that is only executed, if the created
-    /// diagnostic is actually emitted in the end. This is useful for crafting
-    /// suggestions. Having them in a conditional closure will speedup the
-    /// linting process if the lint is allowed at a given location.
+    /// The `decorate` parameter accepts a closure, that is only executed, when the
+    /// lint will actually be emitted in the end. Having them in a conditional closure
+    /// will speedup the linting process if the lint is suppressed.
+    ///
+    /// A lint emission might be suppressed, if the lint is allowed at the
+    /// [`EmissionNode`] or if the [`MacroReport`](crate::lint::MacroReport) level
+    /// specified in the [`Lint`] isn't sufficient for context of the [`EmissionNode`].
     ///
     /// ```
     /// # use marker_api::prelude::*;
-    /// # marker_api::declare_lint!(
+    /// # marker_api::declare_lint!{
     /// #     /// Dummy
     /// #     LINT,
     /// #     Warn,
-    /// # );
+    /// # };
     /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
     ///     cx.emit_lint(LINT, node, "<lint message>").decorate(|diag| {
-    ///         // This closure is only called, if the lint is enabled. Here you
-    ///         // can create a beautiful help message.
+    ///         // This closure is only called, if the diagnostic will be emitted.
+    ///         // Here you can create a beautiful help message.
     ///         diag.help("<text>");
     ///     });
     /// # }
     /// ```
+    ///
+    /// You can also checkout [`DiagnosticBuilder::done()`] to use a closure, without
+    /// curly brackets.
     pub fn decorate<F>(&mut self, decorate: F) -> &mut Self
     where
         F: FnOnce(&mut DiagnosticBuilder<'ast>),
     {
-        if self.emit_lint {
+        if self.inner.is_some() {
             decorate(self);
         }
+
         self
     }
 
+    /// This function simply consumes the builder reference, which allows simpler
+    /// use in closures. The following closures for [`DiagnosticBuilder::decorate`]
+    /// are equivalent:
+    ///
+    /// ```
+    /// # use marker_api::prelude::*;
+    /// # marker_api::declare_lint!{
+    /// #     /// Dummy
+    /// #     LINT,
+    /// #     Warn,
+    /// # }
+    /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
+    ///     // Without `done()`
+    ///     cx.emit_lint(LINT, node, "<text>").decorate(|diag| {
+    ///         diag.help("<text>");
+    ///     });
+    ///
+    ///     // With `done()`
+    ///     cx.emit_lint(LINT, node, "<text>").decorate(|diag| diag.help("<help>").done());
+    /// # }
+    /// ```
+    pub fn done(&self) {}
+
     pub(crate) fn emit<'builder>(&'builder self, cx: &AstContext<'ast>) {
-        if self.emit_lint {
-            let parts: Vec<_> = self.parts.iter().map(DiagnosticPart::to_ffi_part).collect();
-            let span = self
-                .span
-                .as_ref()
-                .expect("always Some, if `DiagnosticBuilder::emit_lint` is true");
+        if let Some(inner) = &self.inner {
+            let parts: Vec<_> = inner.parts.iter().map(DiagnosticPart::to_ffi_part).collect();
             let diag = Diagnostic {
-                lint: self.lint,
-                msg: self.msg.as_str().into(),
-                node: self.node,
-                span,
+                lint: inner.lint,
+                msg: inner.msg.as_str().into(),
+                node: inner.node,
+                span: &inner.span,
                 parts: parts.as_slice().into(),
             };
             cx.emit_diagnostic(&diag);
@@ -289,97 +297,9 @@ impl<'ast> Drop for DiagnosticBuilder<'ast> {
 /// Every lint emission is bound to a specific node. The node is used to
 /// determine the lint level and [`Span`] that is used for the main diagnostic
 /// message.
-///
-/// This trait is implemented for most AST nodes and node ids. When given the option,
-/// it's better to use the node directly, as the id might require some callbacks into
-/// the driver to fetch the actual node.
-//
-// FIXME(xFrednet): This trait should also be implemented for all ids that implement
-// `Into<LintEmissionId>`. However, for this we first need to add more methods to fetch
-// nodes by id, to provide a valid implementation for `emission_span`.
-//
-// The `Copy` super trait is not necessary, but it allows us to simply use `impl EmissionNode`,
-// without triggering `clippy::needless_pass_by_value`. Marker could use `&impl EmissionNode`
-// instead, but then these functions would complain about values of type `*Kind` and require the
-// user to add a reference to the value. Just using `impl EmissionNode` feels better to me.
-pub trait EmissionNode<'ast>: Debug + Copy {
-    /// The [`EmissionNodeId`] which is used to determine the lint level and
-    /// where the lint is emitted.
-    fn emission_node_id(&self) -> EmissionNodeId;
+pub trait EmissionNode<'ast>: Debug + HasSpan<'ast> + HasNodeId {}
 
-    /// The [`Span`] which will be used for a lint emission, if it's not overwritten by
-    /// [`DiagnosticBuilder::set_main_span`].
-    ///
-    /// The [`AstContext`] can be used to fetch the [`Span`], if this is implemented on
-    /// a id.
-    fn emission_span(&self, _cx: &AstContext<'ast>) -> Option<Span<'ast>>;
-}
-
-macro_rules! impl_emission_node_for_node {
-    ($ty:ty$(, use $data_trait:path)?) => {
-        impl<'ast> $crate::diagnostic::EmissionNode<'ast> for $ty {
-            fn emission_node_id(&self) -> $crate::diagnostic::EmissionNodeId {
-                $(
-                    use $data_trait;
-                )*
-                self.id().into()
-            }
-
-            fn emission_span(&self, _cx: &$crate::AstContext<'ast>) -> Option<$crate::ast::Span<'ast>> {
-                $(
-                    use $data_trait;
-                )*
-                Some(self.span().clone())
-            }
-        }
-    };
-}
-pub(crate) use impl_emission_node_for_node;
-
-impl<'ast> EmissionNode<'ast> for crate::ast::ItemId {
-    fn emission_node_id(&self) -> EmissionNodeId {
-        self.into()
-    }
-
-    fn emission_span(&self, cx: &AstContext<'ast>) -> Option<Span<'ast>> {
-        cx.item(*self).map(|x| x.span().clone())
-    }
-}
-
-/// This is the id of an [`EmissionNode`]. It can be used to determine the
-/// lint level and to emit a lint.
-#[repr(C)]
-#[non_exhaustive]
-#[derive(Debug, Clone, Copy)]
-pub enum EmissionNodeId {
-    Expr(ExprId),
-    Item(ItemId),
-    Stmt(StmtId),
-    Field(FieldId),
-    Variant(VariantId),
-}
-
-macro_rules! impl_into_emission_node_id_for {
-    ($variant:ident, $ty:ty) => {
-        impl From<$ty> for EmissionNodeId {
-            fn from(value: $ty) -> Self {
-                EmissionNodeId::$variant(value)
-            }
-        }
-
-        impl From<&$ty> for EmissionNodeId {
-            fn from(value: &$ty) -> Self {
-                EmissionNodeId::$variant(*value)
-            }
-        }
-    };
-}
-
-impl_into_emission_node_id_for!(Expr, ExprId);
-impl_into_emission_node_id_for!(Item, ItemId);
-impl_into_emission_node_id_for!(Stmt, StmtId);
-impl_into_emission_node_id_for!(Field, FieldId);
-impl_into_emission_node_id_for!(Variant, VariantId);
+impl<'ast, N: Debug + HasSpan<'ast> + HasNodeId> EmissionNode<'ast> for N {}
 
 #[repr(C)]
 #[non_exhaustive]
@@ -464,7 +384,7 @@ pub enum Applicability {
 pub(crate) struct Diagnostic<'builder, 'ast> {
     pub lint: &'static Lint,
     pub msg: FfiStr<'builder>,
-    pub node: EmissionNodeId,
+    pub node: NodeId,
     pub span: &'builder Span<'ast>,
     pub parts: FfiSlice<'builder, DiagnosticPart<FfiStr<'builder>, &'builder Span<'ast>>>,
 }

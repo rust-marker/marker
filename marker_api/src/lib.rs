@@ -46,6 +46,8 @@ pub(crate) mod private {
     ///
     /// See: [Sealed traits](https://rust-lang.github.io/api-guidelines/future-proofing.html)
     pub trait Sealed {}
+
+    impl<N: Sealed> Sealed for &N {}
 }
 
 /// This struct blocks the construction of enum variants, similar to the `#[non_exhaustive]`

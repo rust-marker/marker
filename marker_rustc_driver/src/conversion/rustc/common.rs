@@ -1,12 +1,10 @@
 use std::mem::{size_of, transmute};
 
 use marker_api::{
-    ast::{
-        BodyId, CrateId, ExpnId, ExprId, FieldId, GenericId, ItemId, Span, SpanId, SpanPos, SpanSrcId, StmtId,
-        SymbolId, TyDefId, VarId, VariantId,
-    },
-    diagnostic::{Applicability, EmissionNodeId},
+    ast::{CrateId, ExpnId, SpanId, SpanPos, SpanSrcId, SymbolId},
+    diagnostic::Applicability,
     lint::Level,
+    prelude::*,
 };
 use rustc_hir as hir;
 
@@ -130,13 +128,14 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
     }
 
     #[must_use]
-    pub fn try_to_hir_id_from_emission_node(&self, node: EmissionNodeId) -> Option<hir::HirId> {
+    pub fn try_to_hir_id_from_emission_node(&self, node: NodeId) -> Option<hir::HirId> {
         let def_id = match node {
-            EmissionNodeId::Expr(id) => return Some(self.to_hir_id(id)),
-            EmissionNodeId::Item(id) => self.to_def_id(id),
-            EmissionNodeId::Stmt(id) => return Some(self.to_hir_id(id)),
-            EmissionNodeId::Field(id) => return Some(self.to_hir_id(id)),
-            EmissionNodeId::Variant(id) => self.to_def_id(id),
+            NodeId::Expr(id) => return Some(self.to_hir_id(id)),
+            NodeId::Item(id) => self.to_def_id(id),
+            NodeId::Stmt(id) => return Some(self.to_hir_id(id)),
+            NodeId::Body(id) => return Some(self.to_body_id(id).hir_id),
+            NodeId::Field(id) => return Some(self.to_hir_id(id)),
+            NodeId::Variant(id) => self.to_def_id(id),
             _ => unreachable!(),
         };
 

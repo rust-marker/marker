@@ -3,18 +3,15 @@ use std::marker::PhantomData;
 
 use crate::{ffi::FfiOption, private::Sealed};
 
-use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::SynTyKind, Span, SpanId, StmtId};
+use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::SynTyKind, HasNodeId, HasSpan, Span, SpanId, StmtId};
 
 /// This trait combines methods, which all statements have in common.
 ///
 /// This trait is only meant to be implemented inside this crate. The `Sealed`
 /// super trait prevents external implementations.
-pub trait StmtData<'ast>: Debug + Sealed {
-    /// Returns the [`SpanId`] of this statement
+pub trait StmtData<'ast>: Debug + HasSpan<'ast> + HasNodeId + Sealed {
+    /// Returns the [`StmtId`] of this statement
     fn id(&self) -> StmtId;
-
-    /// Returns the [`Span`] of this statement.
-    fn span(&self) -> &Span<'ast>;
 }
 
 #[repr(C)]
@@ -51,8 +48,9 @@ impl<'ast> StmtKind<'ast> {
     pub fn attrs(&self) {}
 }
 
-crate::diagnostic::impl_emission_node_for_node!(StmtKind<'ast>);
-crate::diagnostic::impl_emission_node_for_node!(&StmtKind<'ast>);
+crate::ast::impl_spanned_for!(StmtKind<'ast>);
+crate::ast::impl_identifiable_for!(StmtKind<'ast>);
+impl<'ast> crate::private::Sealed for StmtKind<'ast> {}
 
 #[repr(C)]
 #[derive(Debug)]
@@ -76,11 +74,15 @@ macro_rules! impl_stmt_data {
             fn id(&self) -> crate::ast::StmtId {
                 self.data.id
             }
+        }
 
+        impl<'ast> $crate::ast::HasSpan<'ast> for $self_ty {
             fn span(&self) -> &crate::ast::Span<'ast> {
                 $crate::context::with_cx(self, |cx| cx.span(self.data.span))
             }
         }
+
+        $crate::ast::impl_identifiable_for!($self_ty, use StmtData);
 
         impl<'ast> From<&'ast $self_ty> for $crate::ast::stmt::StmtKind<'ast> {
             fn from(from: &'ast $self_ty) -> Self {
@@ -131,7 +133,6 @@ impl<'ast> LetStmt<'ast> {
 }
 
 impl_stmt_data!(LetStmt<'ast>, Let);
-crate::diagnostic::impl_emission_node_for_node!(LetStmt<'ast>);
 
 #[repr(C)]
 #[derive(Debug)]
@@ -148,7 +149,6 @@ impl<'ast> ExprStmt<'ast> {
 }
 
 impl_stmt_data!(ExprStmt<'ast>, Expr);
-crate::diagnostic::impl_emission_node_for_node!(ExprStmt<'ast>);
 
 #[repr(C)]
 #[derive(Debug)]
@@ -165,4 +165,3 @@ impl<'ast> ItemStmt<'ast> {
 }
 
 impl_stmt_data!(ItemStmt<'ast>, Item);
-crate::diagnostic::impl_emission_node_for_node!(ItemStmt<'ast>);
