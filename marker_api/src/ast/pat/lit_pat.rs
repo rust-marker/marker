@@ -14,6 +14,7 @@ use super::CommonPatData;
 /// ```
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct LitPat<'ast> {
     data: CommonPatData<'ast>,
     lit: LitExprKind<'ast>,
@@ -27,10 +28,3 @@ impl<'ast> LitPat<'ast> {
 }
 
 super::impl_pat_data!(LitPat<'ast>, Lit);
-
-#[cfg(feature = "driver-api")]
-impl<'ast> LitPat<'ast> {
-    pub fn new(data: CommonPatData<'ast>, lit: LitExprKind<'ast>) -> Self {
-        Self { data, lit }
-    }
-}

@@ -35,6 +35,7 @@ use super::CommonPatData;
 /// [`PatKind::Path`](crate::ast::pat::PatKind::Path) variant.
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct PlacePat<'ast> {
     data: CommonPatData<'ast>,
     place: ExprKind<'ast>,
@@ -48,10 +49,3 @@ impl<'ast> PlacePat<'ast> {
 }
 
 super::impl_pat_data!(PlacePat<'ast>, Place);
-
-#[cfg(feature = "driver-api")]
-impl<'ast> PlacePat<'ast> {
-    pub fn new(data: CommonPatData<'ast>, place: ExprKind<'ast>) -> Self {
-        Self { data, place }
-    }
-}

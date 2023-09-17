@@ -38,7 +38,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 let lhs = lhs_map.get(id);
                 #[allow(clippy::unnecessary_unwrap, reason = "if let sadly breaks rustfmt")]
                 if pat.is_none() && matches!(mutab, rustc_ast::Mutability::Not) && lhs.is_some() {
-                    PatKind::Place(self.alloc(PlacePat::new(data, *lhs.unwrap())))
+                    PatKind::Place(self.alloc(PlacePat::builder().data(data).place(*lhs.unwrap()).build()))
                 } else {
                     PatKind::Ident(self.alloc({
                         IdentPat::new(
@@ -124,7 +124,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 let lit_expr = expr
                     .try_into()
                     .unwrap_or_else(|()| panic!("this should be a literal expression {lit:#?}"));
-                PatKind::Lit(self.alloc(LitPat::new(data, lit_expr)))
+                PatKind::Lit(self.alloc(LitPat::builder().data(data).lit(lit_expr).build()))
             },
             hir::PatKind::Range(start, end, kind) => PatKind::Range(self.alloc(RangePat::new(
                 data,
@@ -157,6 +157,6 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_place_pat_from_expr(&self, expr: &hir::Expr<'tcx>) -> PatKind<'ast> {
         let data = CommonPatData::new(self.to_span_id(expr.span));
-        PatKind::Place(self.alloc(PlacePat::new(data, self.to_expr(expr))))
+        PatKind::Place(self.alloc(PlacePat::builder().data(data).place(self.to_expr(expr)).build()))
     }
 }

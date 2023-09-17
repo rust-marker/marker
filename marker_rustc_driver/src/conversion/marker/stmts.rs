@@ -11,16 +11,23 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             return Some(*stmt);
         }
 
-        let data = CommonStmtData::new(self.to_stmt_id(stmt.hir_id), self.to_span_id(stmt.span));
+        let data = CommonStmtData::builder()
+            .id(self.to_stmt_id(stmt.hir_id))
+            .span(self.to_span_id(stmt.span))
+            .build();
         let stmt = match &stmt.kind {
             hir::StmtKind::Local(local) => match local.source {
-                hir::LocalSource::Normal => StmtKind::Let(self.alloc(LetStmt::new(
-                    data,
-                    self.to_pat(local.pat),
-                    local.ty.map(|ty| self.to_syn_ty(ty)),
-                    local.init.map(|init| self.to_expr(init)),
-                    local.els.map(|els| self.to_expr_from_block(els)),
-                ))),
+                hir::LocalSource::Normal => StmtKind::Let(
+                    self.alloc(
+                        LetStmt::builder()
+                            .data(data)
+                            .pat(self.to_pat(local.pat))
+                            .ty(local.ty.map(|ty| self.to_syn_ty(ty)))
+                            .init(local.init.map(|init| self.to_expr(init)))
+                            .els(local.els.map(|els| self.to_expr_from_block(els)))
+                            .build(),
+                    ),
+                ),
                 hir::LocalSource::AssignDesugar(_) => {
                     unreachable!("this will be handled by the block expr wrapping the desugar")
                 },
@@ -31,10 +38,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             },
             hir::StmtKind::Item(item) => {
                 let item = self.to_item_from_id(*item)?;
-                StmtKind::Item(self.alloc(ItemStmt::new(data, item)))
+                StmtKind::Item(self.alloc(ItemStmt::builder().data(data).item(item).build()))
             },
             hir::StmtKind::Expr(expr) | hir::StmtKind::Semi(expr) => {
-                StmtKind::Expr(self.alloc(ExprStmt::new(data, self.to_expr(expr))))
+                StmtKind::Expr(self.alloc(ExprStmt::builder().data(data).expr(self.to_expr(expr)).build()))
             },
         };
 
