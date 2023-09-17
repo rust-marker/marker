@@ -196,8 +196,8 @@ pub fn traverse_stmt<'ast, B>(
     visitor.visit_stmt(cx, stmt)?;
 
     match stmt {
-        StmtKind::Item(item, _) => {
-            traverse_item(cx, visitor, *item)?;
+        StmtKind::Item(item) => {
+            traverse_item(cx, visitor, item.item())?;
         },
         StmtKind::Let(lt) => {
             if let Some(init) = lt.init() {
@@ -207,8 +207,8 @@ pub fn traverse_stmt<'ast, B>(
                 traverse_expr(cx, visitor, els)?;
             }
         },
-        StmtKind::Expr(expr, _) => {
-            traverse_expr(cx, visitor, *expr)?;
+        StmtKind::Expr(expr) => {
+            traverse_expr(cx, visitor, expr.expr())?;
         },
         _ => unreachable!("all statements are covered"),
     }

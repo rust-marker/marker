@@ -1,17 +1,13 @@
-use marker_api::{
-    ast::{
-        expr::{
-            ArrayExpr, AsExpr, AssignExpr, AwaitExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr,
-            CallExpr, CaptureKind, CharLitExpr, ClosureExpr, ClosureParam, CommonExprData, ConstExpr, ContinueExpr,
-            CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr,
-            IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr,
-            RefExpr, ReturnExpr, StrLitData, StrLitExpr, TryExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
-            WhileExpr,
-        },
-        pat::PatKind,
-        Ident, Safety, Syncness,
+use marker_api::ast::{
+    expr::{
+        ArrayExpr, AsExpr, AssignExpr, AwaitExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr,
+        CallExpr, CaptureKind, CharLitExpr, ClosureExpr, ClosureParam, CommonExprData, ConstExpr, ContinueExpr,
+        CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr,
+        IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr,
+        RefExpr, ReturnExpr, StrLitData, StrLitExpr, TryExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
+        WhileExpr,
     },
-    CtorBlocker,
+    Ident, Safety, Syncness,
 };
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
@@ -217,13 +213,13 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             },
             hir::ExprKind::Assign(assignee, value, _span) => ExprKind::Assign(self.alloc(AssignExpr::new(
                 data,
-                PatKind::Place(self.to_expr(assignee), CtorBlocker::new()),
+                self.to_place_pat_from_expr(assignee),
                 self.to_expr(value),
                 None,
             ))),
             hir::ExprKind::AssignOp(op, assignee, value) => ExprKind::Assign(self.alloc(AssignExpr::new(
                 data,
-                PatKind::Place(self.to_expr(assignee), CtorBlocker::new()),
+                self.to_place_pat_from_expr(assignee),
                 self.to_expr(value),
                 Some(self.to_bin_op_kind(op)),
             ))),

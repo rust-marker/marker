@@ -1,12 +1,9 @@
-use marker_api::{
-    ast::{
-        expr::ExprKind,
-        pat::{
-            CommonPatData, IdentPat, OrPat, PatKind, PathPat, RangePat, RefPat, RestPat, SlicePat, StructFieldPat,
-            StructPat, TuplePat, UnstablePat, WildcardPat,
-        },
+use marker_api::ast::{
+    expr::ExprKind,
+    pat::{
+        CommonPatData, IdentPat, LitPat, OrPat, PatKind, PathPat, PlacePat, RangePat, RefPat, RestPat, SlicePat,
+        StructFieldPat, StructPat, TuplePat, UnstablePat, WildcardPat,
     },
-    CtorBlocker,
 };
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
@@ -41,7 +38,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 let lhs = lhs_map.get(id);
                 #[allow(clippy::unnecessary_unwrap, reason = "if let sadly breaks rustfmt")]
                 if pat.is_none() && matches!(mutab, rustc_ast::Mutability::Not) && lhs.is_some() {
-                    PatKind::Place(*lhs.unwrap(), CtorBlocker::new())
+                    PatKind::Place(self.alloc(PlacePat::builder().data(data).place(*lhs.unwrap()).build()))
                 } else {
                     PatKind::Ident(self.alloc({
                         IdentPat::new(
@@ -127,7 +124,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 let lit_expr = expr
                     .try_into()
                     .unwrap_or_else(|()| panic!("this should be a literal expression {lit:#?}"));
-                PatKind::Lit(lit_expr, CtorBlocker::new())
+                PatKind::Lit(self.alloc(LitPat::builder().data(data).lit(lit_expr).build()))
             },
             hir::PatKind::Range(start, end, kind) => PatKind::Range(self.alloc(RangePat::new(
                 data,
@@ -155,5 +152,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     fn new_rest_pat(&self, span: rustc_span::Span) -> PatKind<'ast> {
         let data = CommonPatData::new(self.to_span_id(span));
         PatKind::Rest(self.alloc(RestPat::new(data)))
+    }
+
+    #[must_use]
+    pub fn to_place_pat_from_expr(&self, expr: &hir::Expr<'tcx>) -> PatKind<'ast> {
+        let data = CommonPatData::new(self.to_span_id(expr.span));
+        PatKind::Place(self.alloc(PlacePat::builder().data(data).place(self.to_expr(expr)).build()))
     }
 }

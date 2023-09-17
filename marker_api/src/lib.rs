@@ -1,13 +1,14 @@
 #![doc = include_str!("../README.md")]
 #![warn(clippy::pedantic)]
-#![warn(clippy::exhaustive_enums)]
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::trivially_copy_pass_by_ref)]
 #![allow(clippy::unused_self)] // `self` is needed to change the behavior later
 #![allow(clippy::missing_panics_doc)] // Temporary allow for `todo!`s
 #![allow(clippy::new_without_default)] // Not very helpful as `new` is almost always cfged
+#![cfg_attr(feature = "driver-api", allow(clippy::used_underscore_binding))] // See: idanarye/rust-typed-builder#113
 #![cfg_attr(not(feature = "driver-api"), allow(dead_code))]
+#![cfg_attr(not(feature = "driver-api"), warn(clippy::exhaustive_enums))] // See: idanarye/rust-typed-builder#112
 
 pub static MARKER_API_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -55,7 +56,7 @@ pub(crate) mod private {
 /// `*Kind` enums. In those cases, this struct is used, to block the user from
 /// constructing the variant manually. This allows tools to handle the variants
 /// confidently without additional verification. An example for this would be the
-/// [`PatKind::Place`](ast::pat::PatKind::Place) variant.
+/// [`LitExprKind::UnaryOp`](ast::expr::LitExprKind::UnaryOp) variant.
 ///
 /// This basically acts like a `#[non_exhaustive]` attribute, with the difference
 /// that it also works on tuple variants. Attaching `#[non_exhaustive]` to a tuple

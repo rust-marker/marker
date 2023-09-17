@@ -55,61 +55,67 @@ warning: print test
                            },
                            stmts: [
                                Expr(
-                                   If(
-                                       IfExpr {
-                                           data: CommonExprData {
-                                               _lifetime: PhantomData<&()>,
-                                               id: ExprId(..),
-                                               span: SpanId(..),
-                                           },
-                                           condition: Path(
-                                               PathExpr {
-                                                   data: CommonExprData {
-                                                       _lifetime: PhantomData<&()>,
-                                                       id: ExprId(..),
-                                                       span: SpanId(..),
-                                                   },
-                                                   path: AstQPath {
-                                                       self_ty: None,
-                                                       path_ty: None,
-                                                       path: AstPath {
-                                                           segments: [
-                                                               AstPathSegment {
-                                                                   ident: Ident {
-                                                                       name: "cond",
-                                                                       span: $DIR/print_cond_expr.rs:6:12 - 6:16,
-                                                                   },
-                                                                   generics: SynGenericArgs {
-                                                                       args: [],
-                                                                   },
-                                                               },
-                                                           ],
-                                                       },
-                                                       target: Var(
-                                                           VarId(..),
-                                                       ),
-                                                   },
-                                               },
-                                           ),
-                                           then: Block(
-                                               BlockExpr {
-                                                   data: CommonExprData {
-                                                       _lifetime: PhantomData<&()>,
-                                                       id: ExprId(..),
-                                                       span: SpanId(..),
-                                                   },
-                                                   stmts: [],
-                                                   expr: None,
-                                                   label: None,
-                                                   safety: Safe,
-                                                   syncness: Sync,
-                                                   capture_kind: Default,
-                                               },
-                                           ),
-                                           els: None,
+                                   ExprStmt {
+                                       data: CommonStmtData {
+                                           _lifetime: PhantomData<&()>,
+                                           id: StmtId(..),
+                                           span: SpanId(..),
                                        },
-                                   ),
-                                   ..,
+                                       expr: If(
+                                           IfExpr {
+                                               data: CommonExprData {
+                                                   _lifetime: PhantomData<&()>,
+                                                   id: ExprId(..),
+                                                   span: SpanId(..),
+                                               },
+                                               condition: Path(
+                                                   PathExpr {
+                                                       data: CommonExprData {
+                                                           _lifetime: PhantomData<&()>,
+                                                           id: ExprId(..),
+                                                           span: SpanId(..),
+                                                       },
+                                                       path: AstQPath {
+                                                           self_ty: None,
+                                                           path_ty: None,
+                                                           path: AstPath {
+                                                               segments: [
+                                                                   AstPathSegment {
+                                                                       ident: Ident {
+                                                                           name: "cond",
+                                                                           span: $DIR/print_cond_expr.rs:6:12 - 6:16,
+                                                                       },
+                                                                       generics: SynGenericArgs {
+                                                                           args: [],
+                                                                       },
+                                                                   },
+                                                               ],
+                                                           },
+                                                           target: Var(
+                                                               VarId(..),
+                                                           ),
+                                                       },
+                                                   },
+                                               ),
+                                               then: Block(
+                                                   BlockExpr {
+                                                       data: CommonExprData {
+                                                           _lifetime: PhantomData<&()>,
+                                                           id: ExprId(..),
+                                                           span: SpanId(..),
+                                                       },
+                                                       stmts: [],
+                                                       expr: None,
+                                                       label: None,
+                                                       safety: Safe,
+                                                       syncness: Sync,
+                                                       capture_kind: Default,
+                                                   },
+                                               ),
+                                               els: None,
+                                           },
+                                       ),
+                                   },
                                ),
                            ],
                            expr: Some(
@@ -800,29 +806,34 @@ warning: print test
                                            span: SpanId(..),
                                            ident: SymbolId(..),
                                            pat: Lit(
-                                               UnaryOp(
-                                                   UnaryOpExpr {
-                                                       data: CommonExprData {
-                                                           _lifetime: PhantomData<&()>,
-                                                           id: ExprId(..),
-                                                           span: SpanId(..),
-                                                       },
-                                                       expr: IntLit(
-                                                           IntLitExpr {
-                                                               data: CommonExprData {
-                                                                   _lifetime: PhantomData<&()>,
-                                                                   id: ExprId(..),
-                                                                   span: SpanId(..),
-                                                               },
-                                                               value: 1,
-                                                               suffix: None,
-                                                           },
-                                                       ),
-                                                       kind: Neg,
+                                               LitPat {
+                                                   data: CommonPatData {
+                                                       _lifetime: PhantomData<&()>,
+                                                       span: SpanId(..),
                                                    },
-                                                   ..,
-                                               ),
-                                               ..,
+                                                   lit: UnaryOp(
+                                                       UnaryOpExpr {
+                                                           data: CommonExprData {
+                                                               _lifetime: PhantomData<&()>,
+                                                               id: ExprId(..),
+                                                               span: SpanId(..),
+                                                           },
+                                                           expr: IntLit(
+                                                               IntLitExpr {
+                                                                   data: CommonExprData {
+                                                                       _lifetime: PhantomData<&()>,
+                                                                       id: ExprId(..),
+                                                                       span: SpanId(..),
+                                                                   },
+                                                                   value: 1,
+                                                                   suffix: None,
+                                                               },
+                                                           ),
+                                                           kind: Neg,
+                                                       },
+                                                       ..,
+                                                   ),
+                                               },
                                            ),
                                        },
                                    ],
@@ -874,18 +885,23 @@ warning: print test
                                            span: SpanId(..),
                                            ident: SymbolId(..),
                                            pat: Lit(
-                                               Int(
-                                                   IntLitExpr {
-                                                       data: CommonExprData {
-                                                           _lifetime: PhantomData<&()>,
-                                                           id: ExprId(..),
-                                                           span: SpanId(..),
-                                                       },
-                                                       value: 1,
-                                                       suffix: None,
+                                               LitPat {
+                                                   data: CommonPatData {
+                                                       _lifetime: PhantomData<&()>,
+                                                       span: SpanId(..),
                                                    },
-                                               ),
-                                               ..,
+                                                   lit: Int(
+                                                       IntLitExpr {
+                                                           data: CommonExprData {
+                                                               _lifetime: PhantomData<&()>,
+                                                               id: ExprId(..),
+                                                               span: SpanId(..),
+                                                           },
+                                                           value: 1,
+                                                           suffix: None,
+                                                       },
+                                                   ),
+                                               },
                                            ),
                                        },
                                    ],

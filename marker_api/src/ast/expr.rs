@@ -368,43 +368,49 @@ impl<'ast> ConstExpr<'ast> {
 #[cfg(all(test, target_arch = "x86_64", target_pointer_width = "64"))]
 mod test {
     use super::*;
-    use std::mem::size_of;
+    use expect_test::{expect, Expect};
+
+    #[track_caller]
+    fn assert_size_of<T>(expected: Expect) {
+        let actual = std::mem::size_of::<T>();
+        expected.assert_eq(&actual.to_string());
+    }
 
     #[test]
-    fn test_expr_struct_size() {
+    fn expr_struct_size() {
         // These sizes are allowed to change, this is just a check to have a
         // general overview and to prevent accidental changes
-        assert_eq!(40, size_of::<IntLitExpr<'_>>(), "IntLitExpr<'_>");
-        assert_eq!(32, size_of::<FloatLitExpr<'_>>(), "FloatLitExpr<'_>");
-        assert_eq!(48, size_of::<StrLitExpr<'_>>(), "StrLitExpr<'_>");
-        assert_eq!(24, size_of::<CharLitExpr<'_>>(), "CharLitExpr<'_>");
-        assert_eq!(24, size_of::<BoolLitExpr<'_>>(), "BoolLitExpr<'_>");
-        assert_eq!(96, size_of::<BlockExpr<'_>>(), "BlockExpr<'_>");
-        assert_eq!(72, size_of::<ClosureExpr<'_>>(), "ClosureExpr<'_>");
-        assert_eq!(40, size_of::<UnaryOpExpr<'_>>(), "UnaryOpExpr<'_>");
-        assert_eq!(40, size_of::<RefExpr<'_>>(), "RefExpr<'_>");
-        assert_eq!(56, size_of::<BinaryOpExpr<'_>>(), "BinaryOpExpr<'_>");
-        assert_eq!(32, size_of::<TryExpr<'_>>(), "TryExpr<'_>");
-        assert_eq!(80, size_of::<AssignExpr<'_>>(), "AssignExpr<'_>");
-        assert_eq!(48, size_of::<AsExpr<'_>>(), "AsExpr<'_>");
-        assert_eq!(96, size_of::<PathExpr<'_>>(), "PathExpr<'_>");
-        assert_eq!(48, size_of::<CallExpr<'_>>(), "CallExpr<'_>");
-        assert_eq!(80, size_of::<MethodExpr<'_>>(), "MethodExpr<'_>");
-        assert_eq!(56, size_of::<ArrayExpr<'_>>(), "ArrayExpr<'_>");
-        assert_eq!(32, size_of::<TupleExpr<'_>>(), "TupleExpr<'_>");
-        assert_eq!(136, size_of::<CtorExpr<'_>>(), "CtorExpr<'_>");
-        assert_eq!(72, size_of::<RangeExpr<'_>>(), "RangeExpr<'_>");
-        assert_eq!(48, size_of::<IndexExpr<'_>>(), "IndexExpr<'_>");
-        assert_eq!(48, size_of::<FieldExpr<'_>>(), "FieldExpr<'_>");
-        assert_eq!(72, size_of::<IfExpr<'_>>(), "IfExpr<'_>");
-        assert_eq!(72, size_of::<LetExpr<'_>>(), "LetExpr<'_>");
-        assert_eq!(48, size_of::<MatchExpr<'_>>(), "MatchExpr<'_>");
-        assert_eq!(72, size_of::<BreakExpr<'_>>(), "BreakExpr<'_>");
-        assert_eq!(40, size_of::<ReturnExpr<'_>>(), "ReturnExpr<'_>");
-        assert_eq!(48, size_of::<ContinueExpr<'_>>(), "ContinueExpr<'_>");
-        assert_eq!(112, size_of::<ForExpr<'_>>(), "ForExpr<'_>");
-        assert_eq!(56, size_of::<LoopExpr<'_>>(), "LoopExpr<'_>");
-        assert_eq!(72, size_of::<WhileExpr<'_>>(), "WhileExpr<'_>");
-        assert_eq!(24, size_of::<UnstableExpr<'_>>(), "UnstableExpr<'_>");
+        assert_size_of::<IntLitExpr<'_>>(expect!["40"]);
+        assert_size_of::<FloatLitExpr<'_>>(expect!["32"]);
+        assert_size_of::<StrLitExpr<'_>>(expect!["48"]);
+        assert_size_of::<CharLitExpr<'_>>(expect!["24"]);
+        assert_size_of::<BoolLitExpr<'_>>(expect!["24"]);
+        assert_size_of::<BlockExpr<'_>>(expect!["96"]);
+        assert_size_of::<ClosureExpr<'_>>(expect!["72"]);
+        assert_size_of::<UnaryOpExpr<'_>>(expect!["40"]);
+        assert_size_of::<RefExpr<'_>>(expect!["40"]);
+        assert_size_of::<BinaryOpExpr<'_>>(expect!["56"]);
+        assert_size_of::<TryExpr<'_>>(expect!["32"]);
+        assert_size_of::<AssignExpr<'_>>(expect!["56"]);
+        assert_size_of::<AsExpr<'_>>(expect!["48"]);
+        assert_size_of::<PathExpr<'_>>(expect!["96"]);
+        assert_size_of::<CallExpr<'_>>(expect!["48"]);
+        assert_size_of::<MethodExpr<'_>>(expect!["80"]);
+        assert_size_of::<ArrayExpr<'_>>(expect!["56"]);
+        assert_size_of::<TupleExpr<'_>>(expect!["32"]);
+        assert_size_of::<CtorExpr<'_>>(expect!["136"]);
+        assert_size_of::<RangeExpr<'_>>(expect!["72"]);
+        assert_size_of::<IndexExpr<'_>>(expect!["48"]);
+        assert_size_of::<FieldExpr<'_>>(expect!["48"]);
+        assert_size_of::<IfExpr<'_>>(expect!["72"]);
+        assert_size_of::<LetExpr<'_>>(expect!["48"]);
+        assert_size_of::<MatchExpr<'_>>(expect!["48"]);
+        assert_size_of::<BreakExpr<'_>>(expect!["72"]);
+        assert_size_of::<ReturnExpr<'_>>(expect!["40"]);
+        assert_size_of::<ContinueExpr<'_>>(expect!["48"]);
+        assert_size_of::<ForExpr<'_>>(expect!["88"]);
+        assert_size_of::<LoopExpr<'_>>(expect!["56"]);
+        assert_size_of::<WhileExpr<'_>>(expect!["72"]);
+        assert_size_of::<UnstableExpr<'_>>(expect!["24"]);
     }
 }

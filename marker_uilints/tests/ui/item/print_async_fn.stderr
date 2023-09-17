@@ -130,8 +130,11 @@ warning: printing item with body
                       stmts: [
                           Let(
                               LetStmt {
-                                  id: LetStmtId(..),
-                                  span: SpanId(..),
+                                  data: CommonStmtData {
+                                      _lifetime: PhantomData<&()>,
+                                      id: StmtId(..),
+                                      span: SpanId(..),
+                                  },
                                   pat: Ident(
                                       IdentPat {
                                           data: CommonPatData {
@@ -211,8 +214,11 @@ warning: printing item with body
                           ),
                           Let(
                               LetStmt {
-                                  id: LetStmtId(..),
-                                  span: SpanId(..),
+                                  data: CommonStmtData {
+                                      _lifetime: PhantomData<&()>,
+                                      id: StmtId(..),
+                                      span: SpanId(..),
+                                  },
                                   pat: Ident(
                                       IdentPat {
                                           data: CommonPatData {
@@ -292,8 +298,11 @@ warning: printing item with body
                           ),
                           Let(
                               LetStmt {
-                                  id: LetStmtId(..),
-                                  span: SpanId(..),
+                                  data: CommonStmtData {
+                                      _lifetime: PhantomData<&()>,
+                                      id: StmtId(..),
+                                      span: SpanId(..),
+                                  },
                                   pat: Ident(
                                       IdentPat {
                                           data: CommonPatData {

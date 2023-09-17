@@ -1,24 +1,37 @@
-use crate::{context::with_cx, ffi::FfiOption, CtorBlocker};
+use std::fmt::Debug;
+use std::marker::PhantomData;
 
-use super::{
-    expr::ExprKind, item::ItemKind, pat::PatKind, ty::SynTyKind, LetStmtId, Span, SpanId, StmtId, StmtIdInner,
-};
+use crate::{ffi::FfiOption, private::Sealed};
+
+use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::SynTyKind, Span, SpanId, StmtId};
+
+/// This trait combines methods, which all statements have in common.
+///
+/// This trait is only meant to be implemented inside this crate. The `Sealed`
+/// super trait prevents external implementations.
+pub trait StmtData<'ast>: Debug + Sealed {
+    /// Returns the [`SpanId`] of this statement
+    fn id(&self) -> StmtId;
+
+    /// Returns the [`Span`] of this statement.
+    fn span(&self) -> &Span<'ast>;
+}
 
 #[repr(C)]
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
 pub enum StmtKind<'ast> {
-    Item(&'ast ItemKind<'ast>, CtorBlocker),
+    Item(&'ast ItemStmt<'ast>),
     Let(&'ast LetStmt<'ast>),
-    Expr(&'ast ExprKind<'ast>, CtorBlocker),
+    Expr(&'ast ExprStmt<'ast>),
 }
 
 impl<'ast> StmtKind<'ast> {
     pub fn id(&self) -> StmtId {
         match self {
-            StmtKind::Item(node, ..) => StmtId::ast_new(StmtIdInner::Item(node.id())),
+            StmtKind::Item(node, ..) => node.id(),
             StmtKind::Let(node, ..) => node.id(),
-            StmtKind::Expr(node, ..) => StmtId::ast_new(StmtIdInner::Expr(node.id())),
+            StmtKind::Expr(node, ..) => node.id(),
         }
     }
 
@@ -39,25 +52,60 @@ impl<'ast> StmtKind<'ast> {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct LetStmt<'ast> {
-    id: LetStmtId,
+#[derive(Debug)]
+#[cfg_attr(feature = "driver-api", visibility::make(pub))]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
+struct CommonStmtData<'ast> {
+    /// The lifetime is not needed right now, but it's safer to include it for
+    /// future additions. Having it in this struct makes it easier for all
+    /// pattern structs, as they will have a valid use for `'ast` even if they
+    /// don't need it. Otherwise, we might need to declare this field in each
+    /// pattern.
+    #[cfg_attr(feature = "driver-api", builder(default))]
+    _lifetime: PhantomData<&'ast ()>,
+    id: StmtId,
     span: SpanId,
+}
+
+macro_rules! impl_stmt_data {
+    ($self_ty:ty, $enum_name:ident) => {
+        impl<'ast> StmtData<'ast> for $self_ty {
+            fn id(&self) -> crate::ast::StmtId {
+                self.data.id
+            }
+
+            fn span(&self) -> &crate::ast::Span<'ast> {
+                $crate::context::with_cx(self, |cx| cx.span(self.data.span))
+            }
+        }
+
+        impl<'ast> From<&'ast $self_ty> for $crate::ast::stmt::StmtKind<'ast> {
+            fn from(from: &'ast $self_ty) -> Self {
+                $crate::ast::stmt::StmtKind::$enum_name(from)
+            }
+        }
+
+        impl<'ast> $crate::private::Sealed for $self_ty {}
+    };
+}
+
+use impl_stmt_data;
+
+#[repr(C)]
+#[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
+pub struct LetStmt<'ast> {
+    data: CommonStmtData<'ast>,
     pat: PatKind<'ast>,
+    #[cfg_attr(feature = "driver-api", builder(setter(into)))]
     ty: FfiOption<SynTyKind<'ast>>,
+    #[cfg_attr(feature = "driver-api", builder(setter(into)))]
     init: FfiOption<ExprKind<'ast>>,
+    #[cfg_attr(feature = "driver-api", builder(setter(into)))]
     els: FfiOption<ExprKind<'ast>>,
 }
 
 impl<'ast> LetStmt<'ast> {
-    pub fn id(&self) -> StmtId {
-        StmtId::ast_new(StmtIdInner::LetStmt(self.id))
-    }
-
-    pub fn span(&self) -> &Span<'ast> {
-        with_cx(self, |cx| cx.span(self.span))
-    }
-
     pub fn pat(&self) -> PatKind<'ast> {
         self.pat
     }
@@ -79,23 +127,36 @@ impl<'ast> LetStmt<'ast> {
     }
 }
 
-#[cfg(feature = "driver-api")]
-impl<'ast> LetStmt<'ast> {
-    pub fn new(
-        id: LetStmtId,
-        span: SpanId,
-        pat: PatKind<'ast>,
-        ty: Option<SynTyKind<'ast>>,
-        init: Option<ExprKind<'ast>>,
-        els: Option<ExprKind<'ast>>,
-    ) -> Self {
-        Self {
-            id,
-            span,
-            pat,
-            ty: ty.into(),
-            init: init.into(),
-            els: els.into(),
-        }
+impl_stmt_data!(LetStmt<'ast>, Let);
+
+#[repr(C)]
+#[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
+pub struct ExprStmt<'ast> {
+    data: CommonStmtData<'ast>,
+    expr: ExprKind<'ast>,
+}
+
+impl<'ast> ExprStmt<'ast> {
+    pub fn expr(&self) -> ExprKind<'ast> {
+        self.expr
     }
 }
+
+impl_stmt_data!(ExprStmt<'ast>, Expr);
+
+#[repr(C)]
+#[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
+pub struct ItemStmt<'ast> {
+    data: CommonStmtData<'ast>,
+    item: ItemKind<'ast>,
+}
+
+impl<'ast> ItemStmt<'ast> {
+    pub fn item(&self) -> ItemKind<'ast> {
+        self.item
+    }
+}
+
+impl_stmt_data!(ItemStmt<'ast>, Item);

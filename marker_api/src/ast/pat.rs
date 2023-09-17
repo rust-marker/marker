@@ -1,15 +1,14 @@
-use crate::{private::Sealed, CtorBlocker};
+use crate::private::Sealed;
 
-use super::{
-    expr::{ExprKind, LitExprKind},
-    Span, SpanId,
-};
+use super::{Span, SpanId};
 
 use std::{fmt::Debug, marker::PhantomData};
 
 mod ident_pat;
+mod lit_pat;
 mod or_pat;
 mod path_pat;
+mod place_pat;
 mod range_pat;
 mod ref_pat;
 mod rest_pat;
@@ -19,8 +18,10 @@ mod tuple_pat;
 mod unstable_pat;
 mod wildcard_pat;
 pub use ident_pat::*;
+pub use lit_pat::*;
 pub use or_pat::*;
 pub use path_pat::*;
+pub use place_pat::*;
 pub use range_pat::*;
 pub use ref_pat::*;
 pub use rest_pat::*;
@@ -30,7 +31,7 @@ pub use tuple_pat::*;
 pub use unstable_pat::*;
 pub use wildcard_pat::*;
 
-/// This trait combines methods, which are common between all patterns.
+/// This trait combines methods, which all patterns have in common.
 ///
 /// This trait is only meant to be implemented inside this crate. The `Sealed`
 /// super trait prevents external implementations.
@@ -51,10 +52,10 @@ pub enum PatKind<'ast> {
     Tuple(&'ast TuplePat<'ast>),
     Slice(&'ast SlicePat<'ast>),
     Or(&'ast OrPat<'ast>),
-    /// Patterns are used as assignees in [`AssignExpr`](super::expr::AssignExpr)
+    /// Patterns are used as assignees in [`AssignExpr`](crate::ast::expr::AssignExpr)
     /// nodes. Assign expressions can target place expressions like
-    /// variables, [`IndexExpr`](super::expr::IndexExpr)s and
-    /// [`FieldExpr`](super::expr::FieldExpr)s. These expressions would
+    /// variables, [`IndexExpr`](crate::ast::expr::IndexExpr)s and
+    /// [`FieldExpr`](crate::ast::expr::FieldExpr)s. These expressions would
     /// be stored as this variant.
     ///
     /// ```
@@ -72,18 +73,18 @@ pub enum PatKind<'ast> {
     /// //  ^^^^ An index expression on local variable `c`
     ///
     ///     (a, b.0) = some_fn();
-    /// //  ^^^^^^^^ Place expressions nested in a tuple pattern
+    /// //   ^  ^^^ Place expressions nested in a tuple pattern
     /// ```
     ///
     /// Place expressions can currently only occur as targets in
-    /// [`AssignExpr`](super::expr::AssignExpr)s. Patterns from
-    /// [`LetStmts`](super::stmt::LetStmt)s and arguments in
-    /// [`FnItem`](super::item::FnItem) will never contain place expressions.
-    /// Static paths identifying [`ConstItem`](super::item::ConstItem)s or
-    /// [`EnumItem`](super::item::EnumItem) variants are expressed with the
+    /// [`AssignExpr`](crate::ast::expr::AssignExpr)s. Patterns from
+    /// [`LetStmts`](crate::ast::stmt::LetStmt)s and arguments in
+    /// [`FnItem`](crate::ast::item::FnItem) will never contain place expressions.
+    /// Static paths identifying [`ConstItem`](crate::ast::item::ConstItem)s or
+    /// [`EnumItem`](crate::ast::item::EnumItem) variants are expressed with the
     /// [`PatKind::Path`] variant.
-    Place(ExprKind<'ast>, CtorBlocker),
-    Lit(LitExprKind<'ast>, CtorBlocker),
+    Place(&'ast PlacePat<'ast>),
+    Lit(&'ast LitPat<'ast>),
     Path(&'ast PathPat<'ast>),
     Range(&'ast RangePat<'ast>),
     Unstable(&'ast UnstablePat<'ast>),
@@ -110,12 +111,6 @@ macro_rules! impl_pat_data_fn {
 }
 
 use impl_pat_data_fn;
-
-impl<'ast> PatData<'ast> for ExprKind<'ast> {
-    fn span(&self) -> &Span<'ast> {
-        self.span()
-    }
-}
 
 #[repr(C)]
 #[derive(Debug)]
