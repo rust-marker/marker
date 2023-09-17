@@ -9,7 +9,7 @@ use crate::error::prelude::*;
 use crate::observability::display;
 use camino::Utf8Path;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs};
+use std::{collections::BTreeMap, fs};
 use yansi::Paint;
 
 #[derive(Deserialize, Debug)]
@@ -35,7 +35,7 @@ struct WorkspaceMetadata {
 #[serde(deny_unknown_fields)]
 pub struct Config {
     /// A list of lints.
-    pub lints: HashMap<String, LintDependency>,
+    pub lints: BTreeMap<String, LintDependency>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -57,18 +57,18 @@ impl LintDependency {
         }
     }
 
-    pub fn to_dep_entry(&self) -> LintDependencyEntry {
+    pub fn into_dep_entry(self) -> LintDependencyEntry {
         match self {
             LintDependency::Simple(version) => LintDependencyEntry {
                 source: Source::Registry {
-                    version: version.clone(),
+                    version,
                     registry: None,
                 },
                 package: None,
                 default_features: None,
                 features: None,
             },
-            LintDependency::Full(entry) => entry.clone(),
+            LintDependency::Full(entry) => entry,
         }
     }
 }
