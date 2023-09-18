@@ -16,7 +16,7 @@ use crate::observability::prelude::*;
 use crate::{backend::Config, config::LintDependencyEntry};
 use camino::{Utf8Path, Utf8PathBuf};
 use cargo_metadata::Metadata;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 /// This function fetches and locates all lint crates specified in the given
 /// configuration.
@@ -39,7 +39,7 @@ fn setup_dummy_crate(config: &Config) -> Result<Utf8PathBuf> {
     /// A small hack, to have the lints namespaced under the `[dependencies]` section
     #[derive(serde::Serialize)]
     struct DepNamespace<'a> {
-        dependencies: &'a HashMap<String, LintDependencyEntry>,
+        dependencies: &'a BTreeMap<String, LintDependencyEntry>,
     }
 
     // Manifest
