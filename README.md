@@ -43,12 +43,12 @@ The following is an abbreviated guide. Check out [The Marker Book] for detailed 
 
 We provide pre-compiled binaries for the mainstream platforms. See the list of available artifacts in our [Github Releases](https://github.com/rust-marker/marker/releases/latest).
 
-Run the following bash script to install the required rust toolchain dependency on your machine and download the current version of `cargo-marker` CLI, and the internal driver.
+On UNIX-like systems, you can run the following bash script. It will install the required rust toolchain dependency on your machine, download the current version of `cargo-marker` CLI, and the internal driver.
 
 <!-- region replace-version stable -->
 ```bash
-curl --location --silent --fail --show-error --retry 5 --retry-connrefused --retry-delay 30 \
-    https://raw.githubusercontent.com/rust-marker/marker/v0.2.1/install.sh | bash
+curl --location --silent --fail --show-error --retry 5 --retry-connrefused \
+    https://raw.githubusercontent.com/rust-marker/marker/v0.2.1/scripts/release/install.sh | bash
 ```
 <!-- endregion replace-version stable -->
 

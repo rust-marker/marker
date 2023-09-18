@@ -44,11 +44,11 @@
  dependencies = [
 
 === Cargo.toml ===
- # region replace-version unstable
+ # region replace-version dev
 -version = "<version>-dev"
 +version = "0.1.0"
- # endregion replace-version unstable
- # region replace-version unstable
+ # endregion replace-version dev
+ # region replace-version dev
 -marker_adapter = { path = "./marker_adapter", version = "<version>-dev" }
 -marker_api     = { path = "./marker_api", version = "<version>-dev" }
 -marker_error   = { path = "./marker_error", version = "<version>-dev" }
@@ -58,12 +58,12 @@
  marker_uitest  = { path = "./marker_uitest", features = ["dev-build"] }
 -marker_utils   = { path = "./marker_utils", version = "<version>-dev" }
 +marker_utils   = { path = "./marker_utils", version = "0.1.0" }
- # endregion replace-version unstable
+ # endregion replace-version dev
 
 === README.md ===
- curl --location --silent --fail --show-error --retry 5 --retry-connrefused --retry-delay 30 \
--    https://raw.githubusercontent.com/rust-marker/marker/v<version>/install.sh | bash
-+    https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/install.sh | bash
+ curl --location --silent --fail --show-error --retry 5 --retry-connrefused \
+-    https://raw.githubusercontent.com/rust-marker/marker/v<version>/scripts/release/install.sh | bash
++    https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.sh | bash
  ```
  # An external crate from a registry
 -marker_lints = "<version>"
@@ -77,12 +77,12 @@
  ```
 
 === cargo-marker/src/backend/driver.rs ===
-         // region replace-version unstable
+         // region replace-version dev
 -        version: "<version>-dev".to_string(),
 -        api_version: "<version>-dev".to_string(),
 +        version: "0.1.0".to_string(),
 +        api_version: "0.1.0".to_string(),
-         // endregion replace-version unstable
+         // endregion replace-version dev
 
 === cargo-marker/src/error.rs ===
  # An external crate from a registry
@@ -94,9 +94,9 @@
          lints = "--lints".blue(),
 
 === docs/book/src/usage/installation.md ===
- curl --location --silent --fail --show-error --retry 5 --retry-connrefused --retry-delay 30 \
--    https://raw.githubusercontent.com/rust-marker/marker/v<version>/install.sh | bash
-+    https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/install.sh | bash
+ curl --location --silent --fail --show-error --retry 5 --retry-connrefused \
+-    https://raw.githubusercontent.com/rust-marker/marker/v<version>/scripts/release/install.sh | bash
++    https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.sh | bash
  ```
 
 === docs/book/src/usage/lint-crate-declaration.md ===
@@ -109,11 +109,11 @@
 +cargo marker --lint "marker_lints = '0.1.0'"
  
 
-=== install.sh ===
- # region replace-version unstable
--version=<version>-dev
-+version=0.1.0
- # endregion replace-version unstable
+=== docs/internal/release.md ===
+ <!-- region replace-version stable -->
+-This [`install.sh`](https://raw.githubusercontent.com/rust-marker/marker/v<version>/scripts/release/install.sh) script, can be used to automatically download and verify Marker's binaries.
++This [`install.sh`](https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.sh) script, can be used to automatically download and verify Marker's binaries.
+ <!-- endregion replace-version stable -->
 
 === marker_api/README.md ===
  [dependencies]
@@ -144,3 +144,9 @@
 -marker_lints = "<version>"
 +marker_lints = "0.1.0"
  ```
+
+=== scripts/release/install.sh ===
+ # region replace-version unstable
+-version=<version>
++version=0.1.0
+ # endregion replace-version unstable

@@ -83,7 +83,6 @@ function curl_with_retry {
         --fail \
         --retry 5 \
         --retry-connrefused \
-        --retry-delay 30 \
         "$@"
 }
 

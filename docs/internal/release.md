@@ -28,19 +28,11 @@ For the cross-platform code it is much more convenient when the same archive for
 
 GitHub is very generous with the releases storage limits. They are [almost unlimited](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases#storage-and-bandwidth-quotas). They difinitely want your project to be open-source 😉.
 
-The `sha256` sum is a small file that users may optionally download together with the archive itself to verify the integrity of the archive. It serves as a signature of the artifact to make sure it was downloaded as expected bit-by-bit with what was published effectively detecting corruptions during the download and making it harder to forge the artifact for the malicious actor.
+The `sha256` sum is a small file that users may optionally download together with the archive itself to verify the integrity of the archive. It serves as a signature of the artifact to make sure it was downloaded as expected bit-by-bit with what was published effectively detecting corruptions during the download and making it harder to forge artifacts for malicious actors.
 
-```bash
-file_stem=cargo-marker-x86_64-unknown-linux-gnu
-
-# Download two files using one TCP connection with HTTP2 multiplexing
-curl -LO "https://github.com/rust-marker/marker/releases/download/v0.3.0/$file_stem.{tar.gz,sha256}"
-
-# `--ignore-missing` because the `sha256` file also includes the checksum for `zip` archive
-# but users don't need both the `tar.gz` and `zip`. They will chose only one of them.
-# This will fail if the checksum of the downloaded file differs from what's specified in `.sha256`
-sha256sum --ignore-missing --check $file_stem.sha256
-```
+<!-- region replace-version stable -->
+This [`install.sh`](https://raw.githubusercontent.com/rust-marker/marker/v0.2.1/scripts/release/install.sh) script, can be used to automatically download and verify Marker's binaries.
+<!-- endregion replace-version stable -->
 
 ## Operating system versions coverage
 
@@ -79,6 +71,8 @@ The release process is semi-automated, and thus requires the human involvement.
 The maintainer has to decide what the next release semver version number will be and prepare the `CHANGELOG.md` file with the description of the new release. The description should follow a consistent structure [like this](https://keepachangelog.com/en/1.0.0/).
 
 The new versions are always prepended to the top of the changelog file. The numbered version at the top is always considered to be the latest release of `marker`. Before invoking the release automation a human must make sure that a new entry with the new version number was created in the `CHANGELOG.md` file.
+
+This flow also allows for pre-releases. These are the ones that contain a `-suffix` in their name e.g. `1.0.0-rc` or even `1.0.0-rc.2` etc. You just need to prepend an entry with this version to the changelog.
 
 ## `release` workflow
 

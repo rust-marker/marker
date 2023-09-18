@@ -135,7 +135,7 @@ jobs:
           cat <<EOF >> $GITHUB_ENV
           install_script<<DELIM
             rust_version=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
-            $(cat scripts/lib.sh scripts/release/qemu-install.sh)
+            $(cat scripts/lib.sh scripts/release/qemu-setup.sh)
           DELIM
           EOF
 

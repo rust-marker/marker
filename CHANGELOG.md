@@ -19,6 +19,7 @@ The following components are considered to be internal and they are excluded fro
 
 - `marker_rustc_driver`
 - `marker_adapter`
+- `marker_error`
 
 ## [Unreleased]
 

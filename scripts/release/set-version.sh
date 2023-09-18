@@ -53,7 +53,16 @@ files=($(\
 
 for file in "${files[@]}"
 do
-    replace "$file" unstable
+    # Dev means all kinds of versions including stable `x.y.z`, unstable `x.y.z-suffix`
+    # and dev `x.y.z-dev`. Yes, we treat `-dev` as a special one that we never release.
+    replace "$file" dev
+
+    # Unstable means all kinds of versions including unstable `x.y.z-suffix`, but excluding `x.y.z-dev`
+    if [[ "$new_version" != *-dev ]]; then
+        replace "$file" unstable
+    fi
+
+    # Only suffixless `x.y.z` versions are replaced in stable mode
     if [[ "$new_version" != *-* ]]; then
         replace "$file" stable
     fi

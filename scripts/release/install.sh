@@ -9,10 +9,10 @@
 
 set -Eeuo pipefail
 
-# There isn't a release of the `dev`, version, however the released version
-# of marker will replace this version with the actual one.
+# This script isn't meant to be run from `master`, but if it is, then
+# it will install the latest version be it a stable version or a pre-release.
 # region replace-version unstable
-version=0.3.0-dev
+version=0.2.1
 # endregion replace-version unstable
 
 toolchain=nightly-2023-08-24
@@ -50,7 +50,6 @@ with_log curl \
     --show-error \
     --retry 5 \
     --retry-connrefused \
-    --retry-delay 30 \
     --remote-name \
     --output-dir "$temp_dir" \
     "https://github.com/rust-marker/marker/releases/download/v$version/$files"
