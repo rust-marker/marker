@@ -1,16 +1,14 @@
+use super::{
+    cargo::Cargo,
+    driver::{default_driver_info, marker_driver_bin_name},
+};
 use crate::error::prelude::*;
 use crate::observability::prelude::*;
 use crate::utils::{is_local_driver, utf8::IntoUtf8};
 use crate::Result;
-use camino::{Utf8Path, Utf8PathBuf};
+use camino::Utf8PathBuf;
 use std::process::Command;
 use yansi::Paint;
-
-use super::{
-    cargo::Cargo,
-    driver::{default_driver_info, marker_driver_bin_name},
-    Config,
-};
 
 #[derive(Debug)]
 pub struct Toolchain {
@@ -26,29 +24,6 @@ impl Toolchain {
         let mut cmd = self.cargo.command();
 
         cmd.env("RUSTC_WORKSPACE_WRAPPER", &self.driver_path);
-
-        cmd
-    }
-
-    pub fn cargo_build_command(&self, config: &Config, manifest: &Utf8Path) -> Command {
-        let mut cmd = self.cargo.command();
-        cmd.arg("build");
-
-        // Manifest
-        cmd.arg("--manifest-path");
-        cmd.arg(manifest.as_os_str());
-
-        // Target dir
-        cmd.arg("--target-dir");
-        cmd.arg(config.markers_target_dir().as_os_str());
-
-        // Potential "--release" flag
-        if !config.debug_build {
-            cmd.arg("--release");
-        }
-
-        // Environment
-        cmd.env("RUSTFLAGS", &config.build_rustc_flags);
 
         cmd
     }
