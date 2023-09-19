@@ -14,5 +14,6 @@ file_stem=taplo-$os-$arch_rust
 
 download_and_decompress $base_url/$file_stem.gz
 
-with_log chmod +x $file_stem$exe
-with_log mv $file_stem$exe ~/.cargo/bin/taplo$exe
+mv $file_stem taplo
+with_log chmod +x taplo
+move_to_path taplo

@@ -77,10 +77,15 @@ function try_download_and_decompress {
 
 function curl_with_retry {
     with_log curl \
-        --silent \
         --location \
+        --silent \
+        --show-error \
+        --fail \
         --retry 5 \
         --retry-connrefused \
-        --retry-delay 30 \
         "$@"
+}
+
+function move_to_path {
+    with_log mv "$1" $HOME/.cargo/bin
 }

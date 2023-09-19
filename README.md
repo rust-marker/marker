@@ -35,14 +35,16 @@ And more to come, see Marker's goals and limitations below.
 
 The following is an abbreviated guide. Check out [The Marker Book] for detailed instructions and additional information.
 
-[The Marker Book]: rust-marker.github.io/marker/book
+[The Marker Book]: https://rust-marker.github.io/marker/book
 
 ### Installation
+
+#### Build from sources
 
 ```sh
 cargo install cargo_marker
 
-# Automatically setup the toolchain and driver
+# Automatically setup the toolchain and build driver from sources
 cargo marker setup --auto-install-toolchain
 ```
 
@@ -50,6 +52,7 @@ cargo marker setup --auto-install-toolchain
 
 Marker requires lint crates to be specified. The best way is to add them to the `Cargo.toml` file, like this:
 
+<!-- region replace-version stable -->
 ```toml
 [workspace.metadata.marker.lints]
 # A local crate as a path
@@ -59,12 +62,13 @@ marker_lints = { git = "https://github.com/rust-marker/marker" }
 # An external crate from a registry
 marker_lints = "0.2.1"
 ```
+<!-- endregion replace-version stable -->
 
 ### Making Your Own Lints
 
 You can create your own lint crates if you want, the [lint-crate-template] has all the basics for you to get started writing your own lints.
 
-[lint-crate-template]: https://github.com/rust-marker/lint-crate-template 
+[lint-crate-template]: https://github.com/rust-marker/lint-crate-template
 
 ### Running Marker
 

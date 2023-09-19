@@ -16,4 +16,4 @@ download_and_decompress \
     $base_url/$file_stem.tar.gz \
     --strip-components 1 $file_stem/cargo-machete
 
-with_log mv cargo-machete$exe ~/.cargo/bin
+move_to_path cargo-machete

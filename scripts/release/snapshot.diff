@@ -1,0 +1,142 @@
+
+=== CONTRIBUTING.md ===
+     ```sh
+-    cargo marker --lints "marker_lints = '<version>'"
++    cargo marker --lints "marker_lints = '0.1.0'"
+     ```
+
+=== Cargo.lock ===
+ name = "cargo_marker"
+-version = "<version>-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_adapter"
+-version = "<version>-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_api"
+-version = "<version>-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_error"
+-version = "<version>-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_lints"
+-version = "<version>-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_rustc_driver"
+-version = "<version>-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_uilints"
+-version = "<version>-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_uitest"
+-version = "<version>-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_utils"
+-version = "<version>-dev"
++version = "0.1.0"
+ dependencies = [
+
+=== Cargo.toml ===
+ # region replace-version dev
+-version = "<version>-dev"
++version = "0.1.0"
+ # endregion replace-version dev
+ # region replace-version dev
+-marker_adapter = { path = "./marker_adapter", version = "<version>-dev" }
+-marker_api     = { path = "./marker_api", version = "<version>-dev" }
+-marker_error   = { path = "./marker_error", version = "<version>-dev" }
++marker_adapter = { path = "./marker_adapter", version = "0.1.0" }
++marker_api     = { path = "./marker_api", version = "0.1.0" }
++marker_error   = { path = "./marker_error", version = "0.1.0" }
+ marker_uitest  = { path = "./marker_uitest", features = ["dev-build"] }
+-marker_utils   = { path = "./marker_utils", version = "<version>-dev" }
++marker_utils   = { path = "./marker_utils", version = "0.1.0" }
+ # endregion replace-version dev
+
+=== README.md ===
+ # An external crate from a registry
+-marker_lints = "<version>"
++marker_lints = "0.1.0"
+ ```
+
+=== cargo-marker/README.md ===
+ # An external crate from a registry
+-marker_lints = "<version>"
++marker_lints = "0.1.0"
+ ```
+
+=== cargo-marker/src/backend/driver.rs ===
+         // region replace-version dev
+-        version: "<version>-dev".to_string(),
+-        api_version: "<version>-dev".to_string(),
++        version: "0.1.0".to_string(),
++        api_version: "0.1.0".to_string(),
+         // endregion replace-version dev
+
+=== cargo-marker/src/error.rs ===
+ # An external crate from a registry
+-marker_lints = "<version>""#
++marker_lints = "0.1.0""#
+         ),
+-        cli_example = display::cli(r#"cargo marker --lints "marker_lints = '<version>'""#),
++        cli_example = display::cli(r#"cargo marker --lints "marker_lints = '0.1.0'""#),
+         lints = "--lints".blue(),
+
+=== docs/book/src/usage/lint-crate-declaration.md ===
+ # An external crate from a registry
+-marker_lints = "<version>"
++marker_lints = "0.1.0"
+ 
+ # An external crate from a registry
+-cargo marker --lint "marker_lints = '<version>'"
++cargo marker --lint "marker_lints = '0.1.0'"
+ 
+
+=== docs/internal/release.md ===
+ <!-- region replace-version stable -->
+-This [`install.sh`](https://raw.githubusercontent.com/rust-marker/marker/v<version>/scripts/release/install.sh) script, can be used to automatically download and verify Marker's binaries.
++This [`install.sh`](https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.sh) script, can be used to automatically download and verify Marker's binaries.
+ <!-- endregion replace-version stable -->
+
+=== marker_api/README.md ===
+ [dependencies]
+-marker_api = "<version>"
+-marker_utils = "<version>"
++marker_api = "0.1.0"
++marker_utils = "0.1.0"
+ ```
+
+=== marker_lints/README.md ===
+ [workspace.metadata.marker.lints]
+-marker_lints = "<version>"
++marker_lints = "0.1.0"
+ ```
+
+=== marker_uitest/README.md ===
+ [dev-dependencies]
+-marker_uitest = "<version>"
++marker_uitest = "0.1.0"
+ 
+
+=== marker_utils/README.md ===
+ [dependencies]
+-marker_api = "<version>"
++marker_api = "0.1.0"
+ ```
+ [workspace.metadata.marker.lints]
+-marker_lints = "<version>"
++marker_lints = "0.1.0"
+ ```
+
+=== scripts/release/install.sh ===
+ # region replace-version unstable
+-version=<version>
++version=0.1.0
+ # endregion replace-version unstable

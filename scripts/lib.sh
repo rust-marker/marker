@@ -132,3 +132,8 @@ function end_group {
         >&$global_stdout echo "::endgroup::"
     fi
 }
+
+function die {
+    >&2 echo -e "\033[31;1m❗️ Error\n$@\033[0m"
+    exit 1
+}

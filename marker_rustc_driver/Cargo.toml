@@ -1,7 +1,6 @@
 [package]
 name = "marker_rustc_driver"
 
-build       = "build.rs"
 description = "Marker's lint driver for rustc"
 
 edition    = { workspace = true }
@@ -9,8 +8,6 @@ keywords   = { workspace = true }
 license    = { workspace = true }
 repository = { workspace = true }
 version    = { workspace = true }
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 marker_adapter = { workspace = true }

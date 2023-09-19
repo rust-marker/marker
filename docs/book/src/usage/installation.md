@@ -11,7 +11,7 @@ The marker sub-command is provided by the *cargo_marker* crate. This crate requi
 [Cargo]: https://github.com/rust-lang/cargo/
 [rustup]: https://github.com/rust-lang/rustup/
 
-## Cargo Marker Command
+## Build `cargo marker` plugin from sources
 
 Marker provides a new Cargo sub-command, that handles the driver installation, lint crate compilation, and checking process for you. To install it, simply use:
 

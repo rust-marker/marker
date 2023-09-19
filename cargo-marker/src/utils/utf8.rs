@@ -45,7 +45,7 @@ mod tests {
     use super::*;
     use expect_test::{expect, Expect};
 
-    fn assert_into_utf8<T>(actual: T, expect: Expect)
+    fn assert_into_utf8<T>(actual: T, expect: &Expect)
     where
         T: IntoUtf8,
         T::Output: Display,
@@ -60,14 +60,14 @@ mod tests {
 
     #[test]
     fn test_into_utf8_success() {
-        assert_into_utf8(vec![97, 98, 99u8], expect!["abc"]);
+        assert_into_utf8(vec![97, 98, 99u8], &expect!["abc"]);
     }
 
     #[test]
     fn test_into_utf8_fail() {
         assert_into_utf8(
             vec![97, 98, 255u8],
-            expect![[r#"
+            &expect![[r#"
                 Error: Failed to convert to UTF-8 encoded string (dumped it on the line bellow):
                 ---
                 ab�
@@ -77,6 +77,6 @@ mod tests {
 
     #[test]
     fn test_pathbuf_into_utf8_success() {
-        assert_into_utf8(PathBuf::from("/My/Custom/Path"), expect!["/My/Custom/Path"]);
+        assert_into_utf8(PathBuf::from("/My/Custom/Path"), &expect!["/My/Custom/Path"]);
     }
 }

@@ -11,19 +11,33 @@ members = [
 ]
 resolver = "2"
 
+[profile.release]
+codegen-units = 1
+lto           = true
+strip         = false
+
+
 [workspace.package]
 edition    = "2021"
 keywords   = ["marker", "lint"]
 license    = "MIT OR Apache-2.0"
 repository = "https://github.com/rust-marker/marker"
-version    = "0.3.0-dev"
+
+# region replace-version dev
+version = "0.3.0-dev"
+# endregion replace-version dev
+
+# The MSRV is applied to the public library crates published to crates.io
+rust-version = "1.66"
 
 [workspace.dependencies]
+# region replace-version dev
 marker_adapter = { path = "./marker_adapter", version = "0.3.0-dev" }
 marker_api     = { path = "./marker_api", version = "0.3.0-dev" }
 marker_error   = { path = "./marker_error", version = "0.3.0-dev" }
 marker_uitest  = { path = "./marker_uitest", features = ["dev-build"] }
 marker_utils   = { path = "./marker_utils", version = "0.3.0-dev" }
+# endregion replace-version dev
 
 bumpalo            = "3.12"
 camino             = { version = "1.1", features = ["serde1"] }

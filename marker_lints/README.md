@@ -25,10 +25,12 @@ This crate currently provides the following lints:
 
 To use `marker_lints` in your project, simply add it to your `Cargo.toml` under the `[workspace.metadata.marker.lints]` section. [cargo_marker] will then automatically fetch the crate and include is when running `cargo marker`.
 
+<!-- region replace-version stable -->
 ```toml
 [workspace.metadata.marker.lints]
 marker_lints = "0.2.1"
 ```
+<!-- endregion replace-version stable -->
 
 If you want to develop something with Marker, you might want to check out the [lint crate template] which already contains everything you need to get started.
 
