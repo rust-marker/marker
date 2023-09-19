@@ -61,6 +61,10 @@
  # endregion replace-version dev
 
 === README.md ===
+ curl --location --silent --fail --show-error --retry 5 --retry-connrefused \
+-    https://raw.githubusercontent.com/rust-marker/marker/v<version>/scripts/release/install.sh | bash
++    https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.sh | bash
+ ```
  # An external crate from a registry
 -marker_lints = "<version>"
 +marker_lints = "0.1.0"
@@ -88,6 +92,12 @@
 -        cli_example = display::cli(r#"cargo marker --lints "marker_lints = '<version>'""#),
 +        cli_example = display::cli(r#"cargo marker --lints "marker_lints = '0.1.0'""#),
          lints = "--lints".blue(),
+
+=== docs/book/src/usage/installation.md ===
+ curl --location --silent --fail --show-error --retry 5 --retry-connrefused \
+-    https://raw.githubusercontent.com/rust-marker/marker/v<version>/scripts/release/install.sh | bash
++    https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.sh | bash
+ ```
 
 === docs/book/src/usage/lint-crate-declaration.md ===
  # An external crate from a registry
