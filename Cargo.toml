@@ -64,4 +64,4 @@ visibility         = "0.0.1"
 yansi              = "1.0.0-rc.1"
 
 [workspace.metadata.marker.lints]
-marker_lints = { path = "./marker_lints" }
+marker_lints2 = { path = "./marker_lints", package = "marker_lints" }

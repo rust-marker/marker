@@ -3,8 +3,12 @@ mod build_space;
 use crate::backend::Config;
 use crate::error::prelude::*;
 use crate::observability::prelude::*;
+use crate::utils::utf8::IntoUtf8;
 use camino::Utf8PathBuf;
-use std::env::consts::{DLL_PREFIX, DLL_SUFFIX};
+use itertools::Itertools;
+use std::collections::BTreeMap;
+use std::env::consts::DLL_EXTENSION;
+use std::process::Stdio;
 
 /// The information of a compiled lint crate.
 #[derive(Debug)]
@@ -30,11 +34,17 @@ pub(crate) fn build(config: &Config) -> Result<Vec<LintDll>> {
     // Cargo and cargo-marker might invalidate each others caches.
     build_space::init(config)?;
 
-    let packages = config.lints.keys().flat_map(|package| ["-p", package]);
+    let packages = config.lints.iter().flat_map(|(name, entry)| {
+        let package = entry.package.as_deref().unwrap_or(name);
+        ["-p", package]
+    });
 
     let mut cmd = config.toolchain.cargo.command();
     cmd.current_dir(&config.marker_dir);
     cmd.arg("build");
+    cmd.arg("--lib");
+    cmd.arg("--message-format");
+    cmd.arg("json");
     cmd.args(packages);
 
     // Potential "--release" flag
@@ -45,36 +55,109 @@ pub(crate) fn build(config: &Config) -> Result<Vec<LintDll>> {
     // Environment
     cmd.env("RUSTFLAGS", &config.build_rustc_flags);
 
-    let exit_status = cmd
+    let output = cmd
         .log()
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
         .spawn()
         .expect("could not run cargo")
-        .wait()
+        .wait_with_output()
         .expect("failed to wait for cargo?");
 
-    if !exit_status.success() {
+    if !output.status.success() {
         return Err(Error::root("Failed to compile the lint crates"));
     }
 
-    let profile = if config.debug_build { "debug" } else { "release" };
+    let output = output.stdout.into_utf8()?;
 
-    let dlls = config
+    // Parse the output of `cargo build --message-format json` to find the
+    // compiled dynamic libraries.
+    let mut dlls: BTreeMap<_, _> = output
+        .lines()
+        .map(|line| {
+            serde_json::from_str(&line).context(|| {
+                format!(
+                    "Failed to parse `cargo build` json output line:\n\
+                    ---\n{line}\n---"
+                )
+            })
+        })
+        .filter_map_ok(|message| {
+            let cargo_metadata::Message::CompilerArtifact(artifact) = message else {
+                return None;
+            };
+
+            if !artifact.target.kind.iter().any(|kind| kind == "cdylib") {
+                return None;
+            }
+
+            let file_name = artifact
+                .filenames
+                .into_iter()
+                .find(|file| file.extension() == Some(DLL_EXTENSION))?;
+
+            Some((artifact.package_id, file_name))
+        })
+        .collect::<Result<_>>()?;
+
+    let meta = config
+        .toolchain
+        .cargo
+        .metadata()
+        .current_dir(&config.marker_dir)
+        .exec()
+        .context(|| "Failed to run `cargo metadata` in the lint crates build space")?;
+
+    // If manipulations with all the various metadata structures fail, we
+    // may ask the user to enable the trace loggin to help us debug the issue.
+    trace!(
+        target: "build_space_metadata",
+        compiler_messages = %output,
+        cargo_metadata = %serde_json::to_string(&meta).unwrap(),
+        "Build space metadata"
+    );
+
+    let root_package = meta
+        .root_package()
+        .context(|| "The build space must contain a root package, but it doesn't")?
+        .clone();
+
+    let root_package = meta
+        .resolve
+        .context(|| "Dependency graph from `cargo metadata` in the build space was not resolved")?
+        .nodes
+        .into_iter()
+        .find(|node| node.id == root_package.id)
+        .context(|| {
+            format!(
+                "The root package `{}` was not found in the dependency graph",
+                root_package.name,
+            )
+        })?;
+
+    config
         .lints
         .keys()
-        .map(|package| {
-            let dll_name = package.replace('-', "_");
-            let file = config
-                .marker_dir
-                .join("target")
-                .join(profile)
-                .join(format!("{DLL_PREFIX}{dll_name}{DLL_SUFFIX}"));
+        .map(|name| {
+            let package_id = &root_package
+                .deps
+                .iter()
+                // FIXME: thsi doesn't work because the name is of the library target
+                .find(|dep| dep.name == *name)
+                .context(|| format!("The lint crate `{name}` was not found in the dependency graph"))?
+                .pkg;
 
-            LintDll {
-                name: package.clone(),
+            let file = dlls.remove(package_id).context(|| {
+                format!(
+                    "Failed to find the dll for `{package_id}`.\n\
+                    The following dlls are available: {dlls:#?}",
+                )
+            })?;
+
+            Ok(LintDll {
+                name: name.clone(),
                 file,
-            }
+            })
         })
-        .collect();
-
-    Ok(dlls)
+        .collect()
 }
