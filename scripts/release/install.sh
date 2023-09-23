@@ -66,6 +66,6 @@ function extract_archive {
     with_log tar --extract --file "$temp_dir/$file_stem.tar.gz" --directory "$dest"
 }
 
-extract_archive cargo-marker "${CARGO_HOME-$HOME/.cargo/bin}"
+extract_archive cargo-marker "${CARGO_HOME-$HOME/.cargo}/bin"
 
 extract_archive marker_rustc_driver "$(rustc +$toolchain --print sysroot)/bin"

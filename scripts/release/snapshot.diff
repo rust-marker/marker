@@ -135,6 +135,12 @@
 +marker_lints = "0.1.0"
  ```
 
+=== scripts/release/install.ps1 ===
+ # region replace-version unstable
+-$version = "<version>"
++$version = "0.1.0"
+ # endregion replace-version unstable
+
 === scripts/release/install.sh ===
  # region replace-version unstable
 -version=<version>
