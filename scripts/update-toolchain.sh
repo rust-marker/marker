@@ -14,4 +14,5 @@ sed -i "s/nightly-2023-08-24/$1/g" \
     ./scripts/update-toolchain.sh \
     ./cargo-marker/src/backend/driver.rs \
     ./cargo-marker/README.md \
-    ./install.sh
+    ./scripts/release/install.sh \
+    ./scripts/release/install.ps1

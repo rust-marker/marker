@@ -6,6 +6,10 @@
 # This script must be self-contained! Nothing here should use anything from
 # the marker repository, because users are expected to run this script on
 # their machines where they don't have the marker repository cloned.
+#
+# This script is specifically for unix, but has a similar structure to the
+# windows `install.ps1` script. If you modify this script, please check if the modifications
+# should also apply to the windows one.
 
 set -Eeuo pipefail
 
@@ -66,6 +70,6 @@ function extract_archive {
     with_log tar --extract --file "$temp_dir/$file_stem.tar.gz" --directory "$dest"
 }
 
-extract_archive cargo-marker "${CARGO_HOME-$HOME/.cargo/bin}"
+extract_archive cargo-marker "${CARGO_HOME-$HOME/.cargo}/bin"
 
 extract_archive marker_rustc_driver "$(rustc +$toolchain --print sysroot)/bin"

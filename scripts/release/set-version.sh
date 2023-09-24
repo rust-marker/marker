@@ -48,6 +48,7 @@ files=($(\
         -o -name "*.md" \
         -o -name "*.toml" \
         -o -name "*.sh" \
+        -o -name "*.ps1" \
         \)\
 ))
 
