@@ -10,6 +10,10 @@
 # An important caveat is that you'll likely install the latest PowerShell 7.0 on linux,
 # but on real Windows 10/11 the version of PowerShell is quite old (5.1), so don't
 # try to use any new features.
+#
+# This script is specifically for windows, but has a similar structure to the
+# unix `install.sh` script. If you modify this script, please check if the modifications
+# should also apply to the unix one.
 
 $ErrorActionPreference = "Stop"
 
