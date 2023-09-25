@@ -75,6 +75,14 @@
  ```
 
 === cargo-marker/README.md ===
+ ```bash
+-curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v<version>/scripts/release/install.sh | bash
++curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.sh | bash
+ ```
+ ```ps1
+-curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v<version>/scripts/release/install.ps1 | powershell -command -
++curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.ps1 | powershell -command -
+ ```
  # An external crate from a registry
 -marker_lints = "<version>"
 +marker_lints = "0.1.0"
