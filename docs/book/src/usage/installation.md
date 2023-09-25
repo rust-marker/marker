@@ -33,7 +33,7 @@ curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.2.1/scrip
 
 The provided scripts are pinned to a specific version of `marker` to avoid sudden breakages especially if this script will be used on CI.
 
-If you are a windows user or your platform isn't supported yet by the pre-compiled binaries, then you should fall back to building from sources as described below.
+If you are on a platform that isn't supported yet by the pre-compiled binaries, then you should fall back to building from sources as described below.
 
 ## Build `cargo marker` plugin from sources
 
