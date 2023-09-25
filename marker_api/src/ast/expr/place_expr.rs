@@ -1,4 +1,4 @@
-use crate::ast::Ident;
+use crate::span::Ident;
 
 use super::{CommonExprData, ExprKind};
 

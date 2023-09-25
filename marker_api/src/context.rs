@@ -8,12 +8,12 @@ use crate::{
     ast::{
         item::{Body, ItemKind},
         ty::SemTyKind,
-        BodyId, ExpnId, ExpnInfo, ExprId, FileInfo, FilePos, HasNodeId, ItemId, NodeId, Span, SpanId, SpanPos,
-        SpanSource, SymbolId, TyDefId,
+        BodyId, ExpnId, ExprId, HasNodeId, ItemId, NodeId, SpanId, SymbolId, TyDefId,
     },
     diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
     lint::{Level, Lint, MacroReport},
+    span::{ExpnInfo, FileInfo, FilePos, Span, SpanPos, SpanSource},
 };
 
 thread_local! {

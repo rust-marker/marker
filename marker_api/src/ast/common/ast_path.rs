@@ -2,10 +2,11 @@
 //!
 //! See: <https://doc.rust-lang.org/stable/reference/paths.html>
 
-use super::{GenericId, Ident, ItemId, VarId, VariantId};
+use super::{GenericId, ItemId, VarId, VariantId};
 use crate::{
     ast::{generic::SynGenericArgs, ty::SynTyKind},
     ffi::{FfiOption, FfiSlice},
+    span::Ident,
 };
 
 /// [`AstPath`]s are used to identify items. A qualified path (`QPath`) can be

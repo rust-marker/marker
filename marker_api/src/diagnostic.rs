@@ -4,11 +4,11 @@
 use std::fmt::Debug;
 
 use crate::{
-    ast::{HasNodeId, NodeId, Span},
+    ast::{HasNodeId, NodeId},
     context::{with_cx, MarkerContext},
     ffi::{FfiSlice, FfiStr},
     lint::Lint,
-    prelude::HasSpan,
+    prelude::{HasSpan, Span},
 };
 
 /// This builder creates the diagnostic object which will be emitted by the driver.

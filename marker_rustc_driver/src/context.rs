@@ -222,23 +222,23 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         Some(self.storage.alloc_str(&snippet))
     }
 
-    fn span_source(&'ast self, api_span: &Span<'_>) -> marker_api::ast::SpanSource<'ast> {
+    fn span_source(&'ast self, api_span: &Span<'_>) -> marker_api::span::SpanSource<'ast> {
         let rust_span = self.rustc_converter.to_span(api_span);
         self.marker_converter.to_span_source(rust_span)
     }
 
     fn span_pos_to_file_loc(
         &'ast self,
-        file: &marker_api::ast::FileInfo<'ast>,
-        pos: marker_api::ast::SpanPos,
-    ) -> Option<marker_api::ast::FilePos<'ast>> {
+        file: &marker_api::span::FileInfo<'ast>,
+        pos: marker_api::span::SpanPos,
+    ) -> Option<marker_api::span::FilePos<'ast>> {
         self.marker_converter.try_to_span_pos(
             self.rustc_converter.to_syntax_context(file.span_src()),
             self.rustc_converter.to_byte_pos(pos),
         )
     }
 
-    fn span_expn_info(&'ast self, expn_id: marker_api::ast::ExpnId) -> Option<&'ast marker_api::ast::ExpnInfo<'ast>> {
+    fn span_expn_info(&'ast self, expn_id: marker_api::ast::ExpnId) -> Option<&'ast marker_api::span::ExpnInfo<'ast>> {
         let id = self.rustc_converter.to_expn_id(expn_id);
         self.marker_converter.try_to_expn_info(id)
     }

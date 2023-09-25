@@ -1,6 +1,7 @@
 use crate::{
-    ast::{expr::ConstExpr, ty::SynTyKind, Span, SpanId, SymbolId, TraitRef},
+    ast::{expr::ConstExpr, ty::SynTyKind, SpanId, SymbolId, TraitRef},
     context::with_cx,
+    span::Span,
 };
 
 use super::super::Lifetime;

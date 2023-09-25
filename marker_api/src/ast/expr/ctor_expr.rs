@@ -1,9 +1,10 @@
 //! This module contains all expressions, which are typically used to construct data.
 
 use crate::{
-    ast::{AstQPath, Ident, Span, SpanId},
+    ast::{AstQPath, SpanId},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
+    span::{Ident, Span},
 };
 
 use super::{CommonExprData, ConstExpr, ExprKind, ExprPrecedence};

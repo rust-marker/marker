@@ -93,7 +93,7 @@ impl LintPass for TestLintPass {
         }
 
         if matches!(
-            item.ident().map(marker_api::ast::Ident::name),
+            item.ident().map(marker_api::span::Ident::name),
             Some(name) if name.starts_with("FindMe") || name.starts_with("FIND_ME") || name.starts_with("find_me")
         ) {
             let msg = match item {
@@ -115,7 +115,7 @@ impl LintPass for TestLintPass {
         }
 
         if matches!(
-            item.ident().map(marker_api::ast::Ident::name),
+            item.ident().map(marker_api::span::Ident::name),
             Some(name) if name.starts_with("PrintMe") || name.starts_with("PRINT_ME") || name.starts_with("print_me")
         ) {
             cx.emit_lint(TEST_LINT, item, "printing item").decorate(|diag| {
@@ -126,7 +126,7 @@ impl LintPass for TestLintPass {
 
         if let ItemKind::Fn(func) = item {
             if matches!(
-                item.ident().map(marker_api::ast::Ident::name),
+                item.ident().map(marker_api::span::Ident::name),
                 Some(name) if name.starts_with("print_with_body")
             ) {
                 cx.emit_lint(TEST_LINT, item, "printing item with body")

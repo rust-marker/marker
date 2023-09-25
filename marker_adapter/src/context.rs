@@ -2,12 +2,13 @@
 #![allow(clippy::needless_lifetimes)]
 
 use marker_api::{
-    ast::{ty::SemTyKind, ExpnId, ExpnInfo, ExprId, FileInfo, FilePos, SpanId, SpanPos, SpanSource, SymbolId},
+    ast::{ty::SemTyKind, ExpnId, ExprId, SpanId, SymbolId},
     context::DriverCallbacks,
     diagnostic::Diagnostic,
     ffi::{self, FfiOption},
     lint::{Level, Lint},
     prelude::*,
+    span::{ExpnInfo, FileInfo, FilePos, SpanPos, SpanSource},
 };
 
 /// ### Safety

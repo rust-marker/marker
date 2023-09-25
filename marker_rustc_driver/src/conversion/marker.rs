@@ -19,10 +19,11 @@ use marker_api::{
         expr::ExprKind,
         item::{Body, ItemKind},
         ty::SemTyKind,
-        BodyId, Crate, ExpnInfo, ExprId, FilePos, ItemId, Span, SpanSource, StmtId, SymbolId, TyDefId,
+        BodyId, Crate, ExprId, ItemId, StmtId, SymbolId, TyDefId,
     },
     lint::Level,
     prelude::StmtKind,
+    span::{ExpnInfo, FilePos, Span, SpanSource},
 };
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;

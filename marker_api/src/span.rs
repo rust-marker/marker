@@ -1,8 +1,8 @@
 use std::marker::PhantomData;
 
-use crate::{context::with_cx, diagnostic::Applicability, ffi, private::Sealed};
+use crate::{ast::SpanId, context::with_cx, diagnostic::Applicability, ffi, private::Sealed};
 
-use super::{ExpnId, MacroId, SpanId, SpanSrcId, SymbolId};
+use crate::ast::{ExpnId, MacroId, SpanSrcId, SymbolId};
 
 /// A byte position used for the start and end position of [`Span`]s.
 ///
@@ -591,8 +591,8 @@ pub trait HasSpan<'ast>: Sealed {
 /// `span()` method.
 macro_rules! impl_spanned_for {
     ($ty:ty) => {
-        impl<'ast> $crate::ast::HasSpan<'ast> for $ty {
-            fn span(&self) -> &$crate::ast::Span<'ast> {
+        impl<'ast> $crate::span::HasSpan<'ast> for $ty {
+            fn span(&self) -> &$crate::span::Span<'ast> {
                 self.span()
             }
         }

@@ -1,6 +1,6 @@
 use marker_api::{
-    ast::{ExpnInfo, FileInfo, FilePos, SpanPos, SpanSource},
     prelude::Span,
+    span::{ExpnInfo, FileInfo, FilePos, SpanPos, SpanSource},
 };
 
 use crate::conversion::marker::MarkerConverterInner;

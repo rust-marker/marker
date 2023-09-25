@@ -45,7 +45,7 @@ pub struct Lint {
 }
 
 /// FIXME(xFrednet): These settings should be working now, but are still limited
-/// due to the limited [`Span`](crate::ast::Span) implementation. Ideally, I would
+/// due to the limited [`Span`](crate::span::Span) implementation. Ideally, I would
 /// also like more options, like a `Local` variant that only lints in local marcos.
 /// For libraries it might also be cool to have a `Crate` variant, that only lints
 /// in user code and code from macros from the specified crate.

@@ -9,8 +9,8 @@ pub use crate::ast::pat::PatData;
 pub use crate::ast::stmt::StmtData;
 pub use crate::ast::ty::SynTyData;
 pub use crate::ast::HasNodeId;
-pub use crate::ast::HasSpan;
 pub use crate::diagnostic::EmissionNode;
+pub use crate::span::HasSpan;
 
 // IDs
 pub use crate::ast::{BodyId, ExprId, FieldId, GenericId, ItemId, NodeId, StmtId, TyDefId, VarId, VariantId};
@@ -23,6 +23,6 @@ pub use crate::ast::pat::PatKind;
 pub use crate::ast::stmt::StmtKind;
 pub use crate::ast::ty::SemTyKind;
 pub use crate::ast::ty::SynTyKind;
-pub use crate::ast::Ident;
-pub use crate::ast::Span;
+pub use crate::span::Ident;
+pub use crate::span::Span;
 pub use crate::MarkerContext;

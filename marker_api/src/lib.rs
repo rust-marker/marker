@@ -16,6 +16,7 @@ pub mod diagnostic;
 pub mod interface;
 pub mod lint;
 pub mod prelude;
+pub mod span;
 
 #[doc(hidden)]
 pub mod ffi;
