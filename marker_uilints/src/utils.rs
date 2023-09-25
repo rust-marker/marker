@@ -18,10 +18,11 @@ pub fn check_item<'ast>(cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
 
         cx.emit_lint(
             TEST_CONTAINS_RETURN,
-            item.id(),
+            item,
             format!("testing `contains_return` -> {res}"),
-            ident.span(),
-            |_| {},
-        );
+        )
+        .decorate(|diag| {
+            diag.span(ident.span());
+        });
     }
 }

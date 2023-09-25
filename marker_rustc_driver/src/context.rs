@@ -2,13 +2,10 @@ use std::cell::{OnceCell, RefCell};
 
 use marker_adapter::context::{DriverContext, DriverContextWrapper};
 use marker_api::{
-    ast::{
-        item::{Body, ItemKind},
-        BodyId, ExprId, ItemId, Span, SpanId, SymbolId, TyDefId,
-    },
-    context::AstContext,
-    diagnostic::{Diagnostic, EmissionNode},
+    ast::{SpanId, SymbolId},
+    diagnostic::Diagnostic,
     lint::{Level, Lint},
+    prelude::*,
 };
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
@@ -74,7 +71,7 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
 }
 
 impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
-    fn lint_level_at(&'ast self, api_lint: &'static Lint, node: EmissionNode) -> Level {
+    fn lint_level_at(&'ast self, api_lint: &'static Lint, node: NodeId) -> Level {
         if let Some(id) = self.rustc_converter.try_to_hir_id_from_emission_node(node) {
             let lint = self.rustc_converter.to_lint(api_lint);
             let level = self.rustc_cx.lint_level_at_node(lint, id).0;

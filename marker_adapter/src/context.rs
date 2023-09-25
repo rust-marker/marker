@@ -2,16 +2,12 @@
 #![allow(clippy::needless_lifetimes)]
 
 use marker_api::{
-    ast::{
-        item::{Body, ItemKind},
-        ty::SemTyKind,
-        BodyId, ExpnId, ExpnInfo, ExprId, FileInfo, FilePos, ItemId, Span, SpanId, SpanPos, SpanSource, SymbolId,
-        TyDefId,
-    },
+    ast::{ty::SemTyKind, ExpnId, ExpnInfo, ExprId, FileInfo, FilePos, SpanId, SpanPos, SpanSource, SymbolId},
     context::DriverCallbacks,
-    diagnostic::{Diagnostic, EmissionNode},
+    diagnostic::Diagnostic,
     ffi::{self, FfiOption},
     lint::{Level, Lint},
+    prelude::*,
 };
 
 /// ### Safety
@@ -59,7 +55,7 @@ impl<'ast> DriverContextWrapper<'ast> {
 
 // False positive because `EmissionNode` are non-exhaustive
 #[allow(improper_ctypes_definitions)]
-extern "C" fn lint_level_at<'ast>(data: &'ast (), lint: &'static Lint, node: EmissionNode) -> Level {
+extern "C" fn lint_level_at<'ast>(data: &'ast (), lint: &'static Lint, node: NodeId) -> Level {
     unsafe { as_driver_cx(data) }.lint_level_at(lint, node)
 }
 
@@ -129,7 +125,7 @@ unsafe fn as_driver_cx<'ast>(data: &'ast ()) -> &'ast dyn DriverContext<'ast> {
 }
 
 pub trait DriverContext<'ast> {
-    fn lint_level_at(&'ast self, lint: &'static Lint, node: EmissionNode) -> Level;
+    fn lint_level_at(&'ast self, lint: &'static Lint, node: NodeId) -> Level;
     fn emit_diag(&'ast self, diag: &Diagnostic<'_, 'ast>);
 
     fn item(&'ast self, api_id: ItemId) -> Option<ItemKind<'ast>>;

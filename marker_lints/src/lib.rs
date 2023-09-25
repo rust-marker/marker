@@ -7,7 +7,7 @@ use marker_api::{
     LintPass, LintPassInfo, LintPassInfoBuilder,
 };
 
-marker_api::declare_lint!(
+marker_api::declare_lint! {
     /// ### What it does
     /// Diagnostic messages should start with lower case letter according to
     /// [rustc's dev guide].
@@ -15,7 +15,7 @@ marker_api::declare_lint!(
     /// [rustc's dev guide]: <https://rustc-dev-guide.rust-lang.org/diagnostics.html#diagnostic-output-style-guide>
     DIAG_MSG_UPPERCASE_START,
     Warn,
-);
+}
 
 #[derive(Debug, Default)]
 struct MarkerLintsLintPass;
@@ -48,10 +48,8 @@ fn check_msg<'ast>(cx: &AstContext<'ast>, msg_expr: ExprKind<'ast>) {
     {
         cx.emit_lint(
             DIAG_MSG_UPPERCASE_START,
-            msg_expr.id(),
+            msg_expr,
             "this message starts with an uppercase character",
-            msg_expr.span(),
-            |_| {},
         );
     }
 }

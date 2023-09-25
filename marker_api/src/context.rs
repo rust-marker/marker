@@ -8,8 +8,8 @@ use crate::{
     ast::{
         item::{Body, ItemKind},
         ty::SemTyKind,
-        BodyId, ExpnId, ExpnInfo, ExprId, FileInfo, FilePos, ItemId, Span, SpanId, SpanPos, SpanSource, SymbolId,
-        TyDefId,
+        BodyId, ExpnId, ExpnInfo, ExprId, FileInfo, FilePos, HasNodeId, ItemId, NodeId, Span, SpanId, SpanPos,
+        SpanSource, SymbolId, TyDefId,
     },
     diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
@@ -93,17 +93,6 @@ impl<'ast> std::fmt::Debug for AstContext<'ast> {
     }
 }
 
-impl<'ast> std::hash::Hash for AstContext<'ast> {
-    fn hash<H: std::hash::Hasher>(&self, _state: &mut H) {}
-}
-
-impl<'ast> std::cmp::PartialEq for AstContext<'ast> {
-    fn eq(&self, other: &Self) -> bool {
-        std::ptr::eq(self, other)
-    }
-}
-impl<'ast> std::cmp::Eq for AstContext<'ast> {}
-
 #[cfg(feature = "driver-api")]
 impl<'ast> AstContext<'ast> {
     pub fn new(driver: &'ast DriverCallbacks<'ast>) -> Self {
@@ -112,30 +101,128 @@ impl<'ast> AstContext<'ast> {
 }
 
 impl<'ast> AstContext<'ast> {
-    pub fn lint_level_at(&self, lint: &'static Lint, node: impl Into<EmissionNode>) -> Level {
-        self.driver.call_lint_level_at(lint, node.into())
+    pub fn lint_level_at(&self, lint: &'static Lint, node: impl HasNodeId) -> Level {
+        self.driver.call_lint_level_at(lint, node.node_id())
     }
 
-    #[allow(clippy::needless_pass_by_value)] // `&impl ToString`
-    pub fn emit_lint<F>(
+    /// This function is used to emit a lint.
+    ///
+    /// Every lint emission, is bound to one specific node in the AST. This
+    /// node is used to check the lint level and is the default [`Span`] of
+    /// the diagnostic message. See [`EmissionNode`] for more information.
+    /// The [`Span`] can be overwritten with [`DiagnosticBuilder::span`].
+    ///
+    /// The message parameter, will be the main message of the created diagnostic.
+    /// This message and all messages emitted as part of the created diagnostic
+    /// should start with a lower letter, according to [rustc's dev guide].
+    ///
+    /// The function will return a [`DiagnosticBuilder`] which can be used to decorate
+    /// the diagnostic message, with notes and help messages. These customizations can
+    /// be moved into a conditional closure, to improve performance under some circumstances.
+    /// See [`DiagnosticBuilder::decorate`] for more information.
+    ///
+    /// The diagnostic message will be emitted when the builder instance is dropped.
+    ///
+    /// [rustc's dev guide]: <https://rustc-dev-guide.rust-lang.org/diagnostics.html#diagnostic-output-style-guide>
+    ///
+    /// ## Example 1
+    ///
+    /// ```
+    /// # use marker_api::prelude::*;
+    /// # marker_api::declare_lint!{
+    /// #     /// Dummy
+    /// #     LINT,
+    /// #     Warn,
+    /// # }
+    /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
+    ///     cx.emit_lint(LINT, node, "<lint message>");
+    /// # }
+    /// ```
+    ///
+    /// The code above will roughly generate the following error message:
+    ///
+    /// ```text
+    ///  warning: <lint message>        <-- The message that is set by this function
+    ///  --> path/file.rs:1:1
+    ///   |
+    /// 1 | node
+    ///   | ^^^^
+    ///   |
+    /// ```
+    ///
+    /// ## Example 2
+    ///
+    /// ```
+    /// # use marker_api::prelude::*;
+    /// # marker_api::declare_lint!{
+    /// #     /// Dummy
+    /// #     LINT,
+    /// #     Warn,
+    /// # }
+    /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
+    ///     cx.emit_lint(LINT, node, "<lint message>").help("<text>");
+    /// # }
+    /// ```
+    ///
+    /// The [`DiagnosticBuilder::help`] will add a help message like this:
+    ///
+    /// ```text
+    ///  warning: <lint message>
+    ///  --> path/file.rs:1:1
+    ///   |
+    /// 1 | node
+    ///   | ^^^^
+    ///   |
+    ///   = help: <text>        <-- The added help message
+    /// ```
+    ///
+    /// ## Example 3
+    ///
+    /// Adding a help message using [`DiagnosticBuilder::decorate`]:
+    ///
+    /// ```
+    /// # use marker_api::prelude::*;
+    /// # marker_api::declare_lint!{
+    /// #     /// Dummy
+    /// #     LINT,
+    /// #     Warn,
+    /// # }
+    /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
+    ///     cx.emit_lint(LINT, node, "<lint message>").decorate(|diag| {
+    ///         // This closure is only called, if the diagnostic will be emitted.
+    ///         // Here you can create a beautiful help message.
+    ///         diag.help("<text>");
+    ///     });
+    /// # }
+    /// ```
+    ///
+    /// This will create the same help message as in example 2, but it will be faster
+    /// if the lint is suppressed. The emitted message would look like this:
+    /// ```text
+    ///  warning: <lint message>
+    ///  --> path/file.rs:1:1
+    ///   |
+    /// 1 | node
+    ///   | ^^^^
+    ///   |
+    ///   = help: <text>        <-- The added help message
+    /// ```
+    pub fn emit_lint(
         &self,
         lint: &'static Lint,
-        node: impl Into<EmissionNode>,
-        msg: impl ToString,
-        span: &Span<'ast>,
-        decorate: F,
-    ) where
-        F: FnOnce(&mut DiagnosticBuilder<'ast>),
-    {
+        node: impl EmissionNode<'ast>,
+        msg: impl Into<String>,
+    ) -> DiagnosticBuilder<'ast> {
+        let id = node.node_id();
+        let span = node.span();
         if matches!(lint.report_in_macro, MacroReport::No) && span.is_from_expansion() {
-            return;
+            return DiagnosticBuilder::dummy();
         }
-        let node = node.into();
-        if self.lint_level_at(lint, node) != Level::Allow {
-            let mut builder = DiagnosticBuilder::new(lint, node, msg.to_string(), span.clone());
-            decorate(&mut builder);
-            builder.emit(self);
+        if self.lint_level_at(lint, &node) == Level::Allow {
+            return DiagnosticBuilder::dummy();
         }
+
+        DiagnosticBuilder::new(lint, id, msg.into(), span.clone())
     }
 
     pub(crate) fn emit_diagnostic<'a>(&self, diag: &'a Diagnostic<'a, 'ast>) {
@@ -247,7 +334,7 @@ struct DriverCallbacks<'ast> {
     // can't call them in safe Rust passing a &() pointer. This will trigger UB.
 
     // Lint emission and information
-    pub lint_level_at: extern "C" fn(&'ast (), &'static Lint, EmissionNode) -> Level,
+    pub lint_level_at: extern "C" fn(&'ast (), &'static Lint, NodeId) -> Level,
     pub emit_diag: for<'a> extern "C" fn(&'ast (), &'a Diagnostic<'a, 'ast>),
 
     // Public utility
@@ -268,7 +355,7 @@ struct DriverCallbacks<'ast> {
 }
 
 impl<'ast> DriverCallbacks<'ast> {
-    fn call_lint_level_at(&self, lint: &'static Lint, node: EmissionNode) -> Level {
+    fn call_lint_level_at(&self, lint: &'static Lint, node: NodeId) -> Level {
         (self.lint_level_at)(self.driver_context, lint, node)
     }
 

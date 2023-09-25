@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{context::with_cx, diagnostic::Applicability, ffi};
+use crate::{context::with_cx, diagnostic::Applicability, ffi, private::Sealed};
 
 use super::{ExpnId, MacroId, SpanId, SpanSrcId, SymbolId};
 
@@ -386,6 +386,13 @@ impl<'ast> Span<'ast> {
     }
 }
 
+impl<'ast> HasSpan<'ast> for Span<'ast> {
+    fn span(&self) -> &Span<'ast> {
+        self
+    }
+}
+impl Sealed for Span<'_> {}
+
 #[cfg(feature = "driver-api")]
 impl<'ast> Span<'ast> {
     #[must_use]
@@ -509,11 +516,14 @@ impl<'ast> Ident<'ast> {
     pub fn name(&self) -> &str {
         with_cx(self, |cx| cx.symbol_str(self.sym))
     }
+}
 
-    pub fn span(&self) -> &Span<'ast> {
+impl<'ast> HasSpan<'ast> for Ident<'ast> {
+    fn span(&self) -> &Span<'ast> {
         with_cx(self, |cx| cx.span(self.span))
     }
 }
+impl<'ast> crate::private::Sealed for Ident<'ast> {}
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Ident<'ast> {
@@ -570,3 +580,28 @@ impl_ident_eq_for!(
     std::ffi::OsString,
     std::borrow::Cow<'_, str>
 );
+
+/// A trait for nodes, that provide a [`Span`].
+pub trait HasSpan<'ast>: Sealed {
+    /// This returns the [`Span`] of the implementing AST node.
+    fn span(&self) -> &Span<'ast>;
+}
+
+/// This macro implements the [`HasSpan`] trait for data types, that provide a
+/// `span()` method.
+macro_rules! impl_spanned_for {
+    ($ty:ty) => {
+        impl<'ast> $crate::ast::HasSpan<'ast> for $ty {
+            fn span(&self) -> &$crate::ast::Span<'ast> {
+                self.span()
+            }
+        }
+    };
+}
+pub(crate) use impl_spanned_for;
+
+impl<'ast, N: HasSpan<'ast>> HasSpan<'ast> for &N {
+    fn span(&self) -> &Span<'ast> {
+        (*self).span()
+    }
+}

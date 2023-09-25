@@ -1,10 +1,11 @@
 use std::{fmt::Debug, marker::PhantomData};
 
+use crate::diagnostic::EmissionNode;
 use crate::private::Sealed;
 use crate::CtorBlocker;
 
 use super::expr::ExprKind;
-use super::{Ident, ItemId, Span, SpanId};
+use super::{HasNodeId, HasSpan, Ident, ItemId, Span, SpanId};
 
 // Item implementations
 mod extern_crate_item;
@@ -36,14 +37,10 @@ pub use unstable_item::*;
 ///
 /// This trait is only meant to be implemented inside this crate. The `Sealed`
 /// super trait prevents external implementations.
-pub trait ItemData<'ast>: Debug + Sealed {
+pub trait ItemData<'ast>: Debug + EmissionNode<'ast> + HasSpan<'ast> + HasNodeId + Sealed {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
     /// and to request items from the [`AstContext`](`crate::context::AstContext`).
     fn id(&self) -> ItemId;
-
-    /// The [`Span`] of the entire item. This span should be used for general item related
-    /// diagnostics.
-    fn span(&self) -> &Span<'ast>;
 
     /// The [`Visibility`] of this item.
     fn visibility(&self) -> &Visibility<'ast>;
@@ -93,8 +90,12 @@ impl<'ast> ItemKind<'ast> {
     impl_item_type_fn!(ItemKind: attrs() -> ());
 }
 
+crate::ast::impl_spanned_for!(ItemKind<'ast>);
+crate::ast::impl_identifiable_for!(ItemKind<'ast>);
+impl<'ast> crate::private::Sealed for ItemKind<'ast> {}
+
 #[non_exhaustive]
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum AssocItemKind<'ast> {
     TyAlias(&'ast TyAliasItem<'ast>, CtorBlocker),
     Const(&'ast ConstItem<'ast>, CtorBlocker),
@@ -111,6 +112,10 @@ impl<'ast> AssocItemKind<'ast> {
     // FIXME: Potentially add a field to the items to optionally store the owner id
 }
 
+crate::ast::impl_spanned_for!(AssocItemKind<'ast>);
+crate::ast::impl_identifiable_for!(AssocItemKind<'ast>);
+impl<'ast> crate::private::Sealed for AssocItemKind<'ast> {}
+
 impl<'ast> From<AssocItemKind<'ast>> for ItemKind<'ast> {
     fn from(value: AssocItemKind<'ast>) -> Self {
         match value {
@@ -122,7 +127,7 @@ impl<'ast> From<AssocItemKind<'ast>> for ItemKind<'ast> {
 }
 
 #[non_exhaustive]
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum ExternItemKind<'ast> {
     Static(&'ast StaticItem<'ast>, CtorBlocker),
     Fn(&'ast FnItem<'ast>, CtorBlocker),
@@ -136,6 +141,10 @@ impl<'ast> ExternItemKind<'ast> {
     impl_item_type_fn!(ExternItemKind: attrs() -> ());
     impl_item_type_fn!(ExternItemKind: as_item() -> ItemKind<'ast>);
 }
+
+crate::ast::impl_spanned_for!(ExternItemKind<'ast>);
+crate::ast::impl_identifiable_for!(ExternItemKind<'ast>);
+impl<'ast> crate::private::Sealed for ExternItemKind<'ast> {}
 
 impl<'ast> From<ExternItemKind<'ast>> for ItemKind<'ast> {
     fn from(value: ExternItemKind<'ast>) -> Self {
@@ -193,10 +202,6 @@ macro_rules! impl_item_data {
                 self.data.id
             }
 
-            fn span(&self) -> &crate::ast::Span<'ast> {
-                $crate::context::with_cx(self, |cx| cx.span(self.data.span))
-            }
-
             fn visibility(&self) -> &crate::ast::item::Visibility<'ast> {
                 &self.data.vis
             }
@@ -212,6 +217,13 @@ macro_rules! impl_item_data {
             fn attrs(&self) {}
         }
 
+        impl<'ast> $crate::ast::HasSpan<'ast> for $self_name<'ast> {
+            fn span(&self) -> &crate::ast::Span<'ast> {
+                $crate::context::with_cx(self, |cx| cx.span(self.data.span))
+            }
+        }
+
+        $crate::ast::impl_identifiable_for!($self_name<'ast>, use $crate::ast::item::ItemData);
         impl $crate::private::Sealed for $self_name<'_> {}
 
         impl<'ast> From<&'ast $self_name<'ast>> for crate::ast::item::ItemKind<'ast> {

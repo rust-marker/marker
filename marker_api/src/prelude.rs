@@ -2,12 +2,18 @@
 //! when working with Marker. Simply add `use marker_api::prelude::*;` to your
 //! file, to import them all.
 
-// AST Traits:
+// Traits:
 pub use crate::ast::expr::ExprData;
 pub use crate::ast::item::ItemData;
 pub use crate::ast::pat::PatData;
 pub use crate::ast::stmt::StmtData;
 pub use crate::ast::ty::SynTyData;
+pub use crate::ast::HasNodeId;
+pub use crate::ast::HasSpan;
+pub use crate::diagnostic::EmissionNode;
+
+// IDs
+pub use crate::ast::{BodyId, ExprId, FieldId, GenericId, ItemId, NodeId, StmtId, TyDefId, VarId, VariantId};
 
 // Common types
 pub use crate::ast::expr::ExprKind;
