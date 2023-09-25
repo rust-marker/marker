@@ -1,23 +1,23 @@
 //! A module responsible for generating and exposing an interface from lint crates.
 //! [`export_lint_pass`](crate::export_lint_pass) is the main macro, from this module.
 
-use crate::{context::AstContext, ffi::FfiSlice, lint::Lint};
+use crate::{context::MarkerContext, ffi::FfiSlice, lint::Lint};
 
 /// **!Unstable!**
 /// This struct is used to connect lint crates to drivers.
 #[repr(C)]
 #[doc(hidden)]
 pub struct LintCrateBindings {
-    pub set_ast_context: for<'ast> extern "C" fn(cx: &'ast AstContext<'ast>),
+    pub set_ast_context: for<'ast> extern "C" fn(cx: &'ast MarkerContext<'ast>),
 
     // lint pass functions
     pub info: for<'ast> extern "C" fn() -> LintPassInfo,
-    pub check_item: for<'ast> extern "C" fn(&'ast AstContext<'ast>, crate::ast::item::ItemKind<'ast>),
-    pub check_field: for<'ast> extern "C" fn(&'ast AstContext<'ast>, &'ast crate::ast::item::Field<'ast>),
-    pub check_variant: for<'ast> extern "C" fn(&'ast AstContext<'ast>, &'ast crate::ast::item::EnumVariant<'ast>),
-    pub check_body: for<'ast> extern "C" fn(&'ast AstContext<'ast>, &'ast crate::ast::item::Body<'ast>),
-    pub check_stmt: for<'ast> extern "C" fn(&'ast AstContext<'ast>, crate::ast::stmt::StmtKind<'ast>),
-    pub check_expr: for<'ast> extern "C" fn(&'ast AstContext<'ast>, crate::ast::expr::ExprKind<'ast>),
+    pub check_item: for<'ast> extern "C" fn(&'ast MarkerContext<'ast>, crate::ast::item::ItemKind<'ast>),
+    pub check_field: for<'ast> extern "C" fn(&'ast MarkerContext<'ast>, &'ast crate::ast::item::Field<'ast>),
+    pub check_variant: for<'ast> extern "C" fn(&'ast MarkerContext<'ast>, &'ast crate::ast::item::EnumVariant<'ast>),
+    pub check_body: for<'ast> extern "C" fn(&'ast MarkerContext<'ast>, &'ast crate::ast::item::Body<'ast>),
+    pub check_stmt: for<'ast> extern "C" fn(&'ast MarkerContext<'ast>, crate::ast::stmt::StmtKind<'ast>),
+    pub check_expr: for<'ast> extern "C" fn(&'ast MarkerContext<'ast>, crate::ast::expr::ExprKind<'ast>),
 }
 
 /// This macro marks the given struct as the main [`LintPass`](`crate::LintPass`)
@@ -72,44 +72,44 @@ macro_rules! export_lint_pass {
             extern "C" fn marker_lint_crate_bindings() -> $crate::interface::LintCrateBindings {
                 pub use $crate::LintPass;
 
-                extern "C" fn set_ast_context<'ast>(cx: &'ast $crate::AstContext<'ast>) {
+                extern "C" fn set_ast_context<'ast>(cx: &'ast $crate::MarkerContext<'ast>) {
                     $crate::context::set_ast_cx(cx);
                 }
                 extern "C" fn info() -> $crate::LintPassInfo {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().info())
                 }
                 extern "C" fn check_item<'ast>(
-                    cx: &'ast $crate::AstContext<'ast>,
+                    cx: &'ast $crate::MarkerContext<'ast>,
                     item: $crate::ast::item::ItemKind<'ast>,
                 ) {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().check_item(cx, item));
                 }
                 extern "C" fn check_field<'ast>(
-                    cx: &'ast $crate::AstContext<'ast>,
+                    cx: &'ast $crate::MarkerContext<'ast>,
                     field: &'ast $crate::ast::item::Field<'ast>,
                 ) {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().check_field(cx, field));
                 }
                 extern "C" fn check_variant<'ast>(
-                    cx: &'ast $crate::AstContext<'ast>,
+                    cx: &'ast $crate::MarkerContext<'ast>,
                     variant: &'ast $crate::ast::item::EnumVariant<'ast>,
                 ) {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().check_variant(cx, variant));
                 }
                 extern "C" fn check_body<'ast>(
-                    cx: &'ast $crate::AstContext<'ast>,
+                    cx: &'ast $crate::MarkerContext<'ast>,
                     body: &'ast $crate::ast::item::Body<'ast>,
                 ) {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().check_body(cx, body));
                 }
                 extern "C" fn check_stmt<'ast>(
-                    cx: &'ast $crate::AstContext<'ast>,
+                    cx: &'ast $crate::MarkerContext<'ast>,
                     stmt: $crate::ast::stmt::StmtKind<'ast>,
                 ) {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().check_stmt(cx, stmt));
                 }
                 extern "C" fn check_expr<'ast>(
-                    cx: &'ast $crate::AstContext<'ast>,
+                    cx: &'ast $crate::MarkerContext<'ast>,
                     expr: $crate::ast::expr::ExprKind<'ast>,
                 ) {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().check_expr(cx, expr));

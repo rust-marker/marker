@@ -22,7 +22,7 @@ pub mod prelude;
 #[doc(hidden)]
 pub mod ffi;
 
-pub use context::AstContext;
+pub use context::MarkerContext;
 pub use interface::{LintPassInfo, LintPassInfoBuilder};
 
 /// A [`LintPass`] visits every node like a `Visitor`. The difference is that a
@@ -32,12 +32,12 @@ pub use interface::{LintPassInfo, LintPassInfoBuilder};
 pub trait LintPass {
     fn info(&self) -> LintPassInfo;
 
-    fn check_item<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _item: ast::item::ItemKind<'ast>) {}
-    fn check_field<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _field: &'ast ast::item::Field<'ast>) {}
-    fn check_variant<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _variant: &'ast ast::item::EnumVariant<'ast>) {}
-    fn check_body<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _body: &'ast ast::item::Body<'ast>) {}
-    fn check_stmt<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _stmt: ast::stmt::StmtKind<'ast>) {}
-    fn check_expr<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _expr: ast::expr::ExprKind<'ast>) {}
+    fn check_item<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _item: ast::item::ItemKind<'ast>) {}
+    fn check_field<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _field: &'ast ast::item::Field<'ast>) {}
+    fn check_variant<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _variant: &'ast ast::item::EnumVariant<'ast>) {}
+    fn check_body<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _body: &'ast ast::item::Body<'ast>) {}
+    fn check_stmt<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _stmt: ast::stmt::StmtKind<'ast>) {}
+    fn check_expr<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _expr: ast::expr::ExprKind<'ast>) {}
 }
 
 pub(crate) mod private {

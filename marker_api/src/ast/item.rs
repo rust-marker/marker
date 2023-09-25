@@ -39,7 +39,7 @@ pub use unstable_item::*;
 /// super trait prevents external implementations.
 pub trait ItemData<'ast>: Debug + EmissionNode<'ast> + HasSpan<'ast> + HasNodeId + Sealed {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
-    /// and to request items from the [`AstContext`](`crate::context::AstContext`).
+    /// and to request items from the [`MarkerContext`](`crate::context::MarkerContext`).
     fn id(&self) -> ItemId;
 
     /// The [`Visibility`] of this item.

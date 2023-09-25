@@ -3,7 +3,7 @@
 
 use marker_api::{
     ast::{expr::ExprKind, ty::SemTyKind},
-    context::AstContext,
+    context::MarkerContext,
     LintPass, LintPassInfo, LintPassInfoBuilder,
 };
 
@@ -27,11 +27,11 @@ impl LintPass for MarkerLintsLintPass {
         LintPassInfoBuilder::new(Box::new([DIAG_MSG_UPPERCASE_START])).build()
     }
 
-    fn check_expr<'ast>(&mut self, cx: &AstContext<'ast>, expr: ExprKind<'ast>) {
+    fn check_expr<'ast>(&mut self, cx: &MarkerContext<'ast>, expr: ExprKind<'ast>) {
         if let ExprKind::Method(call) = expr
             && let SemTyKind::Ref(adt_ref) = call.receiver().ty()
             && let SemTyKind::Adt(adt) = adt_ref.inner_ty()
-            && cx.resolve_ty_ids("marker_api::AstContext").contains(&adt.def_id())
+            && cx.resolve_ty_ids("marker_api::MarkerContext").contains(&adt.def_id())
             && call.method().ident().name() == "emit_lint"
             && let [_lint, _id, msg, ..] = call.args()
         {
@@ -40,7 +40,7 @@ impl LintPass for MarkerLintsLintPass {
     }
 }
 
-fn check_msg<'ast>(cx: &AstContext<'ast>, msg_expr: ExprKind<'ast>) {
+fn check_msg<'ast>(cx: &MarkerContext<'ast>, msg_expr: ExprKind<'ast>) {
     if let ExprKind::StrLit(lit) = msg_expr
         && let Some(msg) = lit.str_value()
         && let Some(start) = msg.chars().next()

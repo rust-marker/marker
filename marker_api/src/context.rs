@@ -1,6 +1,6 @@
-//! This module is responsible for the [`AstContext`] struct and related plumbing.
+//! This module is responsible for the [`MarkerContext`] struct and related plumbing.
 //! Items in this module are generally unstable, with the exception of the
-//! exposed interface of [`AstContext`].
+//! exposed interface of [`MarkerContext`].
 
 use std::{cell::RefCell, mem::transmute};
 
@@ -19,34 +19,34 @@ use crate::{
 thread_local! {
     /// **Warning**
     ///
-    /// These lifetimes are fake. This [`AstContext`] has the `'ast` lifetime in
+    /// These lifetimes are fake. This [`MarkerContext`] has the `'ast` lifetime in
     /// in both places. `'static` is required to store it in a static thread local
     /// value. The lifetimes are modified and guarded by [`set_ast_cx`] and
     /// [`with_cx`]
     ///
     /// See: `./docs/internal/driver-info.md` for more context
     #[doc(hidden)]
-    static AST_CX: RefCell<Option<&'static AstContext<'static>>> = RefCell::new(None);
+    static AST_CX: RefCell<Option<&'static MarkerContext<'static>>> = RefCell::new(None);
 }
 
 /// **Warning**
 ///
 /// This function is unstable and only exported, to enable the adapter to set
-/// the [`AstContext`] for a lint crate. Calling it from outside sources can
+/// the [`MarkerContext`] for a lint crate. Calling it from outside sources can
 /// lead to undefined behavior.
 ///
 /// See: `./docs/internal/driver-info.md` for more context
 #[doc(hidden)]
-pub fn set_ast_cx<'ast>(cx: &'ast AstContext<'ast>) {
+pub fn set_ast_cx<'ast>(cx: &'ast MarkerContext<'ast>) {
     // Safety:
     // This `transmute` erases the `'ast` lifetime. This is uncool, but sadly
     // necessary to store the reference [`AST_CX`]. All accesses are guarded by
     // the [`with_cx`] function, which resets the lifetime to <= `'ast`.
-    let cx_static: &'static AstContext<'static> = unsafe { transmute(cx) };
+    let cx_static: &'static MarkerContext<'static> = unsafe { transmute(cx) };
     AST_CX.with(|cx| cx.replace(Some(cx_static)));
 }
 
-/// This function provides the current [`AstContext`]. This function requires an
+/// This function provides the current [`MarkerContext`]. This function requires an
 /// AST node as a source for its lifetime. In most cases, calling it is as simple
 /// as this function:
 ///
@@ -64,17 +64,17 @@ pub fn set_ast_cx<'ast>(cx: &'ast AstContext<'ast>) {
 /// See: `./docs/internal/driver-info.md` for more context
 pub(crate) fn with_cx<'src, 'ast: 'src, T, F, R>(_lifetime_src: &'src T, f: F) -> R
 where
-    F: FnOnce(&'src AstContext<'ast>) -> R,
+    F: FnOnce(&'src MarkerContext<'ast>) -> R,
     'static: 'src,
 {
     AST_CX.with(|cx| {
-        let cx_static: &'static AstContext<'static> = cx
+        let cx_static: &'static MarkerContext<'static> = cx
             .borrow()
             .expect("`with_cx` should only be called by nodes once the context has been set");
         // Safety:
         // This just recreates the lifetimes that were erased in [`set_ast_cx`].
         // See the referenced docs for a full explanation.
-        let cx_ast: &'src AstContext<'ast> = unsafe { transmute(cx_static) };
+        let cx_ast: &'src MarkerContext<'ast> = unsafe { transmute(cx_static) };
 
         f(cx_ast)
     })
@@ -83,24 +83,24 @@ where
 /// This context will be passed to each [`LintPass`](`super::LintPass`) call to enable the user
 /// to emit lints and to retrieve nodes by the given ids.
 #[repr(C)]
-pub struct AstContext<'ast> {
+pub struct MarkerContext<'ast> {
     driver: &'ast DriverCallbacks<'ast>,
 }
 
-impl<'ast> std::fmt::Debug for AstContext<'ast> {
+impl<'ast> std::fmt::Debug for MarkerContext<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("AstContext").finish()
+        f.debug_struct("MarkerContext").finish()
     }
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> AstContext<'ast> {
+impl<'ast> MarkerContext<'ast> {
     pub fn new(driver: &'ast DriverCallbacks<'ast>) -> Self {
         Self { driver }
     }
 }
 
-impl<'ast> AstContext<'ast> {
+impl<'ast> MarkerContext<'ast> {
     pub fn lint_level_at(&self, lint: &'static Lint, node: impl HasNodeId) -> Level {
         self.driver.call_lint_level_at(lint, node.node_id())
     }
@@ -134,7 +134,7 @@ impl<'ast> AstContext<'ast> {
     /// #     LINT,
     /// #     Warn,
     /// # }
-    /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
+    /// # fn value_provider<'ast>(cx: &MarkerContext<'ast>, node: ExprKind<'ast>) {
     ///     cx.emit_lint(LINT, node, "<lint message>");
     /// # }
     /// ```
@@ -159,7 +159,7 @@ impl<'ast> AstContext<'ast> {
     /// #     LINT,
     /// #     Warn,
     /// # }
-    /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
+    /// # fn value_provider<'ast>(cx: &MarkerContext<'ast>, node: ExprKind<'ast>) {
     ///     cx.emit_lint(LINT, node, "<lint message>").help("<text>");
     /// # }
     /// ```
@@ -187,7 +187,7 @@ impl<'ast> AstContext<'ast> {
     /// #     LINT,
     /// #     Warn,
     /// # }
-    /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
+    /// # fn value_provider<'ast>(cx: &MarkerContext<'ast>, node: ExprKind<'ast>) {
     ///     cx.emit_lint(LINT, node, "<lint message>").decorate(|diag| {
     ///         // This closure is only called, if the diagnostic will be emitted.
     ///         // Here you can create a beautiful help message.
@@ -268,7 +268,7 @@ impl<'ast> AstContext<'ast> {
     }
 }
 
-impl<'ast> AstContext<'ast> {
+impl<'ast> MarkerContext<'ast> {
     pub(crate) fn expr_ty(&self, expr: ExprId) -> SemTyKind<'ast> {
         self.driver.call_expr_ty(expr)
     }
@@ -308,9 +308,9 @@ impl<'ast> AstContext<'ast> {
 /// This struct holds function pointers to driver implementations of required
 /// functions. These can roughly be split into two categories:
 ///
-/// 1. **Public utility**: These functions will be exposed to lint-crates via an [`AstContext`]
+/// 1. **Public utility**: These functions will be exposed to lint-crates via an [`MarkerContext`]
 ///    instance. Therefore, the function signature of these has to be stable, or at least be stable
-///    for [`AstContext`].
+///    for [`MarkerContext`].
 /// 2. **Internal utility**: These functions are intended for internal usage inside the API or the
 ///    `marker_adapter` crate. Some nodes might also have a reference to these callbacks to request
 ///    additional information if required. These are not part of the stable API and can therefore be

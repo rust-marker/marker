@@ -56,7 +56,7 @@ marker_api::declare_lint! {
 }
 
 fn emit_item_with_test_name_lint<'ast>(
-    cx: &'ast AstContext<'ast>,
+    cx: &'ast MarkerContext<'ast>,
     node: impl EmissionNode<'ast>,
     desc: impl std::fmt::Display,
 ) {
@@ -75,7 +75,7 @@ impl LintPass for TestLintPass {
         .build()
     }
 
-    fn check_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
+    fn check_item<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, item: ItemKind<'ast>) {
         utils::check_item(cx, item);
 
         if let ItemKind::Fn(item) = item {
@@ -139,19 +139,19 @@ impl LintPass for TestLintPass {
         }
     }
 
-    fn check_field<'ast>(&mut self, cx: &'ast AstContext<'ast>, field: &'ast Field<'ast>) {
+    fn check_field<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, field: &'ast Field<'ast>) {
         if field.ident().starts_with("find_me") {
             emit_item_with_test_name_lint(cx, field, "a field");
         }
     }
 
-    fn check_variant<'ast>(&mut self, cx: &'ast AstContext<'ast>, variant: &'ast EnumVariant<'ast>) {
+    fn check_variant<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, variant: &'ast EnumVariant<'ast>) {
         if variant.ident().starts_with("FindMe") {
             emit_item_with_test_name_lint(cx, variant, "an enum variant");
         }
     }
 
-    fn check_stmt<'ast>(&mut self, cx: &'ast AstContext<'ast>, stmt: StmtKind<'ast>) {
+    fn check_stmt<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, stmt: StmtKind<'ast>) {
         // I didn't realize that `let_chains` are still unstable. This makes the
         // code significantly less readable -.-
         if let StmtKind::Let(lets) = stmt {
@@ -197,7 +197,7 @@ impl LintPass for TestLintPass {
         }
     }
 
-    fn check_expr<'ast>(&mut self, cx: &'ast AstContext<'ast>, expr: ExprKind<'ast>) {
+    fn check_expr<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, expr: ExprKind<'ast>) {
         cx.emit_lint(PRINT_EVERY_EXPR, expr, "expr").decorate(|diag| {
             diag.note(&format!("SpanSource: {:#?}", expr.span().source()));
             diag.note(&format!("Snippet: {:#?}", expr.span().snippet_or("<..>")));
@@ -205,7 +205,7 @@ impl LintPass for TestLintPass {
     }
 }
 
-fn check_static_item<'ast>(cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'ast>) {
+fn check_static_item<'ast>(cx: &'ast MarkerContext<'ast>, item: &'ast StaticItem<'ast>) {
     if let Some(name) = item.ident() {
         let name = name.name();
         if name.starts_with("PRINT_TYPE") {
@@ -226,8 +226,8 @@ fn check_static_item<'ast>(cx: &'ast AstContext<'ast>, item: &'ast StaticItem<'a
     }
 }
 
-fn test_ty_id_resolution<'ast>(cx: &'ast AstContext<'ast>) {
-    fn try_resolve_path(cx: &AstContext<'_>, path: &str) {
+fn test_ty_id_resolution<'ast>(cx: &'ast MarkerContext<'ast>) {
+    fn try_resolve_path(cx: &MarkerContext<'_>, path: &str) {
         let ids = cx.resolve_ty_ids(path);
         eprintln!("Resolving {path:?} yielded {ids:#?}");
     }

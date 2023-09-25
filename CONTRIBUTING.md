@@ -209,8 +209,8 @@ It's generally also recommended to split changes based on the area. If you, for 
 
 Changes affecting multiple components can either just name the main area or list multiple:
 
-* Like this: ``API: Add `AstContext::something` function``
-* Or this: ``API, adapter, rustc: Add `AstContext::something` function``
+* Like this: ``API: Add `MarkerContext::something` function``
+* Or this: ``API, adapter, rustc: Add `MarkerContext::something` function``
 
 ### Formatting
 

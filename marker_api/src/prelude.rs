@@ -25,4 +25,4 @@ pub use crate::ast::ty::SemTyKind;
 pub use crate::ast::ty::SynTyKind;
 pub use crate::ast::Ident;
 pub use crate::ast::Span;
-pub use crate::AstContext;
+pub use crate::MarkerContext;

@@ -40,12 +40,12 @@ LintPass functions:            |-----|      |-----|
 
 Notice that here the lint-crates live longer than the AST they're analyzing.
 
-### `'static AstContext` hackery
+### `'static MarkerContext` hackery
 
 AST nodes can provide a lot of information about themselves and their context.
 Most of this information is not stored in the node itself,
-but dynamically loaded using an `AstContext` instance.
-In the initial prototype, the `AstContext` was stored in each node.
+but dynamically loaded using an `MarkerContext` instance.
+In the initial prototype, the `MarkerContext` was stored in each node.
 However, this added an unnecessary reference to every node,
 increasing their size and making the driver code more convoluted.
 For these reasons, the implementation was changed to use a global instance that is used by all nodes.
@@ -55,10 +55,10 @@ The context will be updated once for every tree given to the adapter.
 
 The current implementation imposes the following requirements:
 
-1. The `AstContext` instance has to be valid for the entire time, that it takes to process the AST passed to the adapter.
+1. The `MarkerContext` instance has to be valid for the entire time, that it takes to process the AST passed to the adapter.
     This means that the instance as well as the AST has to remain in memory.
     This behavior can implement all models as described above.
 2. Lint crates should always be called by the same thread and not be accessed concurrently.
     (The implementation might be able to handle it, but this is not actively tested.)
-3. The driver should never call functions on AST nodes that depend on the current `AstContext` instance.
+3. The driver should never call functions on AST nodes that depend on the current `MarkerContext` instance.
     (In general, there should be no reason to do so.)

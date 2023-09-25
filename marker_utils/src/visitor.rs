@@ -64,44 +64,44 @@ pub trait Visitor<B> {
         VisitorScope::NoBodies
     }
 
-    fn visit_item<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _item: ItemKind<'ast>) -> ControlFlow<B> {
+    fn visit_item<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _item: ItemKind<'ast>) -> ControlFlow<B> {
         ControlFlow::Continue(())
     }
 
-    fn visit_field<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _field: &'ast Field<'ast>) -> ControlFlow<B> {
+    fn visit_field<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _field: &'ast Field<'ast>) -> ControlFlow<B> {
         ControlFlow::Continue(())
     }
 
     fn visit_variant<'ast>(
         &mut self,
-        _cx: &'ast AstContext<'ast>,
+        _cx: &'ast MarkerContext<'ast>,
         _variant: &'ast EnumVariant<'ast>,
     ) -> ControlFlow<B> {
         ControlFlow::Continue(())
     }
 
-    fn visit_body<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _body: &'ast Body<'ast>) -> ControlFlow<B> {
+    fn visit_body<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _body: &'ast Body<'ast>) -> ControlFlow<B> {
         ControlFlow::Continue(())
     }
 
-    fn visit_stmt<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _stmt: StmtKind<'ast>) -> ControlFlow<B> {
+    fn visit_stmt<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _stmt: StmtKind<'ast>) -> ControlFlow<B> {
         ControlFlow::Continue(())
     }
 
-    fn visit_expr<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _expr: ExprKind<'ast>) -> ControlFlow<B> {
+    fn visit_expr<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _expr: ExprKind<'ast>) -> ControlFlow<B> {
         ControlFlow::Continue(())
     }
 }
 
 pub fn traverse_item<'ast, B>(
-    cx: &'ast AstContext<'ast>,
+    cx: &'ast MarkerContext<'ast>,
     visitor: &mut dyn Visitor<B>,
     kind: ItemKind<'ast>,
 ) -> ControlFlow<B> {
     /// A small wrapper around [`traverse_body`] that checks the defined scope
     /// and validity of the [`BodyId`]
     fn traverse_body_id<'ast, B>(
-        cx: &'ast AstContext<'ast>,
+        cx: &'ast MarkerContext<'ast>,
         visitor: &mut dyn Visitor<B>,
         id: Option<BodyId>,
     ) -> ControlFlow<B> {
@@ -177,7 +177,7 @@ pub fn traverse_item<'ast, B>(
 }
 
 pub fn traverse_body<'ast, B>(
-    cx: &'ast AstContext<'ast>,
+    cx: &'ast MarkerContext<'ast>,
     visitor: &mut dyn Visitor<B>,
     body: &'ast Body<'ast>,
 ) -> ControlFlow<B> {
@@ -189,7 +189,7 @@ pub fn traverse_body<'ast, B>(
 }
 
 pub fn traverse_stmt<'ast, B>(
-    cx: &'ast AstContext<'ast>,
+    cx: &'ast MarkerContext<'ast>,
     visitor: &mut dyn Visitor<B>,
     stmt: StmtKind<'ast>,
 ) -> ControlFlow<B> {
@@ -218,7 +218,7 @@ pub fn traverse_stmt<'ast, B>(
 
 #[allow(clippy::too_many_lines)]
 pub fn traverse_expr<'ast, B>(
-    cx: &'ast AstContext<'ast>,
+    cx: &'ast MarkerContext<'ast>,
     visitor: &mut dyn Visitor<B>,
     expr: ExprKind<'ast>,
 ) -> ControlFlow<B> {
@@ -374,7 +374,7 @@ where
     Self: Sized + Copy,
 {
     /// This calls the `traverse_*` function for the implementing node.
-    fn traverse(self, cx: &'ast AstContext<'ast>, visitor: &mut dyn Visitor<B>) -> ControlFlow<B>;
+    fn traverse(self, cx: &'ast MarkerContext<'ast>, visitor: &mut dyn Visitor<B>) -> ControlFlow<B>;
 
     /// This function calls the given closure for every expression in the node. This
     /// traversal will not enter any nested bodies.
@@ -387,7 +387,7 @@ where
     /// # use marker_api::prelude::*;
     /// # use std::ops::ControlFlow;
     /// # use marker_utils::visitor::Traversable;
-    /// fn count_ifs<'ast>(cx: &'ast AstContext<'ast>, body: &'ast Body<'ast>) -> u32 {
+    /// fn count_ifs<'ast>(cx: &'ast MarkerContext<'ast>, body: &'ast Body<'ast>) -> u32 {
     ///     let mut count = 0;
     ///     let _: Option<()> = body.for_each_expr(
     ///         cx,
@@ -403,7 +403,7 @@ where
     /// ```
     fn for_each_expr<F: for<'a> FnMut(ExprKind<'a>) -> ControlFlow<B>>(
         self,
-        cx: &'ast AstContext<'ast>,
+        cx: &'ast MarkerContext<'ast>,
         f: F,
     ) -> Option<B> {
         struct ExprVisitor<F> {
@@ -412,7 +412,7 @@ where
         impl<B, F: for<'a> FnMut(ExprKind<'a>) -> ControlFlow<B>> Visitor<B> for ExprVisitor<F> {
             fn visit_expr<'v_ast>(
                 &mut self,
-                _cx: &'v_ast AstContext<'v_ast>,
+                _cx: &'v_ast MarkerContext<'v_ast>,
                 expr: ExprKind<'v_ast>,
             ) -> ControlFlow<B> {
                 (self.f)(expr)
@@ -431,7 +431,7 @@ where
 macro_rules! impl_traversable_for {
     ($ty:ty, $func:ident) => {
         impl<'ast, B> Traversable<'ast, B> for $ty {
-            fn traverse(self, cx: &'ast AstContext<'ast>, visitor: &mut dyn Visitor<B>) -> ControlFlow<B> {
+            fn traverse(self, cx: &'ast MarkerContext<'ast>, visitor: &mut dyn Visitor<B>) -> ControlFlow<B> {
                 $func(cx, visitor, self)
             }
         }
@@ -453,7 +453,7 @@ pub trait BoolTraversable<'ast>: Traversable<'ast, bool> {
     /// This function is useful, for lints which suggest moving code snippets into
     /// a closure or different function. Return statements might prevent the suggested
     /// refactoring.
-    fn contains_return(&self, cx: &'ast AstContext<'ast>) -> bool {
+    fn contains_return(&self, cx: &'ast MarkerContext<'ast>) -> bool {
         self.for_each_expr(cx, |expr| {
             if matches!(expr, ExprKind::Return(_) | ExprKind::Try(_)) {
                 ControlFlow::Break(true)

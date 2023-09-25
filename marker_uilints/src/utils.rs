@@ -8,7 +8,7 @@ marker_api::declare_lint! {
     Warn,
 }
 
-pub fn check_item<'ast>(cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) {
+pub fn check_item<'ast>(cx: &'ast MarkerContext<'ast>, item: ItemKind<'ast>) {
     let ItemKind::Fn(fn_item) = item else { return };
     let Some(ident) = fn_item.ident() else { return };
 
