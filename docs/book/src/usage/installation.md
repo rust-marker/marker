@@ -11,6 +11,30 @@ The marker sub-command is provided by the *cargo_marker* crate. This crate requi
 [Cargo]: https://github.com/rust-lang/cargo/
 [rustup]: https://github.com/rust-lang/rustup/
 
+## Download pre-compiled binaries (recommended)
+
+We provide pre-compiled binaries for the mainstream platforms. See the list of available artifacts in our [Github Releases](https://github.com/rust-marker/marker/releases/latest).
+
+Select one of the installation scripts below according to your platform. The script will install the required Rust toolchain dependency on your machine, download the current version of `cargo-marker` CLI, and the internal driver.
+
+<!-- region replace-version stable -->
+
+**Linux or MacOS (Bash)**:
+```bash
+curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.2.1/scripts/release/install.sh | bash
+```
+
+**Windows (PowerShell)**:
+```ps1
+curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.2.1/scripts/release/install.ps1 | powershell -command -
+```
+
+<!-- endregion replace-version stable -->
+
+The provided scripts are pinned to a specific version of `marker` to avoid sudden breakages especially if this script will be used on CI.
+
+If you are a windows user or your platform isn't supported yet by the pre-compiled binaries, then you should fall back to building from sources as described below.
+
 ## Build `cargo marker` plugin from sources
 
 Marker provides a new Cargo sub-command, that handles the driver installation, lint crate compilation, and checking process for you. To install it, simply use:
