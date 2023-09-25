@@ -1,4 +1,4 @@
-# Maker's UI tests
+# Marker's UI tests
 
 UI tests for Marker, implemented as a lint crate.
 
