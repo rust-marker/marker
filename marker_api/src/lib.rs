@@ -6,9 +6,7 @@
 #![allow(clippy::unused_self)] // `self` is needed to change the behavior later
 #![allow(clippy::missing_panics_doc)] // Temporary allow for `todo!`s
 #![allow(clippy::new_without_default)] // Not very helpful as `new` is almost always cfged
-#![cfg_attr(feature = "driver-api", allow(clippy::used_underscore_binding))] // See: idanarye/rust-typed-builder#113
 #![cfg_attr(not(feature = "driver-api"), allow(dead_code))]
-#![cfg_attr(not(feature = "driver-api"), warn(clippy::exhaustive_enums))] // See: idanarye/rust-typed-builder#112
 
 pub static MARKER_API_VERSION: &str = env!("CARGO_PKG_VERSION");
 

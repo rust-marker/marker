@@ -6,10 +6,10 @@ use marker_api::{LintPass, LintPassInfo, MARKER_API_VERSION};
 
 use super::LINT_CRATES_ENV;
 
-/// A struct describing a lint crate that can be loaded
+/// A struct describing a lint crate that can be loaded.
 #[derive(Debug, Clone)]
 pub struct LintCrateInfo {
-    /// The name of the lint crate
+    /// The name of the lint crate.
     pub name: String,
     /// The absolute path of the compiled dynamic library, which can be loaded as a lint crate.
     pub path: Utf8PathBuf,
@@ -176,7 +176,7 @@ impl LoadedLintCrate {
     }
 }
 
-/// SAFETY: inherits the same safety requirements from [`Library::get`]
+/// SAFETY: inherits the same safety requirements from [`Library::get`].
 unsafe fn get_symbol<T>(
     lib: &'static Library,
     info: &LintCrateInfo,
