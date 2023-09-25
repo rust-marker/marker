@@ -23,17 +23,35 @@ The following components are considered to be internal and they are excluded fro
 
 ## [Unreleased]
 
+This version focussed breaking changes.
+
+See the [v0.3.0 milestone] for a full list of all changes.
+
+[v0.3.0 milestone]: https://github.com/rust-marker/marker/milestone/3?closed=1
 [#231]: https://github.com/rust-marker/marker/pull/231
 [#232]: https://github.com/rust-marker/marker/pull/232
 [#239]: https://github.com/rust-marker/marker/pull/239
+[#241]: https://github.com/rust-marker/marker/pull/241
+[#244]: https://github.com/rust-marker/marker/pull/244
+[#245]: https://github.com/rust-marker/marker/pull/245
+[#252]: https://github.com/rust-marker/marker/pull/252
+[#256]: https://github.com/rust-marker/marker/pull/256
 
 ### Added
 - [#232]: Add scope config for visitors and `for_each_expr` to `marker_utils`
 - [#239]: GitHub releases now provide precompiled binaries of `cargo-marker` and `marker_rustc_driver`.
-- [#231]: Significantly improved error handling
+- [#252]: Marker now provides install scripts for linux, macos and windows
+
+### Breaking Changes
+- [#256]: Renamed `AstContext` -> `MarkerContext`
+- [#256]: Moved `marker_api::ast::common::span` -> `marker_api::span`
+- [#241]: Renamed `QuestionMarkExpr` -> `TryExpr`
+- [#244]: `StmtKind` and `PatKind` no longer wrap `Kind*` directly
+- [#245]: `emit_lint()` takes less arguments and returns a `DiagnosticBuilder` instance
 
 ### Internal
 
+- [#231]: Significantly improved error handling
 - [#239]: The release flow was automated. It's now a process of updating the `CHANGELOG.md` and doing several clicks to trigger the CI job.
 
 ## [0.2.1] - 2023-08-24
@@ -51,9 +69,9 @@ See the v0.2.0 milestone for a full list of all changes
 - Fixed the question mark operator resugar
 - `Span`s now properly represent macro expansions
 
-### Changed
-- **BREAKING:** `FnItem<'ast>` and `ClosureExpr<'ast>` no longer implement `CallableData`
-- **BREAKING:** Some `Span` methods have been renamed
+### Breaking Changes
+- `FnItem<'ast>` and `ClosureExpr<'ast>` no longer implement `CallableData`
+- Some `Span` methods have been renamed
 
 
 ## [0.1.1] - 2023-07-17
