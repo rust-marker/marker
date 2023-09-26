@@ -1,20 +1,22 @@
 //! This module is responsible for the [`MarkerContext`] struct and related plumbing.
 //! Items in this module are generally unstable, with the exception of the
 //! exposed interface of [`MarkerContext`].
+//!
+//! Checkout the documentation of `marker_adapter::context` for an explanation
+//! of how the backend of these structs is implemented.
 
 use std::{cell::RefCell, mem::transmute};
 
 use crate::{
-    ast::{
-        item::{Body, ItemKind},
-        ty::SemTyKind,
-        BodyId, ExpnId, ExprId, HasNodeId, ItemId, NodeId, SpanId, SymbolId, TyDefId,
-    },
+    ast::{ty::SemTyKind, ExpnId, ExprId, ItemId, SpanId, SymbolId, TyDefId},
     diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
     lint::{Level, Lint, MacroReport},
     span::{ExpnInfo, FileInfo, FilePos, Span, SpanPos, SpanSource},
 };
+
+mod map;
+pub use map::*;
 
 thread_local! {
     /// **Warning**
@@ -83,8 +85,10 @@ where
 /// This context will be passed to each [`LintPass`](`super::LintPass`) call to enable the user
 /// to emit lints and to retrieve nodes by the given ids.
 #[repr(C)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct MarkerContext<'ast> {
-    driver: &'ast DriverCallbacks<'ast>,
+    ast: AstMap<'ast>,
+    callbacks: MarkerContextCallbacks<'ast>,
 }
 
 impl<'ast> std::fmt::Debug for MarkerContext<'ast> {
@@ -93,16 +97,11 @@ impl<'ast> std::fmt::Debug for MarkerContext<'ast> {
     }
 }
 
-#[cfg(feature = "driver-api")]
 impl<'ast> MarkerContext<'ast> {
-    pub fn new(driver: &'ast DriverCallbacks<'ast>) -> Self {
-        Self { driver }
-    }
-}
-
-impl<'ast> MarkerContext<'ast> {
-    pub fn lint_level_at(&self, lint: &'static Lint, node: impl HasNodeId) -> Level {
-        self.driver.call_lint_level_at(lint, node.node_id())
+    /// Returns an [`AstMap`] instance, which can be used to retrieve AST nodes
+    /// by their ids.
+    pub fn ast(&self) -> &AstMap<'ast> {
+        &self.ast
     }
 
     /// This function is used to emit a lint.
@@ -218,7 +217,7 @@ impl<'ast> MarkerContext<'ast> {
         if matches!(lint.report_in_macro, MacroReport::No) && span.is_from_expansion() {
             return DiagnosticBuilder::dummy();
         }
-        if self.lint_level_at(lint, &node) == Level::Allow {
+        if self.ast().lint_level_at(lint, &node) == Level::Allow {
             return DiagnosticBuilder::dummy();
         }
 
@@ -226,20 +225,7 @@ impl<'ast> MarkerContext<'ast> {
     }
 
     pub(crate) fn emit_diagnostic<'a>(&self, diag: &'a Diagnostic<'a, 'ast>) {
-        self.driver.call_emit_diagnostic(diag);
-    }
-
-    /// This returns the [`ItemKind`] belonging to the given [`ItemId`]. It can
-    /// return `None` in special cases depending on the used driver.
-    ///
-    /// #### Driver information
-    /// * Rustc's driver will always return a valid item.
-    pub fn item(&self, id: ItemId) -> Option<ItemKind<'ast>> {
-        self.driver.call_item(id)
-    }
-
-    pub fn body(&self, id: BodyId) -> &Body<'ast> {
-        self.driver.call_body(id)
+        self.callbacks.call_emit_diagnostic(diag);
     }
 
     /// This function tries to resolve the given path to the corresponding [`TyDefId`].
@@ -264,44 +250,44 @@ impl<'ast> MarkerContext<'ast> {
     /// }
     /// ```
     pub fn resolve_ty_ids(&self, path: &str) -> &[TyDefId] {
-        (self.driver.resolve_ty_ids)(self.driver.driver_context, path.into()).get()
+        (self.callbacks.resolve_ty_ids)(self.callbacks.data, path.into()).get()
     }
 }
 
 impl<'ast> MarkerContext<'ast> {
     pub(crate) fn expr_ty(&self, expr: ExprId) -> SemTyKind<'ast> {
-        self.driver.call_expr_ty(expr)
+        self.callbacks.call_expr_ty(expr)
     }
 
     // FIXME: This function should probably be removed in favor of a better
     // system to deal with spans. See rust-marker/marker#175
     pub(crate) fn span_snipped(&self, span: &Span<'ast>) -> Option<&'ast str> {
-        (self.driver.span_snippet)(self.driver.driver_context, span)
+        (self.callbacks.span_snippet)(self.callbacks.data, span)
             .get()
             .map(ffi::FfiStr::get)
     }
 
     pub(crate) fn span(&self, span_id: SpanId) -> &'ast Span<'ast> {
-        self.driver.call_span(span_id)
+        self.callbacks.call_span(span_id)
     }
 
     pub(crate) fn span_source(&self, span: &Span<'_>) -> SpanSource<'ast> {
-        (self.driver.span_source)(self.driver.driver_context, span)
+        (self.callbacks.span_source)(self.callbacks.data, span)
     }
     pub(crate) fn span_pos_to_file_loc(&self, file: &FileInfo<'ast>, pos: SpanPos) -> Option<FilePos<'ast>> {
-        (self.driver.span_pos_to_file_loc)(self.driver.driver_context, file, pos).into()
+        (self.callbacks.span_pos_to_file_loc)(self.callbacks.data, file, pos).into()
     }
     pub(crate) fn span_expn_info(&self, src_id: ExpnId) -> Option<&'ast ExpnInfo<'ast>> {
-        (self.driver.span_expn_info)(self.driver.driver_context, src_id).into()
+        (self.callbacks.span_expn_info)(self.callbacks.data, src_id).into()
     }
 
     pub(crate) fn symbol_str(&self, sym: SymbolId) -> &'ast str {
-        self.driver.call_symbol_str(sym)
+        self.callbacks.call_symbol_str(sym)
     }
 
     #[allow(unused)] // Will be used later(or removed)
     pub(crate) fn resolve_method_target(&self, expr: ExprId) -> ItemId {
-        self.driver.resolve_method_target(expr)
+        self.callbacks.resolve_method_target(expr)
     }
 }
 
@@ -320,66 +306,63 @@ impl<'ast> MarkerContext<'ast> {
 /// `DriverContextWrapper` implementation in the `marker_adapter` crate. That
 /// type provides a simple wrapper to avoid driver unrelated boilerplate code.
 #[repr(C)]
-#[doc(hidden)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
-struct DriverCallbacks<'ast> {
-    /// This is a pointer to the driver context, provided to each function as
-    /// the first argument. This is an untyped pointer, since the driver is
-    /// unknown to the api and adapter. The context has to be casted into the
-    /// driver-specific type by the driver. A driver is always guaranteed to
-    /// get its own context.
-    pub driver_context: &'ast (),
-
-    // FIXME: all of the callbacks here must be marked as `unsafe`, because you
-    // can't call them in safe Rust passing a &() pointer. This will trigger UB.
+struct MarkerContextCallbacks<'ast> {
+    /// The data that will be used as the first argument for the callback functions.
+    /// The content of this data is defined by the driver (or by marker_adapter on behalf
+    /// of the driver)
+    pub data: &'ast MarkerContextData,
 
     // Lint emission and information
-    pub lint_level_at: extern "C" fn(&'ast (), &'static Lint, NodeId) -> Level,
-    pub emit_diag: for<'a> extern "C" fn(&'ast (), &'a Diagnostic<'a, 'ast>),
+    pub emit_diag: for<'a> extern "C" fn(&'ast MarkerContextData, &'a Diagnostic<'a, 'ast>),
 
     // Public utility
-    pub item: extern "C" fn(&'ast (), id: ItemId) -> ffi::FfiOption<ItemKind<'ast>>,
-    pub body: extern "C" fn(&'ast (), id: BodyId) -> &'ast Body<'ast>,
-
-    pub resolve_ty_ids: extern "C" fn(&'ast (), path: ffi::FfiStr<'_>) -> ffi::FfiSlice<'ast, TyDefId>,
+    pub resolve_ty_ids: extern "C" fn(&'ast MarkerContextData, path: ffi::FfiStr<'_>) -> ffi::FfiSlice<'ast, TyDefId>,
 
     // Internal utility
-    pub expr_ty: extern "C" fn(&'ast (), ExprId) -> SemTyKind<'ast>,
-    pub span: extern "C" fn(&'ast (), SpanId) -> &'ast Span<'ast>,
-    pub span_snippet: extern "C" fn(&'ast (), &Span<'ast>) -> ffi::FfiOption<ffi::FfiStr<'ast>>,
-    pub span_source: extern "C" fn(&'ast (), &Span<'_>) -> SpanSource<'ast>,
-    pub span_pos_to_file_loc: extern "C" fn(&'ast (), &FileInfo<'ast>, SpanPos) -> ffi::FfiOption<FilePos<'ast>>,
-    pub span_expn_info: extern "C" fn(&'ast (), ExpnId) -> ffi::FfiOption<&'ast ExpnInfo<'ast>>,
-    pub symbol_str: extern "C" fn(&'ast (), SymbolId) -> ffi::FfiStr<'ast>,
-    pub resolve_method_target: extern "C" fn(&'ast (), ExprId) -> ItemId,
+    pub expr_ty: extern "C" fn(&'ast MarkerContextData, ExprId) -> SemTyKind<'ast>,
+    pub span: extern "C" fn(&'ast MarkerContextData, SpanId) -> &'ast Span<'ast>,
+    pub span_snippet: extern "C" fn(&'ast MarkerContextData, &Span<'ast>) -> ffi::FfiOption<ffi::FfiStr<'ast>>,
+    pub span_source: extern "C" fn(&'ast MarkerContextData, &Span<'_>) -> SpanSource<'ast>,
+    pub span_pos_to_file_loc:
+        extern "C" fn(&'ast MarkerContextData, &FileInfo<'ast>, SpanPos) -> ffi::FfiOption<FilePos<'ast>>,
+    pub span_expn_info: extern "C" fn(&'ast MarkerContextData, ExpnId) -> ffi::FfiOption<&'ast ExpnInfo<'ast>>,
+    pub symbol_str: extern "C" fn(&'ast MarkerContextData, SymbolId) -> ffi::FfiStr<'ast>,
+    pub resolve_method_target: extern "C" fn(&'ast MarkerContextData, ExprId) -> ItemId,
 }
 
-impl<'ast> DriverCallbacks<'ast> {
-    fn call_lint_level_at(&self, lint: &'static Lint, node: NodeId) -> Level {
-        (self.lint_level_at)(self.driver_context, lint, node)
-    }
-
+impl<'ast> MarkerContextCallbacks<'ast> {
     fn call_emit_diagnostic<'a>(&self, diag: &'a Diagnostic<'a, 'ast>) {
-        (self.emit_diag)(self.driver_context, diag);
-    }
-
-    fn call_item(&self, id: ItemId) -> Option<ItemKind<'ast>> {
-        (self.item)(self.driver_context, id).copy()
-    }
-    fn call_body(&self, id: BodyId) -> &'ast Body<'ast> {
-        (self.body)(self.driver_context, id)
+        (self.emit_diag)(self.data, diag);
     }
 
     fn call_expr_ty(&self, expr: ExprId) -> SemTyKind<'ast> {
-        (self.expr_ty)(self.driver_context, expr)
+        (self.expr_ty)(self.data, expr)
     }
     fn call_span(&self, span_id: SpanId) -> &'ast Span<'ast> {
-        (self.span)(self.driver_context, span_id)
+        (self.span)(self.data, span_id)
     }
     fn call_symbol_str(&self, sym: SymbolId) -> &'ast str {
-        (self.symbol_str)(self.driver_context, sym).get()
+        (self.symbol_str)(self.data, sym).get()
     }
     pub fn resolve_method_target(&self, expr: ExprId) -> ItemId {
-        (self.resolve_method_target)(self.driver_context, expr)
+        (self.resolve_method_target)(self.data, expr)
     }
+}
+
+/// This type is used by [`MarkerContextCallbacks`] as the first argument to every
+/// function. For more information, see the documentation of the `data` field
+/// or from `marker_adapter::context`.
+///
+/// This type should never be constructed and is only meant as a pointer
+/// casting target.
+#[repr(C)]
+#[cfg_attr(feature = "driver-api", visibility::make(pub))]
+struct MarkerContextData {
+    /// `#[repr(C)]` requires a field, to make this a proper type. Using usize
+    /// ensures that the structs has the same alignment requirement as a pointer.
+    ///
+    /// This was a nice catch from `clippy::cast_ptr_alignment`. This should have been
+    /// fine anyways, but better safe than sorry.
+    _data: usize,
 }

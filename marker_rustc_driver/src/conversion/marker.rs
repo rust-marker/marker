@@ -16,13 +16,11 @@ use std::cell::RefCell;
 use crate::context::storage::Storage;
 use marker_api::{
     ast::{
-        expr::ExprKind,
-        item::{Body, ItemKind},
-        ty::SemTyKind,
-        BodyId, Crate, ExprId, ItemId, StmtId, SymbolId, TyDefId,
+        item::{EnumVariant, Field},
+        Crate, SymbolId,
     },
     lint::Level,
-    prelude::StmtKind,
+    prelude::*,
     span::{ExpnInfo, FilePos, Span, SpanSource},
 };
 use rustc_hash::FxHashMap;
@@ -74,8 +72,76 @@ impl<'ast, 'tcx> MarkerConverter<'ast, 'tcx> {
     }
 
     forward_to_inner!(pub fn to_lint_level(&self, level: rustc_lint::Level) -> Level);
-    forward_to_inner!(pub fn to_item(&self, rustc_item: &'tcx hir::Item<'tcx>) -> Option<ItemKind<'ast>>);
-    forward_to_inner!(pub fn to_body(&self, body: &hir::Body<'tcx>) -> &'ast Body<'ast>);
+
+    pub fn body(&self, id: hir::BodyId) -> &'ast Body<'ast> {
+        // Check the cache
+        let api_id = self.inner.to_body_id(id);
+        if let Some(body) = self.inner.bodies.borrow().get(&api_id) {
+            return body;
+        }
+        let rustc_body = self.inner.rustc_cx.hir().body(id);
+        self.inner.to_body(rustc_body)
+    }
+
+    pub fn item(&self, item_id: hir::ItemId) -> Option<ItemKind<'ast>> {
+        // Check the cache
+        let api_id = self.inner.to_item_id(item_id);
+        if let Some(item) = self.inner.items.borrow().get(&api_id) {
+            return Some(*item);
+        }
+
+        self.inner.to_item_from_id(item_id)
+    }
+
+    pub fn stmt(&self, hir_id: hir::HirId) -> Option<StmtKind<'ast>> {
+        // Check the cache
+        let id = self.inner.to_stmt_id(hir_id);
+        if let Some(stmt) = self.inner.stmts.borrow().get(&id) {
+            return Some(*stmt);
+        }
+
+        self.with_body(hir_id, |inner| {
+            let Some(hir::Node::Stmt(stmt)) = inner.rustc_cx.hir().find(hir_id) else {
+                return None;
+            };
+            inner.to_stmt(stmt)
+        })
+    }
+
+    pub fn expr(&self, hir_id: hir::HirId) -> Option<ExprKind<'ast>> {
+        // Check the cache
+        let id = self.inner.to_expr_id(hir_id);
+        if let Some(expr) = self.inner.exprs.borrow().get(&id) {
+            return Some(*expr);
+        }
+
+        self.with_body(hir_id, |inner| {
+            let Some(hir::Node::Expr(expr)) = inner.rustc_cx.hir().find(hir_id) else {
+                return None;
+            };
+            Some(inner.to_expr(expr))
+        })
+    }
+
+    pub fn variant(&self, id: VariantId) -> Option<&'ast EnumVariant<'ast>> {
+        // Lint crates only gain access to ids of fields and variants, that are
+        // in scope. Marker's conversion first transforms the entire crate. Any enums
+        // defined on this level will therefore be available in the cache.
+        //
+        // Enums and Structs defined inside bodies, will add their fields and variants
+        // to the cache, ensuring again, that they are accessible, if a user asks for them.
+        //
+        // This simply means, that it's enough to only check the cache. This is also
+        // the reason why this function takes an API id and not the rustc variant.
+        self.inner.variants.borrow().get(&id).copied()
+    }
+
+    pub fn field(&self, id: FieldId) -> Option<&'ast Field<'ast>> {
+        // See docs of the `variant` method for an explanation, why it's
+        // enough to only check the cache.
+        self.inner.fields.borrow().get(&id).copied()
+    }
+
     forward_to_inner!(pub fn to_ty_def_id(&self, id: hir::def_id::DefId) -> TyDefId);
     forward_to_inner!(pub fn to_span(&self, rustc_span: rustc_span::Span) -> Span<'ast>);
     forward_to_inner!(pub fn to_span_source(&self, rust_span: rustc_span::Span) -> SpanSource<'ast>);
@@ -110,6 +176,9 @@ struct MarkerConverterInner<'ast, 'tcx> {
     bodies: RefCell<FxHashMap<BodyId, &'ast Body<'ast>>>,
     exprs: RefCell<FxHashMap<ExprId, ExprKind<'ast>>>,
     stmts: RefCell<FxHashMap<StmtId, StmtKind<'ast>>>,
+    fields: RefCell<FxHashMap<FieldId, &'ast Field<'ast>>>,
+    variants: RefCell<FxHashMap<VariantId, &'ast EnumVariant<'ast>>>,
+
     num_symbols: RefCell<FxHashMap<u32, SymbolId>>,
 
     /// Lang-items are weird, and if I'm being honest, I'm uncertain that I
@@ -159,6 +228,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             bodies: RefCell::default(),
             exprs: RefCell::default(),
             stmts: RefCell::default(),
+            fields: RefCell::default(),
+            variants: RefCell::default(),
             num_symbols: RefCell::default(),
             lang_item_map: RefCell::default(),
             rustc_body: RefCell::default(),

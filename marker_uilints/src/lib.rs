@@ -6,7 +6,9 @@ mod utils;
 use marker_api::{
     ast::{
         item::{EnumVariant, Field, StaticItem},
+        stmt::LetStmt,
         ty::SemTyKind,
+        AstPathTarget,
     },
     diagnostic::Applicability,
     prelude::*,
@@ -50,9 +52,19 @@ marker_api::declare_lint! {
     /// # What it does
     /// A lint used for markers uitests.
     ///
-    /// It warns about about item names starting with `FindMe`, `find_me` or `FIND_ME`.
+    /// It prints out every expression, if this lint is set to warn at the
+    /// expression node.
     PRINT_EVERY_EXPR,
     Allow,
+}
+
+marker_api::declare_lint! {
+    /// # What it does
+    /// A lint used for marker's uitests.
+    ///
+    /// A lint to test [`marker_api::AstMap`].
+    TEST_AST_MAP,
+    Warn,
 }
 
 fn emit_item_with_test_name_lint<'ast>(
@@ -133,7 +145,7 @@ impl LintPass for TestLintPass {
                     .decorate(|diag| {
                         diag.span(item.ident().unwrap().span());
                         diag.note(format!("Item: {item:#?}"));
-                        diag.note(format!("Body: {:#?}", cx.body(func.body_id().unwrap())));
+                        diag.note(format!("Body: {:#?}", cx.ast().body(func.body_id().unwrap())));
                     });
             }
         }
@@ -193,6 +205,8 @@ impl LintPass for TestLintPass {
                     let ids = cx.resolve_ty_ids(path);
                     diag.note(format!("Is this a {:#?} -> {}", path, ids.contains(&adt.def_id())));
                 });
+            } else if ident.name().starts_with("_check_ast_map") {
+                check_ast_map(cx, lets);
             }
         }
     }
@@ -202,6 +216,36 @@ impl LintPass for TestLintPass {
             diag.note(&format!("SpanSource: {:#?}", expr.span().source()));
             diag.note(&format!("Snippet: {:#?}", expr.span().snippet_or("<..>")));
         });
+    }
+}
+
+fn check_ast_map<'ast>(cx: &'ast MarkerContext<'ast>, lets: &'ast LetStmt<'ast>) {
+    let Some(expr) = lets.init() else { return };
+
+    match expr {
+        ExprKind::Ctor(ctor) => {
+            let path = ctor.path();
+            match path.resolve() {
+                AstPathTarget::Variant(var_id) => cx
+                    .emit_lint(TEST_AST_MAP, expr, "testing `AstMap::variant`")
+                    .decorate(|diag| {
+                        diag.note(format!("`AstMap::variant()` --> {:#?}", cx.ast().variant(var_id)))
+                            .done();
+                    })
+                    .done(),
+                AstPathTarget::Item(item_id) => cx
+                    .emit_lint(TEST_AST_MAP, expr, "testing `AstMap::item`")
+                    .decorate(|diag| {
+                        diag.note(format!("`AstMap::item()` --> {:#?}", cx.ast().item(item_id)))
+                            .done();
+                    })
+                    .done(),
+                _ => unreachable!(),
+            }
+        },
+        _ => {
+            unreachable!()
+        },
     }
 }
 

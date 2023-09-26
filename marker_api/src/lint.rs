@@ -1,23 +1,45 @@
+/// This struct defines a lint.
+///
+/// It should never be constructed directly, the [`declare_lint`](crate::declare_lint)
+/// macro should be used instead, like this:
+///
+/// ```
+/// marker_api::declare_lint!{
+///     /// # What it does
+///     /// Here you can describe what your lint does.
+///     ///
+///     /// # Example
+///     /// ```
+///     /// <bad example>
+///     /// ```
+///     ///
+///     /// Use instead
+///     /// ```
+///     /// <bad example>
+///     /// ```
+///     ITEM_WITH_TEST_NAME,
+///     Warn,
+/// }
+/// ```
+///
+/// The fields of this struct are public, to allow the instantiation in constant
+/// context. Marker reserves the right to add new fields, as long the lint can still
+/// be constructed using the [`declare_lint`](crate::declare_lint) macro.
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Hash)]
-// This sadly cannot be marked as #[non_exhaustive] as the struct construction
-// has to be possible in a static context.
-#[doc(hidden)]
 pub struct Lint {
     /// A string identifier for the lint.
     ///
     /// This identifies the lint in attributes and in command-line arguments.
     /// In those contexts it is always lowercase. This allows
-    /// [`declare_lint!`] macro invocations to follow the convention of upper-case
-    /// statics without repeating the name.
+    /// [`declare_lint`](crate::declare_lint) macro invocations to follow the
+    /// convention of upper-case statics without repeating the name.
     ///
     /// The name is written with underscores, e.g., "unused_imports".
     /// On the command line, underscores become dashes.
     ///
     /// See <https://rustc-dev-guide.rust-lang.org/diagnostics.html#lint-naming>
     /// for naming guidelines.
-    ///
-    /// [`declare_lint!`]: declare_lint
     pub name: &'static str,
 
     /// Default level for the lint.
@@ -35,13 +57,11 @@ pub struct Lint {
     ///
     /// See [`MacroReport`] for the possible levels.
     pub report_in_macro: MacroReport,
-    // FIXME: We might want to add more fields. This should be possible as this
-    // struct is always constructed by a macro controlled by marker. These are some
-    // additional fields used  in rustc:
-    // * pub edition_lint_opts: Option<(Edition, Level)>,
-    // * pub future_incompatible: Option<FutureIncompatibleInfo>,
-    // * pub feature_gate: Option<&'static str>,
-    // * pub crate_level_only: bool,
+
+    /// This struct should always be instantiated using the [`declare_lint`](crate::declare_lint)
+    /// macro. This value is simply here, to force any construction to acknowledge the
+    /// instability of manual construction.
+    pub _unstable_i_accept_the_risk_of_instability: (),
 }
 
 /// FIXME(xFrednet): These settings should be working now, but are still limited
@@ -143,6 +163,7 @@ macro_rules! declare_lint {
             default_level: $crate::lint::Level::$LEVEL,
             explanation: concat!($($doc, '\n',)*),
             report_in_macro: $REPORT_IN_MACRO,
+            _unstable_i_accept_the_risk_of_instability: (),
         };
     };
 }

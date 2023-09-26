@@ -112,7 +112,8 @@ pub fn traverse_item<'ast, B>(
         }
 
         if let Some(body_id) = id {
-            traverse_body(cx, visitor, cx.body(body_id))?;
+            let body = cx.ast().body(body_id);
+            traverse_body(cx, visitor, body)?;
         }
 
         ControlFlow::Continue(())
@@ -235,7 +236,8 @@ pub fn traverse_expr<'ast, B>(
         },
         ExprKind::Closure(e) => {
             if let VisitorScope::AllBodies = visitor.scope() {
-                traverse_body(cx, visitor, cx.body(e.body_id()))?;
+                let body = cx.ast().body(e.body_id());
+                traverse_body(cx, visitor, body)?;
             }
         },
         ExprKind::UnaryOp(e) => {
