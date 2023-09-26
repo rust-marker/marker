@@ -11,6 +11,7 @@ Thank you for your interest in contributing to Marker. All contributions are app
     * [Code contributions](#code-contributions)
         * [Select a Task](#select-a-task)
         * [Fork and Clone Marker](#fork-and-clone-marker)
+        * [Rust-Analyzer Setup](#rust-analyzer-setup)
         * [Change Marker](#change-marker)
         * [Test Marker](#test-marker)
         * [Submit a Pull Request](#submit-a-pull-request)
@@ -71,7 +72,7 @@ You can also work on tasks not yet tracked in the [open issue]. For this, please
 Once you've decided on an issue, please comment on it and say that you want to work on it. You can also ping any active maintainer to receive mentoring instructions.
 
 [open issues]: https://github.com/rust-marker/marker/issues
-[`E-good-first-issue` label]: https://github.com/rust-marker/marker/issues
+[`E-good-first-issue` label]: https://github.com/rust-marker/marker/labels/E-good-first-issue
 
 #### Fork and Clone Marker
 
@@ -86,6 +87,28 @@ To get started, you have to fork Marker and clone the repository. The following 
 
 That's it. Now you're ready to drive into your first change.
 
+#### Rust-Analyzer Setup
+
+It's recommended to set the [`rust-analyzer.rustc.source`] configuration, to allow autocompletion for rustc types. Rust-Analyzer needs to be restarted, for the change to take affect:
+
+```json
+{
+    "rust-analyzer.rustc.source": "discover"
+}
+```
+
+While working on the API, it can also be helpful to enable inlay type hints for elided lifetimes in function signatures. See [`rust-analyzer.inlayHints.lifetimeElisionHints.enable`]:
+
+```json
+{
+    "rust-analyzer.inlayHints.lifetimeElisionHints.enable": "skip_trivial",
+}
+```
+
+[`rust-analyzer.rustc.source`]: https://rust-analyzer.github.io/manual.html#rust-analyzer.rustc.source
+[`rust-analyzer.inlayHints.lifetimeElisionHints.enable`]: https://rust-analyzer.github.io/manual.html#rust-analyzer.inlayHints.lifetimeElisionHints.enable
+
+
 #### Change Marker
 
 The type of change and recommended documentation to read depends on the component you want to work on. Here is a collection of useful links. Note that most of these are not targeted towards Marker, but they're still super useful:
@@ -96,7 +119,7 @@ The type of change and recommended documentation to read depends on the componen
     * [The rustup book](https://rust-lang.github.io/rustup/)
     * [clap](https://docs.rs/clap/latest/clap/)
     * [Serde](https://serde.rs/)
-* [`marker_api`]: The AST representation of Marker and everything needed to create a lint crate
+* `marker_api`: The AST representation of Marker and everything needed to create a lint crate
     * [The Rust Reference](https://doc.rust-lang.org/reference/introduction.html)
 * `marker_rustc_driver`: This component translates rustc's representation to Marker's API.
     * [rustc-dev-guide](https://rustc-dev-guide.rust-lang.org/)
