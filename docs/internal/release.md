@@ -34,7 +34,7 @@ The `sha256` sum is a small file that users may optionally download together wit
 This [`install.sh`](https://raw.githubusercontent.com/rust-marker/marker/v0.2.1/scripts/release/install.sh) script, can be used to automatically download and verify Marker's binaries.
 <!-- endregion replace-version stable -->
 
-## Operating system versions coverage
+### Operating system versions coverage
 
 We want to cover not only the mainstream operating systems, but also some reasonable range of their versions. For example, for `ubuntu` we want our binaries to work on the current LTS version of `ubuntu` and also on the version of `ubuntu` that precedes it. At the time of this writing the latest LTS version of `ubuntu` is `22.04`, and the previous one is `20.04`, while the LTS version of ubuntu before that one is `18.04` and it already reached the "end of standard support" date, and so far practically noone uses it.
 
@@ -62,6 +62,21 @@ The binaries with `musl` in their name don't depend on GLIBC. They are staticall
 
 This comes at a cost, though. The `musl` implementation of `libc` isn't complete, and it may have bugs, performance degradations compared to GLIBC, etc. However, it generally covers everything you may ever need if you aren't doing something unusual.
 
+## Github Action
+
+There is a Github Action template `action.yml` file maintained within the Marker repository. It installs the pre-compiled binaries using the installation scripts and runs `cargo marker`.
+
+It is common to reference the Github Action using sliding tags like this:
+```yml
+- uses: rust-marker/marker@v0.3
+```
+Or this when marker reaches a `1.0.0` version and minor versions are compatible:
+```yml
+- uses: rust-marker/marker@v1
+```
+
+We maintain these tags in our automated release flow described below.
+
 # Regular release
 
 The regular release means a planned event when the maintainer of `marker` publishes the new version of the artifacts to the users. It may happen at any time when such a decision is made, which usually means on some consistent schedule.
@@ -80,7 +95,17 @@ Once the `CHANGELOG.md` is ready in `master` the maintainer can trigger the CI `
 
 The `release` CI workflow then checks out the `master` branch (assuming "Use workflow from" input wasn't changed from its default), parses the current release version from the `CHANGELOG.md` file and updates `Cargo.toml`, `Cargo.lock` and various `.rs` and `.md` files with the new version. It uses simple regex patterns with `sed` to edit the files. This logic may break, and thus there is a test on regular CI that makes sure it stays stable.
 
-The release commit is then assigned a `v{semver}` git tag. After that the workflow sets the next version for the new development cycle with the incremented release version and the `-dev` suffix, and creates a new commit with that. No additional tag at this point is created.
+The release commit is then assigned a `v{semver}` git tag . After that the workflow sets the next version for the new development cycle with the incremented release version and the `-dev` suffix, and creates a new commit with that.
+
+### Sliding `v{major}` and `v{major}.{minor}` tags.
+
+The release CI flow will also create and move the sliding `v{major}` and `v{major}.{minor}` tags. For example, if we release a version `0.3.0`, then there will be three tags created `v0.3.0`, `v0` and `v0.3`.
+
+And if we release a patch `0.3.1`, then there will be a new tag `v0.3.1`, and the existing `v0` and `v0.3` will be moved to this new  commit for `0.3.1`.
+
+The sliding tags won't be updated for pre-releases (versions with `-` suffix in them).
+
+These sliding tags may be used to hardcode only the major or minor version of `marker`, to allow for automatic updates, to the patch version. These sliding tags can be used to download the installation script or run Marker's Github Action and automatically get fixes from the upstream.
 
 ## `release-on-tag` workflow
 

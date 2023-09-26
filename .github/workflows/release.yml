@@ -32,6 +32,9 @@ jobs:
         run: echo "release_version=$(scripts/release/get-version-from-changelog.sh)" >> $GITHUB_ENV
       - name: Resolve the next dev version
         run: echo "next_dev_version=$(scripts/release/get-next-dev-version.sh ${{ env.release_version }})" >> $GITHUB_ENV
+      - name: Resolve the git tags
+        run: echo "tags=$(scripts/release/get-git-tags.sh ${{ env.release_version }})" >> $GITHUB_ENV
+
 
       # To be able to create a commit we need some committer identity.
       - run: |
@@ -42,11 +45,21 @@ jobs:
       - run: scripts/release/set-version.sh ${{ env.release_version }}
           --commit "🚀 Release v${{ env.release_version }}"
 
-      - run: git tag v${{ env.release_version }}
+      - run: |
+          for tag in ${{ env.tags }}; do
+            git tag $tag
+          done
 
       # Create a next dev version commit
       - run: scripts/release/set-version.sh ${{ env.next_dev_version }}
           --commit "🚧 Development v${{ env.next_dev_version }}"
 
-      # Push the branch and the new tag to the remote
-      - run: git push --atomic origin ${{ github.ref_name }} v${{ env.release_version }}
+      # Push the changes to the remote
+      - run: git push origin ${{ github.ref_name }}
+
+      # We use `--force` because the tags that are pushed here will include the
+      # sliding `v{major}` and `v{major}.{minor}` tags, so we have to overwrite
+      # them with the new ones. To prevent force-pushing the master branch we
+      # do this push with --force in a separate step, so it's not fully atomic,
+      # but it's good enough.
+      - run: git push --force --atomic origin ${{ env.tags }}

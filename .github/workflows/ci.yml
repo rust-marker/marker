@@ -164,3 +164,39 @@ jobs:
           --baseline-root './upstream'
           --default-features
           --release-type minor
+
+  # Check that the Github Action works
+  github-action-test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        # Make sure we cover all operating systems supported by Github Actions
+        os:
+          - windows-2019
+          - windows-2022
+          - ubuntu-20.04
+          - ubuntu-22.04
+          - macos-13
+          - macos-12
+          - macos-11
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # This action downloads the latest released version of `cargo-marker`,
+      # and installs it into `$PATH`.
+      #
+      # Because `marker_lints` in this repo depends on the next dev version of
+      # `marker_api` it won't be compatible with the latest released `marker_api`,
+      # so there is no sense in actually running `cargo marker check` here.
+      # Therefore we set `install-only` to skip running a command.
+      #
+      # At least this checks that our installation script works as expected.
+      - uses: ./
+        with:
+          install-only: true
+
+      # +stable is to force using the pre-installed `cargo` on the runner instead of
+      # what's specified in `rust-toolchain.toml`
+      - run: cargo +stable marker --version
