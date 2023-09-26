@@ -1,7 +1,5 @@
 mod id;
 pub use id::*;
-mod span;
-pub use span::*;
 mod callable;
 pub use callable::*;
 mod ast_path;

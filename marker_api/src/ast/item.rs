@@ -1,11 +1,14 @@
 use std::{fmt::Debug, marker::PhantomData};
 
-use crate::diagnostic::EmissionNode;
-use crate::private::Sealed;
-use crate::CtorBlocker;
+use crate::{
+    diagnostic::EmissionNode,
+    private::Sealed,
+    span::{HasSpan, Ident, Span},
+    CtorBlocker,
+};
 
 use super::expr::ExprKind;
-use super::{HasNodeId, HasSpan, Ident, ItemId, Span, SpanId};
+use super::{HasNodeId, ItemId, SpanId};
 
 // Item implementations
 mod extern_crate_item;
@@ -39,7 +42,7 @@ pub use unstable_item::*;
 /// super trait prevents external implementations.
 pub trait ItemData<'ast>: Debug + EmissionNode<'ast> + HasSpan<'ast> + HasNodeId + Sealed {
     /// Returns the [`ItemId`] of this item. This is a unique identifier used for comparison
-    /// and to request items from the [`AstContext`](`crate::context::AstContext`).
+    /// and to request items from the [`MarkerContext`](`crate::context::MarkerContext`).
     fn id(&self) -> ItemId;
 
     /// The [`Visibility`] of this item.
@@ -90,7 +93,7 @@ impl<'ast> ItemKind<'ast> {
     impl_item_type_fn!(ItemKind: attrs() -> ());
 }
 
-crate::ast::impl_spanned_for!(ItemKind<'ast>);
+crate::span::impl_spanned_for!(ItemKind<'ast>);
 crate::ast::impl_identifiable_for!(ItemKind<'ast>);
 impl<'ast> crate::private::Sealed for ItemKind<'ast> {}
 
@@ -112,7 +115,7 @@ impl<'ast> AssocItemKind<'ast> {
     // FIXME: Potentially add a field to the items to optionally store the owner id
 }
 
-crate::ast::impl_spanned_for!(AssocItemKind<'ast>);
+crate::span::impl_spanned_for!(AssocItemKind<'ast>);
 crate::ast::impl_identifiable_for!(AssocItemKind<'ast>);
 impl<'ast> crate::private::Sealed for AssocItemKind<'ast> {}
 
@@ -142,7 +145,7 @@ impl<'ast> ExternItemKind<'ast> {
     impl_item_type_fn!(ExternItemKind: as_item() -> ItemKind<'ast>);
 }
 
-crate::ast::impl_spanned_for!(ExternItemKind<'ast>);
+crate::span::impl_spanned_for!(ExternItemKind<'ast>);
 crate::ast::impl_identifiable_for!(ExternItemKind<'ast>);
 impl<'ast> crate::private::Sealed for ExternItemKind<'ast> {}
 
@@ -206,7 +209,7 @@ macro_rules! impl_item_data {
                 &self.data.vis
             }
 
-            fn ident(&self) -> Option<&crate::ast::Ident<'ast>> {
+            fn ident(&self) -> Option<&crate::span::Ident<'ast>> {
                 Some(&self.data.ident)
             }
 
@@ -217,8 +220,8 @@ macro_rules! impl_item_data {
             fn attrs(&self) {}
         }
 
-        impl<'ast> $crate::ast::HasSpan<'ast> for $self_name<'ast> {
-            fn span(&self) -> &crate::ast::Span<'ast> {
+        impl<'ast> $crate::span::HasSpan<'ast> for $self_name<'ast> {
+            fn span(&self) -> &crate::span::Span<'ast> {
                 $crate::context::with_cx(self, |cx| cx.span(self.data.span))
             }
         }

@@ -19,7 +19,7 @@ use self::storage::Storage;
 pub mod storage;
 
 /// This is the central context for the rustc driver and the struct providing the
-/// callback implementation for [`AstContext`](`marker_api::context::AstContext`).
+/// callback implementation for [`MarkerContext`](`marker_api::context::MarkerContext`).
 ///
 /// The struct intentionally only stores the [`TyCtxt`] and [`LintStore`] and not
 /// a [`LateContext`](`rustc_lint::LateContext`) as the late context operates on
@@ -35,10 +35,10 @@ pub struct RustcContext<'ast, 'tcx> {
     pub marker_converter: MarkerConverter<'ast, 'tcx>,
     pub rustc_converter: RustcConverter<'ast, 'tcx>,
 
-    /// This is the [`AstContext`] wrapping callbacks to this instance of the
+    /// This is the [`MarkerContext`] wrapping callbacks to this instance of the
     /// [`RustcContext`]. The once cell will be set immediately after the creation
     /// which makes it safe to access afterwards.
-    ast_cx: OnceCell<&'ast AstContext<'ast>>,
+    ast_cx: OnceCell<&'ast MarkerContext<'ast>>,
     resolved_ty_ids: RefCell<FxHashMap<&'ast str, &'ast [TyDefId]>>,
 }
 
@@ -55,16 +55,16 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
             resolved_ty_ids: RefCell::default(),
         });
 
-        // Create and link `AstContext`
+        // Create and link `MarkerContext`
         let callbacks_wrapper = storage.alloc(DriverContextWrapper::new(driver_cx));
         let callbacks = storage.alloc(callbacks_wrapper.create_driver_callback());
-        let ast_cx = storage.alloc(AstContext::new(callbacks));
+        let ast_cx = storage.alloc(MarkerContext::new(callbacks));
         driver_cx.ast_cx.set(ast_cx).unwrap();
 
         driver_cx
     }
 
-    pub fn ast_cx(&self) -> &'ast AstContext<'ast> {
+    pub fn ast_cx(&self) -> &'ast MarkerContext<'ast> {
         // The `OnceCell` is filled in the new function and can never be not set.
         self.ast_cx.get().unwrap()
     }
@@ -222,23 +222,23 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
         Some(self.storage.alloc_str(&snippet))
     }
 
-    fn span_source(&'ast self, api_span: &Span<'_>) -> marker_api::ast::SpanSource<'ast> {
+    fn span_source(&'ast self, api_span: &Span<'_>) -> marker_api::span::SpanSource<'ast> {
         let rust_span = self.rustc_converter.to_span(api_span);
         self.marker_converter.to_span_source(rust_span)
     }
 
     fn span_pos_to_file_loc(
         &'ast self,
-        file: &marker_api::ast::FileInfo<'ast>,
-        pos: marker_api::ast::SpanPos,
-    ) -> Option<marker_api::ast::FilePos<'ast>> {
+        file: &marker_api::span::FileInfo<'ast>,
+        pos: marker_api::span::SpanPos,
+    ) -> Option<marker_api::span::FilePos<'ast>> {
         self.marker_converter.try_to_span_pos(
             self.rustc_converter.to_syntax_context(file.span_src()),
             self.rustc_converter.to_byte_pos(pos),
         )
     }
 
-    fn span_expn_info(&'ast self, expn_id: marker_api::ast::ExpnId) -> Option<&'ast marker_api::ast::ExpnInfo<'ast>> {
+    fn span_expn_info(&'ast self, expn_id: marker_api::ast::ExpnId) -> Option<&'ast marker_api::span::ExpnInfo<'ast>> {
         let id = self.rustc_converter.to_expn_id(expn_id);
         self.marker_converter.try_to_expn_info(id)
     }

@@ -1,10 +1,11 @@
 use std::mem::{size_of, transmute};
 
 use marker_api::{
-    ast::{CrateId, ExpnId, SpanId, SpanPos, SpanSrcId, SymbolId},
+    ast::{CrateId, ExpnId, SpanId, SpanSrcId, SymbolId},
     diagnostic::Applicability,
     lint::Level,
     prelude::*,
+    span::SpanPos,
 };
 use rustc_hir as hir;
 

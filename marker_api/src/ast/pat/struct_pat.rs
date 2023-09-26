@@ -1,7 +1,8 @@
 use crate::{
-    ast::{AstQPath, Span, SpanId, SymbolId},
+    ast::{AstQPath, SpanId, SymbolId},
     context::with_cx,
     ffi::FfiSlice,
+    span::Span,
 };
 
 use super::{CommonPatData, PatKind};

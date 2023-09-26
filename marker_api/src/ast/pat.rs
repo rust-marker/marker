@@ -1,6 +1,6 @@
-use crate::private::Sealed;
+use crate::{private::Sealed, span::Span};
 
-use super::{Span, SpanId};
+use super::SpanId;
 
 use std::{fmt::Debug, marker::PhantomData};
 
@@ -138,7 +138,7 @@ impl<'ast> CommonPatData<'ast> {
 macro_rules! impl_pat_data {
     ($self_ty:ty, $enum_name:ident) => {
         impl<'ast> super::PatData<'ast> for $self_ty {
-            fn span(&self) -> &crate::ast::Span<'ast> {
+            fn span(&self) -> &crate::span::Span<'ast> {
                 $crate::context::with_cx(self, |cx| cx.span(self.data.span))
             }
         }

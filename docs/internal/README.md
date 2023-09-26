@@ -36,5 +36,5 @@ This document will go over the step by step linting process for a lint pass.
 7. `marker_adapter` loads all lint crates from the environment value set by `cargo-marker`
 8. `marker_adapter` then traverses the given AST tree
     and passes all objects to the respective lint pass functions implemented by the lint crates.
-9. *lint_crates* receive an `AstContext` object with each lint pass function.
+9. *lint_crates* receive an `MarkerContext` object with each lint pass function.
     With this context, they can request nodes by ID or emit lint messages like in rustc's lint passes.

@@ -6,9 +6,7 @@
 #![allow(clippy::unused_self)] // `self` is needed to change the behavior later
 #![allow(clippy::missing_panics_doc)] // Temporary allow for `todo!`s
 #![allow(clippy::new_without_default)] // Not very helpful as `new` is almost always cfged
-#![cfg_attr(feature = "driver-api", allow(clippy::used_underscore_binding))] // See: idanarye/rust-typed-builder#113
 #![cfg_attr(not(feature = "driver-api"), allow(dead_code))]
-#![cfg_attr(not(feature = "driver-api"), warn(clippy::exhaustive_enums))] // See: idanarye/rust-typed-builder#112
 
 pub static MARKER_API_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -18,11 +16,12 @@ pub mod diagnostic;
 pub mod interface;
 pub mod lint;
 pub mod prelude;
+pub mod span;
 
 #[doc(hidden)]
 pub mod ffi;
 
-pub use context::AstContext;
+pub use context::MarkerContext;
 pub use interface::{LintPassInfo, LintPassInfoBuilder};
 
 /// A [`LintPass`] visits every node like a `Visitor`. The difference is that a
@@ -32,12 +31,12 @@ pub use interface::{LintPassInfo, LintPassInfoBuilder};
 pub trait LintPass {
     fn info(&self) -> LintPassInfo;
 
-    fn check_item<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _item: ast::item::ItemKind<'ast>) {}
-    fn check_field<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _field: &'ast ast::item::Field<'ast>) {}
-    fn check_variant<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _variant: &'ast ast::item::EnumVariant<'ast>) {}
-    fn check_body<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _body: &'ast ast::item::Body<'ast>) {}
-    fn check_stmt<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _stmt: ast::stmt::StmtKind<'ast>) {}
-    fn check_expr<'ast>(&mut self, _cx: &'ast AstContext<'ast>, _expr: ast::expr::ExprKind<'ast>) {}
+    fn check_item<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _item: ast::item::ItemKind<'ast>) {}
+    fn check_field<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _field: &'ast ast::item::Field<'ast>) {}
+    fn check_variant<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _variant: &'ast ast::item::EnumVariant<'ast>) {}
+    fn check_body<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _body: &'ast ast::item::Body<'ast>) {}
+    fn check_stmt<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _stmt: ast::stmt::StmtKind<'ast>) {}
+    fn check_expr<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _expr: ast::expr::ExprKind<'ast>) {}
 }
 
 pub(crate) mod private {

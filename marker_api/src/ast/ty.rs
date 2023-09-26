@@ -1,9 +1,9 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-use crate::private::Sealed;
+use crate::{private::Sealed, span::Span};
 
-use super::{Span, SpanId};
+use super::SpanId;
 
 // Primitive types
 mod fn_ty;
@@ -193,7 +193,7 @@ macro_rules! impl_ty_data {
                 self.into()
             }
 
-            fn span(&self) -> &$crate::ast::Span<'ast> {
+            fn span(&self) -> &$crate::span::Span<'ast> {
                 $crate::context::with_cx(self, |cx| cx.span(self.data.span))
             }
         }

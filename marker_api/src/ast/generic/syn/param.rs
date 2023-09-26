@@ -1,13 +1,18 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-use crate::ast::expr::ConstExpr;
-use crate::ast::generic::{Lifetime, SynGenericParams};
-use crate::ast::ty::SynTyKind;
-use crate::ast::{GenericId, Span, SpanId, SymbolId};
-use crate::context::with_cx;
-use crate::ffi::{FfiOption, FfiSlice};
-use crate::private::Sealed;
+use crate::{
+    ast::{
+        expr::ConstExpr,
+        generic::{Lifetime, SynGenericParams},
+        ty::SynTyKind,
+        GenericId, SpanId, SymbolId,
+    },
+    context::with_cx,
+    ffi::{FfiOption, FfiSlice},
+    private::Sealed,
+    span::Span,
+};
 
 use super::SynTyParamBound;
 

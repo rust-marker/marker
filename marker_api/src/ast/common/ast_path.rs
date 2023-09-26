@@ -2,10 +2,11 @@
 //!
 //! See: <https://doc.rust-lang.org/stable/reference/paths.html>
 
-use super::{GenericId, Ident, ItemId, VarId, VariantId};
+use super::{GenericId, ItemId, VarId, VariantId};
 use crate::{
     ast::{generic::SynGenericArgs, ty::SynTyKind},
     ffi::{FfiOption, FfiSlice},
+    span::Ident,
 };
 
 /// [`AstPath`]s are used to identify items. A qualified path (`QPath`) can be
@@ -143,11 +144,11 @@ impl<'ast> AstQPath<'ast> {
         // For rust-analyzer or future drivers, it might make sense to return
         // `Option<AstPathTarget>` instead, as the path might be dead,
         // when a lint crate calls this function. However, I have the feeling
-        // that this would make the API less ergonomic. The `AstContext` will
+        // that this would make the API less ergonomic. The `MarkerContext` will
         // already need to handle these cases explicitly. Currently, a user can
         // get a resolved id from the target, but the resolution of the ID, by
-        // the `AstContext`, might fail. The outcome is the same, but all
-        // "failable" resolution will be grouped in the `AstContext`
+        // the `MarkerContext`, might fail. The outcome is the same, but all
+        // "failable" resolution will be grouped in the `MarkerContext`
         self.target
     }
 

@@ -63,7 +63,7 @@ impl<'ast> CharLitExpr<'ast> {
 /// the written float literal by getting the code snipped from the expression span.
 /// See:
 /// * [`HasSpan::span()`](`super::HasSpan::span`)
-/// * [`Span::snippet()`](`crate::ast::Span::snippet`)
+/// * [`Span::snippet()`](`crate::span::Span::snippet`)
 ///
 /// All integer literals are unsigned, negative numbers have a unary negation
 /// operation as their parent.

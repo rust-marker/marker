@@ -1,15 +1,15 @@
 use crate::error::prelude::*;
 use camino::Utf8PathBuf;
 use libloading::Library;
-use marker_api::{interface::LintCrateBindings, AstContext};
+use marker_api::{interface::LintCrateBindings, MarkerContext};
 use marker_api::{LintPass, LintPassInfo, MARKER_API_VERSION};
 
 use super::LINT_CRATES_ENV;
 
-/// A struct describing a lint crate that can be loaded
+/// A struct describing a lint crate that can be loaded.
 #[derive(Debug, Clone)]
 pub struct LintCrateInfo {
-    /// The name of the lint crate
+    /// The name of the lint crate.
     pub name: String,
     /// The absolute path of the compiled dynamic library, which can be loaded as a lint crate.
     pub path: Utf8PathBuf,
@@ -65,7 +65,7 @@ impl LintCrateRegistry {
         Ok(new_self)
     }
 
-    pub(super) fn set_ast_context<'ast>(&self, cx: &'ast AstContext<'ast>) {
+    pub(super) fn set_ast_context<'ast>(&self, cx: &'ast MarkerContext<'ast>) {
         for lint_pass in &self.passes {
             (lint_pass.bindings.set_ast_context)(cx);
         }
@@ -82,13 +82,13 @@ impl LintPass for LintCrateRegistry {
         panic!("`registered_lints` should not be called on `LintCrateRegistry`");
     }
 
-    fn check_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: marker_api::ast::item::ItemKind<'ast>) {
+    fn check_item<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, item: marker_api::ast::item::ItemKind<'ast>) {
         for lp in &self.passes {
             (lp.bindings.check_item)(cx, item);
         }
     }
 
-    fn check_field<'ast>(&mut self, cx: &'ast AstContext<'ast>, field: &'ast marker_api::ast::item::Field<'ast>) {
+    fn check_field<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, field: &'ast marker_api::ast::item::Field<'ast>) {
         for lp in &self.passes {
             (lp.bindings.check_field)(cx, field);
         }
@@ -96,7 +96,7 @@ impl LintPass for LintCrateRegistry {
 
     fn check_variant<'ast>(
         &mut self,
-        cx: &'ast AstContext<'ast>,
+        cx: &'ast MarkerContext<'ast>,
         variant: &'ast marker_api::ast::item::EnumVariant<'ast>,
     ) {
         for lp in &self.passes {
@@ -104,19 +104,19 @@ impl LintPass for LintCrateRegistry {
         }
     }
 
-    fn check_body<'ast>(&mut self, cx: &'ast AstContext<'ast>, body: &'ast marker_api::ast::item::Body<'ast>) {
+    fn check_body<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, body: &'ast marker_api::ast::item::Body<'ast>) {
         for lp in &self.passes {
             (lp.bindings.check_body)(cx, body);
         }
     }
 
-    fn check_stmt<'ast>(&mut self, cx: &'ast AstContext<'ast>, stmt: marker_api::ast::stmt::StmtKind<'ast>) {
+    fn check_stmt<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, stmt: marker_api::ast::stmt::StmtKind<'ast>) {
         for lp in &self.passes {
             (lp.bindings.check_stmt)(cx, stmt);
         }
     }
 
-    fn check_expr<'ast>(&mut self, cx: &'ast AstContext<'ast>, expr: marker_api::ast::expr::ExprKind<'ast>) {
+    fn check_expr<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, expr: marker_api::ast::expr::ExprKind<'ast>) {
         for lp in &self.passes {
             (lp.bindings.check_expr)(cx, expr);
         }
@@ -176,7 +176,7 @@ impl LoadedLintCrate {
     }
 }
 
-/// SAFETY: inherits the same safety requirements from [`Library::get`]
+/// SAFETY: inherits the same safety requirements from [`Library::get`].
 unsafe fn get_symbol<T>(
     lib: &'static Library,
     info: &LintCrateInfo,

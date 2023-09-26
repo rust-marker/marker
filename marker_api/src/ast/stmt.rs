@@ -1,9 +1,13 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-use crate::{ffi::FfiOption, private::Sealed};
+use crate::{
+    ffi::FfiOption,
+    private::Sealed,
+    span::{HasSpan, Span},
+};
 
-use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::SynTyKind, HasNodeId, HasSpan, Span, SpanId, StmtId};
+use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::SynTyKind, HasNodeId, SpanId, StmtId};
 
 /// This trait combines methods, which all statements have in common.
 ///
@@ -48,7 +52,7 @@ impl<'ast> StmtKind<'ast> {
     pub fn attrs(&self) {}
 }
 
-crate::ast::impl_spanned_for!(StmtKind<'ast>);
+crate::span::impl_spanned_for!(StmtKind<'ast>);
 crate::ast::impl_identifiable_for!(StmtKind<'ast>);
 impl<'ast> crate::private::Sealed for StmtKind<'ast> {}
 
@@ -76,8 +80,8 @@ macro_rules! impl_stmt_data {
             }
         }
 
-        impl<'ast> $crate::ast::HasSpan<'ast> for $self_ty {
-            fn span(&self) -> &crate::ast::Span<'ast> {
+        impl<'ast> $crate::span::HasSpan<'ast> for $self_ty {
+            fn span(&self) -> &crate::span::Span<'ast> {
                 $crate::context::with_cx(self, |cx| cx.span(self.data.span))
             }
         }

@@ -19,7 +19,7 @@ use marker_api::{
         stmt::StmtKind,
         Crate,
     },
-    context::AstContext,
+    context::MarkerContext,
     LintPass, LintPassInfo,
 };
 use marker_utils::visitor::{self, Visitor};
@@ -64,7 +64,7 @@ impl Adapter {
         self.inner.borrow().external_lint_crates.collect_lint_pass_info()
     }
 
-    pub fn process_krate<'ast>(&self, cx: &'ast AstContext<'ast>, krate: &Crate<'ast>) {
+    pub fn process_krate<'ast>(&self, cx: &'ast MarkerContext<'ast>, krate: &Crate<'ast>) {
         let inner = &mut *self.inner.borrow_mut();
 
         inner.external_lint_crates.set_ast_context(cx);
@@ -80,32 +80,36 @@ impl Visitor<()> for AdapterInner {
         visitor::VisitorScope::AllBodies
     }
 
-    fn visit_item<'ast>(&mut self, cx: &'ast AstContext<'ast>, item: ItemKind<'ast>) -> ControlFlow<()> {
+    fn visit_item<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, item: ItemKind<'ast>) -> ControlFlow<()> {
         self.external_lint_crates.check_item(cx, item);
         ControlFlow::Continue(())
     }
 
-    fn visit_field<'ast>(&mut self, cx: &'ast AstContext<'ast>, field: &'ast Field<'ast>) -> ControlFlow<()> {
+    fn visit_field<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, field: &'ast Field<'ast>) -> ControlFlow<()> {
         self.external_lint_crates.check_field(cx, field);
         ControlFlow::Continue(())
     }
 
-    fn visit_variant<'ast>(&mut self, cx: &'ast AstContext<'ast>, variant: &'ast EnumVariant<'ast>) -> ControlFlow<()> {
+    fn visit_variant<'ast>(
+        &mut self,
+        cx: &'ast MarkerContext<'ast>,
+        variant: &'ast EnumVariant<'ast>,
+    ) -> ControlFlow<()> {
         self.external_lint_crates.check_variant(cx, variant);
         ControlFlow::Continue(())
     }
 
-    fn visit_body<'ast>(&mut self, cx: &'ast AstContext<'ast>, body: &'ast Body<'ast>) -> ControlFlow<()> {
+    fn visit_body<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, body: &'ast Body<'ast>) -> ControlFlow<()> {
         self.external_lint_crates.check_body(cx, body);
         ControlFlow::Continue(())
     }
 
-    fn visit_stmt<'ast>(&mut self, cx: &'ast AstContext<'ast>, stmt: StmtKind<'ast>) -> ControlFlow<()> {
+    fn visit_stmt<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, stmt: StmtKind<'ast>) -> ControlFlow<()> {
         self.external_lint_crates.check_stmt(cx, stmt);
         ControlFlow::Continue(())
     }
 
-    fn visit_expr<'ast>(&mut self, cx: &'ast AstContext<'ast>, expr: ExprKind<'ast>) -> ControlFlow<()> {
+    fn visit_expr<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, expr: ExprKind<'ast>) -> ControlFlow<()> {
         self.external_lint_crates.check_expr(cx, expr);
         ControlFlow::Continue(())
     }

@@ -1,13 +1,14 @@
 use std::mem::{size_of, transmute};
 
-use marker_api::ast::generic::SynGenericArgs;
-use marker_api::ast::ty::SynTyKind;
-use marker_api::ast::{
-    Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId, Constness, CrateId, ExpnId, ExprId, FieldId,
-    GenericId, Ident, ItemId, MacroId, Mutability, Safety, SpanId, SpanSrcId, StmtId, SymbolId, Syncness, TraitRef,
-    TyDefId, VarId, VariantId,
-};
 use marker_api::lint::Level;
+use marker_api::{
+    ast::{
+        generic::SynGenericArgs, ty::SynTyKind, Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId,
+        Constness, CrateId, ExpnId, ExprId, FieldId, GenericId, ItemId, MacroId, Mutability, Safety, SpanId, SpanSrcId,
+        StmtId, SymbolId, Syncness, TraitRef, TyDefId, VarId, VariantId,
+    },
+    span::Ident,
+};
 use rustc_hir as hir;
 
 use crate::conversion::common::{BodyIdLayout, DefIdLayout, ExpnIdLayout, HirIdLayout};

@@ -4,11 +4,11 @@
 use std::fmt::Debug;
 
 use crate::{
-    ast::{HasNodeId, NodeId, Span},
-    context::{with_cx, AstContext},
+    ast::{HasNodeId, NodeId},
+    context::{with_cx, MarkerContext},
     ffi::{FfiSlice, FfiStr},
     lint::Lint,
-    prelude::HasSpan,
+    prelude::{HasSpan, Span},
 };
 
 /// This builder creates the diagnostic object which will be emitted by the driver.
@@ -48,7 +48,7 @@ impl<'ast> DiagnosticBuilder<'ast> {
     }
 
     /// This function sets the main [`Span`] of the created diagnostic.
-    /// [`AstContext::emit_lint`] will by default use the [`Span`] of the given
+    /// [`MarkerContext::emit_lint`] will by default use the [`Span`] of the given
     /// [`EmissionNode`].
     ///
     /// From rustc a lint emission would look like this:
@@ -228,7 +228,7 @@ impl<'ast> DiagnosticBuilder<'ast> {
     /// #     LINT,
     /// #     Warn,
     /// # };
-    /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
+    /// # fn value_provider<'ast>(cx: &MarkerContext<'ast>, node: ExprKind<'ast>) {
     ///     cx.emit_lint(LINT, node, "<lint message>").decorate(|diag| {
     ///         // This closure is only called, if the diagnostic will be emitted.
     ///         // Here you can create a beautiful help message.
@@ -261,7 +261,7 @@ impl<'ast> DiagnosticBuilder<'ast> {
     /// #     LINT,
     /// #     Warn,
     /// # }
-    /// # fn value_provider<'ast>(cx: &AstContext<'ast>, node: ExprKind<'ast>) {
+    /// # fn value_provider<'ast>(cx: &MarkerContext<'ast>, node: ExprKind<'ast>) {
     ///     // Without `done()`
     ///     cx.emit_lint(LINT, node, "<text>").decorate(|diag| {
     ///         diag.help("<text>");
@@ -273,7 +273,7 @@ impl<'ast> DiagnosticBuilder<'ast> {
     /// ```
     pub fn done(&self) {}
 
-    pub(crate) fn emit<'builder>(&'builder self, cx: &AstContext<'ast>) {
+    pub(crate) fn emit<'builder>(&'builder self, cx: &MarkerContext<'ast>) {
         if let Some(inner) = &self.inner {
             let parts: Vec<_> = inner.parts.iter().map(DiagnosticPart::to_ffi_part).collect();
             let diag = Diagnostic {

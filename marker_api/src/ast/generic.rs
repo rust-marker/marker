@@ -7,9 +7,10 @@ mod sem;
 pub use sem::*;
 
 use crate::{
-    ast::{GenericId, Span, SpanId, SymbolId},
+    ast::{GenericId, SpanId, SymbolId},
     context::with_cx,
     ffi::FfiOption,
+    span::Span,
 };
 
 /// A lifetime used as a generic argument or on a reference like this:

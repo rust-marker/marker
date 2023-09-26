@@ -1,10 +1,9 @@
-use crate::ast::expr::ConstExpr;
-use crate::ast::generic::SynGenericParams;
-use crate::ast::ty::SynTyKind;
-use crate::ast::HasSpan;
-use crate::ast::{FieldId, Span, SpanId, SymbolId, VariantId};
-use crate::context::with_cx;
-use crate::ffi::{FfiOption, FfiSlice};
+use crate::{
+    ast::{expr::ConstExpr, generic::SynGenericParams, ty::SynTyKind, FieldId, SpanId, SymbolId, VariantId},
+    context::with_cx,
+    ffi::{FfiOption, FfiSlice},
+    span::{HasSpan, Span},
+};
 
 use super::{CommonItemData, Visibility};
 

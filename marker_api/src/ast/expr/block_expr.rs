@@ -1,7 +1,8 @@
 use crate::{
-    ast::{pat::PatKind, stmt::StmtKind, ty::SynTyKind, BodyId, Ident, Safety, Span, SpanId, Syncness},
+    ast::{pat::PatKind, stmt::StmtKind, ty::SynTyKind, BodyId, Safety, SpanId, Syncness},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
+    span::{Ident, Span},
 };
 
 use super::{CommonExprData, ExprKind};

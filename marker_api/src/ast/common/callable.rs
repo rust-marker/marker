@@ -5,9 +5,10 @@ use crate::{
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
     private::Sealed,
+    span::Span,
 };
 
-use super::{Abi, Constness, Safety, Span, SpanId, SymbolId, Syncness};
+use super::{Abi, Constness, Safety, SpanId, SymbolId, Syncness};
 
 /// This trait provides information about callable items and types. Some
 /// properties might not be available for every callable object. In these

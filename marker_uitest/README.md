@@ -18,7 +18,7 @@ The easiest way to test lints, is simply to run them on examples and look at the
 
 ## Usage
 
-The [`ui_test`] crate runs Marker on every `.rs`-file in the `tests/ui` folder and compares the output with the `.stderr` and `.stdout` files next to them. To automatically update the `.stderr` and `.stdout` files, you can either run `cargo test -- -- --bless` or set the `RUST_BLESS` environment variable.
+The [ui_test] crate runs Marker on every `.rs`-file in the `tests/ui` folder and compares the output with the `.stderr` and `.stdout` files next to them. To automatically update the `.stderr` and `.stdout` files, you can either run `cargo test -- -- --bless` or set the `RUST_BLESS` environment variable.
 
 For a full list of supported features and magic comments, please refer to the documentation of the [ui_test] crate.
 

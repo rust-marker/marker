@@ -28,6 +28,7 @@ And more to come, see Marker's goals and limitations below.
 
 [cargo_marker]: https://crates.io/crates/cargo_marker
 [rustc]: https://github.com/rust-lang/rust/
+[Cargo]: https://github.com/rust-lang/cargo
 
 ## Usage
 
@@ -97,10 +98,9 @@ Marker is still growing up, and that's a good thing. We can still shape the API 
 
 * **Nightly**: Internally, Marker has to rely on nightly versions of rustc. However, you, as an end-user, should not notice this dependency.
 * **AST Limitations**: Marker's API is still missing a few elements to represent everything required for linting. The API is still incomplete when it comes to:
-    * `async`/`await` expressions [#174](https://github.com/rust-marker/marker/issues/174)
     * Higher order types
     * Attributes [#51](https://github.com/rust-marker/marker/issues/51)
-    * Macros
+    * Macros [rust-marker/design#47](https://github.com/rust-marker/design/issues/47)
     * Item visibility [#26](https://github.com/rust-marker/marker/issues/26)
 * **Utility**: The API is currently lacking a lot of utility functions, to handle edge cases and make linting more pleasant.
 * **Documentation**: Marker still requires a lot of documentation, in the form of doc comments and a book, which explains the basic concept and works as a guide for end-users, lint- and marker-devs alike.
@@ -109,10 +109,10 @@ Marker is still growing up, and that's a good thing. We can still shape the API 
 
 ## Development Timeline
 
-1. Complete a draft of the API.
-2. Improve documentation and conduct first user tests.
-3. Update and expand the API to incorporate feedback.
-4. Reach out to the wider community for more feedback.
+1. Improve documentation and conduct user tests.
+2. Update and expand the API to incorporate feedback.
+3. Work on the AST Limitations mentioned above.
+4. Create more example lints.
 
 The used nightly version will be updated every 6 weeks, when a new version of Rust is released.
 
