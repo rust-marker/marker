@@ -58,11 +58,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # We don't need any cache here, so use dtolnay action directly
-      # The version of toolchain here should track the latest stable
-      # version of Rust. The version of `cargo fmt` we use here doesn't
-      # influence the version of Rust that is used when `cargo-marker` is built.
-      - uses: dtolnay/rust-toolchain@1.72.0
+      # rustfmt, might change some formatting between versions. This check should
+      # use the toolchain version from `rust-toolchain.toml` since that is also the
+      # version invoked during normal development in the repo. The formatting
+      # shouldn't matter for consumers of Marker. Therefore it's safe to use the
+      # nightly version of rustfmt
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
       - run: cargo fmt --check
 
   # This job ensures required packages can be built with a stable toolchain
@@ -135,3 +136,27 @@ jobs:
 
       # Check that the release automation works as expected
       - run: scripts/release/test.sh
+
+  # This check is allowed to fail, while Marker is still unstable. It's mostly
+  # a sanity check, to make sure we don't have any unintentional API breakage :)
+  semver-checks:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: './base'
+      - uses: actions/checkout@v4
+        with:
+          path: './source'
+      - run: source/scripts/download/cargo-semver-checks.sh
+      - run: >-
+          cargo semver-checks
+          --manifest-path './source/Cargo.toml'
+          --package marker_api
+          --package marker_utils
+          --package marker_uitest
+          --baseline-root './base'
+          --default-features
+          --release-type minor
