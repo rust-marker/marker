@@ -94,6 +94,7 @@ jobs:
           --workspace
           --exclude marker_rustc_driver
           --exclude marker_lints
+          --exclude marker_uitest
 
   # Check for unused dependencies that uses simple regex search,
   # meaning it's ⚡️ blazingly ⚡️ fast

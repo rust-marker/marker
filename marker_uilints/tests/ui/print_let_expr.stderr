@@ -22,7 +22,7 @@ warning: print test
 warning: print test
  --> $DIR/print_let_expr.rs:3:5
   |
-3 |     let _print_byte_str = b"Hello/n";
+3 |     let _print_byte_str = b"Hello\n";
   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = note: StrLit(

@@ -39,28 +39,27 @@ marker_uitest  = { path = "./marker_uitest", features = ["dev-build"] }
 marker_utils   = { path = "./marker_utils", version = "0.3.0-dev" }
 # endregion replace-version dev
 
-bumpalo            = "3.12"
+bumpalo            = "3.14"
 camino             = { version = "1.1", features = ["serde1"] }
-cargo_metadata     = "0.17"
-clap               = { version = "4.0", features = ["string", "derive"] }
+cargo_metadata     = "0.18"
+clap               = { version = "=4.3.24", features = ["string", "derive"] }
 expect-test        = "1.4"
 itertools          = "0.11"
 libloading         = "0.8.0"
-miette             = { version = "5.9", features = ["fancy-no-backtrace"] }
+miette             = { version = "5.10", features = ["fancy-no-backtrace"] }
 rustc_tools_util   = "0.3"
 semver             = "1.0"
 serde              = { version = "1.0", features = ["derive"] }
 serde_json         = "1.0"
-shlex              = "1.0"
-tempfile           = "3.6.0"
+shlex              = "1.2"
 thiserror          = "1.0"
-toml               = "0.7"
+toml               = "0.8"
 tracing            = "0.1"
 tracing-error      = "0.2"
 tracing-subscriber = "0.3"
 typed-builder      = "0.16.2"
-ui_test            = "0.11.7"
-visibility         = "0.0.1"
+ui_test            = "0.21.2"
+visibility         = "0.1.0"
 yansi              = "1.0.0-rc.1"
 
 [workspace.metadata.marker.lints]

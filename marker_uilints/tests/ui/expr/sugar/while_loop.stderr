@@ -12,7 +12,7 @@ warning: expr
                    span_src: SpanSrcId(..),
                },
            )
-   = note: Snippet: "while let Some(_) = something {/n        something = None;/n    }"
+   = note: Snippet: "while let Some(_) = something {\n        something = None;\n    }"
 note: the lint level is defined here
   --> $DIR/while_loop.rs:7:12
    |
@@ -62,7 +62,7 @@ warning: expr
                    span_src: SpanSrcId(..),
                },
            )
-   = note: Snippet: "{/n        something = None;/n    }"
+   = note: Snippet: "{\n        something = None;\n    }"
 
 warning: expr
  --> $DIR/while_loop.rs:9:9

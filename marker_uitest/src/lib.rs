@@ -2,7 +2,7 @@
 
 use std::{
     collections::HashMap,
-    num::NonZeroUsize,
+    env, fs,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -31,7 +31,7 @@ macro_rules! simple_ui_test_config {
         $crate::simple_ui_test_config!("tests/ui");
     };
     ($ui_dir:expr) => {
-        $crate::simple_ui_test_config!("tests/ui", "./target");
+        $crate::simple_ui_test_config!("tests/ui", "./target/ui_test");
     };
     ($ui_dir:expr, $target_dir:expr) => {
         $crate::create_ui_test_config(
@@ -53,7 +53,7 @@ macro_rules! simple_ui_test_config {
 /// ```rust,ignore
 /// let config = create_ui_test_config(
 ///     PathBuf::from("tests/ui"),
-///     Path::new("./target"),
+///     Path::new("./target/ui_test"),
 ///     env!("CARGO_PKG_NAME"),
 ///     Path::new(env!("CARGO_MANIFEST_DIR")),
 ///     marker_api::MARKER_API_VERSION,
@@ -73,24 +73,23 @@ pub fn create_ui_test_config(
 
     // Set environment values
     for (key, val) in setup.env_vars {
-        std::env::set_var(key, val);
+        env::set_var(key, val);
     }
 
     // Create config
     let mut config = ui_test::Config {
-        mode: ui_test::Mode::Yolo,
-        num_test_threads: NonZeroUsize::new(1).unwrap(),
+        mode: ui_test::Mode::Yolo {
+            rustfix: ui_test::RustfixMode::MachineApplicable,
+        },
+        filter_files: env::var("TESTNAME")
+            .map(|filters| filters.split(',').map(str::to_string).collect())
+            .unwrap_or_default(),
+        out_dir: fs::canonicalize(target_dir)?,
         ..ui_test::Config::rustc(ui_dir)
     };
 
     config.program.program = PathBuf::from(setup.rustc_path);
     config.program.args.push("-Aunused".into());
-
-    // hide binaries generated for successfully passing tests
-    let tmp_dir = tempfile::tempdir_in(target_dir)?;
-    let tmp_dir = tmp_dir.path();
-    config.out_dir = tmp_dir.into();
-    config.path_stderr_filter(tmp_dir, "$TMP");
 
     Ok(config)
 }

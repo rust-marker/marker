@@ -1,5 +1,5 @@
 use marker_uitest::ui_test::*;
-use std::{env, path::Path};
+use std::env;
 
 fn main() -> color_eyre::Result<()> {
     let mut config = marker_uitest::simple_ui_test_config!("tests/ui", "../target")?;
@@ -21,27 +21,10 @@ fn main() -> color_eyre::Result<()> {
         config.stdout_filter(pat, repl);
     }
 
-    let test_name_filter = test_name_filter();
     run_tests_generic(
-        config,
-        move |path| default_file_filter(path) && test_name_filter(path),
+        vec![config],
+        default_file_filter,
         default_per_file_config,
-        status_emitter::Text,
+        status_emitter::Text::quiet(),
     )
-}
-
-// Gracefully stolen from Clippy, thank you!
-fn test_name_filter() -> Box<dyn Fn(&Path) -> bool + Sync> {
-    if let Ok(filters) = env::var("TESTNAME") {
-        let filters: Vec<_> = filters.split(',').map(ToString::to_string).collect();
-        Box::new(move |path| {
-            filters.is_empty()
-                || filters.iter().any(|f| {
-                    path.file_stem()
-                        .map_or(false, |stem| stem.to_string_lossy().contains(f))
-                })
-        })
-    } else {
-        Box::new(|_| true)
-    }
 }
