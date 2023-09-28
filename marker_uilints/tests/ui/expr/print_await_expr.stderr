@@ -1,0 +1,146 @@
+warning: print test
+ --> $DIR/print_await_expr.rs:6:5
+  |
+6 |     let _print_await = foo().await;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Await(
+              AwaitExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  expr: Call(
+                      CallExpr {
+                          data: CommonExprData {
+                              _lifetime: PhantomData<&()>,
+                              id: ExprId(..),
+                              span: SpanId(..),
+                          },
+                          operand: Path(
+                              PathExpr {
+                                  data: CommonExprData {
+                                      _lifetime: PhantomData<&()>,
+                                      id: ExprId(..),
+                                      span: SpanId(..),
+                                  },
+                                  path: AstQPath {
+                                      self_ty: None,
+                                      path_ty: None,
+                                      path: AstPath {
+                                          segments: [
+                                              AstPathSegment {
+                                                  ident: Ident {
+                                                      name: "foo",
+                                                      span: $DIR/print_await_expr.rs:6:24 - 6:27,
+                                                  },
+                                                  generics: SynGenericArgs {
+                                                      args: [],
+                                                  },
+                                              },
+                                          ],
+                                      },
+                                      target: Item(
+                                          ItemId(..),
+                                      ),
+                                  },
+                              },
+                          ),
+                          args: [],
+                      },
+                  ),
+              },
+          )
+  = note: `#[warn(marker::test_lint)]` on by default
+
+warning: print test
+ --> $DIR/print_await_expr.rs:9:5
+  |
+9 |     let _print_await = future.await;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Await(
+              AwaitExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  expr: Path(
+                      PathExpr {
+                          data: CommonExprData {
+                              _lifetime: PhantomData<&()>,
+                              id: ExprId(..),
+                              span: SpanId(..),
+                          },
+                          path: AstQPath {
+                              self_ty: None,
+                              path_ty: None,
+                              path: AstPath {
+                                  segments: [
+                                      AstPathSegment {
+                                          ident: Ident {
+                                              name: "future",
+                                              span: $DIR/print_await_expr.rs:9:24 - 9:30,
+                                          },
+                                          generics: SynGenericArgs {
+                                              args: [],
+                                          },
+                                      },
+                                  ],
+                              },
+                              target: Var(
+                                  VarId(..),
+                              ),
+                          },
+                      },
+                  ),
+              },
+          )
+
+warning: print test
+  --> $DIR/print_await_expr.rs:11:5
+   |
+11 |     let _print_await = async { 18 }.await;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Await(
+               AwaitExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   expr: Block(
+                       BlockExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           stmts: [],
+                           expr: Some(
+                               IntLit(
+                                   IntLitExpr {
+                                       data: CommonExprData {
+                                           _lifetime: PhantomData<&()>,
+                                           id: ExprId(..),
+                                           span: SpanId(..),
+                                       },
+                                       value: 18,
+                                       suffix: None,
+                                   },
+                               ),
+                           ),
+                           label: None,
+                           safety: Safe,
+                           syncness: Async,
+                           capture_kind: Default,
+                       },
+                   ),
+               },
+           )
+
+warning: 3 warnings emitted
+

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!--
+Welcome detective, you found the source code of Marker's GitHub-Pages. If you are
+interested in contributing to this website checkout the `docs` folder inside the
+rust-marker/marker repository.
+
+In any case, have a beautiful day :D
+-->
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content="The documentation hub for Marker.">
+    <title>Documentation for Marker</title>
+
+    <!-- Having everything in one file makes it easier, not cleaner, but easier -->
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: var(--background);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        .emoji-icon {
+            font-size: 4cm;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: auto;
+
+            /* Max 3 items per row */
+            max-width: 26cm;
+        }
+
+        .link-panel {
+            /* Size things */
+            display: inline-flex;
+            padding-top: 1cm;
+            padding-bottom: 1cm;
+            min-width: 8cm;
+            margin: 0.5em;
+
+            /* Layout/Styling */
+            border: var(--border-color) 1px solid;
+            border-radius: 0.5em;
+            background-color: var(--card-background);
+
+            /* Hide the fact that this is a link */
+            text-decoration: none;
+            color: var(--text-color);
+        }
+        .link-panel>div {
+            width: 100%;
+        }
+
+        /* Color themes */
+        @media (prefers-color-scheme: light) {
+            body {
+                --text-color: black;
+                --border-color: #d3d3d3;
+                --card-background: #f4f4f4;
+                --background: white;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                --text-color: #d3d3d3;
+                --border-color: #737480;
+                --card-background: #252832;
+                --background: #14161b;
+            }
+        }
+
+        /* Same as the dark theme */
+        @media (prefers-color-scheme: no-preference) {
+            body {
+                --text-color: #d3d3d3;
+                --border-color: #737480;
+                --card-background: #252832;
+                --background: #14161b;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Marker's Documentation</h1>
+
+    <div class="container">
+        <a class="link-panel" href="book">
+            <div>
+                <div class="emoji-icon">&#128214;</div>
+                <h2>The Marker Book</h2>
+            </div>
+        </a>
+        <a class="link-panel" href="https://docs.rs/marker_api/">
+            <div>
+                <div class="emoji-icon">&#128196;</div>
+                <h2>docs.rs/marker_api</h2>
+            </div>
+        </a>
+        <a class="link-panel" href="https://docs.rs/marker_utils/">
+            <div>
+                <div class="emoji-icon">&#128295;</div>
+                <h2>docs.rs/marker_utils</h2>
+            </div>
+        </a>
+    </div>
+</body>
+
+</html>

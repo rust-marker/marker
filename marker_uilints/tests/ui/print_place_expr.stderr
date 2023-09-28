@@ -1,0 +1,157 @@
+warning: print test
+  --> $DIR/print_place_expr.rs:11:5
+   |
+11 |     let _print_struct_field = object.a;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Field(
+               FieldExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   operand: Path(
+                       PathExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           path: AstQPath {
+                               self_ty: None,
+                               path_ty: None,
+                               path: AstPath {
+                                   segments: [
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "object",
+                                               span: $DIR/print_place_expr.rs:11:31 - 11:37,
+                                           },
+                                           generics: SynGenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                   ],
+                               },
+                               target: Var(
+                                   VarId(..),
+                               ),
+                           },
+                       },
+                   ),
+                   field: Ident {
+                       name: "a",
+                       span: $DIR/print_place_expr.rs:11:38 - 11:39,
+                   },
+               },
+           )
+   = note: `#[warn(marker::test_lint)]` on by default
+
+warning: print test
+  --> $DIR/print_place_expr.rs:12:5
+   |
+12 |     let _print_tuple_field = tuple.0;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Field(
+               FieldExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   operand: Path(
+                       PathExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           path: AstQPath {
+                               self_ty: None,
+                               path_ty: None,
+                               path: AstPath {
+                                   segments: [
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "tuple",
+                                               span: $DIR/print_place_expr.rs:12:30 - 12:35,
+                                           },
+                                           generics: SynGenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                   ],
+                               },
+                               target: Var(
+                                   VarId(..),
+                               ),
+                           },
+                       },
+                   ),
+                   field: Ident {
+                       name: "0",
+                       span: $DIR/print_place_expr.rs:12:36 - 12:37,
+                   },
+               },
+           )
+
+warning: print test
+  --> $DIR/print_place_expr.rs:13:5
+   |
+13 |     let _print_array_index = array[0];
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Index(
+               IndexExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   operand: Path(
+                       PathExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           path: AstQPath {
+                               self_ty: None,
+                               path_ty: None,
+                               path: AstPath {
+                                   segments: [
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "array",
+                                               span: $DIR/print_place_expr.rs:13:30 - 13:35,
+                                           },
+                                           generics: SynGenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                   ],
+                               },
+                               target: Var(
+                                   VarId(..),
+                               ),
+                           },
+                       },
+                   ),
+                   index: IntLit(
+                       IntLitExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           value: 0,
+                           suffix: None,
+                       },
+                   ),
+               },
+           )
+
+warning: 3 warnings emitted
+

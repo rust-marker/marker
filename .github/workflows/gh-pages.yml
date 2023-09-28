@@ -1,0 +1,57 @@
+# This workflow builds and deploys Marker's documentation to GitHub Pages
+#
+# This workflow is an adaptation of the `mdBook` workflow by *GitHub Actions*
+# - https://github.com/actions/starter-workflows/blob/f3c5d7931d054ffbbdcbfdc463cc3bd0def74929/pages/mdbook.yml
+#
+name: GitHub Pages
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  CARGO_TERM_COLOR: always
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "github-pages"
+  cancel-in-progress: false
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    if: github.repository == 'rust-marker/marker'
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/download/mdbook.sh
+      - name: Setup deploy directory
+        run: |
+          mkdir deploy
+          cp ./docs/index.html ./deploy/index.html
+      - name: Build the book
+        run: mdbook build docs/book --dest-dir ../../deploy/book
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ./deploy
+
+  # Deployment job
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.repository == 'rust-marker/marker'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2

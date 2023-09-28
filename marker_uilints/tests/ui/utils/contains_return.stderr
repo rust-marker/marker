@@ -1,0 +1,34 @@
+warning: testing `contains_return` -> false
+ --> $DIR/contains_return.rs:3:4
+  |
+3 | fn test_contains_return_1_false() {
+  |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(marker::test_contains_return)]` on by default
+
+warning: testing `contains_return` -> false
+ --> $DIR/contains_return.rs:7:4
+  |
+7 | fn test_contains_return_2_false() {
+  |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: testing `contains_return` -> true
+  --> $DIR/contains_return.rs:15:4
+   |
+15 | fn test_contains_return_3_true() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: testing `contains_return` -> true
+  --> $DIR/contains_return.rs:20:4
+   |
+20 | fn test_contains_return_4_true() -> Option<u32> {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: testing `contains_return` -> false
+  --> $DIR/contains_return.rs:26:4
+   |
+26 | fn test_contains_return_5_false() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: 5 warnings emitted
+

@@ -1,0 +1,25 @@
+[package]
+name = "marker_rustc_driver"
+
+description = "Marker's lint driver for rustc"
+
+edition    = { workspace = true }
+keywords   = { workspace = true }
+license    = { workspace = true }
+repository = { workspace = true }
+version    = { workspace = true }
+
+[dependencies]
+marker_adapter = { workspace = true }
+marker_api     = { workspace = true, features = ["driver-api"] }
+marker_error   = { workspace = true }
+
+bumpalo          = { workspace = true }
+camino           = { workspace = true }
+rustc_tools_util = { workspace = true }
+
+[build-dependencies]
+rustc_tools_util = { workspace = true }
+
+[package.metadata.rust-analyzer]
+rustc_private = true

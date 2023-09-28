@@ -1,0 +1,5 @@
+/target
+/.vscode
+
+# Used by the "GitHub Pages" workflow
+/deploy

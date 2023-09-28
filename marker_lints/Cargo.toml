@@ -1,0 +1,23 @@
+[package]
+name = "marker_lints"
+
+description = "Lints for the marker_api and marker_utils crate"
+
+edition    = { workspace = true }
+keywords   = { workspace = true }
+license    = { workspace = true }
+repository = { workspace = true }
+version    = { workspace = true }
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+marker_api = { workspace = true }
+
+[dev-dependencies]
+marker_uitest = { workspace = true }
+
+[[test]]
+harness = false
+name    = "uitest"

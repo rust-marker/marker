@@ -1,0 +1,462 @@
+warning: print test
+  --> $DIR/print_path_expr.rs:29:5
+   |
+29 |     let _print_path = rand(7);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Call(
+               CallExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   operand: Path(
+                       PathExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           path: AstQPath {
+                               self_ty: None,
+                               path_ty: None,
+                               path: AstPath {
+                                   segments: [
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "rand",
+                                               span: $DIR/print_path_expr.rs:29:23 - 29:27,
+                                           },
+                                           generics: SynGenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                   ],
+                               },
+                               target: Item(
+                                   ItemId(..),
+                               ),
+                           },
+                       },
+                   ),
+                   args: [
+                       IntLit(
+                           IntLitExpr {
+                               data: CommonExprData {
+                                   _lifetime: PhantomData<&()>,
+                                   id: ExprId(..),
+                                   span: SpanId(..),
+                               },
+                               value: 7,
+                               suffix: None,
+                           },
+                       ),
+                   ],
+               },
+           )
+   = note: `#[warn(marker::test_lint)]` on by default
+
+warning: print test
+  --> $DIR/print_path_expr.rs:30:5
+   |
+30 |     let _print_path = Vec::<u32>::new();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Call(
+               CallExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   operand: Path(
+                       PathExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           path: AstQPath {
+                               self_ty: None,
+                               path_ty: Some(
+                                   Path(
+                                       SynPathTy {
+                                           data: CommonSynTyData {
+                                               _lifetime: PhantomData<&()>,
+                                               span: SpanId(..),
+                                           },
+                                           path: AstQPath {
+                                               self_ty: None,
+                                               path_ty: None,
+                                               path: AstPath {
+                                                   segments: [
+                                                       AstPathSegment {
+                                                           ident: Ident {
+                                                               name: "Vec",
+                                                               span: $DIR/print_path_expr.rs:30:23 - 30:26,
+                                                           },
+                                                           generics: SynGenericArgs {
+                                                               args: [
+                                                                   Ty(
+                                                                       SynTyArg {
+                                                                           ty: Num(
+                                                                               SynNumTy {
+                                                                                   data: CommonSynTyData {
+                                                                                       _lifetime: PhantomData<&()>,
+                                                                                       span: SpanId(..),
+                                                                                   },
+                                                                                   numeric_kind: U32,
+                                                                               },
+                                                                           ),
+                                                                       },
+                                                                   ),
+                                                               ],
+                                                           },
+                                                       },
+                                                   ],
+                                               },
+                                               target: Item(
+                                                   ItemId(..),
+                                               ),
+                                           },
+                                       },
+                                   ),
+                               ),
+                               path: AstPath {
+                                   segments: [
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "Vec",
+                                               span: $DIR/print_path_expr.rs:30:23 - 30:26,
+                                           },
+                                           generics: SynGenericArgs {
+                                               args: [
+                                                   Ty(
+                                                       SynTyArg {
+                                                           ty: Num(
+                                                               SynNumTy {
+                                                                   data: CommonSynTyData {
+                                                                       _lifetime: PhantomData<&()>,
+                                                                       span: SpanId(..),
+                                                                   },
+                                                                   numeric_kind: U32,
+                                                               },
+                                                           ),
+                                                       },
+                                                   ),
+                                               ],
+                                           },
+                                       },
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "new",
+                                               span: $DIR/print_path_expr.rs:30:35 - 30:38,
+                                           },
+                                           generics: SynGenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                   ],
+                               },
+                               target: Item(
+                                   ItemId(..),
+                               ),
+                           },
+                       },
+                   ),
+                   args: [],
+               },
+           )
+
+warning: print test
+  --> $DIR/print_path_expr.rs:31:5
+   |
+31 |     let _print_path = <Magic as B>::CoolTy::a();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Call(
+               CallExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   operand: Path(
+                       PathExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           path: AstQPath {
+                               self_ty: None,
+                               path_ty: Some(
+                                   Path(
+                                       SynPathTy {
+                                           data: CommonSynTyData {
+                                               _lifetime: PhantomData<&()>,
+                                               span: SpanId(..),
+                                           },
+                                           path: AstQPath {
+                                               self_ty: Some(
+                                                   Path(
+                                                       SynPathTy {
+                                                           data: CommonSynTyData {
+                                                               _lifetime: PhantomData<&()>,
+                                                               span: SpanId(..),
+                                                           },
+                                                           path: AstQPath {
+                                                               self_ty: None,
+                                                               path_ty: None,
+                                                               path: AstPath {
+                                                                   segments: [
+                                                                       AstPathSegment {
+                                                                           ident: Ident {
+                                                                               name: "Magic",
+                                                                               span: $DIR/print_path_expr.rs:31:24 - 31:29,
+                                                                           },
+                                                                           generics: SynGenericArgs {
+                                                                               args: [],
+                                                                           },
+                                                                       },
+                                                                   ],
+                                                               },
+                                                               target: Item(
+                                                                   ItemId(..),
+                                                               ),
+                                                           },
+                                                       },
+                                                   ),
+                                               ),
+                                               path_ty: None,
+                                               path: AstPath {
+                                                   segments: [
+                                                       AstPathSegment {
+                                                           ident: Ident {
+                                                               name: "B",
+                                                               span: $DIR/print_path_expr.rs:31:33 - 31:34,
+                                                           },
+                                                           generics: SynGenericArgs {
+                                                               args: [],
+                                                           },
+                                                       },
+                                                       AstPathSegment {
+                                                           ident: Ident {
+                                                               name: "CoolTy",
+                                                               span: $DIR/print_path_expr.rs:31:37 - 31:43,
+                                                           },
+                                                           generics: SynGenericArgs {
+                                                               args: [],
+                                                           },
+                                                       },
+                                                   ],
+                                               },
+                                               target: Item(
+                                                   ItemId(..),
+                                               ),
+                                           },
+                                       },
+                                   ),
+                               ),
+                               path: AstPath {
+                                   segments: [
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "B",
+                                               span: $DIR/print_path_expr.rs:31:33 - 31:34,
+                                           },
+                                           generics: SynGenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "CoolTy",
+                                               span: $DIR/print_path_expr.rs:31:37 - 31:43,
+                                           },
+                                           generics: SynGenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "a",
+                                               span: $DIR/print_path_expr.rs:31:45 - 31:46,
+                                           },
+                                           generics: SynGenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                   ],
+                               },
+                               target: Item(
+                                   ItemId(..),
+                               ),
+                           },
+                       },
+                   ),
+                   args: [],
+               },
+           )
+
+warning: print test
+  --> $DIR/print_path_expr.rs:32:5
+   |
+32 |     let _print_path = <<Magic as B>::CoolTy as A>::a();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Call(
+               CallExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   operand: Path(
+                       PathExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           path: AstQPath {
+                               self_ty: Some(
+                                   Path(
+                                       SynPathTy {
+                                           data: CommonSynTyData {
+                                               _lifetime: PhantomData<&()>,
+                                               span: SpanId(..),
+                                           },
+                                           path: AstQPath {
+                                               self_ty: Some(
+                                                   Path(
+                                                       SynPathTy {
+                                                           data: CommonSynTyData {
+                                                               _lifetime: PhantomData<&()>,
+                                                               span: SpanId(..),
+                                                           },
+                                                           path: AstQPath {
+                                                               self_ty: None,
+                                                               path_ty: None,
+                                                               path: AstPath {
+                                                                   segments: [
+                                                                       AstPathSegment {
+                                                                           ident: Ident {
+                                                                               name: "Magic",
+                                                                               span: $DIR/print_path_expr.rs:32:25 - 32:30,
+                                                                           },
+                                                                           generics: SynGenericArgs {
+                                                                               args: [],
+                                                                           },
+                                                                       },
+                                                                   ],
+                                                               },
+                                                               target: Item(
+                                                                   ItemId(..),
+                                                               ),
+                                                           },
+                                                       },
+                                                   ),
+                                               ),
+                                               path_ty: None,
+                                               path: AstPath {
+                                                   segments: [
+                                                       AstPathSegment {
+                                                           ident: Ident {
+                                                               name: "B",
+                                                               span: $DIR/print_path_expr.rs:32:34 - 32:35,
+                                                           },
+                                                           generics: SynGenericArgs {
+                                                               args: [],
+                                                           },
+                                                       },
+                                                       AstPathSegment {
+                                                           ident: Ident {
+                                                               name: "CoolTy",
+                                                               span: $DIR/print_path_expr.rs:32:38 - 32:44,
+                                                           },
+                                                           generics: SynGenericArgs {
+                                                               args: [],
+                                                           },
+                                                       },
+                                                   ],
+                                               },
+                                               target: Item(
+                                                   ItemId(..),
+                                               ),
+                                           },
+                                       },
+                                   ),
+                               ),
+                               path_ty: None,
+                               path: AstPath {
+                                   segments: [
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "A",
+                                               span: $DIR/print_path_expr.rs:32:48 - 32:49,
+                                           },
+                                           generics: SynGenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "a",
+                                               span: $DIR/print_path_expr.rs:32:52 - 32:53,
+                                           },
+                                           generics: SynGenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                   ],
+                               },
+                               target: Item(
+                                   ItemId(..),
+                               ),
+                           },
+                       },
+                   ),
+                   args: [],
+               },
+           )
+
+warning: print test
+  --> $DIR/print_path_expr.rs:35:5
+   |
+35 |     let _print_path = var;
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Path(
+               PathExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   path: AstQPath {
+                       self_ty: None,
+                       path_ty: None,
+                       path: AstPath {
+                           segments: [
+                               AstPathSegment {
+                                   ident: Ident {
+                                       name: "var",
+                                       span: $DIR/print_path_expr.rs:35:23 - 35:26,
+                                   },
+                                   generics: SynGenericArgs {
+                                       args: [],
+                                   },
+                               },
+                           ],
+                       },
+                       target: Var(
+                           VarId(..),
+                       ),
+                   },
+               },
+           )
+
+warning: 5 warnings emitted
+

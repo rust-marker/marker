@@ -1,0 +1,102 @@
+warning: printing item
+ --> $DIR/print_adt_item.rs:1:10
+  |
+1 | pub enum PrintMeEnum {
+  |          ^^^^^^^^^^^
+  |
+  = note: Enum(
+              EnumItem {
+                  data: CommonItemData {
+                      id: ItemId(..),
+                      span: SpanId(..),
+                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      ident: Ident {
+                          name: "PrintMeEnum",
+                          span: $DIR/print_adt_item.rs:1:10 - 1:21,
+                      },
+                  },
+                  generics: SynGenericParams {
+                      params: [],
+                      clauses: [],
+                  },
+                  variants: [
+                      EnumVariant {
+                          id: VariantId(..),
+                          ident: SymbolId(..),
+                          span: SpanId(..),
+                          kind: Unit,
+                          discriminant: Some(
+                              ConstExpr {
+                                  expr: UnaryOp(
+                                      UnaryOpExpr {
+                                          data: CommonExprData {
+                                              _lifetime: PhantomData<&()>,
+                                              id: ExprId(..),
+                                              span: SpanId(..),
+                                          },
+                                          expr: IntLit(
+                                              IntLitExpr {
+                                                  data: CommonExprData {
+                                                      _lifetime: PhantomData<&()>,
+                                                      id: ExprId(..),
+                                                      span: SpanId(..),
+                                                  },
+                                                  value: 1,
+                                                  suffix: None,
+                                              },
+                                          ),
+                                          kind: Neg,
+                                      },
+                                  ),
+                              },
+                          ),
+                      },
+                      EnumVariant {
+                          id: VariantId(..),
+                          ident: SymbolId(..),
+                          span: SpanId(..),
+                          kind: Unit,
+                          discriminant: Some(
+                              ConstExpr {
+                                  expr: IntLit(
+                                      IntLitExpr {
+                                          data: CommonExprData {
+                                              _lifetime: PhantomData<&()>,
+                                              id: ExprId(..),
+                                              span: SpanId(..),
+                                          },
+                                          value: 0,
+                                          suffix: None,
+                                      },
+                                  ),
+                              },
+                          ),
+                      },
+                      EnumVariant {
+                          id: VariantId(..),
+                          ident: SymbolId(..),
+                          span: SpanId(..),
+                          kind: Unit,
+                          discriminant: Some(
+                              ConstExpr {
+                                  expr: IntLit(
+                                      IntLitExpr {
+                                          data: CommonExprData {
+                                              _lifetime: PhantomData<&()>,
+                                              id: ExprId(..),
+                                              span: SpanId(..),
+                                          },
+                                          value: 17,
+                                          suffix: None,
+                                      },
+                                  ),
+                              },
+                          ),
+                      },
+                  ],
+              },
+          )
+  = note: `#[warn(marker::test_lint)]` on by default
+
+warning: 1 warning emitted
+

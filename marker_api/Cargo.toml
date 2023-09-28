@@ -1,0 +1,25 @@
+[package]
+name = "marker_api"
+
+categories  = ["development-tools"]
+description = "Marker's API, designed for stability and usability"
+
+edition      = { workspace = true }
+keywords     = { workspace = true }
+license      = { workspace = true }
+repository   = { workspace = true }
+rust-version = { workspace = true }
+version      = { workspace = true }
+
+[dependencies]
+typed-builder = { workspace = true, optional = true }
+visibility    = { workspace = true, optional = true }
+
+[dev-dependencies]
+expect-test = { workspace = true }
+
+[features]
+# Some items should only be used by the driver implementing the functionality,
+# this feature enables the export of these items. Note that this interface is
+# unstable. All usage of the driver api can change between releases.
+driver-api = ["dep:visibility", "dep:typed-builder"]

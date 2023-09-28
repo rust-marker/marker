@@ -1,0 +1,82 @@
+warning: expr
+  --> $DIR/for_loop.rs:9:5
+   |
+9  | /     for i in range {
+10 | |         total += i;
+11 | |     }
+   | |_____^
+   |
+   = note: SpanSource: File(
+               FileInfo {
+                   file: "$DIR/for_loop.rs",
+                   span_src: SpanSrcId(..),
+               },
+           )
+   = note: Snippet: "for i in range {/n        total += i;/n    }"
+note: the lint level is defined here
+  --> $DIR/for_loop.rs:8:12
+   |
+8  |     #[warn(marker::print_every_expr)]
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: expr
+ --> $DIR/for_loop.rs:9:14
+  |
+9 |     for i in range {
+  |              ^^^^^
+  |
+  = note: SpanSource: File(
+              FileInfo {
+                  file: "$DIR/for_loop.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
+  = note: Snippet: "range"
+
+warning: expr
+  --> $DIR/for_loop.rs:9:20
+   |
+9  |       for i in range {
+   |  ____________________^
+10 | |         total += i;
+11 | |     }
+   | |_____^
+   |
+   = note: SpanSource: File(
+               FileInfo {
+                   file: "$DIR/for_loop.rs",
+                   span_src: SpanSrcId(..),
+               },
+           )
+   = note: Snippet: "{/n        total += i;/n    }"
+
+warning: expr
+  --> $DIR/for_loop.rs:10:9
+   |
+10 |         total += i;
+   |         ^^^^^^^^^^
+   |
+   = note: SpanSource: File(
+               FileInfo {
+                   file: "$DIR/for_loop.rs",
+                   span_src: SpanSrcId(..),
+               },
+           )
+   = note: Snippet: "total += i"
+
+warning: expr
+  --> $DIR/for_loop.rs:10:18
+   |
+10 |         total += i;
+   |                  ^
+   |
+   = note: SpanSource: File(
+               FileInfo {
+                   file: "$DIR/for_loop.rs",
+                   span_src: SpanSrcId(..),
+               },
+           )
+   = note: Snippet: "i"
+
+warning: 5 warnings emitted
+

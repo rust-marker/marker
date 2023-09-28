@@ -1,0 +1,15 @@
+[package]
+name = "marker_utils"
+
+categories  = ["development-tools"]
+description = "Marker's standard library for creating lints"
+
+edition      = { workspace = true }
+keywords     = { workspace = true }
+license      = { workspace = true }
+repository   = { workspace = true }
+rust-version = { workspace = true }
+version      = { workspace = true }
+
+[dependencies]
+marker_api = { workspace = true }

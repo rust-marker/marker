@@ -1,0 +1,519 @@
+warning: printing item
+ --> $DIR/print_fn_item.rs:1:8
+  |
+1 | pub fn print_me_simple() {}
+  |        ^^^^^^^^^^^^^^^
+  |
+  = note: Fn(
+              FnItem {
+                  data: CommonItemData {
+                      id: ItemId(..),
+                      span: SpanId(..),
+                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      ident: Ident {
+                          name: "print_me_simple",
+                          span: $DIR/print_fn_item.rs:1:8 - 1:23,
+                      },
+                  },
+                  generics: SynGenericParams {
+                      params: [],
+                      clauses: [],
+                  },
+                  constness: NotConst,
+                  syncness: Sync,
+                  safety: Safe,
+                  is_extern: false,
+                  has_self: false,
+                  abi: Default,
+                  params: [],
+                  return_ty: None,
+                  body_id: Some(
+                      BodyId(..),
+                  ),
+              },
+          )
+  = note: `#[warn(marker::test_lint)]` on by default
+
+warning: printing item
+ --> $DIR/print_fn_item.rs:3:21
+  |
+3 | pub const unsafe fn print_me_special() {}
+  |                     ^^^^^^^^^^^^^^^^
+  |
+  = note: Fn(
+              FnItem {
+                  data: CommonItemData {
+                      id: ItemId(..),
+                      span: SpanId(..),
+                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      ident: Ident {
+                          name: "print_me_special",
+                          span: $DIR/print_fn_item.rs:3:21 - 3:37,
+                      },
+                  },
+                  generics: SynGenericParams {
+                      params: [],
+                      clauses: [],
+                  },
+                  constness: Const,
+                  syncness: Sync,
+                  safety: Unsafe,
+                  is_extern: false,
+                  has_self: false,
+                  abi: Default,
+                  params: [],
+                  return_ty: None,
+                  body_id: Some(
+                      BodyId(..),
+                  ),
+              },
+          )
+
+warning: printing item
+ --> $DIR/print_fn_item.rs:5:8
+  |
+5 | pub fn print_me_params(_ident: u32, (_a, _b): (u32, i32)) -> String {
+  |        ^^^^^^^^^^^^^^^
+  |
+  = note: Fn(
+              FnItem {
+                  data: CommonItemData {
+                      id: ItemId(..),
+                      span: SpanId(..),
+                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      ident: Ident {
+                          name: "print_me_params",
+                          span: $DIR/print_fn_item.rs:5:8 - 5:23,
+                      },
+                  },
+                  generics: SynGenericParams {
+                      params: [],
+                      clauses: [],
+                  },
+                  constness: NotConst,
+                  syncness: Sync,
+                  safety: Safe,
+                  is_extern: false,
+                  has_self: false,
+                  abi: Default,
+                  params: [
+                      FnParam {
+                          span: SpanId(..),
+                          pat: Ident(
+                              IdentPat {
+                                  data: CommonPatData {
+                                      _lifetime: PhantomData<&()>,
+                                      span: SpanId(..),
+                                  },
+                                  name: SymbolId(..),
+                                  var: VarId(..),
+                                  mutability: Unmut,
+                                  is_ref: false,
+                                  binding_pat: None,
+                              },
+                          ),
+                          ty: Num(
+                              SynNumTy {
+                                  data: CommonSynTyData {
+                                      _lifetime: PhantomData<&()>,
+                                      span: SpanId(..),
+                                  },
+                                  numeric_kind: U32,
+                              },
+                          ),
+                      },
+                      FnParam {
+                          span: SpanId(..),
+                          pat: Tuple(
+                              TuplePat {
+                                  data: CommonPatData {
+                                      _lifetime: PhantomData<&()>,
+                                      span: SpanId(..),
+                                  },
+                                  elements: [
+                                      Ident(
+                                          IdentPat {
+                                              data: CommonPatData {
+                                                  _lifetime: PhantomData<&()>,
+                                                  span: SpanId(..),
+                                              },
+                                              name: SymbolId(..),
+                                              var: VarId(..),
+                                              mutability: Unmut,
+                                              is_ref: false,
+                                              binding_pat: None,
+                                          },
+                                      ),
+                                      Ident(
+                                          IdentPat {
+                                              data: CommonPatData {
+                                                  _lifetime: PhantomData<&()>,
+                                                  span: SpanId(..),
+                                              },
+                                              name: SymbolId(..),
+                                              var: VarId(..),
+                                              mutability: Unmut,
+                                              is_ref: false,
+                                              binding_pat: None,
+                                          },
+                                      ),
+                                  ],
+                              },
+                          ),
+                          ty: Tuple(
+                              SynTupleTy {
+                                  data: CommonSynTyData {
+                                      _lifetime: PhantomData<&()>,
+                                      span: SpanId(..),
+                                  },
+                                  types: [
+                                      Num(
+                                          SynNumTy {
+                                              data: CommonSynTyData {
+                                                  _lifetime: PhantomData<&()>,
+                                                  span: SpanId(..),
+                                              },
+                                              numeric_kind: U32,
+                                          },
+                                      ),
+                                      Num(
+                                          SynNumTy {
+                                              data: CommonSynTyData {
+                                                  _lifetime: PhantomData<&()>,
+                                                  span: SpanId(..),
+                                              },
+                                              numeric_kind: I32,
+                                          },
+                                      ),
+                                  ],
+                              },
+                          ),
+                      },
+                  ],
+                  return_ty: Some(
+                      Path(
+                          SynPathTy {
+                              data: CommonSynTyData {
+                                  _lifetime: PhantomData<&()>,
+                                  span: SpanId(..),
+                              },
+                              path: AstQPath {
+                                  self_ty: None,
+                                  path_ty: None,
+                                  path: AstPath {
+                                      segments: [
+                                          AstPathSegment {
+                                              ident: Ident {
+                                                  name: "String",
+                                                  span: $DIR/print_fn_item.rs:5:62 - 5:68,
+                                              },
+                                              generics: SynGenericArgs {
+                                                  args: [],
+                                              },
+                                          },
+                                      ],
+                                  },
+                                  target: Item(
+                                      ItemId(..),
+                                  ),
+                              },
+                          },
+                      ),
+                  ),
+                  body_id: Some(
+                      BodyId(..),
+                  ),
+              },
+          )
+
+warning: printing item
+  --> $DIR/print_fn_item.rs:10:8
+   |
+10 |     fn print_me_trait_with_body(_ident: u8, (_a, _b): (u8, i8)) -> String {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Fn(
+               FnItem {
+                   data: CommonItemData {
+                       id: ItemId(..),
+                       span: SpanId(..),
+                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                       ident: Ident {
+                           name: "print_me_trait_with_body",
+                           span: $DIR/print_fn_item.rs:10:8 - 10:32,
+                       },
+                   },
+                   generics: SynGenericParams {
+                       params: [],
+                       clauses: [],
+                   },
+                   constness: NotConst,
+                   syncness: Sync,
+                   safety: Safe,
+                   is_extern: false,
+                   has_self: false,
+                   abi: Default,
+                   params: [
+                       FnParam {
+                           span: SpanId(..),
+                           pat: Ident(
+                               IdentPat {
+                                   data: CommonPatData {
+                                       _lifetime: PhantomData<&()>,
+                                       span: SpanId(..),
+                                   },
+                                   name: SymbolId(..),
+                                   var: VarId(..),
+                                   mutability: Unmut,
+                                   is_ref: false,
+                                   binding_pat: None,
+                               },
+                           ),
+                           ty: Num(
+                               SynNumTy {
+                                   data: CommonSynTyData {
+                                       _lifetime: PhantomData<&()>,
+                                       span: SpanId(..),
+                                   },
+                                   numeric_kind: U8,
+                               },
+                           ),
+                       },
+                       FnParam {
+                           span: SpanId(..),
+                           pat: Tuple(
+                               TuplePat {
+                                   data: CommonPatData {
+                                       _lifetime: PhantomData<&()>,
+                                       span: SpanId(..),
+                                   },
+                                   elements: [
+                                       Ident(
+                                           IdentPat {
+                                               data: CommonPatData {
+                                                   _lifetime: PhantomData<&()>,
+                                                   span: SpanId(..),
+                                               },
+                                               name: SymbolId(..),
+                                               var: VarId(..),
+                                               mutability: Unmut,
+                                               is_ref: false,
+                                               binding_pat: None,
+                                           },
+                                       ),
+                                       Ident(
+                                           IdentPat {
+                                               data: CommonPatData {
+                                                   _lifetime: PhantomData<&()>,
+                                                   span: SpanId(..),
+                                               },
+                                               name: SymbolId(..),
+                                               var: VarId(..),
+                                               mutability: Unmut,
+                                               is_ref: false,
+                                               binding_pat: None,
+                                           },
+                                       ),
+                                   ],
+                               },
+                           ),
+                           ty: Tuple(
+                               SynTupleTy {
+                                   data: CommonSynTyData {
+                                       _lifetime: PhantomData<&()>,
+                                       span: SpanId(..),
+                                   },
+                                   types: [
+                                       Num(
+                                           SynNumTy {
+                                               data: CommonSynTyData {
+                                                   _lifetime: PhantomData<&()>,
+                                                   span: SpanId(..),
+                                               },
+                                               numeric_kind: U8,
+                                           },
+                                       ),
+                                       Num(
+                                           SynNumTy {
+                                               data: CommonSynTyData {
+                                                   _lifetime: PhantomData<&()>,
+                                                   span: SpanId(..),
+                                               },
+                                               numeric_kind: I8,
+                                           },
+                                       ),
+                                   ],
+                               },
+                           ),
+                       },
+                   ],
+                   return_ty: Some(
+                       Path(
+                           SynPathTy {
+                               data: CommonSynTyData {
+                                   _lifetime: PhantomData<&()>,
+                                   span: SpanId(..),
+                               },
+                               path: AstQPath {
+                                   self_ty: None,
+                                   path_ty: None,
+                                   path: AstPath {
+                                       segments: [
+                                           AstPathSegment {
+                                               ident: Ident {
+                                                   name: "String",
+                                                   span: $DIR/print_fn_item.rs:10:68 - 10:74,
+                                               },
+                                               generics: SynGenericArgs {
+                                                   args: [],
+                                               },
+                                           },
+                                       ],
+                                   },
+                                   target: Item(
+                                       ItemId(..),
+                                   ),
+                               },
+                           },
+                       ),
+                   ),
+                   body_id: Some(
+                       BodyId(..),
+                   ),
+               },
+           )
+
+warning: printing item
+  --> $DIR/print_fn_item.rs:14:8
+   |
+14 |     fn print_me_trait_no_body(_ident: u64, _pair: (u64, i64)) -> String;
+   |        ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Fn(
+               FnItem {
+                   data: CommonItemData {
+                       id: ItemId(..),
+                       span: SpanId(..),
+                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                       ident: Ident {
+                           name: "print_me_trait_no_body",
+                           span: $DIR/print_fn_item.rs:14:8 - 14:30,
+                       },
+                   },
+                   generics: SynGenericParams {
+                       params: [],
+                       clauses: [],
+                   },
+                   constness: NotConst,
+                   syncness: Sync,
+                   safety: Safe,
+                   is_extern: false,
+                   has_self: false,
+                   abi: Default,
+                   params: [
+                       FnParam {
+                           span: SpanId(..),
+                           pat: Ident(
+                               IdentPat {
+                                   data: CommonPatData {
+                                       _lifetime: PhantomData<&()>,
+                                       span: SpanId(..),
+                                   },
+                                   name: SymbolId(..),
+                                   var: VarId(..),
+                                   mutability: Unmut,
+                                   is_ref: false,
+                                   binding_pat: None,
+                               },
+                           ),
+                           ty: Num(
+                               SynNumTy {
+                                   data: CommonSynTyData {
+                                       _lifetime: PhantomData<&()>,
+                                       span: SpanId(..),
+                                   },
+                                   numeric_kind: U64,
+                               },
+                           ),
+                       },
+                       FnParam {
+                           span: SpanId(..),
+                           pat: Ident(
+                               IdentPat {
+                                   data: CommonPatData {
+                                       _lifetime: PhantomData<&()>,
+                                       span: SpanId(..),
+                                   },
+                                   name: SymbolId(..),
+                                   var: VarId(..),
+                                   mutability: Unmut,
+                                   is_ref: false,
+                                   binding_pat: None,
+                               },
+                           ),
+                           ty: Tuple(
+                               SynTupleTy {
+                                   data: CommonSynTyData {
+                                       _lifetime: PhantomData<&()>,
+                                       span: SpanId(..),
+                                   },
+                                   types: [
+                                       Num(
+                                           SynNumTy {
+                                               data: CommonSynTyData {
+                                                   _lifetime: PhantomData<&()>,
+                                                   span: SpanId(..),
+                                               },
+                                               numeric_kind: U64,
+                                           },
+                                       ),
+                                       Num(
+                                           SynNumTy {
+                                               data: CommonSynTyData {
+                                                   _lifetime: PhantomData<&()>,
+                                                   span: SpanId(..),
+                                               },
+                                               numeric_kind: I64,
+                                           },
+                                       ),
+                                   ],
+                               },
+                           ),
+                       },
+                   ],
+                   return_ty: Some(
+                       Path(
+                           SynPathTy {
+                               data: CommonSynTyData {
+                                   _lifetime: PhantomData<&()>,
+                                   span: SpanId(..),
+                               },
+                               path: AstQPath {
+                                   self_ty: None,
+                                   path_ty: None,
+                                   path: AstPath {
+                                       segments: [
+                                           AstPathSegment {
+                                               ident: Ident {
+                                                   name: "String",
+                                                   span: $DIR/print_fn_item.rs:14:66 - 14:72,
+                                               },
+                                               generics: SynGenericArgs {
+                                                   args: [],
+                                               },
+                                           },
+                                       ],
+                                   },
+                                   target: Item(
+                                       ItemId(..),
+                                   ),
+                               },
+                           },
+                       ),
+                   ),
+                   body_id: None,
+               },
+           )
+
+warning: 5 warnings emitted
+

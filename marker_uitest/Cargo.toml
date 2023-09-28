@@ -1,0 +1,22 @@
+[package]
+name = "marker_uitest"
+
+description = "A thin wrapper around the ui_test crate for Marker"
+
+edition      = { workspace = true }
+keywords     = { workspace = true }
+license      = { workspace = true }
+repository   = { workspace = true }
+rust-version = { workspace = true }
+version      = { workspace = true }
+
+[dependencies]
+semver   = { workspace = true }
+tempfile = { workspace = true }
+ui_test  = { workspace = true }
+
+[features]
+default = []
+# This feature indicates that `marker_utils` is used inside the marker repo. This will
+# build and run the `cargo-marker` binary instead of invoking it via `cargo marker`.
+dev-build = []

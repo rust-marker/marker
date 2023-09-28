@@ -1,0 +1,609 @@
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:24:9
+   |
+24 |         let _ty: Self::C = Self::C::default();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Alias(
+               SemAliasTy {
+                   _lifetime: PhantomData<&()>,
+                   alias_item: ItemId(..),
+               },
+           )
+   = note: `#[warn(marker::test_lint)]` on by default
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:25:9
+   |
+25 |         let _ty: <Self as InterestingTrait<T>>::A = Self::A::default();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Alias(
+               SemAliasTy {
+                   _lifetime: PhantomData<&()>,
+                   alias_item: ItemId(..),
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:39:9
+   |
+39 |         let _ty: Self::C = Self::C::default();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Num(
+               SemNumTy {
+                   _ast: PhantomData<&()>,
+                   numeric_kind: U32,
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:40:9
+   |
+40 |         let _ty: <Self as InterestingTrait<u32>>::A = Self::A::default();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Num(
+               SemNumTy {
+                   _ast: PhantomData<&()>,
+                   numeric_kind: U32,
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:45:5
+   |
+45 |     let _ty_generic: T = t;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Generic(
+               SemGenericTy {
+                   _lifetime: PhantomData<&()>,
+                   generic_id: GenericId(..),
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:54:5
+   |
+54 |     let _ty: u32 = 10;
+   |     ^^^^^^^^^^^^^^^^^^
+   |
+   = note: Num(
+               SemNumTy {
+                   _ast: PhantomData<&()>,
+                   numeric_kind: U32,
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:55:5
+   |
+55 |     let _ty_primitive: Option<(u8, u16, u32, u64, u128, usize)> = None;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Adt(
+               SemAdtTy {
+                   def_id: TyDefId(..),
+                   generics: SemGenericArgs {
+                       args: [
+                           Ty(
+                               Tuple(
+                                   SemTupleTy {
+                                       types: [
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: U8,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: U16,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: U32,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: U64,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: U128,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: Usize,
+                                               },
+                                           ),
+                                       ],
+                                   },
+                               ),
+                           ),
+                       ],
+                   },
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:56:5
+   |
+56 |     let _ty_primitive: Option<(i8, i16, i32, i64, i128, isize)> = None;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Adt(
+               SemAdtTy {
+                   def_id: TyDefId(..),
+                   generics: SemGenericArgs {
+                       args: [
+                           Ty(
+                               Tuple(
+                                   SemTupleTy {
+                                       types: [
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: I8,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: I16,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: I32,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: I64,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: I128,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: Isize,
+                                               },
+                                           ),
+                                       ],
+                                   },
+                               ),
+                           ),
+                       ],
+                   },
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:57:5
+   |
+57 |     let _ty_primitive: Option<(char, bool, f32, f64)> = None;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Adt(
+               SemAdtTy {
+                   def_id: TyDefId(..),
+                   generics: SemGenericArgs {
+                       args: [
+                           Ty(
+                               Tuple(
+                                   SemTupleTy {
+                                       types: [
+                                           Text(
+                                               Char,
+                                           ),
+                                           Bool(
+                                               SemBoolTy {
+                                                   _lt: PhantomData<&()>,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: F32,
+                                               },
+                                           ),
+                                           Num(
+                                               SemNumTy {
+                                                   _ast: PhantomData<&()>,
+                                                   numeric_kind: F64,
+                                               },
+                                           ),
+                                       ],
+                                   },
+                               ),
+                           ),
+                       ],
+                   },
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:58:5
+   |
+58 |     let _ty_sequence: [u32; 1] = [10];
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Array(
+               SemArrayTy {
+                   inner_ty: Num(
+                       SemNumTy {
+                           _ast: PhantomData<&()>,
+                           numeric_kind: U32,
+                       },
+                   ),
+                   len: ConstValue {{ /* WIP: See rust-marker/marker#179 */}},
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:60:5
+   |
+60 |     let _ty_sequence: &[u32] = slice;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Ref(
+               SemRefTy {
+                   mutability: Unmut,
+                   inner_ty: Slice(
+                       [
+                           Num(
+                               SemNumTy {
+                                   _ast: PhantomData<&()>,
+                                   numeric_kind: U32,
+                               },
+                           ),
+                       ],
+                   ),
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:61:5
+   |
+61 |     let _ty_ptr: Option<(&'static str, *const i32, *mut i32)> = None;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Adt(
+               SemAdtTy {
+                   def_id: TyDefId(..),
+                   generics: SemGenericArgs {
+                       args: [
+                           Ty(
+                               Tuple(
+                                   SemTupleTy {
+                                       types: [
+                                           Ref(
+                                               SemRefTy {
+                                                   mutability: Unmut,
+                                                   inner_ty: Text(
+                                                       Str,
+                                                   ),
+                                               },
+                                           ),
+                                           RawPtr(
+                                               SemRawPtrTy {
+                                                   mutability: Unmut,
+                                                   inner_ty: Num(
+                                                       SemNumTy {
+                                                           _ast: PhantomData<&()>,
+                                                           numeric_kind: I32,
+                                                       },
+                                                   ),
+                                               },
+                                           ),
+                                           RawPtr(
+                                               SemRawPtrTy {
+                                                   mutability: Mut,
+                                                   inner_ty: Num(
+                                                       SemNumTy {
+                                                           _ast: PhantomData<&()>,
+                                                           numeric_kind: I32,
+                                                       },
+                                                   ),
+                                               },
+                                           ),
+                                       ],
+                                   },
+                               ),
+                           ),
+                       ],
+                   },
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:62:5
+   |
+62 |     let _ty_fn_item: fn(u32) -> f32 = u32_to_f32;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: FnTy(
+               SemFnTy {
+                   fn_id: ItemId(..),
+                   generics: SemGenericArgs {
+                       args: [],
+                   },
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:63:5
+   |
+63 |     let _ty_closure = || x = 9;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: ClosureTy(
+               SemClosureTy {
+                   closure_ty_id: TyDefId(..),
+                   generics: SemGenericArgs {
+                       args: [
+                           Ty(
+                               Num(
+                                   SemNumTy {
+                                       _ast: PhantomData<&()>,
+                                       numeric_kind: I16,
+                                   },
+                               ),
+                           ),
+                           Ty(
+                               FnPtr(
+                                   SemFnPtrTy {
+                                       safety: Safe,
+                                       abi: Other,
+                                       params: [
+                                           Tuple(
+                                               SemTupleTy {
+                                                   types: [],
+                                               },
+                                           ),
+                                       ],
+                                       return_ty: Tuple(
+                                           SemTupleTy {
+                                               types: [],
+                                           },
+                                       ),
+                                   },
+                               ),
+                           ),
+                           Ty(
+                               Tuple(
+                                   SemTupleTy {
+                                       types: [
+                                           Ref(
+                                               SemRefTy {
+                                                   mutability: Mut,
+                                                   inner_ty: Num(
+                                                       SemNumTy {
+                                                           _ast: PhantomData<&()>,
+                                                           numeric_kind: I32,
+                                                       },
+                                                   ),
+                                               },
+                                           ),
+                                       ],
+                                   },
+                               ),
+                           ),
+                       ],
+                   },
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:68:5
+   |
+68 |     let _ty_fn_ptr: fn(u32) -> f32 = fn_ptr;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: FnPtr(
+               SemFnPtrTy {
+                   safety: Safe,
+                   abi: Default,
+                   params: [
+                       Num(
+                           SemNumTy {
+                               _ast: PhantomData<&()>,
+                               numeric_kind: U32,
+                           },
+                       ),
+                   ],
+                   return_ty: Num(
+                       SemNumTy {
+                           _ast: PhantomData<&()>,
+                           numeric_kind: F32,
+                       },
+                   ),
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:72:5
+   |
+72 |     let _ty_simple_alias: AliasTy = AliasTy::new(12);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Adt(
+               SemAdtTy {
+                   def_id: TyDefId(..),
+                   generics: SemGenericArgs {
+                       args: [
+                           Ty(
+                               Num(
+                                   SemNumTy {
+                                       _ast: PhantomData<&()>,
+                                       numeric_kind: U32,
+                                   },
+                               ),
+                           ),
+                           Ty(
+                               Adt(
+                                   SemAdtTy {
+                                       def_id: TyDefId(..),
+                                       generics: SemGenericArgs {
+                                           args: [],
+                                       },
+                                   },
+                               ),
+                           ),
+                       ],
+                   },
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:74:5
+   |
+74 |     let _ty_adt: String = String::new();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Adt(
+               SemAdtTy {
+                   def_id: TyDefId(..),
+                   generics: SemGenericArgs {
+                       args: [],
+                   },
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:75:5
+   |
+75 |     let _ty_dyn_simple: Option<Box<dyn Debug>> = None;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Adt(
+               SemAdtTy {
+                   def_id: TyDefId(..),
+                   generics: SemGenericArgs {
+                       args: [
+                           Ty(
+                               Adt(
+                                   SemAdtTy {
+                                       def_id: TyDefId(..),
+                                       generics: SemGenericArgs {
+                                           args: [
+                                               Ty(
+                                                   TraitObj(
+                                                       SemTraitObjTy {
+                                                           bound: [
+                                                               SemTraitBound {
+                                                                   is_relaxed: false,
+                                                                   trait_id: TyDefId(..),
+                                                                   trait_generic_args: SemGenericArgs {
+                                                                       args: [],
+                                                                   },
+                                                               },
+                                                           ],
+                                                       },
+                                                   ),
+                                               ),
+                                               Ty(
+                                                   Adt(
+                                                       SemAdtTy {
+                                                           def_id: TyDefId(..),
+                                                           generics: SemGenericArgs {
+                                                               args: [],
+                                                           },
+                                                       },
+                                                   ),
+                                               ),
+                                           ],
+                                       },
+                                   },
+                               ),
+                           ),
+                       ],
+                   },
+               },
+           )
+
+warning: print type test
+  --> $DIR/print_semantic_ty.rs:76:5
+   |
+76 |     let _ty_dyn_complex: Option<Box<dyn Iterator<Item = i32> + 'static>> = None;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Adt(
+               SemAdtTy {
+                   def_id: TyDefId(..),
+                   generics: SemGenericArgs {
+                       args: [
+                           Ty(
+                               Adt(
+                                   SemAdtTy {
+                                       def_id: TyDefId(..),
+                                       generics: SemGenericArgs {
+                                           args: [
+                                               Ty(
+                                                   TraitObj(
+                                                       SemTraitObjTy {
+                                                           bound: [
+                                                               SemTraitBound {
+                                                                   is_relaxed: false,
+                                                                   trait_id: TyDefId(..),
+                                                                   trait_generic_args: SemGenericArgs {
+                                                                       args: [
+                                                                           Binding(
+                                                                               SemBindingArg {
+                                                                                   binding_target: ItemId(..),
+                                                                                   ty: Num(
+                                                                                       SemNumTy {
+                                                                                           _ast: PhantomData<&()>,
+                                                                                           numeric_kind: I32,
+                                                                                       },
+                                                                                   ),
+                                                                               },
+                                                                           ),
+                                                                       ],
+                                                                   },
+                                                               },
+                                                           ],
+                                                       },
+                                                   ),
+                                               ),
+                                               Ty(
+                                                   Adt(
+                                                       SemAdtTy {
+                                                           def_id: TyDefId(..),
+                                                           generics: SemGenericArgs {
+                                                               args: [],
+                                                           },
+                                                       },
+                                                   ),
+                                               ),
+                                           ],
+                                       },
+                                   },
+                               ),
+                           ),
+                       ],
+                   },
+               },
+           )
+
+warning: 19 warnings emitted
+

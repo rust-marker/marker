@@ -1,0 +1,87 @@
+# Invalid paths
+Resolving "" yielded []
+Resolving "something" yielded []
+Resolving "bool" yielded []
+Resolving "u32" yielded []
+Resolving "crate::super" yielded []
+Resolving "crate::self::super" yielded []
+
+# Unresolvable
+Resolving "something::weird" yielded []
+Resolving "something::weird::very::very::very::very::very::long" yielded []
+
+# Not a type
+Resolving "std::env" yielded []
+Resolving "std::i32" yielded []
+Resolving "std::primitive::i32" yielded []
+Resolving "std::option::Option::None" yielded []
+
+# Valid
+Resolving "std::option::Option" yielded [
+    TyDefId(..),
+]
+Resolving "std::vec::Vec" yielded [
+    TyDefId(..),
+]
+Resolving "std::string::String" yielded [
+    TyDefId(..),
+]
+
+# Valid local items
+Resolving "item_id_resolution::TestType" yielded [
+    TyDefId(..),
+]
+Resolving "crate::TestType" yielded [
+    TyDefId(..),
+]
+Check equal: true
+
+=====================================================================
+
+warning: check type resolution
+ --> $DIR/item_id_resolution.rs:5:5
+  |
+5 |     let _check_path_vec = vec!["hey"];
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Is this a "std::vec::Vec" -> true
+  = note: Is this a "std::string::String" -> false
+  = note: Is this a "std::option::Option" -> false
+  = note: Is this a "crate::TestType" -> false
+  = note: `#[warn(marker::test_lint)]` on by default
+
+warning: check type resolution
+ --> $DIR/item_id_resolution.rs:6:5
+  |
+6 |     let _check_path_string = String::from("marker");
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Is this a "std::vec::Vec" -> false
+  = note: Is this a "std::string::String" -> true
+  = note: Is this a "std::option::Option" -> false
+  = note: Is this a "crate::TestType" -> false
+
+warning: check type resolution
+ --> $DIR/item_id_resolution.rs:7:5
+  |
+7 |     let _check_path_option = Option::Some("<3");
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Is this a "std::vec::Vec" -> false
+  = note: Is this a "std::string::String" -> false
+  = note: Is this a "std::option::Option" -> true
+  = note: Is this a "crate::TestType" -> false
+
+warning: check type resolution
+ --> $DIR/item_id_resolution.rs:8:5
+  |
+8 |     let _check_path_test_type = TestType(3);
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Is this a "std::vec::Vec" -> false
+  = note: Is this a "std::string::String" -> false
+  = note: Is this a "std::option::Option" -> false
+  = note: Is this a "crate::TestType" -> true
+
+warning: 4 warnings emitted
+

@@ -1,0 +1,209 @@
+warning: print test
+ --> $DIR/print_let_expr.rs:2:5
+  |
+2 |     let _print_str = r#"Hello"#;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: StrLit(
+              StrLitExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  is_raw: true,
+                  str_data: Sym(
+                      SymbolId(..),
+                  ),
+              },
+          )
+  = note: `#[warn(marker::test_lint)]` on by default
+
+warning: print test
+ --> $DIR/print_let_expr.rs:3:5
+  |
+3 |     let _print_byte_str = b"Hello/n";
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: StrLit(
+              StrLitExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  is_raw: false,
+                  str_data: Bytes(
+                      [
+                          72,
+                          101,
+                          108,
+                          108,
+                          111,
+                          10,
+                      ],
+                  ),
+              },
+          )
+
+warning: print test
+ --> $DIR/print_let_expr.rs:4:5
+  |
+4 |     let _print_int = 17_i32;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: IntLit(
+              IntLitExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  value: 17,
+                  suffix: Some(
+                      I32,
+                  ),
+              },
+          )
+
+warning: print test
+ --> $DIR/print_let_expr.rs:5:5
+  |
+5 |     let _print_float = 0.000015;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: FloatLit(
+              FloatLitExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  value: 1.5e-5,
+                  suffix: None,
+              },
+          )
+
+warning: print test
+ --> $DIR/print_let_expr.rs:6:5
+  |
+6 |     let _print_char = 'h';
+  |     ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: CharLit(
+              CharLitExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  value: 'h',
+              },
+          )
+
+warning: print test
+ --> $DIR/print_let_expr.rs:7:5
+  |
+7 |     let _print_hex_int = 0xcafe;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: IntLit(
+              IntLitExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  value: 51966,
+                  suffix: None,
+              },
+          )
+
+warning: print test
+ --> $DIR/print_let_expr.rs:8:5
+  |
+8 |     let _print_byte = b'D';
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: IntLit(
+              IntLitExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  value: 68,
+                  suffix: None,
+              },
+          )
+
+warning: print test
+ --> $DIR/print_let_expr.rs:9:5
+  |
+9 |     let _print_block_int = { 3 };
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Block(
+              BlockExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  stmts: [],
+                  expr: Some(
+                      IntLit(
+                          IntLitExpr {
+                              data: CommonExprData {
+                                  _lifetime: PhantomData<&()>,
+                                  id: ExprId(..),
+                                  span: SpanId(..),
+                              },
+                              value: 3,
+                              suffix: None,
+                          },
+                      ),
+                  ),
+                  label: None,
+                  safety: Safe,
+                  syncness: Sync,
+                  capture_kind: Default,
+              },
+          )
+
+warning: print test
+  --> $DIR/print_let_expr.rs:10:5
+   |
+10 |     let _print_unsafe_block = unsafe { 0 };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Block(
+               BlockExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   stmts: [],
+                   expr: Some(
+                       IntLit(
+                           IntLitExpr {
+                               data: CommonExprData {
+                                   _lifetime: PhantomData<&()>,
+                                   id: ExprId(..),
+                                   span: SpanId(..),
+                               },
+                               value: 0,
+                               suffix: None,
+                           },
+                       ),
+                   ),
+                   label: None,
+                   safety: Unsafe,
+                   syncness: Sync,
+                   capture_kind: Default,
+               },
+           )
+
+warning: 9 warnings emitted
+

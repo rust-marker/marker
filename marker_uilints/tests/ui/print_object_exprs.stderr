@@ -1,0 +1,125 @@
+warning: print test
+  --> $DIR/print_object_exprs.rs:18:5
+   |
+18 |     let _print_method = foo.print();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Method(
+               MethodExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   receiver: Path(
+                       PathExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           path: AstQPath {
+                               self_ty: None,
+                               path_ty: None,
+                               path: AstPath {
+                                   segments: [
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "foo",
+                                               span: $DIR/print_object_exprs.rs:18:25 - 18:28,
+                                           },
+                                           generics: SynGenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                   ],
+                               },
+                               target: Var(
+                                   VarId(..),
+                               ),
+                           },
+                       },
+                   ),
+                   method: AstPathSegment {
+                       ident: Ident {
+                           name: "print",
+                           span: $DIR/print_object_exprs.rs:18:29 - 18:34,
+                       },
+                       generics: SynGenericArgs {
+                           args: [],
+                       },
+                   },
+                   args: [],
+               },
+           )
+   = note: `#[warn(marker::test_lint)]` on by default
+
+warning: print test
+  --> $DIR/print_object_exprs.rs:19:5
+   |
+19 |     let _print_method = foo.inc(2);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Method(
+               MethodExpr {
+                   data: CommonExprData {
+                       _lifetime: PhantomData<&()>,
+                       id: ExprId(..),
+                       span: SpanId(..),
+                   },
+                   receiver: Path(
+                       PathExpr {
+                           data: CommonExprData {
+                               _lifetime: PhantomData<&()>,
+                               id: ExprId(..),
+                               span: SpanId(..),
+                           },
+                           path: AstQPath {
+                               self_ty: None,
+                               path_ty: None,
+                               path: AstPath {
+                                   segments: [
+                                       AstPathSegment {
+                                           ident: Ident {
+                                               name: "foo",
+                                               span: $DIR/print_object_exprs.rs:19:25 - 19:28,
+                                           },
+                                           generics: SynGenericArgs {
+                                               args: [],
+                                           },
+                                       },
+                                   ],
+                               },
+                               target: Var(
+                                   VarId(..),
+                               ),
+                           },
+                       },
+                   ),
+                   method: AstPathSegment {
+                       ident: Ident {
+                           name: "inc",
+                           span: $DIR/print_object_exprs.rs:19:29 - 19:32,
+                       },
+                       generics: SynGenericArgs {
+                           args: [],
+                       },
+                   },
+                   args: [
+                       IntLit(
+                           IntLitExpr {
+                               data: CommonExprData {
+                                   _lifetime: PhantomData<&()>,
+                                   id: ExprId(..),
+                                   span: SpanId(..),
+                               },
+                               value: 2,
+                               suffix: None,
+                           },
+                       ),
+                   ],
+               },
+           )
+
+warning: 2 warnings emitted
+

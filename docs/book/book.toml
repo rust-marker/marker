@@ -1,0 +1,13 @@
+[book]
+authors      = ["Rust Marker Developers"]
+language     = "en"
+multilingual = false
+src          = "src"
+title        = "The Marker Book"
+
+[output.html]
+git-repository-url = "https://github.com/rust-marker/marker"
+
+[preprocessor.toc]
+command  = "mdbook-toc"
+renderer = ["html"]

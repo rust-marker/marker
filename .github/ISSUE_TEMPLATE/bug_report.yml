@@ -1,0 +1,50 @@
+name: Bug Report
+description: Create a bug report to help us improve
+title: "[Bug]: "
+labels: ["C-bug", "S-needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for reporting a bug! 🐛
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: |
+        Summarize the issue and include any required information.
+  - type: textarea
+    id: reproducer
+    attributes:
+      label: Reproducer
+      description: |
+        Describe how the bug can be reproduced. Please include the following information if applicable:
+        * The checked code that causes the bug
+        * The lint implementation
+      placeholder: |
+        1. Take this code
+          ```rust
+          ```
+        2. This lint crate check
+          ```rust
+          ```
+        3. Run `cargo marker`
+        4. See error
+  - type: textarea
+    id: version
+    attributes:
+      label: Version
+      description: "Marker's version (`cargo marker -V`)"
+      placeholder: |
+        cargo-marker 0.2.1
+      render: text
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        Please try to include the full log, by setting the relevant environment values:
+        * `MARKER_ERROR_TRACE=1 MARKER_LOG=info cargo marker`
+      placeholder: |
+        $ MARKER_ERROR_TRACE=1 MARKER_LOG=info cargo marker
+        [...]
+      render: text

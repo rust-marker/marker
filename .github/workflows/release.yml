@@ -1,0 +1,52 @@
+# This workflow must be triggered manually. It is intended to be an entrypoint for
+# the whole release process. See the docs/internal/release.md for more details.
+
+name: release
+on:
+  workflow_dispatch:
+
+# It's technically possible to run several releases in parallel if they are
+# a regular release and a hotfix from a different branch, but let's try not
+# to do that for our own sanity (🦶🔫).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Unfortunatelly, we can't use the default `github.token` in this workflow.
+          # By design, GitHub doesn't trigger workflows on pushes to tags created by
+          # the `github.token` to prevent infinite loops.
+          # https://github.com/orgs/community/discussions/27028
+          token: ${{ secrets.RELEASE_GITHUB_PAT }}
+
+      - name: Resolve the release version
+        run: echo "release_version=$(scripts/release/get-version-from-changelog.sh)" >> $GITHUB_ENV
+      - name: Resolve the next dev version
+        run: echo "next_dev_version=$(scripts/release/get-next-dev-version.sh ${{ env.release_version }})" >> $GITHUB_ENV
+
+      # To be able to create a commit we need some committer identity.
+      - run: |
+          git config user.name "rust-marker-ci"
+          git config user.email "rust.marker.ci@gmail.com"
+
+      # Create a release commit and tag
+      - run: scripts/release/set-version.sh ${{ env.release_version }}
+          --commit "🚀 Release v${{ env.release_version }}"
+
+      - run: git tag v${{ env.release_version }}
+
+      # Create a next dev version commit
+      - run: scripts/release/set-version.sh ${{ env.next_dev_version }}
+          --commit "🚧 Development v${{ env.next_dev_version }}"
+
+      # Push the branch and the new tag to the remote
+      - run: git push --atomic origin ${{ github.ref_name }} v${{ env.release_version }}

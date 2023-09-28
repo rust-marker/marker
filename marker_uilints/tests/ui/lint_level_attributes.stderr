@@ -1,0 +1,22 @@
+warning: found a `const` item with a test name
+ --> $DIR/lint_level_attributes.rs:4:1
+  |
+4 | const FIND_ME_DEFAULT: i32 = 0;
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(marker::item_with_test_name)]` on by default
+
+error: found a `const` item with a test name
+  --> $DIR/lint_level_attributes.rs:10:1
+   |
+10 | const FIND_ME_DENY: i32 = 0;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> $DIR/lint_level_attributes.rs:9:8
+   |
+9  | #[deny(marker::item_with_test_name)]
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to previous error; 1 warning emitted
+

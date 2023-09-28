@@ -1,0 +1,222 @@
+warning: print test
+ --> $DIR/print_op.rs:2:5
+  |
+2 |     let _print_cast = 16 as u32;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: As(
+              AsExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  expr: IntLit(
+                      IntLitExpr {
+                          data: CommonExprData {
+                              _lifetime: PhantomData<&()>,
+                              id: ExprId(..),
+                              span: SpanId(..),
+                          },
+                          value: 16,
+                          suffix: None,
+                      },
+                  ),
+                  cast_ty: Num(
+                      SynNumTy {
+                          data: CommonSynTyData {
+                              _lifetime: PhantomData<&()>,
+                              span: SpanId(..),
+                          },
+                          numeric_kind: U32,
+                      },
+                  ),
+              },
+          )
+  = note: `#[warn(marker::test_lint)]` on by default
+
+warning: print test
+ --> $DIR/print_op.rs:7:5
+  |
+7 |     let _print_alg_ops = 1 + 2 * -3;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: BinaryOp(
+              BinaryOpExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  left: IntLit(
+                      IntLitExpr {
+                          data: CommonExprData {
+                              _lifetime: PhantomData<&()>,
+                              id: ExprId(..),
+                              span: SpanId(..),
+                          },
+                          value: 1,
+                          suffix: None,
+                      },
+                  ),
+                  right: BinaryOp(
+                      BinaryOpExpr {
+                          data: CommonExprData {
+                              _lifetime: PhantomData<&()>,
+                              id: ExprId(..),
+                              span: SpanId(..),
+                          },
+                          left: IntLit(
+                              IntLitExpr {
+                                  data: CommonExprData {
+                                      _lifetime: PhantomData<&()>,
+                                      id: ExprId(..),
+                                      span: SpanId(..),
+                                  },
+                                  value: 2,
+                                  suffix: None,
+                              },
+                          ),
+                          right: UnaryOp(
+                              UnaryOpExpr {
+                                  data: CommonExprData {
+                                      _lifetime: PhantomData<&()>,
+                                      id: ExprId(..),
+                                      span: SpanId(..),
+                                  },
+                                  expr: IntLit(
+                                      IntLitExpr {
+                                          data: CommonExprData {
+                                              _lifetime: PhantomData<&()>,
+                                              id: ExprId(..),
+                                              span: SpanId(..),
+                                          },
+                                          value: 3,
+                                          suffix: None,
+                                      },
+                                  ),
+                                  kind: Neg,
+                              },
+                          ),
+                          kind: Mul,
+                      },
+                  ),
+                  kind: Add,
+              },
+          )
+
+warning: print test
+ --> $DIR/print_op.rs:8:5
+  |
+8 |     let _print_bool_ops = true && false || !true;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: BinaryOp(
+              BinaryOpExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  left: BinaryOp(
+                      BinaryOpExpr {
+                          data: CommonExprData {
+                              _lifetime: PhantomData<&()>,
+                              id: ExprId(..),
+                              span: SpanId(..),
+                          },
+                          left: BoolLit(
+                              BoolLitExpr {
+                                  data: CommonExprData {
+                                      _lifetime: PhantomData<&()>,
+                                      id: ExprId(..),
+                                      span: SpanId(..),
+                                  },
+                                  value: true,
+                              },
+                          ),
+                          right: BoolLit(
+                              BoolLitExpr {
+                                  data: CommonExprData {
+                                      _lifetime: PhantomData<&()>,
+                                      id: ExprId(..),
+                                      span: SpanId(..),
+                                  },
+                                  value: false,
+                              },
+                          ),
+                          kind: And,
+                      },
+                  ),
+                  right: UnaryOp(
+                      UnaryOpExpr {
+                          data: CommonExprData {
+                              _lifetime: PhantomData<&()>,
+                              id: ExprId(..),
+                              span: SpanId(..),
+                          },
+                          expr: BoolLit(
+                              BoolLitExpr {
+                                  data: CommonExprData {
+                                      _lifetime: PhantomData<&()>,
+                                      id: ExprId(..),
+                                      span: SpanId(..),
+                                  },
+                                  value: true,
+                              },
+                          ),
+                          kind: Not,
+                      },
+                  ),
+                  kind: Or,
+              },
+          )
+
+warning: print test
+ --> $DIR/print_op.rs:9:5
+  |
+9 |     let _print_ref = &mut value;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: Ref(
+              RefExpr {
+                  data: CommonExprData {
+                      _lifetime: PhantomData<&()>,
+                      id: ExprId(..),
+                      span: SpanId(..),
+                  },
+                  expr: Path(
+                      PathExpr {
+                          data: CommonExprData {
+                              _lifetime: PhantomData<&()>,
+                              id: ExprId(..),
+                              span: SpanId(..),
+                          },
+                          path: AstQPath {
+                              self_ty: None,
+                              path_ty: None,
+                              path: AstPath {
+                                  segments: [
+                                      AstPathSegment {
+                                          ident: Ident {
+                                              name: "value",
+                                              span: $DIR/print_op.rs:9:27 - 9:32,
+                                          },
+                                          generics: SynGenericArgs {
+                                              args: [],
+                                          },
+                                      },
+                                  ],
+                              },
+                              target: Var(
+                                  VarId(..),
+                              ),
+                          },
+                      },
+                  ),
+                  mutability: Mut,
+              },
+          )
+
+warning: 4 warnings emitted
+

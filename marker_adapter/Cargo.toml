@@ -1,0 +1,20 @@
+[package]
+name = "marker_adapter"
+
+description = "Marker's adapter for common functions shared among lint drivers"
+keywords    = ["marker"]
+
+edition    = { workspace = true }
+license    = { workspace = true }
+repository = { workspace = true }
+version    = { workspace = true }
+
+[dependencies]
+marker_api   = { workspace = true, features = ["driver-api"] }
+marker_error = { workspace = true }
+marker_utils = { workspace = true }
+
+camino     = { workspace = true }
+libloading = { workspace = true }
+miette     = { workspace = true }
+thiserror  = { workspace = true }
