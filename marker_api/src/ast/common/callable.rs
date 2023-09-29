@@ -108,12 +108,19 @@ pub(crate) struct CommonCallableData<'ast> {
 #[allow(clippy::fn_params_excessive_bools, clippy::too_many_arguments)]
 impl<'ast> CommonCallableData<'ast> {
     pub fn new(
+        // rm
         constness: Constness,
         syncness: Syncness,
+
+        // Keep
         safety: Safety,
         is_extern: bool,
         abi: Abi,
+
+        // rm
         has_self: bool,
+
+        // Keep
         params: &'ast [Parameter<'ast>],
         return_ty: Option<SynTyKind<'ast>>,
     ) -> Self {

@@ -61,10 +61,6 @@ pub enum SynTyKind<'ast> {
     /// A variable length slice like [`[T]`](prim@slice)
     Slice(&'ast SynSliceTy<'ast>),
     // ================================
-    // Function types
-    // ================================
-    Closure(&'ast SynClosureTy<'ast>),
-    // ================================
     // Pointer types
     // ================================
     /// A reference like [`&T`](prim@reference) or [`&mut T`](prim@reference)
@@ -119,7 +115,7 @@ impl<'ast> SynTyKind<'ast> {
     /// Returns `true` if this is a function type.
     #[must_use]
     pub fn is_fn(&self) -> bool {
-        matches!(self, Self::FnPtr(..) | Self::Closure(..))
+        matches!(self, Self::FnPtr(..))
     }
 
     /// Returns `true` if this is a pointer type.
@@ -151,7 +147,6 @@ macro_rules! impl_syn_ty_data_fn {
         impl_syn_ty_data_fn!($method() -> $return_ty,
             Bool, Num, Text, Never,
             Tuple, Array, Slice,
-            Closure,
             Ref, RawPtr, FnPtr,
             TraitObj, ImplTrait,
             Inferred, Path
