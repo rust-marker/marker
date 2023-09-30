@@ -140,23 +140,31 @@ jobs:
   # This check is allowed to fail, while Marker is still unstable. It's mostly
   # a sanity check, to make sure we don't have any unintentional API breakage :)
   semver-checks:
+    env:
+      PR_NUM: ${{ github.event.pull_request.number }}
     runs-on: ubuntu-latest
+    # This CI check isn't required to pass just yet.
+    # Marker isn't stable so semver breaking changes are allowed.
+    continue-on-error: true
     if: ${{ github.event.pull_request }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.base_ref }}
-          path: './base'
+          path: './upstream'
       - uses: actions/checkout@v4
         with:
-          path: './source'
-      - run: source/scripts/download/cargo-semver-checks.sh
+          path: './downstream'
+      - run: downstream/scripts/download/cargo-semver-checks.sh
       - run: >-
           cargo semver-checks
-          --manifest-path './source/Cargo.toml'
+          --manifest-path './downstream/Cargo.toml'
           --package marker_api
           --package marker_utils
           --package marker_uitest
-          --baseline-root './base'
+          --baseline-root './upstream'
           --default-features
           --release-type minor
+      - run: gh pr edit $PR_NUM --add-label "I-api-break"
+        if: ${{ github.repository == 'rust-marker/marker' && failure() }}
+      - run: echo "$PR_NUM"
