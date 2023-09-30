@@ -37,6 +37,7 @@ See the [v0.3.0 milestone] for a full list of all changes.
 [#252]: https://github.com/rust-marker/marker/pull/252
 [#256]: https://github.com/rust-marker/marker/pull/256
 [#263]: https://github.com/rust-marker/marker/pull/263
+[#265]: https://github.com/rust-marker/marker/pull/265
 
 ### Added
 - [#232]: Add scope config for visitors and `for_each_expr` to `marker_utils`
@@ -50,6 +51,7 @@ See the [v0.3.0 milestone] for a full list of all changes.
 - [#244]: `StmtKind` and `PatKind` no longer wrap `Kind*` directly
 - [#245]: `emit_lint()` takes less arguments and returns a `DiagnosticBuilder` instance
 - [#263]: Updated the [`ui_test`](https://crates.io/crates/ui_test) used by `marker_uitest` from `v0.11.7` to `v0.21.2`
+- [#265]: Removed the `CallableData` trait
 
 ### Internal
 
