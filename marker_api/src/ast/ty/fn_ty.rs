@@ -64,7 +64,7 @@ pub struct SemClosureTy<'ast> {
 
 impl<'ast> SemClosureTy<'ast> {
     /// This returns the [`ItemId`] of the identified function.
-    pub fn closure_ty_id(&self) -> TyDefId {
+    pub fn closure_ty_d(&self) -> TyDefId {
         self.closure_ty_id
     }
 
