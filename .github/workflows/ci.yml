@@ -141,6 +141,9 @@ jobs:
   # a sanity check, to make sure we don't have any unintentional API breakage :)
   semver-checks:
     runs-on: ubuntu-latest
+    # This CI check isn't required to pass just yet.
+    # Marker isn't stable so semver breaking changes are allowed.
+    continue-on-error: true
     if: ${{ github.event.pull_request }}
     steps:
       - uses: actions/checkout@v4
@@ -160,6 +163,3 @@ jobs:
           --baseline-root './upstream'
           --default-features
           --release-type minor
-        # This CI check isn't required to pass just yet.
-        # Marker isn't stable so semver breaking changes are allowed.
-        continue-on-error: true
