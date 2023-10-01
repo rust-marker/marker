@@ -36,6 +36,7 @@ See the [v0.3.0 milestone] for a full list of all changes.
 [#245]: https://github.com/rust-marker/marker/pull/245
 [#252]: https://github.com/rust-marker/marker/pull/252
 [#256]: https://github.com/rust-marker/marker/pull/256
+[#259]: https://github.com/rust-marker/marker/pull/259
 [#263]: https://github.com/rust-marker/marker/pull/263
 [#265]: https://github.com/rust-marker/marker/pull/265
 
@@ -43,6 +44,7 @@ See the [v0.3.0 milestone] for a full list of all changes.
 - [#232]: Add scope config for visitors and `for_each_expr` to `marker_utils`
 - [#239]: GitHub releases now provide precompiled binaries of `cargo-marker` and `marker_rustc_driver`.
 - [#252]: Marker now provides install scripts for linux, macos and windows
+- [#259]: Introduced a GitHub Action for installing and running Marker
 
 ### Breaking Changes
 - [#256]: Renamed `AstContext` -> `MarkerContext`

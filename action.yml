@@ -1,0 +1,28 @@
+name: Rust Marker Linter
+description: GitHub Action to install and run the Marker linter for Rust 🦀
+branding:
+  icon: edit-3
+  color: white
+
+inputs:
+  install-only:
+    description: >
+      If set to `true` then the action will only install `cargo marker`,
+      and will skip running `cargo marker`. Use this if you want to run
+      something more complex than just `cargo marker`. If you think there
+      may be a frequent use case for running a different command then we will be
+      glad if you open a feature request issue for that to extend the action input
+      parameters.
+
+    default: 'false'
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - run: ${GITHUB_ACTION_PATH:?}/scripts/release/install.${{ runner.os == 'Windows' && 'ps1' || 'sh' }}
+      shell: bash
+
+    - run: cargo marker
+      if: ${{ inputs.install-only == 'false' }}
+      shell: bash
