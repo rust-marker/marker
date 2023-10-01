@@ -1,6 +1,9 @@
 use crate::{
-    ast::{generic::Lifetime, impl_callable_data_trait, Abi, CommonCallableData, Mutability, Safety},
+    ast::{generic::Lifetime, Abi, Mutability, Safety, SpanId},
+    context::with_cx,
     ffi::{FfiOption, FfiSlice},
+    private::Sealed,
+    span::{HasSpan, Ident},
 };
 
 use super::{CommonSynTyData, SemTyKind, SynTyKind};
@@ -141,24 +144,76 @@ impl<'ast> SemRawPtrTy<'ast> {
     }
 }
 
-/// The semantic representation of a function pointer, like [`fn (T) -> U`](prim@fn)
+/// The syntactic representation of a function pointer, like [`fn (T) -> U`](prim@fn)
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct SynFnPtrTy<'ast> {
     data: CommonSynTyData<'ast>,
-    callable_data: CommonCallableData<'ast>,
+    safety: Safety,
+    abi: Abi,
+    #[cfg_attr(feature = "driver-api", builder(setter(into)))]
+    params: FfiSlice<'ast, FnTyParameter<'ast>>,
+    #[cfg_attr(feature = "driver-api", builder(setter(into)))]
+    return_ty: FfiOption<SynTyKind<'ast>>,
     // FIXME: Add `for<'a>` bound
 }
 
-#[cfg(feature = "driver-api")]
 impl<'ast> SynFnPtrTy<'ast> {
-    pub fn new(data: CommonSynTyData<'ast>, callable_data: CommonCallableData<'ast>) -> Self {
-        Self { data, callable_data }
+    /// Returns the [`Safety`] of this callable.
+    ///
+    /// Use this to check if the function is `unsafe`.
+    pub fn safety(&self) -> Safety {
+        self.safety
+    }
+
+    /// Returns the [`Abi`] of the callable.
+    pub fn abi(&self) -> Abi {
+        self.abi
+    }
+
+    /// Returns the [`FnTyParameter`]s this function pointer accepts.
+    pub fn params(&self) -> &[FnTyParameter<'ast>] {
+        self.params.get()
+    }
+
+    /// The return type of this function pointer, if specified.
+    pub fn return_ty(&self) -> Option<&SynTyKind<'ast>> {
+        self.return_ty.get()
     }
 }
 
 super::impl_ty_data!(SynFnPtrTy<'ast>, FnPtr);
-impl_callable_data_trait!(SynFnPtrTy<'ast>);
+
+/// A parameter for the [`SynFnPtrTy`].
+#[repr(C)]
+#[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
+pub struct FnTyParameter<'ast> {
+    #[cfg_attr(feature = "driver-api", builder(setter(into)))]
+    ident: FfiOption<Ident<'ast>>,
+    span: SpanId,
+    ty: SynTyKind<'ast>,
+}
+
+impl<'ast> FnTyParameter<'ast> {
+    /// Returns the [`Ident`] of the parameter, if specified.
+    pub fn ident(&self) -> Option<&Ident<'ast>> {
+        self.ident.get()
+    }
+
+    /// The syntactic type of this parameter.
+    pub fn ty(&self) -> SynTyKind<'ast> {
+        self.ty
+    }
+}
+
+impl Sealed for FnTyParameter<'_> {}
+impl<'ast> HasSpan<'ast> for FnTyParameter<'ast> {
+    fn span(&self) -> &crate::span::Span<'ast> {
+        with_cx(self, |cx| cx.span(self.span))
+    }
+}
 
 /// The semantic representation of a function pointer, like [`fn (T) -> U`](prim@fn)
 #[repr(C)]

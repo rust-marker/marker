@@ -1,12 +1,12 @@
 use marker_api::ast::{
     ty::{
-        CommonSynTyData, NumKind, SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemClosureTy, SemFnPtrTy, SemFnTy,
-        SemGenericTy, SemNeverTy, SemNumTy, SemRawPtrTy, SemRefTy, SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy,
-        SemTyKind, SemUnstableTy, SynArrayTy, SynBoolTy, SynFnPtrTy, SynImplTraitTy, SynInferredTy, SynNeverTy,
-        SynNumTy, SynPathTy, SynRawPtrTy, SynRefTy, SynSliceTy, SynTextTy, SynTraitObjTy, SynTupleTy, SynTyKind,
-        TextKind,
+        CommonSynTyData, FnTyParameter, NumKind, SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemClosureTy, SemFnPtrTy,
+        SemFnTy, SemGenericTy, SemNeverTy, SemNumTy, SemRawPtrTy, SemRefTy, SemSliceTy, SemTextTy, SemTraitObjTy,
+        SemTupleTy, SemTyKind, SemUnstableTy, SynArrayTy, SynBoolTy, SynFnPtrTy, SynImplTraitTy, SynInferredTy,
+        SynNeverTy, SynNumTy, SynPathTy, SynRawPtrTy, SynRefTy, SynSliceTy, SynTextTy, SynTraitObjTy, SynTupleTy,
+        SynTyKind, TextKind,
     },
-    CommonCallableData, ConstValue, Constness, Parameter, Syncness,
+    ConstValue,
 };
 use rustc_hir as hir;
 use rustc_middle as mid;
@@ -202,11 +202,17 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             .iter()
             .zip(rust_fn.param_names.iter())
             .map(|(rustc_ty, name)| {
-                Parameter::new(
-                    Some(self.to_symbol_id(name.name)),
-                    Some(self.to_syn_ty(rustc_ty)),
-                    Some(self.to_span_id(name.span)),
-                )
+                let (param_span, ident) = if name.span.is_dummy() {
+                    (rustc_ty.span, None)
+                } else {
+                    let span = name.span.until(rustc_ty.span);
+                    (span, Some(self.to_ident(*name)))
+                };
+                FnTyParameter::builder()
+                    .ident(ident)
+                    .span(self.to_span_id(param_span))
+                    .ty(self.to_syn_ty(rustc_ty))
+                    .build()
             });
         let params = self.alloc_slice(params);
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = rust_fn.decl.output {
@@ -214,19 +220,13 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         } else {
             None
         };
-        SynFnPtrTy::new(
-            data,
-            CommonCallableData::new(
-                Constness::NotConst,
-                Syncness::Sync,
-                self.to_safety(rust_fn.unsafety),
-                false,
-                self.to_abi(rust_fn.abi),
-                false,
-                params,
-                return_ty,
-            ),
-        )
+        SynFnPtrTy::builder()
+            .data(data)
+            .safety(self.to_safety(rust_fn.unsafety))
+            .abi(self.to_abi(rust_fn.abi))
+            .params(params)
+            .return_ty(return_ty)
+            .build()
     }
 
     fn to_syn_ty_from_qpath(
