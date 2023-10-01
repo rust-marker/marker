@@ -1,0 +1,109 @@
+warning: testing `AstMap::variant`
+  --> $DIR/test_ast_map.rs:11:26
+   |
+11 |     let _check_ast_map = Option::Some(12);
+   |                          ^^^^^^^^^^^^^^^^
+   |
+   = note: `AstMap::variant()` --> None
+   = note: `#[warn(marker::test_ast_map)]` on by default
+
+warning: testing `AstMap::variant`
+  --> $DIR/test_ast_map.rs:12:26
+   |
+12 |     let _check_ast_map = LocalOption::MySome(17);
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `AstMap::variant()` --> Some(
+               EnumVariant {
+                   id: VariantId(..),
+                   ident: SymbolId(..),
+                   span: SpanId(..),
+                   kind: Tuple(
+                       [
+                           Field {
+                               id: FieldId(..),
+                               vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                               ident: SymbolId(..),
+                               ty: Path(
+                                   SynPathTy {
+                                       data: CommonSynTyData {
+                                           _lifetime: PhantomData<&()>,
+                                           span: SpanId(..),
+                                       },
+                                       path: AstQPath {
+                                           self_ty: None,
+                                           path_ty: None,
+                                           path: AstPath {
+                                               segments: [
+                                                   AstPathSegment {
+                                                       ident: Ident {
+                                                           name: "T",
+                                                           span: $DIR/test_ast_map.rs:2:12 - 2:13,
+                                                       },
+                                                       generics: SynGenericArgs {
+                                                           args: [],
+                                                       },
+                                                   },
+                                               ],
+                                           },
+                                           target: Generic(
+                                               GenericId(..),
+                                           ),
+                                       },
+                                   },
+                               ),
+                               span: SpanId(..),
+                           },
+                       ],
+                   ),
+                   discriminant: None,
+               },
+           )
+
+warning: testing `AstMap::item`
+  --> $DIR/test_ast_map.rs:14:26
+   |
+14 |     let _check_ast_map = LocalStruct { data: 17 };
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `AstMap::item()` --> Some(
+               Struct(
+                   StructItem {
+                       data: CommonItemData {
+                           id: ItemId(..),
+                           span: SpanId(..),
+                           vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                           ident: Ident {
+                               name: "LocalStruct",
+                               span: $DIR/test_ast_map.rs:6:8 - 6:19,
+                           },
+                       },
+                       generics: SynGenericParams {
+                           params: [],
+                           clauses: [],
+                       },
+                       kind: Field(
+                           [
+                               Field {
+                                   id: FieldId(..),
+                                   vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                                   ident: SymbolId(..),
+                                   ty: Num(
+                                       SynNumTy {
+                                           data: CommonSynTyData {
+                                               _lifetime: PhantomData<&()>,
+                                               span: SpanId(..),
+                                           },
+                                           numeric_kind: U32,
+                                       },
+                                   ),
+                                   span: SpanId(..),
+                               },
+                           ],
+                       ),
+                   },
+               ),
+           )
+
+warning: 3 warnings emitted
+

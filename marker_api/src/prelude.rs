@@ -23,6 +23,7 @@ pub use crate::ast::pat::PatKind;
 pub use crate::ast::stmt::StmtKind;
 pub use crate::ast::ty::SemTyKind;
 pub use crate::ast::ty::SynTyKind;
+pub use crate::lint::Lint;
 pub use crate::span::Ident;
 pub use crate::span::Span;
 pub use crate::MarkerContext;

@@ -13,7 +13,7 @@ pub fn check_item<'ast>(cx: &'ast MarkerContext<'ast>, item: ItemKind<'ast>) {
     let Some(ident) = fn_item.ident() else { return };
 
     if ident.name().starts_with("test_contains_return") {
-        let body = cx.body(fn_item.body_id().unwrap());
+        let body = cx.ast().body(fn_item.body_id().unwrap());
         let res = body.contains_return(cx);
 
         cx.emit_lint(

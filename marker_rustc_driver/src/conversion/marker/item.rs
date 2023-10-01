@@ -115,6 +115,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                             variant.disr_expr.map(|anon| self.to_const_expr(anon)),
                         )
                     }));
+                    self.variants
+                        .borrow_mut()
+                        .extend(variants.iter().map(|var| (var.id(), var)));
                     ItemKind::Enum(self.alloc(EnumItem::new(data, self.to_syn_generic_params(generics), variants)))
                 },
                 hir::ItemKind::Struct(var_data, generics) => ItemKind::Struct(self.alloc(StructItem::new(
@@ -244,7 +247,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     fn to_fields(&self, fields: &'tcx [hir::FieldDef]) -> &'ast [Field<'ast>] {
-        self.alloc_slice(fields.iter().map(|field| {
+        let fields = self.alloc_slice(fields.iter().map(|field| {
             // FIXME update Visibility creation to use the stored local def id inside the
             // field after the next sync. See #55
             Field::new(
@@ -254,7 +257,13 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 self.to_syn_ty(field.ty),
                 self.to_span_id(field.span),
             )
-        }))
+        }));
+
+        self.fields
+            .borrow_mut()
+            .extend(fields.iter().map(|field| (field.id(), field)));
+
+        fields
     }
 
     fn to_external_items(&self, items: &'tcx [hir::ForeignItemRef], abi: Abi) -> &'ast [ExternItemKind<'ast>] {

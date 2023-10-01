@@ -1,10 +1,9 @@
 use std::cell::{OnceCell, RefCell};
 
-use marker_adapter::context::{DriverContext, DriverContextWrapper};
+use marker_adapter::context::{AstMapWrapper, MarkerContextDriver, MarkerContextWrapper};
 use marker_api::{
     ast::{SpanId, SymbolId},
     diagnostic::Diagnostic,
-    lint::{Level, Lint},
     prelude::*,
 };
 use rustc_hash::FxHashMap;
@@ -16,6 +15,7 @@ use crate::conversion::{marker::MarkerConverter, rustc::RustcConverter};
 
 use self::storage::Storage;
 
+mod map;
 pub mod storage;
 
 /// This is the central context for the rustc driver and the struct providing the
@@ -56,9 +56,14 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
         });
 
         // Create and link `MarkerContext`
-        let callbacks_wrapper = storage.alloc(DriverContextWrapper::new(driver_cx));
-        let callbacks = storage.alloc(callbacks_wrapper.create_driver_callback());
-        let ast_cx = storage.alloc(MarkerContext::new(callbacks));
+        let map = storage.alloc(AstMapWrapper::new(driver_cx));
+        let context = storage.alloc(MarkerContextWrapper::new(driver_cx));
+        let ast_cx = storage.alloc(
+            MarkerContext::builder()
+                .callbacks(context.create_callbacks())
+                .ast(map.create_callbacks())
+                .build(),
+        );
         driver_cx.ast_cx.set(ast_cx).unwrap();
 
         driver_cx
@@ -70,17 +75,7 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
     }
 }
 
-impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
-    fn lint_level_at(&'ast self, api_lint: &'static Lint, node: NodeId) -> Level {
-        if let Some(id) = self.rustc_converter.try_to_hir_id_from_emission_node(node) {
-            let lint = self.rustc_converter.to_lint(api_lint);
-            let level = self.rustc_cx.lint_level_at_node(lint, id).0;
-            self.marker_converter.to_lint_level(level)
-        } else {
-            Level::Allow
-        }
-    }
-
+impl<'ast, 'tcx: 'ast> MarkerContextDriver<'ast> for RustcContext<'ast, 'tcx> {
     fn emit_diag(&'ast self, diag: &Diagnostic<'_, 'ast>) {
         let Some(id) = self.rustc_converter.try_to_hir_id_from_emission_node(diag.node) else {
             return;
@@ -120,17 +115,6 @@ impl<'ast, 'tcx: 'ast> DriverContext<'ast> for RustcContext<'ast, 'tcx> {
                 builder
             },
         );
-    }
-
-    fn item(&'ast self, api_id: ItemId) -> Option<ItemKind<'ast>> {
-        let rustc_id = self.rustc_converter.to_item_id(api_id);
-        let rust_item = self.rustc_cx.hir().item(rustc_id);
-        self.marker_converter.to_item(rust_item)
-    }
-
-    fn body(&'ast self, id: BodyId) -> &'ast Body<'ast> {
-        let rustc_body = self.rustc_cx.hir().body(self.rustc_converter.to_body_id(id));
-        self.marker_converter.to_body(rustc_body)
     }
 
     fn resolve_ty_ids(&'ast self, path: &str) -> &'ast [TyDefId] {
