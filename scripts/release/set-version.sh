@@ -9,6 +9,9 @@ script_dir=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
 new_version="$1"
 shift
 
+new_major_minor=$(echo "$new_version" | cut --delimiter . --fields 1-2)
+new_major=$(echo "$new_version" | cut --delimiter . --fields 1)
+
 commit=""
 
 while [[ $# -gt 0 ]]
@@ -36,9 +39,17 @@ function replace {
     comment_begin="(#|\/\/|<!--)"
     comment_end="( -->)?$"
 
+    prefix='(v|\W)'
+    suffix='(-[0-9a-zA-Z.]+)?'
+    num='[0-9]+'
+    # Replace both the version itself, and the sliding tags
     with_log sed --regexp-extended --in-place --file - "$file" <<EOF
         /$comment_begin region $region$comment_end/,/$comment_begin endregion $region$comment_end/ \
-        s/[0-9]+\.[0-9]+\.[0-9]+(-[0-9a-zA-Z.]+)?/$new_version/
+        {
+            s/$prefix$num\.$num\.$num$suffix/\1$new_version/
+            s/$prefix$num\.$num$suffix/\1$new_major_minor/
+            s/$prefix$num$suffix/\1$new_major/
+        }
 EOF
 }
 

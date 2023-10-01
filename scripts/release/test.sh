@@ -32,12 +32,20 @@ with_log git add --all
 
 snap=scripts/release/snapshot.diff
 
+# sed doesn't support non-capturing groups, so we have to use a capturing one
+prefix='(^-[^0-9]*(v|\W))'
+num='[0-9]+'
+
 # Make the git diff snapshot and sanitize it from the noise and variable parts
 actual=$(\
     with_log git diff --unified=1 \
     | grep --invert-match --perl-regexp '^(index)|(@@.*@@ )|(--- .*)|(\+\+\+ .*)' \
-    | sed 's/diff --git a\/\(.*\) b\/.*/\n=== \1 ===/' \
-    | sed 's/\(^-[^0-9]*\)[0-9]*\.[0-9]*\.[0-9]*\(.*\)/\1<version>\2/'
+    | sed --regexp-extended "
+        s/diff --git a\/(.*) b\/.*/\n=== \1 ===/
+        s/$prefix$num\.$num\.$num(.*)/\1<version>\3/
+        s/$prefix$num\.$num(.*)/\1<version-major-minor>\3/
+        s/$prefix$num(.*)/\1<version-major>\3/
+    " \
 )
 
 if [[ -v UPDATE_SNAP ]]; then
@@ -51,6 +59,7 @@ err=0
 echo "$actual" | git diff --no-index --exit-code "$snap" - || err=1
 
 if [[ $err == 0 ]]; then
+    echo "The test snapshot is up to date."
     exit 0
 fi
 

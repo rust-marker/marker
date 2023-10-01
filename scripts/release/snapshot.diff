@@ -62,27 +62,25 @@
 
 === README.md ===
  ```bash
--curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v<version>/scripts/release/install.sh | bash
-+curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.sh | bash
+-curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v<version-major-minor>/scripts/release/install.sh | bash
++curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.sh | bash
  ```
  ```ps1
--curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v<version>/scripts/release/install.ps1 | powershell -command -
-+curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.ps1 | powershell -command -
+-curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v<version-major-minor>/scripts/release/install.ps1 | powershell -command -
++curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.ps1 | powershell -command -
  ```
- # An external crate from a registry
--marker_lints = "<version>"
-+marker_lints = "0.1.0"
+ 
+-The provided scripts use a sliding git tag `v<version-major-minor>`, to allow for automatic patch version updates, however a fixed tag `v<version-major>.2.1` is also available.
++The provided scripts use a sliding git tag `v0.1`, to allow for automatic patch version updates, however a fixed tag `v0.1.0` is also available.
+ 
+ ```yml
+-- uses: rust-marker/marker@v<version-major-minor>
++- uses: rust-marker/marker@v0.1
  ```
-
-=== cargo-marker/README.md ===
- ```bash
--curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v<version>/scripts/release/install.sh | bash
-+curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.sh | bash
- ```
- ```ps1
--curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v<version>/scripts/release/install.ps1 | powershell -command -
-+curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.ps1 | powershell -command -
- ```
+ ```yml
+-- uses: rust-marker/marker@v<version-major-minor>
++- uses: rust-marker/marker@v0.1
+   with:
  # An external crate from a registry
 -marker_lints = "<version>"
 +marker_lints = "0.1.0"
@@ -105,15 +103,45 @@
 +        cli_example = display::cli(r#"cargo marker --lints "marker_lints = '0.1.0'""#),
          lints = "--lints".blue(),
 
+=== docs/book/src/usage/ci.md ===
+ ```yml
+-- uses: rust-marker/marker@v<version-major-minor>
++- uses: rust-marker/marker@v0.1
+ ```
+ 
+-- Sliding `v<version-major-minor>`. Use this to get automatic patch updates.
+-- Fixed `v<version>`. Use this if you want to pin a specific version for security reasons or if there is a regression in a new patch version (if there is one, please create a [new issue]; patch versions must never break anything!)
++- Sliding `v0.1`. Use this to get automatic patch updates.
++- Fixed `v0.1.0`. Use this if you want to pin a specific version for security reasons or if there is a regression in a new patch version (if there is one, please create a [new issue]; patch versions must never break anything!)
+ 
+     --show-error \
+-    --retry <version-major> \
++    --retry 0 \
+     --retry-connrefused \
+-    https://raw.githubusercontent.com/rust-marker/marker/v<version-major-minor>/scripts/release/install.sh \
++    https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.sh \
+     | bash
+     --show-error `
+-    --retry <version-major> `
++    --retry 0 `
+     --retry-connrefused `
+-    https://raw.githubusercontent.com/rust-marker/marker/v<version-major-minor>/scripts/release/install.ps1 `
++    https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.ps1 `
+     | powershell -command -
+
 === docs/book/src/usage/installation.md ===
  ```bash
--curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v<version>/scripts/release/install.sh | bash
-+curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.sh | bash
+-curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v<version-major-minor>/scripts/release/install.sh | bash
++curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.sh | bash
  ```
  ```ps1
--curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v<version>/scripts/release/install.ps1 | powershell -command -
-+curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.ps1 | powershell -command -
+-curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v<version-major-minor>/scripts/release/install.ps1 | powershell -command -
++curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.ps1 | powershell -command -
  ```
+ 
+-The provided scripts use a sliding git tag `v<version-major-minor>`, to allow for automatic patch version updates, however a fixed tag `v<version-major>.2.1` is also available.
++The provided scripts use a sliding git tag `v0.1`, to allow for automatic patch version updates, however a fixed tag `v0.1.0` is also available.
+ 
 
 === docs/book/src/usage/lint-crate-declaration.md ===
  # An external crate from a registry

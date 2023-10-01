@@ -22,7 +22,8 @@ Let's make custom lints and code analysis a reality!
 
 * **Custom Lints**: Marker offers a framework for everyone to create and provide custom lints, allowing you to automatically improve the code quality for you and users of your crate.
 * **User-Friendly Interface**: Marker provides a new subcommand for [Cargo] that does all the heavy lifting for you. [cargo_marker] can automatically set up a driver for linting, compile lint crates and run them on any project.
-* **Driver Independent**: Every code analysis requires a driver that parses the code and provides further information. Marker's API is designed to be driver-independent, allowing it to support future compilers and potentially IDEs. (Currently, [rustc] is the only available driver)
+* **Driver Independent**: Every code analysis requires a driver that parses the code and provides further information. Marker's API is designed to be driver-independent, allowing it to support future compilers and potentially IDEs. (Currently, [rustc] is the only available driver).
+* **CI ready**: Marker provides pre-compiled binaries, installation scripts, and a GitHub Action to make CI usage easy.
 
 And more to come, see Marker's goals and limitations below.
 
@@ -30,8 +31,6 @@ And more to come, see Marker's goals and limitations below.
 [rustc]: https://github.com/rust-lang/rust/
 
 ## Usage
-
-<!-- Please keep this section in sync with the main readme -->
 
 The following is an abbreviated guide. Check out [The Marker Book] for detailed instructions and additional information.
 
@@ -41,6 +40,8 @@ The following is an abbreviated guide. Check out [The Marker Book] for detailed 
 
 #### Download pre-compiled binaries (recommended)
 
+<!-- Please keep this section in sync with the docs/book/src/usage/installation.md -->
+
 We provide pre-compiled binaries for the mainstream platforms. See the list of available artifacts in our [Github Releases](https://github.com/rust-marker/marker/releases/latest).
 
 Select one of the installation scripts below according to your platform. The script will install the required Rust toolchain dependency on your machine, download the current version of `cargo-marker` CLI, and the internal driver.
@@ -49,17 +50,17 @@ Select one of the installation scripts below according to your platform. The scr
 
 **Linux or MacOS (Bash)**:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.2.1/scripts/release/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.2/scripts/release/install.sh | bash
 ```
 
 **Windows (PowerShell)**:
 ```ps1
-curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.2.1/scripts/release/install.ps1 | powershell -command -
+curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.2/scripts/release/install.ps1 | powershell -command -
 ```
 
-<!-- endregion replace-version stable -->
+The provided scripts use a sliding git tag `v0.2`, to allow for automatic patch version updates, however a fixed tag `v0.2.1` is also available.
 
-The provided scripts are pinned to a specific version of `marker` to avoid sudden breakages especially if this script will be used on CI.
+<!-- endregion replace-version stable -->
 
 If you are on a platform that isn't supported yet by the pre-compiled binaries, then you should fall back to building from sources as described below.
 
@@ -71,6 +72,31 @@ cargo install cargo_marker
 # Automatically setup the toolchain and build driver from sources
 cargo marker setup --auto-install-toolchain
 ```
+
+### CI usage
+
+Marker provides a Github Action that downloads the pre-compiled binaries and runs `cargo marker`.
+
+<!-- region replace-version stable -->
+
+```yml
+- uses: rust-marker/marker@v0.2
+```
+
+If you want to only install Marker, and not run it, there is an option for that.
+
+```yml
+- uses: rust-marker/marker@v0.2
+  with:
+    install-only: true
+
+# `cargo marker` command should be available at this point
+- run: cargo marker --version
+```
+
+See [The Marker Book] for more details and examples of workflows.
+
+<!-- endregion replace-version stable -->
 
 ### Specifying lints
 
