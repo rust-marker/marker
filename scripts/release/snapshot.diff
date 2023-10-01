@@ -109,10 +109,10 @@
 +- uses: rust-marker/marker@v0.1
  ```
  
--- Sliding `v<version-major-minor>`. Use this to get automatic patch updates.
--- Fixed `v<version>`. Use this if you want to pin a specific version for security reasons or if there is a regression in a new patch version (if there is one, please create a [new issue]; patch versions must never break anything!)
-+- Sliding `v0.1`. Use this to get automatic patch updates.
-+- Fixed `v0.1.0`. Use this if you want to pin a specific version for security reasons or if there is a regression in a new patch version (if there is one, please create a [new issue]; patch versions must never break anything!)
+-- Sliding `v<version-major-minor>` *(recommended)*. Use this to get automatic patch updates.
+-- Fixed `v<version>`. Use this if you want to pin a specific version if there is a regression in a new patch version. If there is one, please create a [new issue], patch versions must never break anything!
++- Sliding `v0.1` *(recommended)*. Use this to get automatic patch updates.
++- Fixed `v0.1.0`. Use this if you want to pin a specific version if there is a regression in a new patch version. If there is one, please create a [new issue], patch versions must never break anything!
  
      --show-error \
 -    --retry <version-major> \
