@@ -115,13 +115,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                             variant.disr_expr.map(|anon| self.to_const_expr(anon)),
                         )
                     }));
-                    // A block to limit the lifetime of the mut borrow
-                    {
-                        let mut cache = self.variants.borrow_mut();
-                        for var in variants {
-                            cache.insert(var.id(), var);
-                        }
-                    }
+                    self.variants
+                        .borrow_mut()
+                        .extend(variants.iter().map(|var| (var.id(), var)));
                     ItemKind::Enum(self.alloc(EnumItem::new(data, self.to_syn_generic_params(generics), variants)))
                 },
                 hir::ItemKind::Struct(var_data, generics) => ItemKind::Struct(self.alloc(StructItem::new(
@@ -263,13 +259,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             )
         }));
 
-        // A block to limit the lifetime of the mut borrow
-        {
-            let mut cache = self.fields.borrow_mut();
-            for field in fields {
-                cache.insert(field.id(), field);
-            }
-        }
+        self.fields
+            .borrow_mut()
+            .extend(fields.iter().map(|field| (field.id(), field)));
 
         fields
     }

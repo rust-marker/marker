@@ -26,10 +26,12 @@ use crate::{
 /// functions, starting with `unwrap_`, are great for prototyping but should be
 /// used carefully.
 ///
-/// FIXME(xFrednet): While the driver might not have the dependency loaded, it
+/// # Future plans
+///
+/// While the driver might not have the AST of a dependency loaded, it
 /// usually has some semantic information about what types and functions are
-/// available. The API should provide some way to request this semantic information
-/// based on the ID. (See: rust-marker/marker#266)
+/// available. Marker should provide some way to request this semantic information
+/// based on the ID. (See: <https://github.com/rust-marker/marker/issues/266>)
 ///
 /// [^compilation-unit]: For more context, ASTs can take up a lot of space.
 ///     Splitting the compilation of a project into separate compilation units
