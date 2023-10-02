@@ -1,14 +1,16 @@
 use marker_api::{
     ast::{
         generic::{
-            Lifetime, LifetimeKind, SemBindingArg, SemConstArg, SemGenericArgKind, SemGenericArgs, SemTraitBound,
-            SynBindingArg, SynConstArg, SynConstParam, SynGenericArgKind, SynGenericArgs, SynGenericParamKind,
-            SynGenericParams, SynLifetimeArg, SynLifetimeClause, SynLifetimeParam, SynTraitBound, SynTyArg,
-            SynTyClause, SynTyParam, SynTyParamBound, SynWhereClauseKind,
+            Lifetime, LifetimeKind, SynBindingArg, SynConstArg, SynConstParam, SynGenericArgKind, SynGenericArgs,
+            SynGenericParamKind, SynGenericParams, SynLifetimeArg, SynLifetimeClause, SynLifetimeParam, SynTraitBound,
+            SynTyArg, SynTyClause, SynTyParam, SynTyParamBound, SynWhereClauseKind,
         },
         TraitRef,
     },
-    sem::ConstValue,
+    sem::{
+        generic::{SemBindingArg, SemConstArg, SemGenericArgKind, SemGenericArgs, SemTraitBound},
+        ConstValue,
+    },
 };
 use rustc_hir as hir;
 use rustc_middle as mid;

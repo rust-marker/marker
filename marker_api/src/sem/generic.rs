@@ -1,6 +1,6 @@
 mod args;
-pub use args::*;
 mod param;
+pub use args::*;
 pub use param::*;
 
 use crate::{ffi::FfiSlice, sem::ty::SemTyKind};
@@ -23,7 +23,7 @@ use crate::{ffi::FfiSlice, sem::ty::SemTyKind};
 /// ```
 ///
 /// See:
-/// * [`SynGenericParams`][super::SynGenericParams]
+/// * [`SynGenericParams`][crate::ast::generic::SynGenericParams]
 #[repr(C)]
 #[derive(Debug)]
 pub struct SemGenericArgs<'ast> {

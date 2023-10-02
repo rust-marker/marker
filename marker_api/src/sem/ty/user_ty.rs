@@ -1,6 +1,9 @@
 use std::marker::PhantomData;
 
-use crate::ast::{generic::SemGenericArgs, GenericId, ItemId, TyDefId};
+use crate::{
+    ast::{GenericId, ItemId, TyDefId},
+    sem::generic::SemGenericArgs,
+};
 
 /// The semantic representation of an abstract data type. This can be an
 /// [`Enum`], [`Struct`], or [`Union`].

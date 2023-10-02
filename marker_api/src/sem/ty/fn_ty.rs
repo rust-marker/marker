@@ -1,4 +1,7 @@
-use crate::ast::{generic::SemGenericArgs, ItemId, TyDefId};
+use crate::{
+    ast::{ItemId, TyDefId},
+    sem::generic::SemGenericArgs,
+};
 
 /// A [function item type](https://doc.rust-lang.org/reference/types/function-item.html)
 /// identifying a specific function and potentualy additional generics.

@@ -1,4 +1,4 @@
-use crate::{ast::generic::SemTraitBound, ffi::FfiSlice};
+use crate::{ffi::FfiSlice, sem::generic::SemTraitBound};
 
 /// The semantic representation of a [trait object].
 ///

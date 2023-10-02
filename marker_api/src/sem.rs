@@ -4,4 +4,5 @@
 mod common;
 pub use common::*;
 
+pub mod generic;
 pub mod ty;

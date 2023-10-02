@@ -4,7 +4,7 @@ use crate::{
     span::Span,
 };
 
-use super::super::Lifetime;
+use super::Lifetime;
 
 /// The syntactic representation of a generic argument, like this:
 ///
