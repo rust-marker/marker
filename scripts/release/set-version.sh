@@ -39,16 +39,20 @@ function replace {
     comment_begin="(#|\/\/|<!--)"
     comment_end="( -->)?$"
 
-    prefix='(v|\W)'
     suffix='(-[0-9a-zA-Z.]+)?'
     num='[0-9]+'
     # Replace both the version itself, and the sliding tags
+    #
+    # There is a caveat here for the major version. It is rather ambiguous, because
+    # it is just a single number, there are no dots in it that could identify it as
+    # semver version. So for the major version we require that it is always specified
+    # with the `v` prefix e.g. `v1`.
     with_log sed --regexp-extended --in-place --file - "$file" <<EOF
         /$comment_begin region $region$comment_end/,/$comment_begin endregion $region$comment_end/ \
         {
-            s/$prefix$num\.$num\.$num$suffix/\1$new_version/
-            s/$prefix$num\.$num$suffix/\1$new_major_minor/
-            s/$prefix$num$suffix/\1$new_major/
+            s/(v|\W)$num\.$num\.$num$suffix/\1$new_version/g
+            s/(v|\W)$num\.$num$suffix/\1$new_major_minor/g
+            s/v$num$suffix/v$new_major/g
         }
 EOF
 }
