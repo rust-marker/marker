@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Abi, Mutability, Safety},
+    common::{Abi, Mutability, Safety},
     ffi::FfiSlice,
 };
 

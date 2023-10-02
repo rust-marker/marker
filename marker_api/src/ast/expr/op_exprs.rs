@@ -1,5 +1,6 @@
 use crate::{
-    ast::{pat::PatKind, ty::SynTyKind, Mutability},
+    ast::{pat::PatKind, ty::SynTyKind},
+    common::Mutability,
     ffi::FfiOption,
 };
 

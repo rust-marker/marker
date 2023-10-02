@@ -1,6 +1,6 @@
 use crate::{
-    ast::{generic::Lifetime, Abi, Mutability, Safety},
-    common::SpanId,
+    ast::generic::Lifetime,
+    common::{Abi, Mutability, Safety, SpanId},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
     private::Sealed,

@@ -1,15 +1,13 @@
 use marker_api::{
-    ast::{
-        expr::{
-            ArrayExpr, AsExpr, AssignExpr, AwaitExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr,
-            CallExpr, CaptureKind, CharLitExpr, ClosureExpr, ClosureParam, CommonExprData, ConstExpr, ContinueExpr,
-            CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr,
-            IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr,
-            RefExpr, ReturnExpr, StrLitData, StrLitExpr, TryExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
-            WhileExpr,
-        },
-        Safety, Syncness,
+    ast::expr::{
+        ArrayExpr, AsExpr, AssignExpr, AwaitExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr,
+        CallExpr, CaptureKind, CharLitExpr, ClosureExpr, ClosureParam, CommonExprData, ConstExpr, ContinueExpr,
+        CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr,
+        IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr,
+        RefExpr, ReturnExpr, StrLitData, StrLitExpr, TryExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
+        WhileExpr,
     },
+    common::{Safety, Syncness},
     span::Ident,
 };
 use rustc_hash::FxHashMap;

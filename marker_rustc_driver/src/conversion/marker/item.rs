@@ -7,8 +7,8 @@ use marker_api::{
             StructItem, TraitItem, TyAliasItem, UnionItem, UnstableItem, UseItem, UseKind, Visibility,
         },
         pat::{CommonPatData, IdentPat, PatKind},
-        Abi, Constness, Mutability, Safety, Syncness,
     },
+    common::{Abi, Constness, Mutability, Safety, Syncness},
     CtorBlocker,
 };
 use rustc_hir as hir;

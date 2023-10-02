@@ -1,10 +1,7 @@
 use std::mem::{size_of, transmute};
 
 use marker_api::{
-    ast::{
-        generic::SynGenericArgs, ty::SynTyKind, Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, Constness,
-        Mutability, Safety, Syncness, TraitRef,
-    },
+    ast::{generic::SynGenericArgs, ty::SynTyKind, AstPath, AstPathSegment, AstPathTarget, AstQPath, TraitRef},
     common::*,
     lint::Level,
     span::Ident,

@@ -1,6 +1,6 @@
 use crate::{
-    ast::{generic::SynGenericParams, pat::PatKind, ty::SynTyKind, Abi, Constness, Safety, Syncness},
-    common::{BodyId, SpanId},
+    ast::{generic::SynGenericParams, pat::PatKind, ty::SynTyKind},
+    common::{Abi, BodyId, Constness, Safety, SpanId, Syncness},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
     prelude::Span,
