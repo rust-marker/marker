@@ -35,7 +35,7 @@ warning: print test
                                                       name: "foo",
                                                       span: $DIR/print_await_expr.rs:6:24 - 6:27,
                                                   },
-                                                  generics: SynGenericArgs {
+                                                  generics: GenericArgs {
                                                       args: [],
                                                   },
                                               },
@@ -84,7 +84,7 @@ warning: print test
                                               name: "future",
                                               span: $DIR/print_await_expr.rs:9:24 - 9:30,
                                           },
-                                          generics: SynGenericArgs {
+                                          generics: GenericArgs {
                                               args: [],
                                           },
                                       },

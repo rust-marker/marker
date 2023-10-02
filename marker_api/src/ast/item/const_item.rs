@@ -1,4 +1,4 @@
-use crate::{ast::ty::SynTyKind, common::BodyId, ffi::FfiOption};
+use crate::{ast::ty::TyKind, common::BodyId, ffi::FfiOption};
 
 use super::CommonItemData;
 
@@ -13,12 +13,12 @@ use super::CommonItemData;
 #[derive(Debug)]
 pub struct ConstItem<'ast> {
     data: CommonItemData<'ast>,
-    ty: SynTyKind<'ast>,
+    ty: TyKind<'ast>,
     body_id: FfiOption<BodyId>,
 }
 
 impl<'ast> ConstItem<'ast> {
-    pub fn ty(&self) -> SynTyKind<'ast> {
+    pub fn ty(&self) -> TyKind<'ast> {
         self.ty
     }
 
@@ -29,7 +29,7 @@ impl<'ast> ConstItem<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> ConstItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, ty: SynTyKind<'ast>, body_id: Option<BodyId>) -> Self {
+    pub fn new(data: CommonItemData<'ast>, ty: TyKind<'ast>, body_id: Option<BodyId>) -> Self {
         Self {
             data,
             ty,

@@ -28,7 +28,7 @@ warning: print test
                                                name: "object",
                                                span: $DIR/print_place_expr.rs:11:31 - 11:37,
                                            },
-                                           generics: SynGenericArgs {
+                                           generics: GenericArgs {
                                                args: [],
                                            },
                                        },
@@ -78,7 +78,7 @@ warning: print test
                                                name: "tuple",
                                                span: $DIR/print_place_expr.rs:12:30 - 12:35,
                                            },
-                                           generics: SynGenericArgs {
+                                           generics: GenericArgs {
                                                args: [],
                                            },
                                        },
@@ -127,7 +127,7 @@ warning: print test
                                                name: "array",
                                                span: $DIR/print_place_expr.rs:13:30 - 13:35,
                                            },
-                                           generics: SynGenericArgs {
+                                           generics: GenericArgs {
                                                args: [],
                                            },
                                        },

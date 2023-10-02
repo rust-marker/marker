@@ -2,15 +2,15 @@ use super::CommonSynTyData;
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynInferredTy<'ast> {
+pub struct InferredTy<'ast> {
     data: CommonSynTyData<'ast>,
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynInferredTy<'ast> {
+impl<'ast> InferredTy<'ast> {
     pub fn new(data: CommonSynTyData<'ast>) -> Self {
         Self { data }
     }
 }
 
-super::impl_ty_data!(SynInferredTy<'ast>, Inferred);
+super::impl_ty_data!(InferredTy<'ast>, Inferred);

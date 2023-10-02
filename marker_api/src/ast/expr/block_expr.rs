@@ -1,5 +1,5 @@
 use crate::{
-    ast::{pat::PatKind, stmt::StmtKind, ty::SynTyKind},
+    ast::{pat::PatKind, stmt::StmtKind, ty::TyKind},
     common::{BodyId, Safety, SpanId, Syncness},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
@@ -141,7 +141,7 @@ pub struct ClosureExpr<'ast> {
     data: CommonExprData<'ast>,
     capture_kind: CaptureKind,
     params: FfiSlice<'ast, ClosureParam<'ast>>,
-    return_ty: FfiOption<SynTyKind<'ast>>,
+    return_ty: FfiOption<TyKind<'ast>>,
     body_id: BodyId,
 }
 
@@ -154,7 +154,7 @@ impl<'ast> ClosureExpr<'ast> {
         self.params.get()
     }
 
-    pub fn return_ty(&self) -> Option<SynTyKind<'_>> {
+    pub fn return_ty(&self) -> Option<TyKind<'_>> {
         self.return_ty.copy()
     }
 
@@ -171,7 +171,7 @@ impl<'ast> ClosureExpr<'ast> {
         data: CommonExprData<'ast>,
         capture_kind: CaptureKind,
         params: &'ast [ClosureParam<'ast>],
-        return_ty: Option<SynTyKind<'ast>>,
+        return_ty: Option<TyKind<'ast>>,
         body_id: BodyId,
     ) -> Self {
         Self {
@@ -214,7 +214,7 @@ pub enum CaptureKind {
 pub struct ClosureParam<'ast> {
     span: SpanId,
     pat: PatKind<'ast>,
-    ty: FfiOption<SynTyKind<'ast>>,
+    ty: FfiOption<TyKind<'ast>>,
 }
 
 impl<'ast> ClosureParam<'ast> {
@@ -226,14 +226,14 @@ impl<'ast> ClosureParam<'ast> {
         self.pat
     }
 
-    pub fn ty(&self) -> Option<SynTyKind<'ast>> {
+    pub fn ty(&self) -> Option<TyKind<'ast>> {
         self.ty.copy()
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> ClosureParam<'ast> {
-    pub fn new(span: SpanId, pat: PatKind<'ast>, ty: Option<SynTyKind<'ast>>) -> Self {
+    pub fn new(span: SpanId, pat: PatKind<'ast>, ty: Option<TyKind<'ast>>) -> Self {
         Self {
             span,
             pat,

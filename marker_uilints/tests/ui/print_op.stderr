@@ -23,7 +23,7 @@ warning: print test
                       },
                   ),
                   cast_ty: Num(
-                      SynNumTy {
+                      NumTy {
                           data: CommonSynTyData {
                               _lifetime: PhantomData<&()>,
                               span: SpanId(..),
@@ -202,7 +202,7 @@ warning: print test
                                               name: "value",
                                               span: $DIR/print_op.rs:9:27 - 9:32,
                                           },
-                                          generics: SynGenericArgs {
+                                          generics: GenericArgs {
                                               args: [],
                                           },
                                       },

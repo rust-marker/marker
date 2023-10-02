@@ -2,7 +2,7 @@ use crate::{
     common::{ExprId, HasNodeId, SpanId},
     prelude::EmissionNode,
     private::Sealed,
-    sem::ty::SemTyKind,
+    sem::ty::TyKind,
     span::{HasSpan, Span},
     CtorBlocker,
 };
@@ -37,7 +37,7 @@ pub trait ExprData<'ast>: Debug + EmissionNode<'ast> + HasSpan<'ast> + HasNodeId
     fn id(&self) -> ExprId;
 
     /// Returns the semantic type of this expression.
-    fn ty(&self) -> SemTyKind<'ast>;
+    fn ty(&self) -> TyKind<'ast>;
 
     /// Returns the [`ExprPrecedence`] of this expression.
     fn precedence(&self) -> ExprPrecedence;
@@ -91,7 +91,7 @@ pub enum ExprKind<'ast> {
 impl<'ast> ExprKind<'ast> {
     impl_expr_kind_fn!(ExprKind: span() -> &Span<'ast>);
     impl_expr_kind_fn!(ExprKind: id() -> ExprId);
-    impl_expr_kind_fn!(ExprKind: ty() -> SemTyKind<'ast>);
+    impl_expr_kind_fn!(ExprKind: ty() -> TyKind<'ast>);
     impl_expr_kind_fn!(ExprKind: precedence() -> ExprPrecedence);
 }
 
@@ -117,7 +117,7 @@ pub enum LitExprKind<'ast> {
 impl<'ast> LitExprKind<'ast> {
     impl_expr_kind_fn!(LitExprKind: span() -> &Span<'ast>);
     impl_expr_kind_fn!(LitExprKind: id() -> ExprId);
-    impl_expr_kind_fn!(LitExprKind: ty() -> SemTyKind<'ast>);
+    impl_expr_kind_fn!(LitExprKind: ty() -> TyKind<'ast>);
     impl_expr_kind_fn!(LitExprKind: precedence() -> ExprPrecedence);
 }
 
@@ -321,7 +321,7 @@ macro_rules! impl_expr_data {
                 self.data.id
             }
 
-            fn ty(&self) -> $crate::sem::ty::SemTyKind<'ast> {
+            fn ty(&self) -> $crate::sem::ty::TyKind<'ast> {
                 $crate::context::with_cx(self, |cx| cx.expr_ty(self.data.id))
             }
 

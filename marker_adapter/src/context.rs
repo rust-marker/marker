@@ -144,7 +144,7 @@ pub trait MarkerContextDriver<'ast> {
 
     fn resolve_ty_ids(&'ast self, path: &str) -> &'ast [TyDefId];
 
-    fn expr_ty(&'ast self, expr: ExprId) -> SemTyKind<'ast>;
+    fn expr_ty(&'ast self, expr: ExprId) -> marker_api::sem::ty::TyKind<'ast>;
     fn span(&'ast self, owner: SpanId) -> &'ast Span<'ast>;
     fn span_snippet(&'ast self, span: &Span<'_>) -> Option<&'ast str>;
     fn span_source(&'ast self, span: &Span<'_>) -> SpanSource<'ast>;
@@ -167,7 +167,7 @@ extern "C" fn resolve_ty_ids<'ast>(
 
 // False positive because `SemTyKind` is non-exhaustive
 #[allow(improper_ctypes_definitions)]
-extern "C" fn expr_ty<'ast>(data: &'ast MarkerContextData, expr: ExprId) -> SemTyKind<'ast> {
+extern "C" fn expr_ty<'ast>(data: &'ast MarkerContextData, expr: ExprId) -> marker_api::sem::ty::TyKind<'ast> {
     unsafe { as_driver(data) }.expr_ty(expr)
 }
 

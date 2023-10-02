@@ -5,18 +5,18 @@ use std::fmt::Debug;
 
 use crate::common::ItemId;
 
-use super::generic::SynGenericArgs;
+use super::generic::GenericArgs;
 
 #[repr(C)]
 #[derive(Debug)]
 pub struct TraitRef<'ast> {
     item_id: ItemId,
-    generics: SynGenericArgs<'ast>,
+    generics: GenericArgs<'ast>,
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> TraitRef<'ast> {
-    pub fn new(item_id: ItemId, generics: SynGenericArgs<'ast>) -> Self {
+    pub fn new(item_id: ItemId, generics: GenericArgs<'ast>) -> Self {
         Self { item_id, generics }
     }
 }
@@ -26,7 +26,7 @@ impl<'ast> TraitRef<'ast> {
         self.item_id
     }
 
-    pub fn generics(&self) -> &SynGenericArgs<'ast> {
+    pub fn generics(&self) -> &GenericArgs<'ast> {
         &self.generics
     }
 }

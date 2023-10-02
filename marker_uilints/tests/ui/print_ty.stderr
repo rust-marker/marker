@@ -7,7 +7,7 @@ warning: printing type for
   = note: `#[warn(marker::test_lint)]` on by default
 
 Path(
-    SynPathTy {
+    PathTy {
         data: CommonSynTyData {
             _lifetime: PhantomData<&()>,
             span: SpanId(..),
@@ -22,19 +22,19 @@ Path(
                             name: "Option",
                             span: $DIR/print_ty.rs:4:32 - 4:38,
                         },
-                        generics: SynGenericArgs {
+                        generics: GenericArgs {
                             args: [
                                 Ty(
-                                    SynTyArg {
+                                    TyArg {
                                         ty: Tuple(
-                                            SynTupleTy {
+                                            TupleTy {
                                                 data: CommonSynTyData {
                                                     _lifetime: PhantomData<&()>,
                                                     span: SpanId(..),
                                                 },
                                                 types: [
                                                     Num(
-                                                        SynNumTy {
+                                                        NumTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -43,7 +43,7 @@ Path(
                                                         },
                                                     ),
                                                     Num(
-                                                        SynNumTy {
+                                                        NumTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -52,7 +52,7 @@ Path(
                                                         },
                                                     ),
                                                     Num(
-                                                        SynNumTy {
+                                                        NumTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -61,7 +61,7 @@ Path(
                                                         },
                                                     ),
                                                     Num(
-                                                        SynNumTy {
+                                                        NumTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -70,7 +70,7 @@ Path(
                                                         },
                                                     ),
                                                     Num(
-                                                        SynNumTy {
+                                                        NumTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -79,7 +79,7 @@ Path(
                                                         },
                                                     ),
                                                     Num(
-                                                        SynNumTy {
+                                                        NumTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -112,7 +112,7 @@ warning: printing type for
   |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Path(
-    SynPathTy {
+    PathTy {
         data: CommonSynTyData {
             _lifetime: PhantomData<&()>,
             span: SpanId(..),
@@ -127,19 +127,19 @@ Path(
                             name: "Option",
                             span: $DIR/print_ty.rs:5:32 - 5:38,
                         },
-                        generics: SynGenericArgs {
+                        generics: GenericArgs {
                             args: [
                                 Ty(
-                                    SynTyArg {
+                                    TyArg {
                                         ty: Tuple(
-                                            SynTupleTy {
+                                            TupleTy {
                                                 data: CommonSynTyData {
                                                     _lifetime: PhantomData<&()>,
                                                     span: SpanId(..),
                                                 },
                                                 types: [
                                                     Num(
-                                                        SynNumTy {
+                                                        NumTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -148,7 +148,7 @@ Path(
                                                         },
                                                     ),
                                                     Num(
-                                                        SynNumTy {
+                                                        NumTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -157,7 +157,7 @@ Path(
                                                         },
                                                     ),
                                                     Num(
-                                                        SynNumTy {
+                                                        NumTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -166,7 +166,7 @@ Path(
                                                         },
                                                     ),
                                                     Num(
-                                                        SynNumTy {
+                                                        NumTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -175,7 +175,7 @@ Path(
                                                         },
                                                     ),
                                                     Num(
-                                                        SynNumTy {
+                                                        NumTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -184,7 +184,7 @@ Path(
                                                         },
                                                     ),
                                                     Num(
-                                                        SynNumTy {
+                                                        NumTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -217,7 +217,7 @@ warning: printing type for
   |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Path(
-    SynPathTy {
+    PathTy {
         data: CommonSynTyData {
             _lifetime: PhantomData<&()>,
             span: SpanId(..),
@@ -232,19 +232,19 @@ Path(
                             name: "Option",
                             span: $DIR/print_ty.rs:6:32 - 6:38,
                         },
-                        generics: SynGenericArgs {
+                        generics: GenericArgs {
                             args: [
                                 Ty(
-                                    SynTyArg {
+                                    TyArg {
                                         ty: Tuple(
-                                            SynTupleTy {
+                                            TupleTy {
                                                 data: CommonSynTyData {
                                                     _lifetime: PhantomData<&()>,
                                                     span: SpanId(..),
                                                 },
                                                 types: [
                                                     Text(
-                                                        SynTextTy {
+                                                        TextTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -253,7 +253,7 @@ Path(
                                                         },
                                                     ),
                                                     Bool(
-                                                        SynBoolTy {
+                                                        BoolTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -261,7 +261,7 @@ Path(
                                                         },
                                                     ),
                                                     Num(
-                                                        SynNumTy {
+                                                        NumTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -270,7 +270,7 @@ Path(
                                                         },
                                                     ),
                                                     Num(
-                                                        SynNumTy {
+                                                        NumTy {
                                                             data: CommonSynTyData {
                                                                 _lifetime: PhantomData<&()>,
                                                                 span: SpanId(..),
@@ -303,7 +303,7 @@ warning: printing type for
   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Path(
-    SynPathTy {
+    PathTy {
         data: CommonSynTyData {
             _lifetime: PhantomData<&()>,
             span: SpanId(..),
@@ -318,12 +318,12 @@ Path(
                             name: "Option",
                             span: $DIR/print_ty.rs:7:29 - 7:35,
                         },
-                        generics: SynGenericArgs {
+                        generics: GenericArgs {
                             args: [
                                 Ty(
-                                    SynTyArg {
+                                    TyArg {
                                         ty: Path(
-                                            SynPathTy {
+                                            PathTy {
                                                 data: CommonSynTyData {
                                                     _lifetime: PhantomData<&()>,
                                                     span: SpanId(..),
@@ -338,19 +338,19 @@ Path(
                                                                     name: "AllowSync",
                                                                     span: $DIR/print_ty.rs:7:36 - 7:45,
                                                                 },
-                                                                generics: SynGenericArgs {
+                                                                generics: GenericArgs {
                                                                     args: [
                                                                         Ty(
-                                                                            SynTyArg {
+                                                                            TyArg {
                                                                                 ty: Tuple(
-                                                                                    SynTupleTy {
+                                                                                    TupleTy {
                                                                                         data: CommonSynTyData {
                                                                                             _lifetime: PhantomData<&()>,
                                                                                             span: SpanId(..),
                                                                                         },
                                                                                         types: [
                                                                                             Ref(
-                                                                                                SynRefTy {
+                                                                                                RefTy {
                                                                                                     data: CommonSynTyData {
                                                                                                         _lifetime: PhantomData<&()>,
                                                                                                         span: SpanId(..),
@@ -366,13 +366,13 @@ Path(
                                                                                                     ),
                                                                                                     mutability: Unmut,
                                                                                                     inner_ty: Slice(
-                                                                                                        SynSliceTy {
+                                                                                                        SliceTy {
                                                                                                             data: CommonSynTyData {
                                                                                                                 _lifetime: PhantomData<&()>,
                                                                                                                 span: SpanId(..),
                                                                                                             },
                                                                                                             inner_ty: Num(
-                                                                                                                SynNumTy {
+                                                                                                                NumTy {
                                                                                                                     data: CommonSynTyData {
                                                                                                                         _lifetime: PhantomData<&()>,
                                                                                                                         span: SpanId(..),
@@ -385,13 +385,13 @@ Path(
                                                                                                 },
                                                                                             ),
                                                                                             Array(
-                                                                                                SynArrayTy {
+                                                                                                ArrayTy {
                                                                                                     data: CommonSynTyData {
                                                                                                         _lifetime: PhantomData<&()>,
                                                                                                         span: SpanId(..),
                                                                                                     },
                                                                                                     inner_ty: Num(
-                                                                                                        SynNumTy {
+                                                                                                        NumTy {
                                                                                                             data: CommonSynTyData {
                                                                                                                 _lifetime: PhantomData<&()>,
                                                                                                                 span: SpanId(..),
@@ -454,7 +454,7 @@ warning: printing type for
   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Path(
-    SynPathTy {
+    PathTy {
         data: CommonSynTyData {
             _lifetime: PhantomData<&()>,
             span: SpanId(..),
@@ -469,12 +469,12 @@ Path(
                             name: "Option",
                             span: $DIR/print_ty.rs:8:28 - 8:34,
                         },
-                        generics: SynGenericArgs {
+                        generics: GenericArgs {
                             args: [
                                 Ty(
-                                    SynTyArg {
+                                    TyArg {
                                         ty: Path(
-                                            SynPathTy {
+                                            PathTy {
                                                 data: CommonSynTyData {
                                                     _lifetime: PhantomData<&()>,
                                                     span: SpanId(..),
@@ -489,19 +489,19 @@ Path(
                                                                     name: "AllowSync",
                                                                     span: $DIR/print_ty.rs:8:35 - 8:44,
                                                                 },
-                                                                generics: SynGenericArgs {
+                                                                generics: GenericArgs {
                                                                     args: [
                                                                         Ty(
-                                                                            SynTyArg {
+                                                                            TyArg {
                                                                                 ty: Tuple(
-                                                                                    SynTupleTy {
+                                                                                    TupleTy {
                                                                                         data: CommonSynTyData {
                                                                                             _lifetime: PhantomData<&()>,
                                                                                             span: SpanId(..),
                                                                                         },
                                                                                         types: [
                                                                                             Ref(
-                                                                                                SynRefTy {
+                                                                                                RefTy {
                                                                                                     data: CommonSynTyData {
                                                                                                         _lifetime: PhantomData<&()>,
                                                                                                         span: SpanId(..),
@@ -517,7 +517,7 @@ Path(
                                                                                                     ),
                                                                                                     mutability: Unmut,
                                                                                                     inner_ty: Text(
-                                                                                                        SynTextTy {
+                                                                                                        TextTy {
                                                                                                             data: CommonSynTyData {
                                                                                                                 _lifetime: PhantomData<&()>,
                                                                                                                 span: SpanId(..),
@@ -528,14 +528,14 @@ Path(
                                                                                                 },
                                                                                             ),
                                                                                             RawPtr(
-                                                                                                SynRawPtrTy {
+                                                                                                RawPtrTy {
                                                                                                     data: CommonSynTyData {
                                                                                                         _lifetime: PhantomData<&()>,
                                                                                                         span: SpanId(..),
                                                                                                     },
                                                                                                     mutability: Unmut,
                                                                                                     inner_ty: Num(
-                                                                                                        SynNumTy {
+                                                                                                        NumTy {
                                                                                                             data: CommonSynTyData {
                                                                                                                 _lifetime: PhantomData<&()>,
                                                                                                                 span: SpanId(..),
@@ -546,14 +546,14 @@ Path(
                                                                                                 },
                                                                                             ),
                                                                                             RawPtr(
-                                                                                                SynRawPtrTy {
+                                                                                                RawPtrTy {
                                                                                                     data: CommonSynTyData {
                                                                                                         _lifetime: PhantomData<&()>,
                                                                                                         span: SpanId(..),
                                                                                                     },
                                                                                                     mutability: Mut,
                                                                                                     inner_ty: Num(
-                                                                                                        SynNumTy {
+                                                                                                        NumTy {
                                                                                                             data: CommonSynTyData {
                                                                                                                 _lifetime: PhantomData<&()>,
                                                                                                                 span: SpanId(..),
@@ -608,7 +608,7 @@ warning: printing type for
    | |_^
 
 Path(
-    SynPathTy {
+    PathTy {
         data: CommonSynTyData {
             _lifetime: PhantomData<&()>,
             span: SpanId(..),
@@ -623,12 +623,12 @@ Path(
                             name: "Option",
                             span: $DIR/print_ty.rs:9:28 - 9:34,
                         },
-                        generics: SynGenericArgs {
+                        generics: GenericArgs {
                             args: [
                                 Ty(
-                                    SynTyArg {
+                                    TyArg {
                                         ty: Path(
-                                            SynPathTy {
+                                            PathTy {
                                                 data: CommonSynTyData {
                                                     _lifetime: PhantomData<&()>,
                                                     span: SpanId(..),
@@ -643,19 +643,19 @@ Path(
                                                                     name: "AllowSync",
                                                                     span: $DIR/print_ty.rs:10:5 - 10:14,
                                                                 },
-                                                                generics: SynGenericArgs {
+                                                                generics: GenericArgs {
                                                                     args: [
                                                                         Ty(
-                                                                            SynTyArg {
+                                                                            TyArg {
                                                                                 ty: Tuple(
-                                                                                    SynTupleTy {
+                                                                                    TupleTy {
                                                                                         data: CommonSynTyData {
                                                                                             _lifetime: PhantomData<&()>,
                                                                                             span: SpanId(..),
                                                                                         },
                                                                                         types: [
                                                                                             Path(
-                                                                                                SynPathTy {
+                                                                                                PathTy {
                                                                                                     data: CommonSynTyData {
                                                                                                         _lifetime: PhantomData<&()>,
                                                                                                         span: SpanId(..),
@@ -670,7 +670,7 @@ Path(
                                                                                                                         name: "AliasTy",
                                                                                                                         span: $DIR/print_ty.rs:11:9 - 11:16,
                                                                                                                     },
-                                                                                                                    generics: SynGenericArgs {
+                                                                                                                    generics: GenericArgs {
                                                                                                                         args: [],
                                                                                                                     },
                                                                                                                 },
@@ -683,7 +683,7 @@ Path(
                                                                                                 },
                                                                                             ),
                                                                                             Path(
-                                                                                                SynPathTy {
+                                                                                                PathTy {
                                                                                                     data: CommonSynTyData {
                                                                                                         _lifetime: PhantomData<&()>,
                                                                                                         span: SpanId(..),
@@ -698,7 +698,7 @@ Path(
                                                                                                                         name: "String",
                                                                                                                         span: $DIR/print_ty.rs:12:9 - 12:15,
                                                                                                                     },
-                                                                                                                    generics: SynGenericArgs {
+                                                                                                                    generics: GenericArgs {
                                                                                                                         args: [],
                                                                                                                     },
                                                                                                                 },
@@ -711,7 +711,7 @@ Path(
                                                                                                 },
                                                                                             ),
                                                                                             Path(
-                                                                                                SynPathTy {
+                                                                                                PathTy {
                                                                                                     data: CommonSynTyData {
                                                                                                         _lifetime: PhantomData<&()>,
                                                                                                         span: SpanId(..),
@@ -726,12 +726,12 @@ Path(
                                                                                                                         name: "Option",
                                                                                                                         span: $DIR/print_ty.rs:13:9 - 13:15,
                                                                                                                     },
-                                                                                                                    generics: SynGenericArgs {
+                                                                                                                    generics: GenericArgs {
                                                                                                                         args: [
                                                                                                                             Ty(
-                                                                                                                                SynTyArg {
+                                                                                                                                TyArg {
                                                                                                                                     ty: Path(
-                                                                                                                                        SynPathTy {
+                                                                                                                                        PathTy {
                                                                                                                                             data: CommonSynTyData {
                                                                                                                                                 _lifetime: PhantomData<&()>,
                                                                                                                                                 span: SpanId(..),
@@ -746,7 +746,7 @@ Path(
                                                                                                                                                                 name: "String",
                                                                                                                                                                 span: $DIR/print_ty.rs:13:16 - 13:22,
                                                                                                                                                             },
-                                                                                                                                                            generics: SynGenericArgs {
+                                                                                                                                                            generics: GenericArgs {
                                                                                                                                                                 args: [],
                                                                                                                                                             },
                                                                                                                                                         },
@@ -772,7 +772,7 @@ Path(
                                                                                                 },
                                                                                             ),
                                                                                             Path(
-                                                                                                SynPathTy {
+                                                                                                PathTy {
                                                                                                     data: CommonSynTyData {
                                                                                                         _lifetime: PhantomData<&()>,
                                                                                                         span: SpanId(..),
@@ -787,12 +787,12 @@ Path(
                                                                                                                         name: "Vec",
                                                                                                                         span: $DIR/print_ty.rs:14:9 - 14:12,
                                                                                                                     },
-                                                                                                                    generics: SynGenericArgs {
+                                                                                                                    generics: GenericArgs {
                                                                                                                         args: [
                                                                                                                             Ty(
-                                                                                                                                SynTyArg {
+                                                                                                                                TyArg {
                                                                                                                                     ty: Path(
-                                                                                                                                        SynPathTy {
+                                                                                                                                        PathTy {
                                                                                                                                             data: CommonSynTyData {
                                                                                                                                                 _lifetime: PhantomData<&()>,
                                                                                                                                                 span: SpanId(..),
@@ -807,7 +807,7 @@ Path(
                                                                                                                                                                 name: "UnionItem",
                                                                                                                                                                 span: $DIR/print_ty.rs:14:13 - 14:22,
                                                                                                                                                             },
-                                                                                                                                                            generics: SynGenericArgs {
+                                                                                                                                                            generics: GenericArgs {
                                                                                                                                                                 args: [],
                                                                                                                                                             },
                                                                                                                                                         },
@@ -833,7 +833,7 @@ Path(
                                                                                                 },
                                                                                             ),
                                                                                             Path(
-                                                                                                SynPathTy {
+                                                                                                PathTy {
                                                                                                     data: CommonSynTyData {
                                                                                                         _lifetime: PhantomData<&()>,
                                                                                                         span: SpanId(..),
@@ -848,23 +848,23 @@ Path(
                                                                                                                         name: "Box",
                                                                                                                         span: $DIR/print_ty.rs:15:9 - 15:12,
                                                                                                                     },
-                                                                                                                    generics: SynGenericArgs {
+                                                                                                                    generics: GenericArgs {
                                                                                                                         args: [
                                                                                                                             Ty(
-                                                                                                                                SynTyArg {
+                                                                                                                                TyArg {
                                                                                                                                     ty: TraitObj(
-                                                                                                                                        SynTraitObjTy {
+                                                                                                                                        TraitObjTy {
                                                                                                                                             data: CommonSynTyData {
                                                                                                                                                 _lifetime: PhantomData<&()>,
                                                                                                                                                 span: SpanId(..),
                                                                                                                                             },
                                                                                                                                             trait_bound: [
                                                                                                                                                 TraitBound(
-                                                                                                                                                    SynTraitBound {
+                                                                                                                                                    TraitBound {
                                                                                                                                                         is_relaxed: false,
                                                                                                                                                         trait_ref: TraitRef {
                                                                                                                                                             item_id: ItemId(..),
-                                                                                                                                                            generics: SynGenericArgs {
+                                                                                                                                                            generics: GenericArgs {
                                                                                                                                                                 args: [],
                                                                                                                                                             },
                                                                                                                                                         },
@@ -888,7 +888,7 @@ Path(
                                                                                                 },
                                                                                             ),
                                                                                             Path(
-                                                                                                SynPathTy {
+                                                                                                PathTy {
                                                                                                     data: CommonSynTyData {
                                                                                                         _lifetime: PhantomData<&()>,
                                                                                                         span: SpanId(..),
@@ -903,30 +903,30 @@ Path(
                                                                                                                         name: "Box",
                                                                                                                         span: $DIR/print_ty.rs:16:9 - 16:12,
                                                                                                                     },
-                                                                                                                    generics: SynGenericArgs {
+                                                                                                                    generics: GenericArgs {
                                                                                                                         args: [
                                                                                                                             Ty(
-                                                                                                                                SynTyArg {
+                                                                                                                                TyArg {
                                                                                                                                     ty: TraitObj(
-                                                                                                                                        SynTraitObjTy {
+                                                                                                                                        TraitObjTy {
                                                                                                                                             data: CommonSynTyData {
                                                                                                                                                 _lifetime: PhantomData<&()>,
                                                                                                                                                 span: SpanId(..),
                                                                                                                                             },
                                                                                                                                             trait_bound: [
                                                                                                                                                 TraitBound(
-                                                                                                                                                    SynTraitBound {
+                                                                                                                                                    TraitBound {
                                                                                                                                                         is_relaxed: false,
                                                                                                                                                         trait_ref: TraitRef {
                                                                                                                                                             item_id: ItemId(..),
-                                                                                                                                                            generics: SynGenericArgs {
+                                                                                                                                                            generics: GenericArgs {
                                                                                                                                                                 args: [
                                                                                                                                                                     Binding(
-                                                                                                                                                                        SynBindingArg {
+                                                                                                                                                                        BindingArg {
                                                                                                                                                                             span: SpanId(..),
                                                                                                                                                                             ident: SymbolId(..),
                                                                                                                                                                             ty: Num(
-                                                                                                                                                                                SynNumTy {
+                                                                                                                                                                                NumTy {
                                                                                                                                                                                     data: CommonSynTyData {
                                                                                                                                                                                         _lifetime: PhantomData<&()>,
                                                                                                                                                                                         span: SpanId(..),

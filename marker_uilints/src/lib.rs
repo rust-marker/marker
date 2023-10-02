@@ -11,7 +11,7 @@ use marker_api::{
     },
     diagnostic::Applicability,
     prelude::*,
-    sem::ty::SemTyKind,
+    sem::ty::TyKind,
     LintPass, LintPassInfo, LintPassInfoBuilder,
 };
 
@@ -186,7 +186,7 @@ impl LintPass for TestLintPass {
                 });
             } else if ident.name().starts_with("_check_path") {
                 cx.emit_lint(TEST_LINT, stmt, "check type resolution").decorate(|diag| {
-                    let SemTyKind::Adt(adt) = expr.ty() else {
+                    let TyKind::Adt(adt) = expr.ty() else {
                         unreachable!("how? Everything should be an ADT")
                     };
                     let path = "std::vec::Vec";

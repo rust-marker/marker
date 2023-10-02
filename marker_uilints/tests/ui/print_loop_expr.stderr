@@ -172,7 +172,7 @@ warning: print test
                                                                    name: "cond",
                                                                    span: $DIR/print_loop_expr.rs:13:15 - 13:19,
                                                                },
-                                                               generics: SynGenericArgs {
+                                                               generics: GenericArgs {
                                                                    args: [],
                                                                },
                                                            },
@@ -236,7 +236,7 @@ warning: print test
                                                                    name: "Some",
                                                                    span: $DIR/print_loop_expr.rs:15:19 - 15:23,
                                                                },
-                                                               generics: SynGenericArgs {
+                                                               generics: GenericArgs {
                                                                    args: [],
                                                                },
                                                            },
@@ -280,7 +280,7 @@ warning: print test
                                                                    name: "opt",
                                                                    span: $DIR/print_loop_expr.rs:15:29 - 15:32,
                                                                },
-                                                               generics: SynGenericArgs {
+                                                               generics: GenericArgs {
                                                                    args: [],
                                                                },
                                                            },
@@ -339,7 +339,7 @@ warning: print test
                                                                                                name: "opt",
                                                                                                span: $DIR/print_loop_expr.rs:16:13 - 16:16,
                                                                                            },
-                                                                                           generics: SynGenericArgs {
+                                                                                           generics: GenericArgs {
                                                                                                args: [],
                                                                                            },
                                                                                        },
@@ -370,7 +370,7 @@ warning: print test
                                                                                        name: "None",
                                                                                        span: $DIR/print_loop_expr.rs:16:19 - 16:23,
                                                                                    },
-                                                                                   generics: SynGenericArgs {
+                                                                                   generics: GenericArgs {
                                                                                        args: [],
                                                                                    },
                                                                                },
@@ -568,7 +568,7 @@ warning: print test
                                                            name: "tuple_slice",
                                                            span: $DIR/print_loop_expr.rs:25:23 - 25:34,
                                                        },
-                                                       generics: SynGenericArgs {
+                                                       generics: GenericArgs {
                                                            args: [],
                                                        },
                                                    },
@@ -625,7 +625,7 @@ warning: print test
                                                                                                name: "c",
                                                                                                span: $DIR/print_loop_expr.rs:26:13 - 26:14,
                                                                                            },
-                                                                                           generics: SynGenericArgs {
+                                                                                           generics: GenericArgs {
                                                                                                args: [],
                                                                                            },
                                                                                        },
@@ -663,7 +663,7 @@ warning: print test
                                                                                                name: "a",
                                                                                                span: $DIR/print_loop_expr.rs:26:18 - 26:19,
                                                                                            },
-                                                                                           generics: SynGenericArgs {
+                                                                                           generics: GenericArgs {
                                                                                                args: [],
                                                                                            },
                                                                                        },
@@ -692,7 +692,7 @@ warning: print test
                                                                                                name: "b",
                                                                                                span: $DIR/print_loop_expr.rs:26:22 - 26:23,
                                                                                            },
-                                                                                           generics: SynGenericArgs {
+                                                                                           generics: GenericArgs {
                                                                                                args: [],
                                                                                            },
                                                                                        },

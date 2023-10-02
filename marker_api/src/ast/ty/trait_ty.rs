@@ -1,25 +1,25 @@
-use crate::{ast::generic::SynTyParamBound, ffi::FfiSlice};
+use crate::{ast::generic::TyParamBound, ffi::FfiSlice};
 
 use super::CommonSynTyData;
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynImplTraitTy<'ast> {
+pub struct ImplTraitTy<'ast> {
     data: CommonSynTyData<'ast>,
-    trait_bound: FfiSlice<'ast, SynTyParamBound<'ast>>,
+    trait_bound: FfiSlice<'ast, TyParamBound<'ast>>,
 }
 
-super::impl_ty_data!(SynImplTraitTy<'ast>, ImplTrait);
+super::impl_ty_data!(ImplTraitTy<'ast>, ImplTrait);
 
-impl<'ast> SynImplTraitTy<'ast> {
-    pub fn trait_bounds(&self) -> &[SynTyParamBound<'ast>] {
+impl<'ast> ImplTraitTy<'ast> {
+    pub fn trait_bounds(&self) -> &[TyParamBound<'ast>] {
         self.trait_bound.get()
     }
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynImplTraitTy<'ast> {
-    pub fn new(data: CommonSynTyData<'ast>, trait_bound: &'ast [SynTyParamBound<'ast>]) -> Self {
+impl<'ast> ImplTraitTy<'ast> {
+    pub fn new(data: CommonSynTyData<'ast>, trait_bound: &'ast [TyParamBound<'ast>]) -> Self {
         Self {
             data,
             trait_bound: trait_bound.into(),
@@ -32,14 +32,14 @@ impl<'ast> SynImplTraitTy<'ast> {
 /// [trait object]: https://doc.rust-lang.org/reference/types/trait-object.html
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynTraitObjTy<'ast> {
+pub struct TraitObjTy<'ast> {
     data: CommonSynTyData<'ast>,
-    trait_bound: FfiSlice<'ast, SynTyParamBound<'ast>>,
+    trait_bound: FfiSlice<'ast, TyParamBound<'ast>>,
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynTraitObjTy<'ast> {
-    pub fn new(data: CommonSynTyData<'ast>, trait_bound: &'ast [SynTyParamBound<'ast>]) -> Self {
+impl<'ast> TraitObjTy<'ast> {
+    pub fn new(data: CommonSynTyData<'ast>, trait_bound: &'ast [TyParamBound<'ast>]) -> Self {
         Self {
             data,
             trait_bound: trait_bound.into(),
@@ -47,10 +47,10 @@ impl<'ast> SynTraitObjTy<'ast> {
     }
 }
 
-super::impl_ty_data!(SynTraitObjTy<'ast>, TraitObj);
+super::impl_ty_data!(TraitObjTy<'ast>, TraitObj);
 
-impl<'ast> SynTraitObjTy<'ast> {
-    pub fn trait_bounds(&self) -> &[SynTyParamBound<'ast>] {
+impl<'ast> TraitObjTy<'ast> {
+    pub fn trait_bounds(&self) -> &[TyParamBound<'ast>] {
         self.trait_bound.get()
     }
 }

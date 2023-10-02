@@ -5,18 +5,18 @@ use crate::common::{NumKind, TextKind};
 /// The semantic representation of the [`bool`] type.
 #[repr(C)]
 #[derive(Debug)]
-pub struct SemBoolTy<'ast> {
+pub struct BoolTy<'ast> {
     _lt: PhantomData<&'ast ()>,
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SemBoolTy<'ast> {
+impl<'ast> BoolTy<'ast> {
     pub fn new() -> Self {
         Self { _lt: PhantomData }
     }
 }
 
-impl<'ast> std::fmt::Display for SemBoolTy<'ast> {
+impl<'ast> std::fmt::Display for BoolTy<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("bool").finish()
     }
@@ -25,13 +25,13 @@ impl<'ast> std::fmt::Display for SemBoolTy<'ast> {
 /// The semantic representation of a numeric type like [`u32`], [`i32`], [`f64`].
 #[repr(C)]
 #[derive(Debug)]
-pub struct SemNumTy<'ast> {
+pub struct NumTy<'ast> {
     _ast: PhantomData<&'ast ()>,
     numeric_kind: NumKind,
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SemNumTy<'ast> {
+impl<'ast> NumTy<'ast> {
     pub fn new(numeric_kind: NumKind) -> Self {
         Self {
             _ast: PhantomData,
@@ -40,7 +40,7 @@ impl<'ast> SemNumTy<'ast> {
     }
 }
 
-impl<'ast> SemNumTy<'ast> {
+impl<'ast> NumTy<'ast> {
     pub fn numeric_kind(&self) -> NumKind {
         self.numeric_kind
     }
@@ -62,7 +62,7 @@ impl<'ast> SemNumTy<'ast> {
     }
 }
 
-impl<'ast> std::fmt::Display for SemNumTy<'ast> {
+impl<'ast> std::fmt::Display for NumTy<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.numeric_kind)
     }
@@ -70,13 +70,13 @@ impl<'ast> std::fmt::Display for SemNumTy<'ast> {
 
 /// The semantic representation of a textual type like [`char`] or [`str`].
 #[repr(C)]
-pub struct SemTextTy<'ast> {
+pub struct TextTy<'ast> {
     _ast: PhantomData<&'ast ()>,
     textual_kind: TextKind,
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SemTextTy<'ast> {
+impl<'ast> TextTy<'ast> {
     pub fn new(textual_kind: TextKind) -> Self {
         Self {
             _ast: PhantomData,
@@ -85,7 +85,7 @@ impl<'ast> SemTextTy<'ast> {
     }
 }
 
-impl<'ast> SemTextTy<'ast> {
+impl<'ast> TextTy<'ast> {
     pub fn textual_kind(&self) -> TextKind {
         self.textual_kind
     }
@@ -99,7 +99,7 @@ impl<'ast> SemTextTy<'ast> {
     }
 }
 
-impl<'ast> std::fmt::Debug for SemTextTy<'ast> {
+impl<'ast> std::fmt::Debug for TextTy<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.textual_kind)
     }
@@ -107,18 +107,18 @@ impl<'ast> std::fmt::Debug for SemTextTy<'ast> {
 
 /// The semantic representation of the never type [`!`](prim@never).
 #[repr(C)]
-pub struct SemNeverTy<'ast> {
+pub struct NeverTy<'ast> {
     _lt: PhantomData<&'ast ()>,
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SemNeverTy<'ast> {
+impl<'ast> NeverTy<'ast> {
     pub fn new() -> Self {
         Self { _lt: PhantomData }
     }
 }
 
-impl<'ast> std::fmt::Debug for SemNeverTy<'ast> {
+impl<'ast> std::fmt::Debug for NeverTy<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("!").finish()
     }

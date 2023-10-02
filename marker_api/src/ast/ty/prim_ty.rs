@@ -5,20 +5,20 @@ use super::CommonSynTyData;
 /// The syntactic representation of the [`bool`] type.
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynBoolTy<'ast> {
+pub struct BoolTy<'ast> {
     data: CommonSynTyData<'ast>,
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynBoolTy<'ast> {
+impl<'ast> BoolTy<'ast> {
     pub fn new(data: CommonSynTyData<'ast>) -> Self {
         Self { data }
     }
 }
 
-super::impl_ty_data!(SynBoolTy<'ast>, Bool);
+super::impl_ty_data!(BoolTy<'ast>, Bool);
 
-impl<'ast> std::fmt::Display for SynBoolTy<'ast> {
+impl<'ast> std::fmt::Display for BoolTy<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("bool").finish()
     }
@@ -26,12 +26,12 @@ impl<'ast> std::fmt::Display for SynBoolTy<'ast> {
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynNumTy<'ast> {
+pub struct NumTy<'ast> {
     data: CommonSynTyData<'ast>,
     numeric_kind: NumKind,
 }
 
-impl<'ast> SynNumTy<'ast> {
+impl<'ast> NumTy<'ast> {
     pub fn numeric_kind(&self) -> NumKind {
         self.numeric_kind
     }
@@ -53,16 +53,16 @@ impl<'ast> SynNumTy<'ast> {
     }
 }
 
-super::impl_ty_data!(SynNumTy<'ast>, Num);
+super::impl_ty_data!(NumTy<'ast>, Num);
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynNumTy<'ast> {
+impl<'ast> NumTy<'ast> {
     pub fn new(data: CommonSynTyData<'ast>, numeric_kind: NumKind) -> Self {
         Self { data, numeric_kind }
     }
 }
 
-impl<'ast> std::fmt::Display for SynNumTy<'ast> {
+impl<'ast> std::fmt::Display for NumTy<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.numeric_kind)
     }
@@ -71,14 +71,14 @@ impl<'ast> std::fmt::Display for SynNumTy<'ast> {
 /// The syntactic representation of a textual type like [`char`] or [`str`].
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynTextTy<'ast> {
+pub struct TextTy<'ast> {
     data: CommonSynTyData<'ast>,
     textual_kind: TextKind,
 }
 
-super::impl_ty_data!(SynTextTy<'ast>, Text);
+super::impl_ty_data!(TextTy<'ast>, Text);
 
-impl<'ast> SynTextTy<'ast> {
+impl<'ast> TextTy<'ast> {
     pub fn textual_kind(&self) -> TextKind {
         self.textual_kind
     }
@@ -92,14 +92,14 @@ impl<'ast> SynTextTy<'ast> {
     }
 }
 
-impl<'ast> std::fmt::Display for SynTextTy<'ast> {
+impl<'ast> std::fmt::Display for TextTy<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.textual_kind)
     }
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynTextTy<'ast> {
+impl<'ast> TextTy<'ast> {
     pub fn new(data: CommonSynTyData<'ast>, textual_kind: TextKind) -> Self {
         Self { data, textual_kind }
     }
@@ -107,20 +107,20 @@ impl<'ast> SynTextTy<'ast> {
 
 /// The syntactic representation of the never type [`!`](prim@never).
 #[repr(C)]
-pub struct SynNeverTy<'ast> {
+pub struct NeverTy<'ast> {
     data: CommonSynTyData<'ast>,
 }
 
-super::impl_ty_data!(SynNeverTy<'ast>, Never);
+super::impl_ty_data!(NeverTy<'ast>, Never);
 
-impl<'ast> std::fmt::Debug for SynNeverTy<'ast> {
+impl<'ast> std::fmt::Debug for NeverTy<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("!").finish()
     }
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynNeverTy<'ast> {
+impl<'ast> NeverTy<'ast> {
     pub fn new(data: CommonSynTyData<'ast>) -> Self {
         Self { data }
     }

@@ -15,7 +15,7 @@ warning: printing item
                           span: $DIR/print_adt_item.rs:1:10 - 1:21,
                       },
                   },
-                  generics: SynGenericParams {
+                  generics: GenericParams {
                       params: [],
                       clauses: [],
                   },

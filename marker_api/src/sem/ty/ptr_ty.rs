@@ -3,7 +3,7 @@ use crate::{
     ffi::FfiSlice,
 };
 
-use super::SemTyKind;
+use super::TyKind;
 
 /// The semantic representation of a reference like [`&T`](prim@reference)
 /// or [`&mut T`](prim@reference)
@@ -13,26 +13,26 @@ use super::SemTyKind;
 /// from the type also simplifies type comparisons.
 #[repr(C)]
 #[derive(Debug)]
-pub struct SemRefTy<'ast> {
+pub struct RefTy<'ast> {
     mutability: Mutability,
-    inner_ty: SemTyKind<'ast>,
+    inner_ty: TyKind<'ast>,
 }
 
-impl<'ast> SemRefTy<'ast> {
+impl<'ast> RefTy<'ast> {
     /// This returns the [`Mutability`] of the referenced type.
     pub fn mutability(&self) -> Mutability {
         self.mutability
     }
 
-    /// This returns the inner [`SemTyKind`]
-    pub fn inner_ty(&self) -> SemTyKind<'ast> {
+    /// This returns the inner [`TyKind`]
+    pub fn inner_ty(&self) -> TyKind<'ast> {
         self.inner_ty
     }
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SemRefTy<'ast> {
-    pub fn new(mutability: Mutability, inner_ty: SemTyKind<'ast>) -> Self {
+impl<'ast> RefTy<'ast> {
+    pub fn new(mutability: Mutability, inner_ty: TyKind<'ast>) -> Self {
         Self { mutability, inner_ty }
     }
 }
@@ -41,24 +41,24 @@ impl<'ast> SemRefTy<'ast> {
 /// or [`*mut T`](prim@pointer)
 #[repr(C)]
 #[derive(Debug)]
-pub struct SemRawPtrTy<'ast> {
+pub struct RawPtrTy<'ast> {
     mutability: Mutability,
-    inner_ty: SemTyKind<'ast>,
+    inner_ty: TyKind<'ast>,
 }
 
-impl<'ast> SemRawPtrTy<'ast> {
+impl<'ast> RawPtrTy<'ast> {
     pub fn mutability(&self) -> Mutability {
         self.mutability
     }
 
-    pub fn inner_ty(&self) -> SemTyKind<'ast> {
+    pub fn inner_ty(&self) -> TyKind<'ast> {
         self.inner_ty
     }
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SemRawPtrTy<'ast> {
-    pub fn new(mutability: Mutability, inner_ty: SemTyKind<'ast>) -> Self {
+impl<'ast> RawPtrTy<'ast> {
+    pub fn new(mutability: Mutability, inner_ty: TyKind<'ast>) -> Self {
         Self { mutability, inner_ty }
     }
 }
@@ -66,14 +66,14 @@ impl<'ast> SemRawPtrTy<'ast> {
 /// The semantic representation of a function pointer, like [`fn (T) -> U`](prim@fn)
 #[repr(C)]
 #[derive(Debug)]
-pub struct SemFnPtrTy<'ast> {
+pub struct FnPtrTy<'ast> {
     safety: Safety,
     abi: Abi,
-    params: FfiSlice<'ast, SemTyKind<'ast>>,
-    return_ty: SemTyKind<'ast>,
+    params: FfiSlice<'ast, TyKind<'ast>>,
+    return_ty: TyKind<'ast>,
 }
 
-impl<'ast> SemFnPtrTy<'ast> {
+impl<'ast> FnPtrTy<'ast> {
     pub fn safety(&self) -> Safety {
         self.safety
     }
@@ -82,18 +82,18 @@ impl<'ast> SemFnPtrTy<'ast> {
         self.abi
     }
 
-    pub fn params(&self) -> &[SemTyKind<'ast>] {
+    pub fn params(&self) -> &[TyKind<'ast>] {
         self.params.get()
     }
 
-    pub fn return_ty(&self) -> SemTyKind<'ast> {
+    pub fn return_ty(&self) -> TyKind<'ast> {
         self.return_ty
     }
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SemFnPtrTy<'ast> {
-    pub fn new(safety: Safety, abi: Abi, params: &'ast [SemTyKind<'ast>], return_ty: SemTyKind<'ast>) -> Self {
+impl<'ast> FnPtrTy<'ast> {
+    pub fn new(safety: Safety, abi: Abi, params: &'ast [TyKind<'ast>], return_ty: TyKind<'ast>) -> Self {
         Self {
             safety,
             abi,

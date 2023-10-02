@@ -13,21 +13,21 @@ use super::CommonSynTyData;
 ///   and [Unions](https://doc.rust-lang.org/reference/types/union.html)
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynPathTy<'ast> {
+pub struct PathTy<'ast> {
     data: CommonSynTyData<'ast>,
     path: AstQPath<'ast>,
 }
 
-impl<'ast> SynPathTy<'ast> {
+impl<'ast> PathTy<'ast> {
     pub fn path(&self) -> &AstQPath<'ast> {
         &self.path
     }
 }
 
-super::impl_ty_data!(SynPathTy<'ast>, Path);
+super::impl_ty_data!(PathTy<'ast>, Path);
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynPathTy<'ast> {
+impl<'ast> PathTy<'ast> {
     pub fn new(data: CommonSynTyData<'ast>, path: AstQPath<'ast>) -> Self {
         Self { data, path }
     }

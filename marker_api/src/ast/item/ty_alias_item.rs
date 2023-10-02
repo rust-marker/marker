@@ -1,5 +1,5 @@
-use crate::ast::generic::{SynGenericParams, SynTyParamBound};
-use crate::ast::ty::SynTyKind;
+use crate::ast::generic::{GenericParams, TyParamBound};
+use crate::ast::ty::TyKind;
 use crate::ffi::{FfiOption, FfiSlice};
 
 use super::CommonItemData;
@@ -19,15 +19,15 @@ use super::CommonItemData;
 #[derive(Debug)]
 pub struct TyAliasItem<'ast> {
     data: CommonItemData<'ast>,
-    generics: SynGenericParams<'ast>,
-    bounds: FfiSlice<'ast, SynTyParamBound<'ast>>,
-    aliased_ty: FfiOption<SynTyKind<'ast>>,
+    generics: GenericParams<'ast>,
+    bounds: FfiSlice<'ast, TyParamBound<'ast>>,
+    aliased_ty: FfiOption<TyKind<'ast>>,
 }
 
 super::impl_item_data!(TyAliasItem, TyAlias);
 
 impl<'ast> TyAliasItem<'ast> {
-    pub fn generics(&self) -> &SynGenericParams<'ast> {
+    pub fn generics(&self) -> &GenericParams<'ast> {
         &self.generics
     }
 
@@ -35,11 +35,11 @@ impl<'ast> TyAliasItem<'ast> {
     /// their types, which implementors needs to follow. This method returns these
     /// bounds. It'll return an empty slice, for type aliases which don't have any
     /// bounds declared.
-    pub fn bounds(&self) -> &[SynTyParamBound<'ast>] {
+    pub fn bounds(&self) -> &[TyParamBound<'ast>] {
         self.bounds.get()
     }
 
-    pub fn aliased_ty(&self) -> Option<SynTyKind> {
+    pub fn aliased_ty(&self) -> Option<TyKind> {
         self.aliased_ty.copy()
     }
 }
@@ -48,9 +48,9 @@ impl<'ast> TyAliasItem<'ast> {
 impl<'ast> TyAliasItem<'ast> {
     pub fn new(
         data: CommonItemData<'ast>,
-        generics: SynGenericParams<'ast>,
-        bounds: &'ast [SynTyParamBound<'ast>],
-        aliased_ty: Option<SynTyKind<'ast>>,
+        generics: GenericParams<'ast>,
+        bounds: &'ast [TyParamBound<'ast>],
+        aliased_ty: Option<TyKind<'ast>>,
     ) -> Self {
         Self {
             data,

@@ -8,7 +8,7 @@ use crate::{
     span::{HasSpan, Span},
 };
 
-use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::SynTyKind};
+use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::TyKind};
 
 /// This trait combines methods, which all statements have in common.
 ///
@@ -108,7 +108,7 @@ pub struct LetStmt<'ast> {
     data: CommonStmtData<'ast>,
     pat: PatKind<'ast>,
     #[cfg_attr(feature = "driver-api", builder(setter(into)))]
-    ty: FfiOption<SynTyKind<'ast>>,
+    ty: FfiOption<TyKind<'ast>>,
     #[cfg_attr(feature = "driver-api", builder(setter(into)))]
     init: FfiOption<ExprKind<'ast>>,
     #[cfg_attr(feature = "driver-api", builder(setter(into)))]
@@ -121,7 +121,7 @@ impl<'ast> LetStmt<'ast> {
     }
 
     /// Returns the syntactic type, if it has been specified.
-    pub fn ty(&self) -> Option<SynTyKind<'ast>> {
+    pub fn ty(&self) -> Option<TyKind<'ast>> {
         self.ty.copy()
     }
 

@@ -1,4 +1,4 @@
-use crate::ast::generic::{SynGenericParams, SynTyParamBound};
+use crate::ast::generic::{GenericParams, TyParamBound};
 use crate::ffi::FfiSlice;
 
 use super::{AssocItemKind, CommonItemData};
@@ -21,8 +21,8 @@ use super::{AssocItemKind, CommonItemData};
 pub struct TraitItem<'ast> {
     data: CommonItemData<'ast>,
     is_unsafe: bool,
-    generics: SynGenericParams<'ast>,
-    supertraits: FfiSlice<'ast, SynTyParamBound<'ast>>,
+    generics: GenericParams<'ast>,
+    supertraits: FfiSlice<'ast, TyParamBound<'ast>>,
     items: FfiSlice<'ast, AssocItemKind<'ast>>,
 }
 
@@ -33,7 +33,7 @@ impl<'ast> TraitItem<'ast> {
         self.is_unsafe
     }
 
-    pub fn generics(&self) -> &SynGenericParams<'ast> {
+    pub fn generics(&self) -> &GenericParams<'ast> {
         &self.generics
     }
 
@@ -46,7 +46,7 @@ impl<'ast> TraitItem<'ast> {
     ///     // ...
     /// }
     /// ```
-    pub fn supertraits(&self) -> &'ast [SynTyParamBound<'ast>] {
+    pub fn supertraits(&self) -> &'ast [TyParamBound<'ast>] {
         self.supertraits.get()
     }
 
@@ -60,8 +60,8 @@ impl<'ast> TraitItem<'ast> {
     pub fn new(
         data: CommonItemData<'ast>,
         is_unsafe: bool,
-        generics: SynGenericParams<'ast>,
-        supertraits: &'ast [SynTyParamBound<'ast>],
+        generics: GenericParams<'ast>,
+        supertraits: &'ast [TyParamBound<'ast>],
         items: &'ast [AssocItemKind<'ast>],
     ) -> Self {
         Self {

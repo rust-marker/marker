@@ -12,7 +12,7 @@ use crate::{
     diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
     lint::{Level, Lint, MacroReport},
-    sem::ty::SemTyKind,
+    sem::ty::TyKind,
     span::{ExpnInfo, FileInfo, FilePos, Span, SpanPos, SpanSource},
 };
 
@@ -256,7 +256,7 @@ impl<'ast> MarkerContext<'ast> {
 }
 
 impl<'ast> MarkerContext<'ast> {
-    pub(crate) fn expr_ty(&self, expr: ExprId) -> SemTyKind<'ast> {
+    pub(crate) fn expr_ty(&self, expr: ExprId) -> TyKind<'ast> {
         self.callbacks.call_expr_ty(expr)
     }
 
@@ -321,7 +321,7 @@ struct MarkerContextCallbacks<'ast> {
     pub resolve_ty_ids: extern "C" fn(&'ast MarkerContextData, path: ffi::FfiStr<'_>) -> ffi::FfiSlice<'ast, TyDefId>,
 
     // Internal utility
-    pub expr_ty: extern "C" fn(&'ast MarkerContextData, ExprId) -> SemTyKind<'ast>,
+    pub expr_ty: extern "C" fn(&'ast MarkerContextData, ExprId) -> TyKind<'ast>,
     pub span: extern "C" fn(&'ast MarkerContextData, SpanId) -> &'ast Span<'ast>,
     pub span_snippet: extern "C" fn(&'ast MarkerContextData, &Span<'ast>) -> ffi::FfiOption<ffi::FfiStr<'ast>>,
     pub span_source: extern "C" fn(&'ast MarkerContextData, &Span<'_>) -> SpanSource<'ast>,
@@ -337,7 +337,7 @@ impl<'ast> MarkerContextCallbacks<'ast> {
         (self.emit_diag)(self.data, diag);
     }
 
-    fn call_expr_ty(&self, expr: ExprId) -> SemTyKind<'ast> {
+    fn call_expr_ty(&self, expr: ExprId) -> TyKind<'ast> {
         (self.expr_ty)(self.data, expr)
     }
     fn call_span(&self, span_id: SpanId) -> &'ast Span<'ast> {

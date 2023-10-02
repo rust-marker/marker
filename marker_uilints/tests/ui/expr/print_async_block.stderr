@@ -37,7 +37,7 @@ warning: print test
                                                           name: "x",
                                                           span: $DIR/print_async_block.rs:2:44 - 2:45,
                                                       },
-                                                      generics: SynGenericArgs {
+                                                      generics: GenericArgs {
                                                           args: [],
                                                       },
                                                   },

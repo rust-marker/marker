@@ -15,7 +15,7 @@ warning: printing item
                           span: $DIR/print_fn_item.rs:1:8 - 1:23,
                       },
                   },
-                  generics: SynGenericParams {
+                  generics: GenericParams {
                       params: [],
                       clauses: [],
                   },
@@ -51,7 +51,7 @@ warning: printing item
                           span: $DIR/print_fn_item.rs:3:21 - 3:37,
                       },
                   },
-                  generics: SynGenericParams {
+                  generics: GenericParams {
                       params: [],
                       clauses: [],
                   },
@@ -86,7 +86,7 @@ warning: printing item
                           span: $DIR/print_fn_item.rs:5:8 - 5:23,
                       },
                   },
-                  generics: SynGenericParams {
+                  generics: GenericParams {
                       params: [],
                       clauses: [],
                   },
@@ -113,7 +113,7 @@ warning: printing item
                               },
                           ),
                           ty: Num(
-                              SynNumTy {
+                              NumTy {
                                   data: CommonSynTyData {
                                       _lifetime: PhantomData<&()>,
                                       span: SpanId(..),
@@ -161,14 +161,14 @@ warning: printing item
                               },
                           ),
                           ty: Tuple(
-                              SynTupleTy {
+                              TupleTy {
                                   data: CommonSynTyData {
                                       _lifetime: PhantomData<&()>,
                                       span: SpanId(..),
                                   },
                                   types: [
                                       Num(
-                                          SynNumTy {
+                                          NumTy {
                                               data: CommonSynTyData {
                                                   _lifetime: PhantomData<&()>,
                                                   span: SpanId(..),
@@ -177,7 +177,7 @@ warning: printing item
                                           },
                                       ),
                                       Num(
-                                          SynNumTy {
+                                          NumTy {
                                               data: CommonSynTyData {
                                                   _lifetime: PhantomData<&()>,
                                                   span: SpanId(..),
@@ -192,7 +192,7 @@ warning: printing item
                   ],
                   return_ty: Some(
                       Path(
-                          SynPathTy {
+                          PathTy {
                               data: CommonSynTyData {
                                   _lifetime: PhantomData<&()>,
                                   span: SpanId(..),
@@ -207,7 +207,7 @@ warning: printing item
                                                   name: "String",
                                                   span: $DIR/print_fn_item.rs:5:62 - 5:68,
                                               },
-                                              generics: SynGenericArgs {
+                                              generics: GenericArgs {
                                                   args: [],
                                               },
                                           },
@@ -243,7 +243,7 @@ warning: printing item
                            span: $DIR/print_fn_item.rs:10:8 - 10:32,
                        },
                    },
-                   generics: SynGenericParams {
+                   generics: GenericParams {
                        params: [],
                        clauses: [],
                    },
@@ -270,7 +270,7 @@ warning: printing item
                                },
                            ),
                            ty: Num(
-                               SynNumTy {
+                               NumTy {
                                    data: CommonSynTyData {
                                        _lifetime: PhantomData<&()>,
                                        span: SpanId(..),
@@ -318,14 +318,14 @@ warning: printing item
                                },
                            ),
                            ty: Tuple(
-                               SynTupleTy {
+                               TupleTy {
                                    data: CommonSynTyData {
                                        _lifetime: PhantomData<&()>,
                                        span: SpanId(..),
                                    },
                                    types: [
                                        Num(
-                                           SynNumTy {
+                                           NumTy {
                                                data: CommonSynTyData {
                                                    _lifetime: PhantomData<&()>,
                                                    span: SpanId(..),
@@ -334,7 +334,7 @@ warning: printing item
                                            },
                                        ),
                                        Num(
-                                           SynNumTy {
+                                           NumTy {
                                                data: CommonSynTyData {
                                                    _lifetime: PhantomData<&()>,
                                                    span: SpanId(..),
@@ -349,7 +349,7 @@ warning: printing item
                    ],
                    return_ty: Some(
                        Path(
-                           SynPathTy {
+                           PathTy {
                                data: CommonSynTyData {
                                    _lifetime: PhantomData<&()>,
                                    span: SpanId(..),
@@ -364,7 +364,7 @@ warning: printing item
                                                    name: "String",
                                                    span: $DIR/print_fn_item.rs:10:68 - 10:74,
                                                },
-                                               generics: SynGenericArgs {
+                                               generics: GenericArgs {
                                                    args: [],
                                                },
                                            },
@@ -400,7 +400,7 @@ warning: printing item
                            span: $DIR/print_fn_item.rs:14:8 - 14:30,
                        },
                    },
-                   generics: SynGenericParams {
+                   generics: GenericParams {
                        params: [],
                        clauses: [],
                    },
@@ -427,7 +427,7 @@ warning: printing item
                                },
                            ),
                            ty: Num(
-                               SynNumTy {
+                               NumTy {
                                    data: CommonSynTyData {
                                        _lifetime: PhantomData<&()>,
                                        span: SpanId(..),
@@ -452,14 +452,14 @@ warning: printing item
                                },
                            ),
                            ty: Tuple(
-                               SynTupleTy {
+                               TupleTy {
                                    data: CommonSynTyData {
                                        _lifetime: PhantomData<&()>,
                                        span: SpanId(..),
                                    },
                                    types: [
                                        Num(
-                                           SynNumTy {
+                                           NumTy {
                                                data: CommonSynTyData {
                                                    _lifetime: PhantomData<&()>,
                                                    span: SpanId(..),
@@ -468,7 +468,7 @@ warning: printing item
                                            },
                                        ),
                                        Num(
-                                           SynNumTy {
+                                           NumTy {
                                                data: CommonSynTyData {
                                                    _lifetime: PhantomData<&()>,
                                                    span: SpanId(..),
@@ -483,7 +483,7 @@ warning: printing item
                    ],
                    return_ty: Some(
                        Path(
-                           SynPathTy {
+                           PathTy {
                                data: CommonSynTyData {
                                    _lifetime: PhantomData<&()>,
                                    span: SpanId(..),
@@ -498,7 +498,7 @@ warning: printing item
                                                    name: "String",
                                                    span: $DIR/print_fn_item.rs:14:66 - 14:72,
                                                },
-                                               generics: SynGenericArgs {
+                                               generics: GenericArgs {
                                                    args: [],
                                                },
                                            },

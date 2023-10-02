@@ -11,6 +11,7 @@
 #![warn(non_exhaustive_omitted_patterns)]
 #![allow(clippy::missing_panics_doc)]
 #![allow(clippy::module_name_repetitions)]
+#![allow(clippy::wildcard_imports)]
 #![allow(clippy::needless_lifetimes, reason = "lifetimes will be required to fix ICEs")]
 #![allow(clippy::needless_collect, reason = "false positives for `alloc_slice`")]
 #![allow(clippy::too_many_lines, reason = "long functions are unavoidable for matches")]

@@ -28,7 +28,7 @@ warning: print test
                                                name: "foo",
                                                span: $DIR/print_object_exprs.rs:18:25 - 18:28,
                                            },
-                                           generics: SynGenericArgs {
+                                           generics: GenericArgs {
                                                args: [],
                                            },
                                        },
@@ -45,7 +45,7 @@ warning: print test
                            name: "print",
                            span: $DIR/print_object_exprs.rs:18:29 - 18:34,
                        },
-                       generics: SynGenericArgs {
+                       generics: GenericArgs {
                            args: [],
                        },
                    },
@@ -84,7 +84,7 @@ warning: print test
                                                name: "foo",
                                                span: $DIR/print_object_exprs.rs:19:25 - 19:28,
                                            },
-                                           generics: SynGenericArgs {
+                                           generics: GenericArgs {
                                                args: [],
                                            },
                                        },
@@ -101,7 +101,7 @@ warning: print test
                            name: "inc",
                            span: $DIR/print_object_exprs.rs:19:29 - 19:32,
                        },
-                       generics: SynGenericArgs {
+                       generics: GenericArgs {
                            args: [],
                        },
                    },

@@ -14,7 +14,7 @@ use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 use std::str::FromStr;
 
-use super::MarkerConverterInner;
+use crate::conversion::marker::MarkerConverterInner;
 
 impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]

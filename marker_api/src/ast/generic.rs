@@ -116,16 +116,16 @@ impl<'ast> Lifetime<'ast> {
 /// ```
 ///
 /// See:
-/// * [`SynGenericParams`]
+/// * [`GenericParams`]
 #[repr(C)]
 #[derive(Debug)]
 #[cfg_attr(feature = "driver-api", derive(Clone))]
-pub struct SynGenericArgs<'ast> {
-    args: FfiSlice<'ast, SynGenericArgKind<'ast>>,
+pub struct GenericArgs<'ast> {
+    args: FfiSlice<'ast, GenericArgKind<'ast>>,
 }
 
-impl<'ast> SynGenericArgs<'ast> {
-    pub fn args(&self) -> &'ast [SynGenericArgKind<'ast>] {
+impl<'ast> GenericArgs<'ast> {
+    pub fn args(&self) -> &'ast [GenericArgKind<'ast>] {
         self.args.get()
     }
 
@@ -135,8 +135,8 @@ impl<'ast> SynGenericArgs<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynGenericArgs<'ast> {
-    pub fn new(args: &'ast [SynGenericArgKind<'ast>]) -> Self {
+impl<'ast> GenericArgs<'ast> {
+    pub fn new(args: &'ast [GenericArgKind<'ast>]) -> Self {
         Self { args: args.into() }
     }
 }
@@ -148,7 +148,7 @@ impl<'ast> SynGenericArgs<'ast> {
 #[non_exhaustive]
 #[derive(Debug)]
 #[cfg_attr(feature = "driver-api", derive(Clone))]
-pub enum SynGenericArgKind<'ast> {
+pub enum GenericArgKind<'ast> {
     /// A lifetime as a generic argument, like this:
     ///
     /// ```
@@ -160,21 +160,21 @@ pub enum SynGenericArgKind<'ast> {
     /// let _foo: HasLifetime<'static> = HasLifetime::default();
     /// //                    ^^^^^^^
     /// ```
-    Lifetime(&'ast SynLifetimeArg<'ast>),
+    Lifetime(&'ast LifetimeArg<'ast>),
     /// A type as a generic argument, like this:
     ///
     /// ```
     /// let _bar: Vec<String> = vec![];
     /// //            ^^^^^^
     /// ```
-    Ty(&'ast SynTyArg<'ast>),
+    Ty(&'ast TyArg<'ast>),
     /// A type binding as a generic argument, like this:
     ///
     /// ```ignore
     /// let _baz: &dyn Iterator<Item=String> = todo!();
     /// //                      ^^^^^^^^^^^
     /// ```
-    Binding(&'ast SynBindingArg<'ast>),
+    Binding(&'ast BindingArg<'ast>),
     /// A constant expression as a generic argument, like this:
     ///
     /// ```ignore
@@ -185,7 +185,7 @@ pub enum SynGenericArgKind<'ast> {
     /// let _bat: Vec<3> = todo!();
     /// //            ^
     /// ```
-    Const(&'ast SynConstArg<'ast>),
+    Const(&'ast ConstArg<'ast>),
 }
 
 /// This represents the generic parameters of a generic item. The bounds applied
@@ -206,27 +206,27 @@ pub enum SynGenericArgKind<'ast> {
 /// generic_item::<u8>(32);
 /// ```
 /// See
-/// * [`SynGenericArgs`]
+/// * [`GenericArgs`]
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynGenericParams<'ast> {
-    params: FfiSlice<'ast, SynGenericParamKind<'ast>>,
-    clauses: FfiSlice<'ast, SynWhereClauseKind<'ast>>,
+pub struct GenericParams<'ast> {
+    params: FfiSlice<'ast, GenericParamKind<'ast>>,
+    clauses: FfiSlice<'ast, WhereClauseKind<'ast>>,
 }
 
-impl<'ast> SynGenericParams<'ast> {
-    pub fn params(&self) -> &'ast [SynGenericParamKind<'ast>] {
+impl<'ast> GenericParams<'ast> {
+    pub fn params(&self) -> &'ast [GenericParamKind<'ast>] {
         self.params.get()
     }
 
-    pub fn clauses(&self) -> &'ast [SynWhereClauseKind<'ast>] {
+    pub fn clauses(&self) -> &'ast [WhereClauseKind<'ast>] {
         self.clauses.get()
     }
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynGenericParams<'ast> {
-    pub fn new(params: &'ast [SynGenericParamKind<'ast>], clauses: &'ast [SynWhereClauseKind<'ast>]) -> Self {
+impl<'ast> GenericParams<'ast> {
+    pub fn new(params: &'ast [GenericParamKind<'ast>], clauses: &'ast [WhereClauseKind<'ast>]) -> Self {
         Self {
             params: params.into(),
             clauses: clauses.into(),

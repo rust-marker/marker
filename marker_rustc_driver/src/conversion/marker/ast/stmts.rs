@@ -1,7 +1,7 @@
 use marker_api::ast::stmt::{CommonStmtData, ExprStmt, ItemStmt, LetStmt, StmtKind};
 use rustc_hir as hir;
 
-use super::MarkerConverterInner;
+use crate::conversion::marker::MarkerConverterInner;
 
 impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
