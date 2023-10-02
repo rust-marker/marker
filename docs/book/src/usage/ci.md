@@ -96,7 +96,7 @@ The action must work on self-hosted runners out of the box as well. We don't tes
 
 If you don't use GitHub Actions CI, you can still benefit from the pre-made installation scripts that automate the downloading of the pre-compiled binaries on CI for you.
 
-These ones slightly differ from the scripts mentioned in the [installation chapter](installation.md#download-pre-compiled-binaries-recommended). They are more verbose for additional readability in the CI templates, and they also contain additional options to retry spurious network errors for stability on CI.
+These curl commands differ slightly from the scripts mentioned in the [installation chapter](installation.md#download-pre-compiled-binaries-recommended). They are more verbose for additional readability in the CI templates, and they also contain additional options to retry spurious network errors for stability on CI.
 
 You can run these scripts on any CI system of your choice, and they will make the `cargo marker` command available for you.
 
