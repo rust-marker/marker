@@ -44,7 +44,6 @@ num='[0-9]+'
 actual=$(\
     with_log git diff --unified=1 \
     | grep --invert-match --perl-regexp '^(index)|(@@.*@@ )|(--- .*)|(\+\+\+ .*)' \
-    | false \
     | sed --regexp-extended "
         s/diff --git a\/(.*) b\/.*/\n=== \1 ===/
         /^-/ s/$num\.$num\.$num/X.Y.Z/g
