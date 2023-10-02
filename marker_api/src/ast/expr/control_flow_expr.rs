@@ -1,5 +1,6 @@
 use crate::{
-    ast::{pat::PatKind, ExprId, SpanId},
+    ast::pat::PatKind,
+    common::{ExprId, SpanId},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
     span::{Ident, Span},

@@ -8,7 +8,7 @@
 use std::{cell::RefCell, mem::transmute};
 
 use crate::{
-    ast::{ExpnId, ExprId, ItemId, SpanId, SymbolId, TyDefId},
+    common::{ExpnId, ExprId, ItemId, SpanId, SymbolId, TyDefId},
     diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
     lint::{Level, Lint, MacroReport},

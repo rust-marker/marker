@@ -1,9 +1,7 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-use crate::{private::Sealed, span::Span};
-
-use super::SpanId;
+use crate::{common::SpanId, private::Sealed, span::Span};
 
 mod other_ty;
 mod prim_ty;

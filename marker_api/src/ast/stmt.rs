@@ -2,12 +2,13 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 
 use crate::{
+    common::{HasNodeId, SpanId, StmtId},
     ffi::FfiOption,
     private::Sealed,
     span::{HasSpan, Span},
 };
 
-use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::SynTyKind, HasNodeId, SpanId, StmtId};
+use super::{expr::ExprKind, item::ItemKind, pat::PatKind, ty::SynTyKind};
 
 /// This trait combines methods, which all statements have in common.
 ///
@@ -53,7 +54,7 @@ impl<'ast> StmtKind<'ast> {
 }
 
 crate::span::impl_spanned_for!(StmtKind<'ast>);
-crate::ast::impl_identifiable_for!(StmtKind<'ast>);
+crate::common::impl_identifiable_for!(StmtKind<'ast>);
 impl<'ast> crate::private::Sealed for StmtKind<'ast> {}
 
 #[repr(C)]
@@ -75,7 +76,7 @@ struct CommonStmtData<'ast> {
 macro_rules! impl_stmt_data {
     ($self_ty:ty, $enum_name:ident) => {
         impl<'ast> StmtData<'ast> for $self_ty {
-            fn id(&self) -> crate::ast::StmtId {
+            fn id(&self) -> crate::common::StmtId {
                 self.data.id
             }
         }
@@ -86,7 +87,7 @@ macro_rules! impl_stmt_data {
             }
         }
 
-        $crate::ast::impl_identifiable_for!($self_ty, use StmtData);
+        $crate::common::impl_identifiable_for!($self_ty, use StmtData);
 
         impl<'ast> From<&'ast $self_ty> for $crate::ast::stmt::StmtKind<'ast> {
             fn from(from: &'ast $self_ty) -> Self {

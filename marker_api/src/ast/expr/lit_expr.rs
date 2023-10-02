@@ -1,4 +1,4 @@
-use crate::{ast::SymbolId, context::with_cx, ffi::FfiOption, ffi::FfiSlice};
+use crate::{common::SymbolId, context::with_cx, ffi::FfiOption, ffi::FfiSlice};
 
 use super::{CommonExprData, ExprPrecedence};
 

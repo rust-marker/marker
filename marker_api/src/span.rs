@@ -1,8 +1,12 @@
 use std::marker::PhantomData;
 
-use crate::{ast::SpanId, context::with_cx, diagnostic::Applicability, ffi, private::Sealed};
-
-use crate::ast::{ExpnId, MacroId, SpanSrcId, SymbolId};
+use crate::{
+    common::{ExpnId, MacroId, SpanId, SpanSrcId, SymbolId},
+    context::with_cx,
+    diagnostic::Applicability,
+    ffi,
+    private::Sealed,
+};
 
 /// A byte position used for the start and end position of [`Span`]s.
 ///

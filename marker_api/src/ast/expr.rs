@@ -1,12 +1,11 @@
 use crate::{
+    common::{ExprId, HasNodeId, SpanId},
     prelude::EmissionNode,
     private::Sealed,
     sem::ty::SemTyKind,
     span::{HasSpan, Span},
     CtorBlocker,
 };
-
-use super::{ExprId, HasNodeId, SpanId};
 
 use std::{fmt::Debug, marker::PhantomData};
 
@@ -97,7 +96,7 @@ impl<'ast> ExprKind<'ast> {
 }
 
 crate::span::impl_spanned_for!(ExprKind<'ast>);
-crate::ast::impl_identifiable_for!(ExprKind<'ast>);
+crate::common::impl_identifiable_for!(ExprKind<'ast>);
 impl Sealed for ExprKind<'_> {}
 
 #[repr(C)]
@@ -123,7 +122,7 @@ impl<'ast> LitExprKind<'ast> {
 }
 
 crate::span::impl_spanned_for!(LitExprKind<'ast>);
-crate::ast::impl_identifiable_for!(LitExprKind<'ast>);
+crate::common::impl_identifiable_for!(LitExprKind<'ast>);
 impl Sealed for LitExprKind<'_> {}
 
 impl<'ast> From<LitExprKind<'ast>> for ExprKind<'ast> {
@@ -318,7 +317,7 @@ macro_rules! impl_expr_data {
     };
     ($self_ty:ty, $enum_name:ident, $precedence_fn:item) => {
         impl<'ast> super::ExprData<'ast> for $self_ty {
-            fn id(&self) -> crate::ast::ExprId {
+            fn id(&self) -> crate::common::ExprId {
                 self.data.id
             }
 
@@ -338,7 +337,7 @@ macro_rules! impl_expr_data {
                 $crate::context::with_cx(self, |cx| cx.span(self.data.span))
             }
         }
-        $crate::ast::impl_identifiable_for!($self_ty, use $crate::ast::expr::ExprData);
+        $crate::common::impl_identifiable_for!($self_ty, use $crate::ast::expr::ExprData);
 
         impl<'ast> $crate::private::Sealed for $self_ty {}
 

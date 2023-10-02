@@ -1,5 +1,4 @@
-use crate::ast::{ty::SynTyKind, BodyId};
-use crate::ffi::FfiOption;
+use crate::{ast::ty::SynTyKind, common::BodyId, ffi::FfiOption};
 
 use super::CommonItemData;
 

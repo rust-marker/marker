@@ -1,5 +1,6 @@
 use crate::{
-    ast::{ty::SynTyKind, BodyId, Mutability},
+    ast::{ty::SynTyKind, Mutability},
+    common::BodyId,
     ffi::FfiOption,
 };
 

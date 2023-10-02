@@ -1,5 +1,5 @@
 use crate::{
-    ast::{ItemId, TyDefId},
+    common::{ItemId, TyDefId},
     sem::generic::SemGenericArgs,
 };
 

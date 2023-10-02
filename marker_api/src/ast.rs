@@ -11,7 +11,7 @@ pub mod pat;
 pub mod stmt;
 pub mod ty;
 
-use crate::ffi::FfiSlice;
+use crate::{common::CrateId, ffi::FfiSlice};
 
 use self::item::ItemKind;
 

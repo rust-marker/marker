@@ -1,5 +1,5 @@
 use crate::{
-    ast::ItemId,
+    common::ItemId,
     sem::{ty::SemTyKind, ConstValue},
 };
 

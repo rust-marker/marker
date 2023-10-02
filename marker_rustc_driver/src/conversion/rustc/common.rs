@@ -1,7 +1,7 @@
 use std::mem::{size_of, transmute};
 
 use marker_api::{
-    ast::{CrateId, ExpnId, SpanId, SpanSrcId, SymbolId},
+    common::{CrateId, ExpnId, SpanId, SpanSrcId, SymbolId},
     diagnostic::Applicability,
     lint::Level,
     prelude::*,

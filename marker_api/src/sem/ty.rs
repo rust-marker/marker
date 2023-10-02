@@ -64,7 +64,7 @@ pub enum SemTyKind<'ast> {
     // ================================
     // User defined types
     // ================================
-    /// A user defined data type, identified by an [`TyDefId`](crate::ast::TyDefId)
+    /// A user defined data type, identified by an [`TyDefId`](crate::common::TyDefId)
     Adt(&'ast SemAdtTy<'ast>),
     /// A generic type defined by a generic parameter
     Generic(&'ast SemGenericTy<'ast>),

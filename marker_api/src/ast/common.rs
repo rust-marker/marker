@@ -1,9 +1,9 @@
-mod id;
-pub use id::*;
 mod ast_path;
 pub use ast_path::*;
 
 use std::fmt::Debug;
+
+use crate::common::ItemId;
 
 use super::generic::SynGenericArgs;
 

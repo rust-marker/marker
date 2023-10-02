@@ -1,4 +1,4 @@
-use crate::ast::TyDefId;
+use crate::common::TyDefId;
 
 use super::SemGenericArgs;
 

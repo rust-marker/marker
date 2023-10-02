@@ -1,5 +1,6 @@
 use crate::{
-    ast::{expr::ConstExpr, ty::SynTyKind, SpanId, SymbolId, TraitRef},
+    ast::{expr::ConstExpr, ty::SynTyKind, TraitRef},
+    common::{SpanId, SymbolId},
     context::with_cx,
     span::Span,
 };

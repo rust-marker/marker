@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use crate::{
-    ast::{GenericId, ItemId, TyDefId},
+    common::{GenericId, ItemId, TyDefId},
     sem::generic::SemGenericArgs,
 };
 

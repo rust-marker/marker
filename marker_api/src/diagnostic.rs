@@ -4,7 +4,7 @@
 use std::fmt::Debug;
 
 use crate::{
-    ast::{HasNodeId, NodeId},
+    common::{HasNodeId, NodeId},
     context::{with_cx, MarkerContext},
     ffi::{FfiSlice, FfiStr},
     lint::Lint,

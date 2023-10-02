@@ -1,5 +1,6 @@
 use crate::{
-    ast::{AstQPath, SpanId, SymbolId},
+    ast::AstQPath,
+    common::{SpanId, SymbolId},
     context::with_cx,
     ffi::FfiSlice,
     span::Span,

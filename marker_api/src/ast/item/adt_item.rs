@@ -1,5 +1,6 @@
 use crate::{
-    ast::{expr::ConstExpr, generic::SynGenericParams, ty::SynTyKind, FieldId, SpanId, SymbolId, VariantId},
+    ast::{expr::ConstExpr, generic::SynGenericParams, ty::SynTyKind},
+    common::{FieldId, SpanId, SymbolId, VariantId},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
     span::{HasSpan, Span},
@@ -171,7 +172,7 @@ impl<'ast> HasSpan<'ast> for EnumVariant<'ast> {
     }
 }
 
-crate::ast::impl_identifiable_for!(EnumVariant<'ast>);
+crate::common::impl_identifiable_for!(EnumVariant<'ast>);
 impl<'ast> crate::private::Sealed for EnumVariant<'ast> {}
 
 #[cfg(feature = "driver-api")]
@@ -322,7 +323,7 @@ impl<'ast> HasSpan<'ast> for Field<'ast> {
     }
 }
 
-crate::ast::impl_identifiable_for!(Field<'ast>);
+crate::common::impl_identifiable_for!(Field<'ast>);
 impl<'ast> crate::private::Sealed for Field<'ast> {}
 
 #[cfg(feature = "driver-api")]

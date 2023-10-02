@@ -1,6 +1,9 @@
 //! This module provides types, which are used by the semantic and syntactic
 //! representations in Marker.
 
+mod id;
+pub use id::*;
+
 #[repr(C)]
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

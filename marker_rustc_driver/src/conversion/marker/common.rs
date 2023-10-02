@@ -1,12 +1,12 @@
 use std::mem::{size_of, transmute};
 
-use marker_api::lint::Level;
 use marker_api::{
     ast::{
-        generic::SynGenericArgs, ty::SynTyKind, Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId,
-        Constness, CrateId, ExpnId, ExprId, FieldId, GenericId, ItemId, MacroId, Mutability, Safety, SpanId, SpanSrcId,
-        StmtId, SymbolId, Syncness, TraitRef, TyDefId, VarId, VariantId,
+        generic::SynGenericArgs, ty::SynTyKind, Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, Constness,
+        Mutability, Safety, Syncness, TraitRef,
     },
+    common::*,
+    lint::Level,
     span::Ident,
 };
 use rustc_hir as hir;

@@ -1,10 +1,7 @@
 use std::ops::ControlFlow;
 
 use marker_api::{
-    ast::{
-        item::{EnumVariant, Field},
-        BodyId,
-    },
+    ast::item::{EnumVariant, Field},
     prelude::*,
 };
 

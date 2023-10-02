@@ -1,10 +1,10 @@
-use crate::ast::generic::SynGenericParams;
-use crate::ast::pat::PatKind;
-use crate::ast::ty::SynTyKind;
-use crate::ast::{Abi, BodyId, Constness, Safety, SpanId, Syncness};
-use crate::context::with_cx;
-use crate::ffi::{FfiOption, FfiSlice};
-use crate::prelude::Span;
+use crate::{
+    ast::{generic::SynGenericParams, pat::PatKind, ty::SynTyKind, Abi, Constness, Safety, Syncness},
+    common::{BodyId, SpanId},
+    context::with_cx,
+    ffi::{FfiOption, FfiSlice},
+    prelude::Span,
+};
 
 use super::CommonItemData;
 

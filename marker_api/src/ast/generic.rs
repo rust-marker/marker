@@ -7,7 +7,7 @@ mod param;
 pub use param::*;
 
 use crate::{
-    ast::{GenericId, SpanId, SymbolId},
+    common::{GenericId, SpanId, SymbolId},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
     span::Span,

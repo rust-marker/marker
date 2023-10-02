@@ -17,8 +17,9 @@ use crate::context::storage::Storage;
 use marker_api::{
     ast::{
         item::{EnumVariant, Field},
-        Crate, SymbolId,
+        Crate,
     },
+    common::SymbolId,
     lint::Level,
     prelude::*,
     span::{ExpnInfo, FilePos, Span, SpanSource},
