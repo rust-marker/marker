@@ -1,12 +1,17 @@
-use marker_api::ast::{
-    ty::{
-        CommonSynTyData, FnTyParameter, NumKind, SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemClosureTy, SemFnPtrTy,
-        SemFnTy, SemGenericTy, SemNeverTy, SemNumTy, SemRawPtrTy, SemRefTy, SemSliceTy, SemTextTy, SemTraitObjTy,
-        SemTupleTy, SemTyKind, SemUnstableTy, SynArrayTy, SynBoolTy, SynFnPtrTy, SynImplTraitTy, SynInferredTy,
-        SynNeverTy, SynNumTy, SynPathTy, SynRawPtrTy, SynRefTy, SynSliceTy, SynTextTy, SynTraitObjTy, SynTupleTy,
-        SynTyKind, TextKind,
+use marker_api::{
+    ast::ty::{
+        CommonSynTyData, FnTyParameter, SynArrayTy, SynBoolTy, SynFnPtrTy, SynImplTraitTy, SynInferredTy, SynNeverTy,
+        SynNumTy, SynPathTy, SynRawPtrTy, SynRefTy, SynSliceTy, SynTextTy, SynTraitObjTy, SynTupleTy, SynTyKind,
     },
-    ConstValue,
+    common::{NumKind, TextKind},
+    sem::{
+        ty::{
+            SemAdtTy, SemAliasTy, SemArrayTy, SemBoolTy, SemClosureTy, SemFnPtrTy, SemFnTy, SemGenericTy, SemNeverTy,
+            SemNumTy, SemRawPtrTy, SemRefTy, SemSliceTy, SemTextTy, SemTraitObjTy, SemTupleTy, SemTyKind,
+            SemUnstableTy,
+        },
+        ConstValue,
+    },
 };
 use rustc_hir as hir;
 use rustc_middle as mid;

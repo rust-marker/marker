@@ -2,7 +2,7 @@ use crate::ast::TyDefId;
 
 use super::SemGenericArgs;
 
-/// A semantic trait bound used by [`SemTraitTy`](`crate::ast::ty::SemTraitObjTy`)
+/// A semantic trait bound used by [`SemTraitTy`](`crate::sem::ty::SemTraitObjTy`)
 #[repr(C)]
 #[derive(Debug)]
 pub struct SemTraitBound<'ast> {

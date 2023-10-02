@@ -3,7 +3,7 @@ pub use args::*;
 mod param;
 pub use param::*;
 
-use crate::{ast::ty::SemTyKind, ffi::FfiSlice};
+use crate::{ffi::FfiSlice, sem::ty::SemTyKind};
 
 /// The semantic representation of generic arguments for an item or path.
 ///

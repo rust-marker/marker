@@ -1,11 +1,12 @@
 use crate::{
     prelude::EmissionNode,
     private::Sealed,
+    sem::ty::SemTyKind,
     span::{HasSpan, Span},
     CtorBlocker,
 };
 
-use super::{ty::SemTyKind, ExprId, HasNodeId, SpanId};
+use super::{ExprId, HasNodeId, SpanId};
 
 use std::{fmt::Debug, marker::PhantomData};
 
@@ -321,7 +322,7 @@ macro_rules! impl_expr_data {
                 self.data.id
             }
 
-            fn ty(&self) -> $crate::ast::ty::SemTyKind<'ast> {
+            fn ty(&self) -> $crate::sem::ty::SemTyKind<'ast> {
                 $crate::context::with_cx(self, |cx| cx.expr_ty(self.data.id))
             }
 

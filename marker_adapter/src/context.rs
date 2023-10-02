@@ -92,7 +92,7 @@ mod map;
 pub use map::*;
 
 use marker_api::{
-    ast::{ty::SemTyKind, ExpnId, ExprId, SpanId, SymbolId},
+    ast::{ExpnId, ExprId, SpanId, SymbolId},
     context::{MarkerContextCallbacks, MarkerContextData},
     diagnostic::Diagnostic,
     ffi::{self, FfiOption},

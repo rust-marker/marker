@@ -1,11 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![feature(let_chains)]
 
-use marker_api::{
-    ast::{expr::ExprKind, ty::SemTyKind},
-    context::MarkerContext,
-    LintPass, LintPassInfo, LintPassInfoBuilder,
-};
+use marker_api::{prelude::*, LintPass, LintPassInfo, LintPassInfoBuilder};
 
 marker_api::declare_lint! {
     /// ### What it does

@@ -1,4 +1,7 @@
-use crate::ast::{ty::SemTyKind, ConstValue, ItemId};
+use crate::{
+    ast::ItemId,
+    sem::{ty::SemTyKind, ConstValue},
+};
 
 /// A semantic generic bound in the form `<identifier=type>`. For example,
 /// `Item=i32` would be the generic binding here:

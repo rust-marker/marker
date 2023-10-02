@@ -1,7 +1,4 @@
-use crate::{
-    ast::generic::{SemTraitBound, SynTyParamBound},
-    ffi::FfiSlice,
-};
+use crate::{ast::generic::SynTyParamBound, ffi::FfiSlice};
 
 use super::CommonSynTyData;
 
@@ -55,27 +52,5 @@ super::impl_ty_data!(SynTraitObjTy<'ast>, TraitObj);
 impl<'ast> SynTraitObjTy<'ast> {
     pub fn trait_bounds(&self) -> &[SynTyParamBound<'ast>] {
         self.trait_bound.get()
-    }
-}
-
-/// The semantic representation of a [trait object].
-///
-/// [trait object]: https://doc.rust-lang.org/reference/types/trait-object.html
-#[repr(C)]
-#[derive(Debug)]
-pub struct SemTraitObjTy<'ast> {
-    bound: FfiSlice<'ast, SemTraitBound<'ast>>,
-}
-
-impl<'ast> SemTraitObjTy<'ast> {
-    pub fn bounds(&self) -> &[SemTraitBound<'ast>] {
-        self.bound.get()
-    }
-}
-
-#[cfg(feature = "driver-api")]
-impl<'ast> SemTraitObjTy<'ast> {
-    pub fn new(bound: &'ast [SemTraitBound<'ast>]) -> Self {
-        Self { bound: bound.into() }
     }
 }

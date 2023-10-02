@@ -3,7 +3,7 @@ pub use id::*;
 mod ast_path;
 pub use ast_path::*;
 
-use std::{fmt::Debug, marker::PhantomData};
+use std::fmt::Debug;
 
 use super::generic::SynGenericArgs;
 
@@ -116,29 +116,5 @@ impl Syncness {
     #[must_use]
     pub fn is_async(&self) -> bool {
         matches!(self, Self::Async)
-    }
-}
-
-/// The semantic equivalent of a [`ConstExpr`][super::expr::ConstExpr], at least
-/// theoretically. This part of the API is sadly not done yet, so this is just a
-/// placeholder.
-///
-/// See: rust-marker/marker#179
-#[repr(C)]
-pub struct ConstValue<'ast> {
-    _lifetime: PhantomData<&'ast ()>,
-}
-
-impl<'ast> Debug for ConstValue<'ast> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ConstValue {{ /* WIP: See rust-marker/marker#179 */}}")
-            .finish()
-    }
-}
-
-#[cfg(feature = "driver-api")]
-impl<'ast> ConstValue<'ast> {
-    pub fn new() -> Self {
-        Self { _lifetime: PhantomData }
     }
 }

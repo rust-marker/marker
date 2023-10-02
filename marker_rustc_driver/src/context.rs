@@ -190,7 +190,7 @@ impl<'ast, 'tcx: 'ast> MarkerContextDriver<'ast> for RustcContext<'ast, 'tcx> {
         ids
     }
 
-    fn expr_ty(&'ast self, expr: ExprId) -> marker_api::ast::ty::SemTyKind<'ast> {
+    fn expr_ty(&'ast self, expr: ExprId) -> marker_api::sem::ty::SemTyKind<'ast> {
         let hir_id = self.rustc_converter.to_hir_id(expr);
         self.marker_converter.expr_ty(hir_id)
     }

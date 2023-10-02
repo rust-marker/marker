@@ -8,10 +8,11 @@
 use std::{cell::RefCell, mem::transmute};
 
 use crate::{
-    ast::{ty::SemTyKind, ExpnId, ExprId, ItemId, SpanId, SymbolId, TyDefId},
+    ast::{ExpnId, ExprId, ItemId, SpanId, SymbolId, TyDefId},
     diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
     lint::{Level, Lint, MacroReport},
+    sem::ty::SemTyKind,
     span::{ExpnInfo, FileInfo, FilePos, Span, SpanPos, SpanSource},
 };
 
