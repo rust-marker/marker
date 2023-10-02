@@ -1,6 +1,6 @@
 # CI
 
-Marker's explicit goal is to make it easy to use on CI. This document describes the provided CI tooling and demonstrates example templates.
+Marker's primary objective is to offer an excellent linting interface, including the seamless integration with CI services. This document outlines the available CI tooling and provides example templates.
 
 <!-- toc -->
 
@@ -16,24 +16,31 @@ Marker provides a GitHub Action that downloads the pre-compiled binaries and run
 
 ### Git tags
 
-The git tag used for the GitHub Action selects the version of Marker that will be installed. There are several flavours of git tags:
+The git tag specified in the GitHub Action indicates which version of Marker should be installed. There are several tag flavors available:
 
-- Sliding `v0.2` *(recommended)*. Use this to get automatic patch updates.
-- Fixed `v0.2.1`. Use this if you want to pin a specific version if there is a regression in a new patch version. If there is one, please create a [new issue], patch versions must never break anything!
+- **Sliding tags, like `v0.2` *(recommended)*:**
+
+  Use this to get automatic patch updates.
+
+- **Fixed tags, like `v0.2.1`:**
+
+  Use this to pin a specific patch version. If you find a regression in a patch version, please create a [new issue]. Patch versions must never break anything!
 
 <!-- endregion replace-version stable -->
 
-> ⚠️ Different `v0.{minor}` versions contain breaking changes. There is `v0` git tag, but because there are breaking changes on each minor release it doesn't make sense to use it. However once Marker reaches `1.0` minor versions will be compatible and `v1` tag will be stable.
+> ⚠️ The minor versions before Marker `v1` contain breaking changes. While there is a sliding `v0` tag, it's highly recommended to include the minor version as well. This prevents uncontrolled CI breakage with every release.
 
 ### Inputs
 
 All inputs are optional, they only allow tweaking the default behavior.
 
-| Name         | Description                                               | Type      | Default |
-|--------------|-----------------------------------------------------------|-----------|---------|
-| `install-only` | Only install Marker and don't run `cargo marker` command. | `boolean` | `false` |
+| Name           | Description                                                   | Type      | Default |
+|----------------|---------------------------------------------------------------|-----------|---------|
+| `install-only` | Only install Marker but don't run the `cargo marker` command. | `boolean` | `false` |
 
 ### Example workflows
+
+These example workflows will use the lint crates specified in the `Cargo.toml` file by default. Refer to the [*Lint Crate Declaration*](./lint-crate-declaration.md) section for more information.
 
 #### Basic usage
 
@@ -41,31 +48,35 @@ Checkout the repository code, install the toolchain, Marker, and start linting.
 
 ```yml
 jobs:
-    rust-marker-lints:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: actions-rust-lang/setup-rust-toolchain@v1
-            - uses: rust-marker/marker@v0.2
+  rust-marker-lints:
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: --deny warnings
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: rust-marker/marker@v0.2
 ```
 
 #### Advanced usage
 
-If you need something more than just `cargo marker` you may use the action to only install Marker and run custom commands using `cargo marker` manually just like in your local dev environment.
+If you need something more than just the `cargo marker` command, you may use the action to only install Marker and then manually run the `cargo marker` command, just like in your local dev environment.
 
-Here is an example of how you could limit the set of crates that you want to lint.
+Here is an example of how you could limit the set of crates that you want to lint. Refer to `cargo marker --help` for a full list of available options.
 
 ```yml
 jobs:
-    rust-marker-lints:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: actions-rust-lang/setup-rust-toolchain@v1
-            - uses: rust-marker/marker@v0.2
-              with:
-                install-only: true
-            - run: cargo marker -- -p crate-foo -p crate-bar
+  rust-marker-lints:
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: --deny warnings
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: rust-marker/marker@v0.2
+        with:
+          install-only: true
+      - run: cargo marker -- -p crate-foo -p crate-bar
 ```
 
 If you have an example of advanced usage of `cargo marker` command that you have to repeat in your CI template again and again consider opening a [new issue] in our repository. We will be glad to hear any suggestions about extending the inputs for the GitHub Action for your use case.

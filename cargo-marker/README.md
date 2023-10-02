@@ -26,6 +26,8 @@
 ## Usage
 
 See the installation and usage instructions in the [main Marker repository README][Marker].
+Installation and usage instructions are available in [The Marker Book].
+[The Marker Book]: https://rust-marker.github.io/marker/book
 
 ## Contributing
 
