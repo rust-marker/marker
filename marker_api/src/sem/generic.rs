@@ -23,7 +23,7 @@ use crate::{ffi::FfiSlice, sem::ty::TyKind};
 /// ```
 ///
 /// See:
-/// * [`GenericParams`][crate::ast::generic::GenericParams]
+/// * [`GenericParams`][crate::ast::GenericParams]
 #[repr(C)]
 #[derive(Debug)]
 pub struct GenericArgs<'ast> {

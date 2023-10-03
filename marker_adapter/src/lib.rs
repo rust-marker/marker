@@ -13,12 +13,7 @@ pub use loader::LintCrateInfo;
 
 use loader::LintCrateRegistry;
 use marker_api::{
-    ast::{
-        expr::ExprKind,
-        item::{Body, EnumVariant, Field, ItemKind},
-        stmt::StmtKind,
-        Crate,
-    },
+    ast::{Body, Crate, EnumVariant, ExprKind, ItemField, ItemKind, StmtKind},
     context::MarkerContext,
     LintPass, LintPassInfo,
 };
@@ -85,7 +80,7 @@ impl Visitor<()> for AdapterInner {
         ControlFlow::Continue(())
     }
 
-    fn visit_field<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, field: &'ast Field<'ast>) -> ControlFlow<()> {
+    fn visit_field<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, field: &'ast ItemField<'ast>) -> ControlFlow<()> {
         self.external_lint_crates.check_field(cx, field);
         ControlFlow::Continue(())
     }

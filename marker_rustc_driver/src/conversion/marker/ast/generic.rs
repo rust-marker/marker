@@ -1,10 +1,7 @@
 use marker_api::ast::{
-    generic::{
-        BindingArg, ConstArg, ConstParam, GenericArgKind, GenericArgs, GenericParamKind, GenericParams, Lifetime,
-        LifetimeArg, LifetimeClause, LifetimeKind, LifetimeParam, TraitBound, TyArg, TyClause, TyParam, TyParamBound,
-        WhereClauseKind,
-    },
-    TraitRef,
+    BindingArg, ConstArg, ConstParam, GenericArgKind, GenericArgs, GenericParamKind, GenericParams, Lifetime,
+    LifetimeArg, LifetimeClause, LifetimeKind, LifetimeParam, TraitBound, TraitRef, TyArg, TyClause, TyParam,
+    TyParamBound, WhereClauseKind,
 };
 use rustc_hir as hir;
 

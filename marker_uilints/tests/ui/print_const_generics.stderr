@@ -39,7 +39,7 @@ warning: printing item
                   },
                   kind: Field(
                       [
-                          Field {
+                          ItemField {
                               id: FieldId(..),
                               vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                               ident: SymbolId(..),

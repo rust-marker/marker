@@ -21,7 +21,7 @@ use super::{CommonItemData, Visibility};
 pub struct UnionItem<'ast> {
     data: CommonItemData<'ast>,
     generics: GenericParams<'ast>,
-    fields: FfiSlice<'ast, Field<'ast>>,
+    fields: FfiSlice<'ast, ItemField<'ast>>,
 }
 
 super::impl_item_data!(UnionItem, Union);
@@ -31,14 +31,14 @@ impl<'ast> UnionItem<'ast> {
         &self.generics
     }
 
-    pub fn fields(&self) -> &[Field<'ast>] {
+    pub fn fields(&self) -> &[ItemField<'ast>] {
         self.fields.get()
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> UnionItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, generics: GenericParams<'ast>, fields: &'ast [Field<'ast>]) -> Self {
+    pub fn new(data: CommonItemData<'ast>, generics: GenericParams<'ast>, fields: &'ast [ItemField<'ast>]) -> Self {
         Self {
             data,
             generics,
@@ -149,7 +149,7 @@ impl<'ast> EnumVariant<'ast> {
         matches!(self.kind, AdtKind::Field(..))
     }
 
-    pub fn fields(&self) -> &[Field<'ast>] {
+    pub fn fields(&self) -> &[ItemField<'ast>] {
         match &self.kind {
             AdtKind::Unit => &[],
             AdtKind::Tuple(fields) | AdtKind::Field(fields) => fields.get(),
@@ -245,7 +245,7 @@ impl<'ast> StructItem<'ast> {
         matches!(self.kind, AdtKind::Field(..))
     }
 
-    pub fn fields(&self) -> &[Field<'ast>] {
+    pub fn fields(&self) -> &[ItemField<'ast>] {
         match &self.kind {
             AdtKind::Unit => &[],
             AdtKind::Tuple(fields) | AdtKind::Field(fields) => fields.get(),
@@ -265,14 +265,14 @@ impl<'ast> StructItem<'ast> {
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 enum AdtKind<'ast> {
     Unit,
-    Tuple(FfiSlice<'ast, Field<'ast>>),
-    Field(FfiSlice<'ast, Field<'ast>>),
+    Tuple(FfiSlice<'ast, ItemField<'ast>>),
+    Field(FfiSlice<'ast, ItemField<'ast>>),
 }
 
 impl<'ast> AdtKind<'ast> {
     // The slice lifetime here is explicitly denoted, as this is used by the
     // driver for convenience and is not part of the public API
-    pub fn fields(self) -> &'ast [Field<'ast>] {
+    pub fn fields(self) -> &'ast [ItemField<'ast>] {
         match self {
             AdtKind::Tuple(fields) | AdtKind::Field(fields) => fields.get(),
             AdtKind::Unit => &[],
@@ -284,7 +284,7 @@ impl<'ast> AdtKind<'ast> {
 /// type and span.
 #[repr(C)]
 #[derive(Debug)]
-pub struct Field<'ast> {
+pub struct ItemField<'ast> {
     id: FieldId,
     vis: Visibility<'ast>,
     ident: SymbolId,
@@ -292,7 +292,7 @@ pub struct Field<'ast> {
     span: SpanId,
 }
 
-impl<'ast> Field<'ast> {
+impl<'ast> ItemField<'ast> {
     pub fn id(&self) -> FieldId {
         self.id
     }
@@ -313,17 +313,17 @@ impl<'ast> Field<'ast> {
     // FIXME(xFrednet): Add `fn attrs() -> ??? {}`, see rust-marker/marker#51
 }
 
-impl<'ast> HasSpan<'ast> for Field<'ast> {
+impl<'ast> HasSpan<'ast> for ItemField<'ast> {
     fn span(&self) -> &Span<'ast> {
         with_cx(self, |cx| cx.span(self.span))
     }
 }
 
-crate::common::impl_identifiable_for!(Field<'ast>);
-impl<'ast> crate::private::Sealed for Field<'ast> {}
+crate::common::impl_identifiable_for!(ItemField<'ast>);
+impl<'ast> crate::private::Sealed for ItemField<'ast> {}
 
 #[cfg(feature = "driver-api")]
-impl<'ast> Field<'ast> {
+impl<'ast> ItemField<'ast> {
     pub fn new(id: FieldId, vis: Visibility<'ast>, ident: SymbolId, ty: TyKind<'ast>, span: SpanId) -> Self {
         Self {
             id,

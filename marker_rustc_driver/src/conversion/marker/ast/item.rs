@@ -1,12 +1,9 @@
 use marker_api::{
     ast::{
-        expr,
-        item::{
-            AdtKind, AssocItemKind, Body, CommonItemData, ConstItem, EnumItem, EnumVariant, ExternBlockItem,
-            ExternCrateItem, ExternItemKind, Field, FnItem, FnParam, ImplItem, ItemKind, ModItem, StaticItem,
-            StructItem, TraitItem, TyAliasItem, UnionItem, UnstableItem, UseItem, UseKind, Visibility,
-        },
-        pat::{CommonPatData, IdentPat, PatKind},
+        self, AdtKind, AssocItemKind, Body, CommonItemData, CommonPatData, ConstItem, EnumItem, EnumVariant,
+        ExternBlockItem, ExternCrateItem, ExternItemKind, FnItem, FnParam, IdentPat, ImplItem, ItemField, ItemKind,
+        ModItem, PatKind, StaticItem, StructItem, TraitItem, TyAliasItem, UnionItem, UnstableItem, UseItem, UseKind,
+        Visibility,
     },
     common::{Abi, Constness, Mutability, Safety, Syncness},
     CtorBlocker,
@@ -246,11 +243,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
     }
 
-    fn to_fields(&self, fields: &'tcx [hir::FieldDef]) -> &'ast [Field<'ast>] {
+    fn to_fields(&self, fields: &'tcx [hir::FieldDef]) -> &'ast [ItemField<'ast>] {
         let fields = self.alloc_slice(fields.iter().map(|field| {
             // FIXME update Visibility creation to use the stored local def id inside the
             // field after the next sync. See #55
-            Field::new(
+            ItemField::new(
                 self.to_field_id(field.hir_id),
                 Visibility::new(self.to_item_id(field.def_id)),
                 self.to_symbol_id(field.ident.name),
@@ -440,9 +437,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         if let Some(hir::GeneratorKind::Gen) = body.generator_kind {
             return self.alloc(Body::new(
                 self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id())),
-                expr::ExprKind::Unstable(self.alloc(expr::UnstableExpr::new(
-                    expr::CommonExprData::new(self.to_expr_id(body.value.hir_id), self.to_span_id(body.value.span)),
-                    expr::ExprPrecedence::Unstable(0),
+                ast::ExprKind::Unstable(self.alloc(ast::UnstableExpr::new(
+                    ast::CommonExprData::new(self.to_expr_id(body.value.hir_id), self.to_span_id(body.value.span)),
+                    ast::ExprPrecedence::Unstable(0),
                 ))),
             ));
         }

@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-/// The semantic equivalent of a [`ConstExpr`][crate::ast::expr::ConstExpr], at
+/// The semantic equivalent of a [`ConstExpr`][crate::ast::ConstExpr], at
 /// least theoretically. This part of the API is sadly not done yet, so this is
 /// just a placeholder.
 ///

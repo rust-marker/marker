@@ -20,7 +20,7 @@ warning: testing `AstMap::variant`
                    span: SpanId(..),
                    kind: Tuple(
                        [
-                           Field {
+                           ItemField {
                                id: FieldId(..),
                                vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                                ident: SymbolId(..),
@@ -84,7 +84,7 @@ warning: testing `AstMap::item`
                        },
                        kind: Field(
                            [
-                               Field {
+                               ItemField {
                                    id: FieldId(..),
                                    vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                                    ident: SymbolId(..),

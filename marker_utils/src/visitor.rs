@@ -1,7 +1,7 @@
 use std::ops::ControlFlow;
 
 use marker_api::{
-    ast::item::{EnumVariant, Field},
+    ast::{EnumVariant, ItemField},
     prelude::*,
 };
 
@@ -65,7 +65,7 @@ pub trait Visitor<B> {
         ControlFlow::Continue(())
     }
 
-    fn visit_field<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _field: &'ast Field<'ast>) -> ControlFlow<B> {
+    fn visit_field<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _field: &'ast ItemField<'ast>) -> ControlFlow<B> {
         ControlFlow::Continue(())
     }
 
@@ -77,7 +77,7 @@ pub trait Visitor<B> {
         ControlFlow::Continue(())
     }
 
-    fn visit_body<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _body: &'ast Body<'ast>) -> ControlFlow<B> {
+    fn visit_body<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _body: &'ast ast::Body<'ast>) -> ControlFlow<B> {
         ControlFlow::Continue(())
     }
 
@@ -177,7 +177,7 @@ pub fn traverse_item<'ast, B>(
 pub fn traverse_body<'ast, B>(
     cx: &'ast MarkerContext<'ast>,
     visitor: &mut dyn Visitor<B>,
-    body: &'ast Body<'ast>,
+    body: &'ast ast::Body<'ast>,
 ) -> ControlFlow<B> {
     visitor.visit_body(cx, body)?;
 
@@ -440,7 +440,7 @@ macro_rules! impl_traversable_for {
 impl_traversable_for!(ExprKind<'ast>, traverse_expr);
 impl_traversable_for!(StmtKind<'ast>, traverse_stmt);
 impl_traversable_for!(ItemKind<'ast>, traverse_item);
-impl_traversable_for!(&'ast Body<'ast>, traverse_body);
+impl_traversable_for!(&'ast ast::Body<'ast>, traverse_body);
 
 /// This trait extends the [`Traversable`] trait with more functions, specific to
 /// the `bool` return type.

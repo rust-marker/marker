@@ -1,4 +1,4 @@
-use marker_api::ast::stmt::{CommonStmtData, ExprStmt, ItemStmt, LetStmt, StmtKind};
+use marker_api::ast::{CommonStmtData, ExprStmt, ItemStmt, LetStmt, StmtKind};
 use rustc_hir as hir;
 
 use crate::conversion::marker::MarkerConverterInner;

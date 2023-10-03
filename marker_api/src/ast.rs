@@ -4,16 +4,20 @@
 mod common;
 pub use common::*;
 
-pub mod expr;
-pub mod generic;
-pub mod item;
-pub mod pat;
-pub mod stmt;
-pub mod ty;
+mod expr;
+pub use expr::*;
+mod generic;
+pub use generic::*;
+mod item;
+pub use item::*;
+mod pat;
+pub use pat::*;
+mod stmt;
+pub use stmt::*;
+mod ty;
+pub use ty::*;
 
 use crate::{common::CrateId, ffi::FfiSlice};
-
-use self::item::ItemKind;
 
 #[derive(Debug)]
 pub struct Crate<'ast> {

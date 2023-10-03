@@ -12,10 +12,7 @@ use std::cell::RefCell;
 
 use crate::context::storage::Storage;
 use marker_api::{
-    ast::{
-        item::{EnumVariant, Field},
-        Crate,
-    },
+    ast::{Body, Crate, EnumVariant, ItemField},
     common::SymbolId,
     lint::Level,
     prelude::*,
@@ -134,7 +131,7 @@ impl<'ast, 'tcx> MarkerConverter<'ast, 'tcx> {
         self.inner.variants.borrow().get(&id).copied()
     }
 
-    pub fn field(&self, id: FieldId) -> Option<&'ast Field<'ast>> {
+    pub fn field(&self, id: FieldId) -> Option<&'ast ItemField<'ast>> {
         // See docs of the `variant` method for an explanation, why it's
         // enough to only check the cache.
         self.inner.fields.borrow().get(&id).copied()
@@ -174,7 +171,7 @@ struct MarkerConverterInner<'ast, 'tcx> {
     bodies: RefCell<FxHashMap<BodyId, &'ast Body<'ast>>>,
     exprs: RefCell<FxHashMap<ExprId, ExprKind<'ast>>>,
     stmts: RefCell<FxHashMap<StmtId, StmtKind<'ast>>>,
-    fields: RefCell<FxHashMap<FieldId, &'ast Field<'ast>>>,
+    fields: RefCell<FxHashMap<FieldId, &'ast ItemField<'ast>>>,
     variants: RefCell<FxHashMap<VariantId, &'ast EnumVariant<'ast>>>,
 
     num_symbols: RefCell<FxHashMap<u32, SymbolId>>,

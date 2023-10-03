@@ -33,12 +33,12 @@ pub use interface::{LintPassInfo, LintPassInfoBuilder};
 pub trait LintPass {
     fn info(&self) -> LintPassInfo;
 
-    fn check_item<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _item: ast::item::ItemKind<'ast>) {}
-    fn check_field<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _field: &'ast ast::item::Field<'ast>) {}
-    fn check_variant<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _variant: &'ast ast::item::EnumVariant<'ast>) {}
-    fn check_body<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _body: &'ast ast::item::Body<'ast>) {}
-    fn check_stmt<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _stmt: ast::stmt::StmtKind<'ast>) {}
-    fn check_expr<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _expr: ast::expr::ExprKind<'ast>) {}
+    fn check_item<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _item: ast::ItemKind<'ast>) {}
+    fn check_field<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _field: &'ast ast::ItemField<'ast>) {}
+    fn check_variant<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _variant: &'ast ast::EnumVariant<'ast>) {}
+    fn check_body<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _body: &'ast ast::Body<'ast>) {}
+    fn check_stmt<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _stmt: ast::StmtKind<'ast>) {}
+    fn check_expr<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _expr: ast::ExprKind<'ast>) {}
 }
 
 pub(crate) mod private {
@@ -54,12 +54,12 @@ pub(crate) mod private {
 /// This struct blocks the construction of enum variants, similar to the `#[non_exhaustive]`
 /// attribute.
 ///
-/// Marker uses enums extensively, like [`ItemKind`][ast::item::ItemKind] and
-/// [`ExprKind`](ast::expr::ExprKind). There can be `*Kind` enums that wrap other
+/// Marker uses enums extensively, like [`ItemKind`][ast::ItemKind] and
+/// [`ExprKind`](ast::ExprKind). There can be `*Kind` enums that wrap other
 /// `*Kind` enums. In those cases, this struct is used, to block the user from
 /// constructing the variant manually. This allows tools to handle the variants
 /// confidently without additional verification. An example for this would be the
-/// [`LitExprKind::UnaryOp`](ast::expr::LitExprKind::UnaryOp) variant.
+/// [`LitExprKind::UnaryOp`](ast::LitExprKind::UnaryOp) variant.
 ///
 /// This basically acts like a `#[non_exhaustive]` attribute, with the difference
 /// that it also works on tuple variants. Attaching `#[non_exhaustive]` to a tuple

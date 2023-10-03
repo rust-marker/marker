@@ -4,11 +4,7 @@
 mod utils;
 
 use marker_api::{
-    ast::{
-        item::{EnumVariant, Field, StaticItem},
-        stmt::LetStmt,
-        AstPathTarget,
-    },
+    ast::{AstPathTarget, EnumVariant, ItemField, LetStmt, StaticItem},
     diagnostic::Applicability,
     prelude::*,
     sem::ty::TyKind,
@@ -151,7 +147,7 @@ impl LintPass for TestLintPass {
         }
     }
 
-    fn check_field<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, field: &'ast Field<'ast>) {
+    fn check_field<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, field: &'ast ItemField<'ast>) {
         if field.ident().starts_with("find_me") {
             emit_item_with_test_name_lint(cx, field, "a field");
         }

@@ -1,5 +1,5 @@
 use marker_api::{
-    ast::ty::{
+    ast::{
         ArrayTy, BoolTy, CommonSynTyData, FnPtrTy, FnTyParameter, ImplTraitTy, InferredTy, NeverTy, NumTy, PathTy,
         RawPtrTy, RefTy, SliceTy, TextTy, TraitObjTy, TupleTy, TyKind,
     },
