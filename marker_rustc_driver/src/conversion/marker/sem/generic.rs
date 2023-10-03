@@ -1,7 +1,4 @@
-use marker_api::sem::{
-    generic::{BindingArg, ConstArg, GenericArgKind, GenericArgs, TraitBound},
-    ConstValue,
-};
+use marker_api::sem::{BindingArg, ConstArg, ConstValue, GenericArgKind, GenericArgs, TraitBound};
 use rustc_middle as mid;
 
 use crate::conversion::marker::MarkerConverterInner;

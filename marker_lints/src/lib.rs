@@ -25,8 +25,8 @@ impl LintPass for MarkerLintsLintPass {
 
     fn check_expr<'ast>(&mut self, cx: &MarkerContext<'ast>, expr: ExprKind<'ast>) {
         if let ExprKind::Method(call) = expr
-            && let sem::ty::TyKind::Ref(adt_ref) = call.receiver().ty()
-            && let sem::ty::TyKind::Adt(adt) = adt_ref.inner_ty()
+            && let sem::TyKind::Ref(adt_ref) = call.receiver().ty()
+            && let sem::TyKind::Adt(adt) = adt_ref.inner_ty()
             && cx.resolve_ty_ids("marker_api::MarkerContext").contains(&adt.def_id())
             && call.method().ident().name() == "emit_lint"
             && let [_lint, _id, msg, ..] = call.args()

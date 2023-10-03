@@ -59,7 +59,7 @@ impl<'ast, 'tcx> MarkerConverter<'ast, 'tcx> {
         res
     }
 
-    pub fn expr_ty(&self, id: hir::HirId) -> marker_api::sem::ty::TyKind<'ast> {
+    pub fn expr_ty(&self, id: hir::HirId) -> marker_api::sem::TyKind<'ast> {
         self.with_body(id, |inner| {
             let ty = inner.rustc_ty_check().node_type(id);
             inner.to_sem_ty(ty)

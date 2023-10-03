@@ -2,7 +2,7 @@ use crate::{
     common::{ExprId, HasNodeId, SpanId},
     prelude::EmissionNode,
     private::Sealed,
-    sem::ty::TyKind,
+    sem::TyKind,
     span::{HasSpan, Span},
     CtorBlocker,
 };
@@ -321,13 +321,13 @@ macro_rules! impl_expr_data {
                 self.data.id
             }
 
-            fn ty(&self) -> $crate::sem::ty::TyKind<'ast> {
+            fn ty(&self) -> $crate::sem::TyKind<'ast> {
                 $crate::context::with_cx(self, |cx| cx.expr_ty(self.data.id))
             }
 
             $precedence_fn
 
-            fn as_expr(&'ast self) -> crate::ast::expr::ExprKind<'ast> {
+            fn as_expr(&'ast self) -> crate::ast::ExprKind<'ast> {
                 $crate::ast::expr::ExprKind::$enum_name(self)
             }
         }

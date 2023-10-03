@@ -7,7 +7,7 @@ use marker_api::{
     ast::{AstPathTarget, EnumVariant, ItemField, LetStmt, StaticItem},
     diagnostic::Applicability,
     prelude::*,
-    sem::ty::TyKind,
+    sem::TyKind,
     LintPass, LintPassInfo, LintPassInfoBuilder,
 };
 

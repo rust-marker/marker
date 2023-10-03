@@ -386,7 +386,7 @@ where
     /// # use marker_api::prelude::*;
     /// # use std::ops::ControlFlow;
     /// # use marker_utils::visitor::Traversable;
-    /// fn count_ifs<'ast>(cx: &'ast MarkerContext<'ast>, body: &'ast Body<'ast>) -> u32 {
+    /// fn count_ifs<'ast>(cx: &'ast MarkerContext<'ast>, body: &'ast ast::Body<'ast>) -> u32 {
     ///     let mut count = 0;
     ///     let _: Option<()> = body.for_each_expr(
     ///         cx,

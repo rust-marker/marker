@@ -2,7 +2,9 @@
 //! parts of the language.
 
 mod common;
-pub use common::*;
+mod generic;
+mod ty;
 
-pub mod generic;
-pub mod ty;
+pub use common::*;
+pub use generic::*;
+pub use ty::*;

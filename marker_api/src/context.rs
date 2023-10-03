@@ -12,7 +12,7 @@ use crate::{
     diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
     lint::{Level, Lint, MacroReport},
-    sem::ty::TyKind,
+    sem::TyKind,
     span::{ExpnInfo, FileInfo, FilePos, Span, SpanPos, SpanSource},
 };
 

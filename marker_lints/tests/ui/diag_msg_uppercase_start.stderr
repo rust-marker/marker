@@ -5,9 +5,9 @@ error[E0603]: module `expr` is private
   |                       ^^^^ private module
   |
 note: the module `expr` is defined here
- --> /home/xfrednet/workspace/rust/marker/marker_api/src/ast.rs:7:1
+ --> /home/xfrednet/workspace/rust/marker/marker_api/src/ast.rs:5:1
   |
-7 | mod expr;
+5 | mod expr;
   | ^^^^^^^^
 help: consider importing this enum instead
   |

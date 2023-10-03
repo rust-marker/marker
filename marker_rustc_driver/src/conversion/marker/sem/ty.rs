@@ -1,11 +1,8 @@
 use marker_api::{
     common::{NumKind, TextKind},
     sem::{
-        ty::{
-            AdtTy, AliasTy, ArrayTy, BoolTy, ClosureTy, FnPtrTy, FnTy, GenericTy, NeverTy, NumTy, RawPtrTy, RefTy,
-            SliceTy, TextTy, TraitObjTy, TupleTy, TyKind, UnstableTy,
-        },
-        ConstValue,
+        AdtTy, AliasTy, ArrayTy, BoolTy, ClosureTy, ConstValue, FnPtrTy, FnTy, GenericTy, NeverTy, NumTy, RawPtrTy,
+        RefTy, SliceTy, TextTy, TraitObjTy, TupleTy, TyKind, UnstableTy,
     },
 };
 use rustc_middle as mid;

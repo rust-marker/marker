@@ -2,19 +2,18 @@
 //! representation of the written code.
 
 mod common;
-pub use common::*;
-
 mod expr;
-pub use expr::*;
 mod generic;
-pub use generic::*;
 mod item;
-pub use item::*;
 mod pat;
-pub use pat::*;
 mod stmt;
-pub use stmt::*;
 mod ty;
+pub use common::*;
+pub use expr::*;
+pub use generic::*;
+pub use item::*;
+pub use pat::*;
+pub use stmt::*;
 pub use ty::*;
 
 use crate::{common::CrateId, ffi::FfiSlice};
