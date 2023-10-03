@@ -3,7 +3,6 @@
 #![feature(let_chains)]
 #![feature(lint_reasons)]
 #![feature(iter_collect_into)]
-#![feature(lazy_cell)]
 #![feature(non_exhaustive_omitted_patterns_lint)]
 #![feature(once_cell_try)]
 #![warn(rustc::internal)]
@@ -33,7 +32,7 @@ extern crate rustc_target;
 
 pub mod context;
 pub mod conversion;
-mod lint_pass;
+pub mod lint_pass;
 
 use std::env;
 use std::ops::Deref;
@@ -42,8 +41,6 @@ use std::process::Command;
 use camino::{Utf8Path, Utf8PathBuf};
 use marker_adapter::{LintCrateInfo, LINT_CRATES_ENV};
 use marker_error::Context;
-use rustc_session::config::ErrorOutputType;
-use rustc_session::EarlyErrorHandler;
 
 use crate::conversion::rustc::RustcConverter;
 
@@ -201,47 +198,13 @@ interfacing with the driver directly and use `cargo marker` instead.
 "
     );
 }
-const BUG_REPORT_URL: &str = "https://github.com/rust-marker/marker/issues/new?template=panic.yml";
 
-fn main() {
-    let handler = EarlyErrorHandler::new(ErrorOutputType::default());
-    rustc_driver::init_rustc_env_logger(&handler);
-
-    // FIXME(xFrednet): The ICE hook would ideally distinguish where the error
-    // happens. Panics from lint crates should probably not terminate Marker
-    // completely, but instead warn the user and continue linting with the other
-    // lint crate. It would also be cool if the ICE hook printed the node that
-    // caused the panic in the lint crate. rust-marker/marker#10
-
-    rustc_driver::install_ice_hook(BUG_REPORT_URL, |handler| {
-        handler.note_without_error(format!("{}", rustc_tools_util::get_version_info!()));
-        handler.note_without_error("Achievement Unlocked: [Free Ice Cream]");
-    });
-
-    std::process::exit(rustc_driver::catch_with_exit_code(|| {
-        try_main().map_err(|err| {
-            let err = match err {
-                MainError::Custom(err) => err,
-                MainError::Rustc(err) => return err,
-            };
-
-            // Emit the error to stderr
-            err.print();
-
-            // This is a bit of a hack, but this way we can emit our own errors
-            // without having to change the rustc driver.
-            #[expect(deprecated)]
-            rustc_span::ErrorGuaranteed::unchecked_claim_error_was_emitted()
-        })
-    }))
-}
-
-fn try_main() -> Result<(), MainError> {
+pub fn try_main(args: impl Iterator<Item = String>) -> Result<(), MainError> {
     // Note: This driver has two different kinds of "arguments".
     // 1. Normal arguments, passed directly to the binary. (Collected below)
     // 2. Arguments provided to `cargo-marker` which are forwarded to this process as environment
     //    values. These are usually driver-independent and handled by the adapter.
-    let mut orig_args: Vec<String> = env::args().collect();
+    let mut orig_args: Vec<String> = args.collect();
 
     let sys_root_arg = arg_value(&orig_args, "--sysroot", |_| true);
     let has_sys_root_arg = sys_root_arg.is_some();
@@ -386,7 +349,7 @@ fn find_sys_root(sys_root_arg: Option<&str>) -> String {
         .expect("need to specify SYSROOT env var during marker compilation, or use rustup or multirust")
 }
 
-enum MainError {
+pub enum MainError {
     Custom(marker_error::Error),
     Rustc(rustc_span::ErrorGuaranteed),
 }

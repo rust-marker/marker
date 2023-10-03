@@ -9,6 +9,9 @@ license    = { workspace = true }
 repository = { workspace = true }
 version    = { workspace = true }
 
+[lib]
+doctest = false
+
 [dependencies]
 marker_adapter = { workspace = true }
 marker_api     = { workspace = true, features = ["driver-api"] }

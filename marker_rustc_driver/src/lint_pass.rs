@@ -46,7 +46,7 @@ impl<'tcx> rustc_lint::LateLintPass<'tcx> for RustcLintPass {
     }
 }
 
-fn process_crate(rustc_cx: &rustc_lint::LateContext<'_>, adapter: &Adapter) {
+pub fn process_crate(rustc_cx: &rustc_lint::LateContext<'_>, adapter: &Adapter) {
     let storage = Storage::default();
     process_crate_lifetime(rustc_cx, &storage, adapter);
 }
