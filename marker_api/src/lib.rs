@@ -10,11 +10,13 @@
 
 pub static MARKER_API_VERSION: &str = env!("CARGO_PKG_VERSION");
 
+mod interface;
+pub use interface::*;
+
 pub mod ast;
 pub mod common;
 pub mod context;
 pub mod diagnostic;
-pub mod interface;
 pub mod lint;
 pub mod prelude;
 pub mod sem;

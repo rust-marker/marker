@@ -69,7 +69,7 @@ macro_rules! export_lint_pass {
             /// This magic function fills the `LintCrateBindings` struct to allow easy
             /// communication between marker's driver and lint crates.
             #[no_mangle]
-            extern "C" fn marker_lint_crate_bindings() -> $crate::interface::LintCrateBindings {
+            extern "C" fn marker_lint_crate_bindings() -> $crate::LintCrateBindings {
                 pub use $crate::LintPass;
 
                 extern "C" fn set_ast_context<'ast>(cx: &'ast $crate::MarkerContext<'ast>) {
@@ -115,7 +115,7 @@ macro_rules! export_lint_pass {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().check_expr(cx, expr));
                 }
 
-                $crate::interface::LintCrateBindings {
+                $crate::LintCrateBindings {
                     set_ast_context,
                     info,
                     check_item,

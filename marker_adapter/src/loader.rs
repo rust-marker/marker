@@ -1,7 +1,7 @@
 use crate::error::prelude::*;
 use camino::Utf8PathBuf;
 use libloading::Library;
-use marker_api::{interface::LintCrateBindings, MarkerContext};
+use marker_api::{LintCrateBindings, MarkerContext};
 use marker_api::{LintPass, LintPassInfo, MARKER_API_VERSION};
 
 use super::LINT_CRATES_ENV;
