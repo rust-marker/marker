@@ -1,7 +1,7 @@
 use marker_adapter::context::AstMapDriver;
 use marker_api::{
     ast::{EnumVariant, ItemField},
-    lint::Level,
+    common::Level,
     prelude::*,
 };
 

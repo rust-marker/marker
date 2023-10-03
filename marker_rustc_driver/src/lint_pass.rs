@@ -1,7 +1,7 @@
 use std::cell::OnceCell;
 
 use marker_adapter::{Adapter, LintCrateInfo};
-use marker_api::lint::Lint;
+use marker_api::Lint;
 
 use crate::context::{storage::Storage, RustcContext};
 

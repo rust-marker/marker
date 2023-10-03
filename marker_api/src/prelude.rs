@@ -24,7 +24,7 @@ pub use crate::ast::ExprKind;
 pub use crate::ast::ItemKind;
 pub use crate::ast::PatKind;
 pub use crate::ast::StmtKind;
-pub use crate::lint::Lint;
 pub use crate::span::Ident;
 pub use crate::span::Span;
+pub use crate::Lint;
 pub use crate::MarkerContext;

@@ -1,8 +1,8 @@
 use marker_api::{
     ast::{EnumVariant, ItemField},
+    common::Level,
     context::{AstMap, AstMapCallbacks, AstMapData},
     ffi,
-    lint::Level,
     prelude::*,
 };
 

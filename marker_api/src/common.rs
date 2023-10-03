@@ -177,3 +177,50 @@ impl std::fmt::Display for TextKind {
         }
     }
 }
+
+/// Setting for how to handle a lint.
+#[repr(C)]
+#[non_exhaustive]
+#[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Debug, Hash)]
+pub enum Level {
+    /// The lint is allowed. A created diagnostic will not be emitted to the user by default.
+    /// This level can be overridden. It's useful for rather strict lints.
+    Allow,
+    /// The `warn` level will produce a warning if the lint was violated, however the
+    /// compiler will continue with its execution.
+    ///
+    /// This level might also be used in instances were the diagnostic is not emitted
+    /// to the user but used internally. This can for instance happen for lint
+    /// expectations (RFC 2383).
+    Warn,
+    /// The `deny` level will produce an error and stop further execution after the lint
+    /// pass is complete.
+    Deny,
+    /// The `forbid` level will produce an error and cannot be overridden by the user.
+    ///
+    /// Choosing this diagnostic level should require heavy consideration, because should a lint
+    /// with this level produce a false-positive, the user won't have an option to `allow` the lint
+    /// for this particular case, and will be forced to either:
+    /// - Write wrong code just to satisfy the lint
+    /// - Remove the whole lint crate
+    ///
+    /// To produce an error, but make the lint possible to override see [`Deny`](`Self::Deny`).
+    Forbid,
+}
+
+/// FIXME(xFrednet): These settings should be working now, but are still limited
+/// due to the limited [`Span`](crate::span::Span) implementation. Ideally, I would
+/// also like more options, like a `Local` variant that only lints in local marcos.
+/// For libraries it might also be cool to have a `Crate` variant, that only lints
+/// in user code and code from macros from the specified crate.
+///
+/// See: rust-marker/marker#149
+#[repr(C)]
+#[non_exhaustive]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum MacroReport {
+    /// No reporting in local or external macros.
+    No,
+    /// Report in local and external macros.
+    All,
+}

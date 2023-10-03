@@ -8,12 +8,12 @@
 use std::{cell::RefCell, mem::transmute};
 
 use crate::{
-    common::{ExpnId, ExprId, ItemId, SpanId, SymbolId, TyDefId},
+    common::{ExpnId, ExprId, ItemId, Level, MacroReport, SpanId, SymbolId, TyDefId},
     diagnostic::{Diagnostic, DiagnosticBuilder, EmissionNode},
     ffi,
-    lint::{Level, Lint, MacroReport},
     sem::TyKind,
     span::{ExpnInfo, FileInfo, FilePos, Span, SpanPos, SpanSource},
+    Lint,
 };
 
 mod map;

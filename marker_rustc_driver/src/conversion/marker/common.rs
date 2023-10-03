@@ -3,7 +3,6 @@ use std::mem::{size_of, transmute};
 use marker_api::{
     ast::{AstPath, AstPathSegment, AstPathTarget, AstQPath, GenericArgs, TraitRef, TyKind},
     common::*,
-    lint::Level,
     span::Ident,
 };
 use rustc_hir as hir;

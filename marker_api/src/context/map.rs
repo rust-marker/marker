@@ -1,8 +1,8 @@
 use crate::{
     ast::{Body, EnumVariant, ExprKind, ItemField, ItemKind, StmtKind},
-    common::{BodyId, ExprId, FieldId, ItemId, StmtId, VariantId},
+    common::{BodyId, ExprId, FieldId, ItemId, Level, StmtId, VariantId},
     ffi,
-    lint::{Level, Lint},
+    lint::Lint,
     prelude::{HasNodeId, NodeId},
 };
 

@@ -13,8 +13,7 @@ use std::cell::RefCell;
 use crate::context::storage::Storage;
 use marker_api::{
     ast::{Body, Crate, EnumVariant, ItemField},
-    common::SymbolId,
-    lint::Level,
+    common::{Level, SymbolId},
     prelude::*,
     span::{ExpnInfo, FilePos, Span, SpanSource},
 };

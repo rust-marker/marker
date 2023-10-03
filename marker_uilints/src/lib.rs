@@ -32,7 +32,7 @@ marker_api::declare_lint! {
     /// It's used to print spans and is allowed to emit code in macros
     PRINT_SPAN_LINT,
     Warn,
-    marker_api::lint::MacroReport::All,
+    marker_api::common::MacroReport::All,
 }
 
 marker_api::declare_lint! {

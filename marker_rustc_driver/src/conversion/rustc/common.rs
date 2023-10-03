@@ -1,9 +1,8 @@
 use std::mem::{size_of, transmute};
 
 use marker_api::{
-    common::{CrateId, ExpnId, SpanId, SpanSrcId, SymbolId},
+    common::{CrateId, ExpnId, Level, SpanId, SpanSrcId, SymbolId},
     diagnostic::Applicability,
-    lint::Level,
     prelude::*,
     span::SpanPos,
 };
