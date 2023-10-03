@@ -76,6 +76,12 @@ pub fn create_ui_test_config(
         env::set_var(key, val);
     }
 
+    let output_conflict_handling = if env::var_os("RUST_BLESS").is_some() || env::args().any(|arg| arg == "--bless") {
+        ui_test::OutputConflictHandling::Bless
+    } else {
+        ui_test::OutputConflictHandling::Error("cargo test -- -- --bless".into())
+    };
+
     // Create config
     let mut config = ui_test::Config {
         mode: ui_test::Mode::Yolo {
@@ -85,6 +91,7 @@ pub fn create_ui_test_config(
             .map(|filters| filters.split(',').map(str::to_string).collect())
             .unwrap_or_default(),
         out_dir: fs::canonicalize(target_dir)?,
+        output_conflict_handling,
         ..ui_test::Config::rustc(ui_dir)
     };
 
