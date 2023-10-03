@@ -1,19 +1,16 @@
-error[E0603]: module `expr` is private
- --> $DIR/diag_msg_uppercase_start.rs:3:23
-  |
-3 | use marker_api::{ast::expr::ExprKind, context::MarkerContext};
-  |                       ^^^^ private module
-  |
-note: the module `expr` is defined here
- --> /home/xfrednet/workspace/rust/marker/marker_api/src/ast.rs:5:1
-  |
-5 | mod expr;
-  | ^^^^^^^^
-help: consider importing this enum instead
-  |
-3 | use marker_api::{marker_api::prelude::ExprKind, context::MarkerContext};
-  |                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+warning: this message starts with an uppercase character
+  --> $DIR/diag_msg_uppercase_start.rs:21:31
+   |
+21 |     cx.emit_lint(DUMMY, expr, "X <-- starting with upper case");
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(marker::diag_msg_uppercase_start)]` on by default
 
-error: aborting due to previous error
+warning: this message starts with an uppercase character
+  --> $DIR/diag_msg_uppercase_start.rs:22:31
+   |
+22 |     cx.emit_lint(DUMMY, expr, "Hey <-- starting with upper case");
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For more information about this error, try `rustc --explain E0603`.
+warning: 2 warnings emitted
+

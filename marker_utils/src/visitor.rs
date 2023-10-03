@@ -33,8 +33,9 @@ use marker_api::{
 /// ```
 ///
 /// The target scope is checked when the respective `traverse_*` function is called
-/// For example, [`traverse_body`] will visit a given body [`Body`], but will not enter
-/// nested bodies, unless [`AllBodies`](VisitorScope::AllBodies) is defined.
+/// For example, [`traverse_body`] will visit a given body [`Body`](ast::Body), but
+/// will not enter nested bodies, unless [`AllBodies`](VisitorScope::AllBodies) is
+/// defined.
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Default)]
 pub enum VisitorScope {
@@ -446,8 +447,8 @@ impl_traversable_for!(&'ast ast::Body<'ast>, traverse_body);
 /// the `bool` return type.
 pub trait BoolTraversable<'ast>: Traversable<'ast, bool> {
     /// Checks if the given node contains an early return, in the form of an
-    /// [`ReturnExpr`](marker_api::ast::expr::ReturnExpr) or
-    /// [`TryExpr`](marker_api::ast::expr::TryExpr).
+    /// [`ReturnExpr`](marker_api::ast::ReturnExpr) or
+    /// [`TryExpr`](marker_api::ast::TryExpr).
     ///
     /// This function is useful, for lints which suggest moving code snippets into
     /// a closure or different function. Return statements might prevent the suggested
