@@ -6,19 +6,8 @@ fn main() -> color_eyre::Result<()> {
 
     config.dependencies_crate_manifest_path = Some("./Cargo.toml".into());
 
-    let bless = env::var_os("BLESS").is_some() || env::args().any(|arg| arg == "--bless");
-    if bless {
-        config.output_conflict_handling = OutputConflictHandling::Bless
-    }
-
-    let filters = [
-        // Normalization for windows...
-        (r"ui//", "ui/"),
-    ];
-    for (pat, repl) in filters {
-        config.stderr_filter(pat, repl);
-        config.stdout_filter(pat, repl);
-    }
+    config.filter(r"\\/", "/");
+    config.filter(r"\\\\", "/");
 
     run_tests_generic(
         vec![config],
