@@ -14,6 +14,7 @@
 #![allow(clippy::needless_lifetimes, reason = "lifetimes will be required to fix ICEs")]
 #![allow(clippy::needless_collect, reason = "false positives for `alloc_slice`")]
 #![allow(clippy::too_many_lines, reason = "long functions are unavoidable for matches")]
+#![allow(rustdoc::private_intra_doc_links)]
 
 extern crate rustc_ast;
 extern crate rustc_data_structures;
