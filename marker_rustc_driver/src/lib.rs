@@ -199,6 +199,7 @@ interfacing with the driver directly and use `cargo marker` instead.
     );
 }
 
+#[allow(clippy::missing_errors_doc)]
 pub fn try_main(args: impl Iterator<Item = String>) -> Result<(), MainError> {
     // Note: This driver has two different kinds of "arguments".
     // 1. Normal arguments, passed directly to the binary. (Collected below)

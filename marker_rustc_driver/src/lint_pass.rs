@@ -24,6 +24,7 @@ thread_local! {
 pub struct RustcLintPass;
 
 impl RustcLintPass {
+    #[allow(clippy::missing_errors_doc)]
     pub fn init_adapter(lint_crates: &[LintCrateInfo]) -> Result<(), marker_adapter::Error> {
         ADAPTER.with(move |cell| {
             cell.get_or_try_init(|| Adapter::new(lint_crates))?;
@@ -31,6 +32,7 @@ impl RustcLintPass {
         })
     }
 
+    #[must_use]
     pub fn marker_lints() -> Vec<&'static Lint> {
         ADAPTER.with(|adapter| adapter.get().unwrap().marker_lints())
     }
