@@ -4,7 +4,7 @@
 use std::fmt::Debug;
 
 use crate::{
-    ast::{HasNodeId, NodeId},
+    common::{HasNodeId, NodeId},
     context::{with_cx, MarkerContext},
     ffi::{FfiSlice, FfiStr},
     lint::Lint,
@@ -218,7 +218,7 @@ impl<'ast> DiagnosticBuilder<'ast> {
     /// will speedup the linting process if the lint is suppressed.
     ///
     /// A lint emission might be suppressed, if the lint is allowed at the
-    /// [`EmissionNode`] or if the [`MacroReport`](crate::lint::MacroReport) level
+    /// [`EmissionNode`] or if the [`MacroReport`](crate::common::MacroReport) level
     /// specified in the [`Lint`] isn't sufficient for context of the [`EmissionNode`].
     ///
     /// ```

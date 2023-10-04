@@ -1,10 +1,10 @@
-use crate::ast::generic::SynGenericParams;
-use crate::ast::pat::PatKind;
-use crate::ast::ty::SynTyKind;
-use crate::ast::{Abi, BodyId, Constness, Safety, SpanId, Syncness};
-use crate::context::with_cx;
-use crate::ffi::{FfiOption, FfiSlice};
-use crate::prelude::Span;
+use crate::{
+    ast::{generic::GenericParams, pat::PatKind, ty::TyKind},
+    common::{Abi, BodyId, Constness, Safety, SpanId, Syncness},
+    context::with_cx,
+    ffi::{FfiOption, FfiSlice},
+    prelude::Span,
+};
 
 use super::CommonItemData;
 
@@ -43,7 +43,7 @@ use super::CommonItemData;
 #[derive(Debug)]
 pub struct FnItem<'ast> {
     data: CommonItemData<'ast>,
-    generics: SynGenericParams<'ast>,
+    generics: GenericParams<'ast>,
     constness: Constness,
     syncness: Syncness,
     safety: Safety,
@@ -51,14 +51,14 @@ pub struct FnItem<'ast> {
     has_self: bool,
     abi: Abi,
     params: FfiSlice<'ast, FnParam<'ast>>,
-    return_ty: FfiOption<SynTyKind<'ast>>,
+    return_ty: FfiOption<TyKind<'ast>>,
     body_id: FfiOption<BodyId>,
 }
 
 super::impl_item_data!(FnItem, Fn);
 
 impl<'ast> FnItem<'ast> {
-    pub fn generics(&self) -> &SynGenericParams<'ast> {
+    pub fn generics(&self) -> &GenericParams<'ast> {
         &self.generics
     }
 
@@ -117,7 +117,7 @@ impl<'ast> FnItem<'ast> {
     }
 
     /// The return type of this callable, if specified.
-    pub fn return_ty(&self) -> Option<&SynTyKind<'ast>> {
+    pub fn return_ty(&self) -> Option<&TyKind<'ast>> {
         self.return_ty.get()
     }
 }
@@ -127,7 +127,7 @@ impl<'ast> FnItem<'ast> {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         data: CommonItemData<'ast>,
-        generics: SynGenericParams<'ast>,
+        generics: GenericParams<'ast>,
         constness: Constness,
         syncness: Syncness,
         safety: Safety,
@@ -135,7 +135,7 @@ impl<'ast> FnItem<'ast> {
         has_self: bool,
         abi: Abi,
         params: &'ast [FnParam<'ast>],
-        return_ty: Option<SynTyKind<'ast>>,
+        return_ty: Option<TyKind<'ast>>,
         body: Option<BodyId>,
     ) -> Self {
         Self {
@@ -169,7 +169,7 @@ impl<'ast> FnItem<'ast> {
 pub struct FnParam<'ast> {
     span: SpanId,
     pat: PatKind<'ast>,
-    ty: SynTyKind<'ast>,
+    ty: TyKind<'ast>,
 }
 
 impl<'ast> FnParam<'ast> {
@@ -181,14 +181,14 @@ impl<'ast> FnParam<'ast> {
         self.pat
     }
 
-    pub fn ty(&self) -> SynTyKind<'ast> {
+    pub fn ty(&self) -> TyKind<'ast> {
         self.ty
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> FnParam<'ast> {
-    pub fn new(span: SpanId, pat: PatKind<'ast>, ty: SynTyKind<'ast>) -> Self {
+    pub fn new(span: SpanId, pat: PatKind<'ast>, ty: TyKind<'ast>) -> Self {
         Self { span, pat, ty }
     }
 }

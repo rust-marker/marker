@@ -4,14 +4,10 @@
 mod utils;
 
 use marker_api::{
-    ast::{
-        item::{EnumVariant, Field, StaticItem},
-        stmt::LetStmt,
-        ty::SemTyKind,
-        AstPathTarget,
-    },
+    ast::{AstPathTarget, EnumVariant, ItemField, LetStmt, StaticItem},
     diagnostic::Applicability,
     prelude::*,
+    sem::TyKind,
     LintPass, LintPassInfo, LintPassInfoBuilder,
 };
 
@@ -36,7 +32,7 @@ marker_api::declare_lint! {
     /// It's used to print spans and is allowed to emit code in macros
     PRINT_SPAN_LINT,
     Warn,
-    marker_api::lint::MacroReport::All,
+    marker_api::common::MacroReport::All,
 }
 
 marker_api::declare_lint! {
@@ -151,7 +147,7 @@ impl LintPass for TestLintPass {
         }
     }
 
-    fn check_field<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, field: &'ast Field<'ast>) {
+    fn check_field<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, field: &'ast ItemField<'ast>) {
         if field.ident().starts_with("find_me") {
             emit_item_with_test_name_lint(cx, field, "a field");
         }
@@ -186,7 +182,7 @@ impl LintPass for TestLintPass {
                 });
             } else if ident.name().starts_with("_check_path") {
                 cx.emit_lint(TEST_LINT, stmt, "check type resolution").decorate(|diag| {
-                    let SemTyKind::Adt(adt) = expr.ty() else {
+                    let TyKind::Adt(adt) = expr.ty() else {
                         unreachable!("how? Everything should be an ADT")
                     };
                     let path = "std::vec::Vec";

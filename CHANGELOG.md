@@ -40,6 +40,7 @@ See the [v0.3.0 milestone] for a full list of all changes.
 [#260]: https://github.com/rust-marker/marker/pull/260
 [#263]: https://github.com/rust-marker/marker/pull/263
 [#265]: https://github.com/rust-marker/marker/pull/265
+[#268]: https://github.com/rust-marker/marker/pull/268
 
 ### Added
 - [#232]: Add scope config for visitors and `for_each_expr` to `marker_utils`
@@ -56,6 +57,13 @@ See the [v0.3.0 milestone] for a full list of all changes.
 - [#263]: Updated the [`ui_test`](https://crates.io/crates/ui_test) used by `marker_uitest` from `v0.11.7` to `v0.21.2`
 - [#260]: Moved `AstContext::{body, item, lint_level_at}` to the new `AstMap` struct accessible via `MarkerContext::ast()`
 - [#265]: Removed the `CallableData` trait
+- [#268]: Moved semantic types and generics to the new `marker_api::sem` module
+- [#268]: Moved common items, like IDs, to the new `marker_api::common` module
+- [#268]: Removed the `Sem` and `Syn` prefix from types and generics
+- [#268]: `marker_api::prelude` no longer contains the semantic and syntactic `TyKind` enums
+- [#268]: `marker_api::prelude` now imports the `sem` and `ast` names
+- [#268]: The `marker_api::ast` module has been flattened
+- [#268]: The `marker_api::lint` and `marker_api::interface` are now private
 
 ### Internal
 

@@ -1,6 +1,6 @@
 extern crate marker_api;
 
-use marker_api::{ast::expr::ExprKind, context::MarkerContext};
+use marker_api::prelude::*;
 
 marker_api::declare_lint!{
     /// Dummy

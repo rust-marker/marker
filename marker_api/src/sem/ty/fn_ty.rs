@@ -1,29 +1,32 @@
-use crate::ast::{generic::SemGenericArgs, ItemId, TyDefId};
+use crate::{
+    common::{ItemId, TyDefId},
+    sem::generic::GenericArgs,
+};
 
 /// A [function item type](https://doc.rust-lang.org/reference/types/function-item.html)
 /// identifying a specific function and potentualy additional generics.
 #[repr(C)]
 #[derive(Debug)]
-pub struct SemFnTy<'ast> {
+pub struct FnTy<'ast> {
     fn_id: ItemId,
-    generics: SemGenericArgs<'ast>,
+    generics: GenericArgs<'ast>,
 }
 
-impl<'ast> SemFnTy<'ast> {
+impl<'ast> FnTy<'ast> {
     /// This returns the [`ItemId`] of the identified function.
     pub fn fn_id(&self) -> ItemId {
         self.fn_id
     }
 
-    /// This returns the [`SemGenericArgs`] used by identified function
-    pub fn generics(&self) -> &SemGenericArgs<'ast> {
+    /// This returns the [`GenericArgs`] used by identified function
+    pub fn generics(&self) -> &GenericArgs<'ast> {
         &self.generics
     }
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SemFnTy<'ast> {
-    pub fn new(fn_id: ItemId, generics: SemGenericArgs<'ast>) -> Self {
+impl<'ast> FnTy<'ast> {
+    pub fn new(fn_id: ItemId, generics: GenericArgs<'ast>) -> Self {
         Self { fn_id, generics }
     }
 }
@@ -35,19 +38,19 @@ impl<'ast> SemFnTy<'ast> {
 /// closure. This type on it's own therefore only identifies the type of the closure.
 #[repr(C)]
 #[derive(Debug)]
-pub struct SemClosureTy<'ast> {
+pub struct ClosureTy<'ast> {
     closure_ty_id: TyDefId,
-    generics: SemGenericArgs<'ast>,
+    generics: GenericArgs<'ast>,
 }
 
-impl<'ast> SemClosureTy<'ast> {
+impl<'ast> ClosureTy<'ast> {
     /// This returns the [`ItemId`] of the identified function.
     pub fn closure_ty_id(&self) -> TyDefId {
         self.closure_ty_id
     }
 
-    /// This returns the [`SemGenericArgs`] used by identified function
-    pub fn generics(&self) -> &SemGenericArgs<'ast> {
+    /// This returns the [`GenericArgs`] used by identified function
+    pub fn generics(&self) -> &GenericArgs<'ast> {
         &self.generics
     }
 
@@ -56,8 +59,8 @@ impl<'ast> SemClosureTy<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SemClosureTy<'ast> {
-    pub fn new(closure_ty_id: TyDefId, generics: SemGenericArgs<'ast>) -> Self {
+impl<'ast> ClosureTy<'ast> {
+    pub fn new(closure_ty_id: TyDefId, generics: GenericArgs<'ast>) -> Self {
         Self {
             closure_ty_id,
             generics,

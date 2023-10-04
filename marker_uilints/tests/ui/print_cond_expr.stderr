@@ -34,7 +34,7 @@ warning: print test
                                                name: "cond",
                                                span: $DIR/print_cond_expr.rs:3:24 - 3:28,
                                            },
-                                           generics: SynGenericArgs {
+                                           generics: GenericArgs {
                                                args: [],
                                            },
                                        },
@@ -85,7 +85,7 @@ warning: print test
                                                                            name: "cond",
                                                                            span: $DIR/print_cond_expr.rs:6:12 - 6:16,
                                                                        },
-                                                                       generics: SynGenericArgs {
+                                                                       generics: GenericArgs {
                                                                            args: [],
                                                                        },
                                                                    },
@@ -206,7 +206,7 @@ warning: print test
                                                        name: "Some",
                                                        span: $DIR/print_cond_expr.rs:13:32 - 13:36,
                                                    },
-                                                   generics: SynGenericArgs {
+                                                   generics: GenericArgs {
                                                        args: [],
                                                    },
                                                },
@@ -250,7 +250,7 @@ warning: print test
                                                        name: "opt",
                                                        span: $DIR/print_cond_expr.rs:13:42 - 13:45,
                                                    },
-                                                   generics: SynGenericArgs {
+                                                   generics: GenericArgs {
                                                        args: [],
                                                    },
                                                },
@@ -363,7 +363,7 @@ warning: print test
                                                name: "a",
                                                span: $DIR/print_cond_expr.rs:17:29 - 17:30,
                                            },
-                                           generics: SynGenericArgs {
+                                           generics: GenericArgs {
                                                args: [],
                                            },
                                        },
@@ -427,7 +427,7 @@ warning: print test
                                                            name: "b",
                                                            span: $DIR/print_cond_expr.rs:19:15 - 19:16,
                                                        },
-                                                       generics: SynGenericArgs {
+                                                       generics: GenericArgs {
                                                            args: [],
                                                        },
                                                    },
@@ -537,7 +537,7 @@ warning: print test
                                                name: "scrutinee",
                                                span: $DIR/print_cond_expr.rs:27:30 - 27:39,
                                            },
-                                           generics: SynGenericArgs {
+                                           generics: GenericArgs {
                                                args: [],
                                            },
                                        },
@@ -624,7 +624,7 @@ warning: print test
                                                                    name: "check",
                                                                    span: $DIR/print_cond_expr.rs:29:16 - 29:21,
                                                                },
-                                                               generics: SynGenericArgs {
+                                                               generics: GenericArgs {
                                                                    args: [],
                                                                },
                                                            },
@@ -654,7 +654,7 @@ warning: print test
                                                                        name: "x",
                                                                        span: $DIR/print_cond_expr.rs:29:22 - 29:23,
                                                                    },
-                                                                   generics: SynGenericArgs {
+                                                                   generics: GenericArgs {
                                                                        args: [],
                                                                    },
                                                                },
@@ -760,7 +760,7 @@ warning: print test
                                                name: "opt",
                                                span: $DIR/print_cond_expr.rs:37:40 - 37:43,
                                            },
-                                           generics: SynGenericArgs {
+                                           generics: GenericArgs {
                                                args: [],
                                            },
                                        },
@@ -791,7 +791,7 @@ warning: print test
                                                        name: "Some",
                                                        span: $DIR/print_cond_expr.rs:38:9 - 38:13,
                                                    },
-                                                   generics: SynGenericArgs {
+                                                   generics: GenericArgs {
                                                        args: [],
                                                    },
                                                },
@@ -870,7 +870,7 @@ warning: print test
                                                        name: "Some",
                                                        span: $DIR/print_cond_expr.rs:39:9 - 39:13,
                                                    },
-                                                   generics: SynGenericArgs {
+                                                   generics: GenericArgs {
                                                        args: [],
                                                    },
                                                },
@@ -938,7 +938,7 @@ warning: print test
                                                        name: "Some",
                                                        span: $DIR/print_cond_expr.rs:40:9 - 40:13,
                                                    },
-                                                   generics: SynGenericArgs {
+                                                   generics: GenericArgs {
                                                        args: [],
                                                    },
                                                },
@@ -1000,7 +1000,7 @@ warning: print test
                                                        name: "None",
                                                        span: $DIR/print_cond_expr.rs:41:9 - 41:13,
                                                    },
-                                                   generics: SynGenericArgs {
+                                                   generics: GenericArgs {
                                                        args: [],
                                                    },
                                                },
@@ -1058,7 +1058,7 @@ warning: print test
                                                name: "x",
                                                span: $DIR/print_cond_expr.rs:48:35 - 48:36,
                                            },
-                                           generics: SynGenericArgs {
+                                           generics: GenericArgs {
                                                args: [],
                                            },
                                        },
@@ -1103,7 +1103,7 @@ warning: print test
                                                name: "x",
                                                span: $DIR/print_cond_expr.rs:54:35 - 54:36,
                                            },
-                                           generics: SynGenericArgs {
+                                           generics: GenericArgs {
                                                args: [],
                                            },
                                        },

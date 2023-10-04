@@ -1,4 +1,7 @@
-use crate::ast::{ty::SemTyKind, ConstValue, ItemId};
+use crate::{
+    common::ItemId,
+    sem::{ty::TyKind, ConstValue},
+};
 
 /// A semantic generic bound in the form `<identifier=type>`. For example,
 /// `Item=i32` would be the generic binding here:
@@ -9,12 +12,12 @@ use crate::ast::{ty::SemTyKind, ConstValue, ItemId};
 /// ```
 #[repr(C)]
 #[derive(Debug)]
-pub struct SemBindingArg<'ast> {
+pub struct BindingArg<'ast> {
     binding_target: ItemId,
-    ty: SemTyKind<'ast>,
+    ty: TyKind<'ast>,
 }
 
-impl<'ast> SemBindingArg<'ast> {
+impl<'ast> BindingArg<'ast> {
     /// This returns the `ItemId` of the binding target.
     pub fn binding_target(&self) -> ItemId {
         self.binding_target
@@ -28,25 +31,25 @@ impl<'ast> SemBindingArg<'ast> {
     /// ```
     ///
     /// Would return `i32` as the type.
-    pub fn ty(&self) -> SemTyKind<'ast> {
+    pub fn ty(&self) -> TyKind<'ast> {
         self.ty
     }
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SemBindingArg<'ast> {
-    pub fn new(binding_target: ItemId, ty: SemTyKind<'ast>) -> Self {
+impl<'ast> BindingArg<'ast> {
+    pub fn new(binding_target: ItemId, ty: TyKind<'ast>) -> Self {
         Self { binding_target, ty }
     }
 }
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct SemConstArg<'ast> {
+pub struct ConstArg<'ast> {
     value: ConstValue<'ast>,
 }
 
-impl<'ast> SemConstArg<'ast> {
+impl<'ast> ConstArg<'ast> {
     /// The value that is used as an argument.
     pub fn value(&self) -> &ConstValue<'ast> {
         &self.value
@@ -54,7 +57,7 @@ impl<'ast> SemConstArg<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SemConstArg<'ast> {
+impl<'ast> ConstArg<'ast> {
     pub fn new(value: ConstValue<'ast>) -> Self {
         Self { value }
     }

@@ -1,11 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![feature(let_chains)]
 
-use marker_api::{
-    ast::{expr::ExprKind, ty::SemTyKind},
-    context::MarkerContext,
-    LintPass, LintPassInfo, LintPassInfoBuilder,
-};
+use marker_api::{prelude::*, LintPass, LintPassInfo, LintPassInfoBuilder};
 
 marker_api::declare_lint! {
     /// ### What it does
@@ -29,8 +25,8 @@ impl LintPass for MarkerLintsLintPass {
 
     fn check_expr<'ast>(&mut self, cx: &MarkerContext<'ast>, expr: ExprKind<'ast>) {
         if let ExprKind::Method(call) = expr
-            && let SemTyKind::Ref(adt_ref) = call.receiver().ty()
-            && let SemTyKind::Adt(adt) = adt_ref.inner_ty()
+            && let sem::TyKind::Ref(adt_ref) = call.receiver().ty()
+            && let sem::TyKind::Adt(adt) = adt_ref.inner_ty()
             && cx.resolve_ty_ids("marker_api::MarkerContext").contains(&adt.def_id())
             && call.method().ident().name() == "emit_lint"
             && let [_lint, _id, msg, ..] = call.args()

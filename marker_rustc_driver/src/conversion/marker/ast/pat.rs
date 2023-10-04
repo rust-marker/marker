@@ -1,14 +1,11 @@
 use marker_api::ast::{
-    expr::ExprKind,
-    pat::{
-        CommonPatData, IdentPat, LitPat, OrPat, PatKind, PathPat, PlacePat, RangePat, RefPat, RestPat, SlicePat,
-        StructFieldPat, StructPat, TuplePat, UnstablePat, WildcardPat,
-    },
+    CommonPatData, ExprKind, IdentPat, LitPat, OrPat, PatKind, PathPat, PlacePat, RangePat, RefPat, RestPat, SlicePat,
+    StructFieldPat, StructPat, TuplePat, UnstablePat, WildcardPat,
 };
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 
-use super::MarkerConverterInner;
+use crate::conversion::marker::MarkerConverterInner;
 
 thread_local! {
     static DEFAULT_LHS_MAP: FxHashMap<hir::HirId, ExprKind<'static>> = FxHashMap::default();

@@ -1,22 +1,20 @@
 use marker_api::{
     ast::{
-        expr::{
-            ArrayExpr, AsExpr, AssignExpr, AwaitExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr,
-            CallExpr, CaptureKind, CharLitExpr, ClosureExpr, ClosureParam, CommonExprData, ConstExpr, ContinueExpr,
-            CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr,
-            IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr,
-            RefExpr, ReturnExpr, StrLitData, StrLitExpr, TryExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
-            WhileExpr,
-        },
-        Safety, Syncness,
+        ArrayExpr, AsExpr, AssignExpr, AwaitExpr, BinaryOpExpr, BinaryOpKind, BlockExpr, BoolLitExpr, BreakExpr,
+        CallExpr, CaptureKind, CharLitExpr, ClosureExpr, ClosureParam, CommonExprData, ConstExpr, ContinueExpr,
+        CtorExpr, CtorField, ExprKind, ExprPrecedence, FieldExpr, FloatLitExpr, FloatSuffix, ForExpr, IfExpr,
+        IndexExpr, IntLitExpr, IntSuffix, LetExpr, LoopExpr, MatchArm, MatchExpr, MethodExpr, PathExpr, RangeExpr,
+        RefExpr, ReturnExpr, StrLitData, StrLitExpr, TryExpr, TupleExpr, UnaryOpExpr, UnaryOpKind, UnstableExpr,
+        WhileExpr,
     },
+    common::{Safety, Syncness},
     span::Ident,
 };
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 use std::str::FromStr;
 
-use super::MarkerConverterInner;
+use crate::conversion::marker::MarkerConverterInner;
 
 impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]

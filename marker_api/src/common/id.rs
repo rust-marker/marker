@@ -195,8 +195,8 @@ impl<N: HasNodeId> HasNodeId for &N {
 
 macro_rules! impl_identifiable_for {
     ($ty:ty$(, use $data_trait:path)?) => {
-        impl<'ast> $crate::ast::HasNodeId for $ty {
-            fn node_id(&self) -> $crate::ast::NodeId {
+        impl<'ast> $crate::common::HasNodeId for $ty {
+            fn node_id(&self) -> $crate::common::NodeId {
                 $(
                     use $data_trait;
                 )*

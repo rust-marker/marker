@@ -1,10 +1,7 @@
 use std::ops::ControlFlow;
 
 use marker_api::{
-    ast::{
-        item::{EnumVariant, Field},
-        BodyId,
-    },
+    ast::{EnumVariant, ItemField},
     prelude::*,
 };
 
@@ -36,8 +33,9 @@ use marker_api::{
 /// ```
 ///
 /// The target scope is checked when the respective `traverse_*` function is called
-/// For example, [`traverse_body`] will visit a given body [`Body`], but will not enter
-/// nested bodies, unless [`AllBodies`](VisitorScope::AllBodies) is defined.
+/// For example, [`traverse_body`] will visit a given body [`Body`](ast::Body), but
+/// will not enter nested bodies, unless [`AllBodies`](VisitorScope::AllBodies) is
+/// defined.
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, Default)]
 pub enum VisitorScope {
@@ -68,7 +66,7 @@ pub trait Visitor<B> {
         ControlFlow::Continue(())
     }
 
-    fn visit_field<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _field: &'ast Field<'ast>) -> ControlFlow<B> {
+    fn visit_field<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _field: &'ast ItemField<'ast>) -> ControlFlow<B> {
         ControlFlow::Continue(())
     }
 
@@ -80,7 +78,7 @@ pub trait Visitor<B> {
         ControlFlow::Continue(())
     }
 
-    fn visit_body<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _body: &'ast Body<'ast>) -> ControlFlow<B> {
+    fn visit_body<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _body: &'ast ast::Body<'ast>) -> ControlFlow<B> {
         ControlFlow::Continue(())
     }
 
@@ -180,7 +178,7 @@ pub fn traverse_item<'ast, B>(
 pub fn traverse_body<'ast, B>(
     cx: &'ast MarkerContext<'ast>,
     visitor: &mut dyn Visitor<B>,
-    body: &'ast Body<'ast>,
+    body: &'ast ast::Body<'ast>,
 ) -> ControlFlow<B> {
     visitor.visit_body(cx, body)?;
 
@@ -389,7 +387,7 @@ where
     /// # use marker_api::prelude::*;
     /// # use std::ops::ControlFlow;
     /// # use marker_utils::visitor::Traversable;
-    /// fn count_ifs<'ast>(cx: &'ast MarkerContext<'ast>, body: &'ast Body<'ast>) -> u32 {
+    /// fn count_ifs<'ast>(cx: &'ast MarkerContext<'ast>, body: &'ast ast::Body<'ast>) -> u32 {
     ///     let mut count = 0;
     ///     let _: Option<()> = body.for_each_expr(
     ///         cx,
@@ -443,14 +441,14 @@ macro_rules! impl_traversable_for {
 impl_traversable_for!(ExprKind<'ast>, traverse_expr);
 impl_traversable_for!(StmtKind<'ast>, traverse_stmt);
 impl_traversable_for!(ItemKind<'ast>, traverse_item);
-impl_traversable_for!(&'ast Body<'ast>, traverse_body);
+impl_traversable_for!(&'ast ast::Body<'ast>, traverse_body);
 
 /// This trait extends the [`Traversable`] trait with more functions, specific to
 /// the `bool` return type.
 pub trait BoolTraversable<'ast>: Traversable<'ast, bool> {
     /// Checks if the given node contains an early return, in the form of an
-    /// [`ReturnExpr`](marker_api::ast::expr::ReturnExpr) or
-    /// [`TryExpr`](marker_api::ast::expr::TryExpr).
+    /// [`ReturnExpr`](marker_api::ast::ReturnExpr) or
+    /// [`TryExpr`](marker_api::ast::TryExpr).
     ///
     /// This function is useful, for lints which suggest moving code snippets into
     /// a closure or different function. Return statements might prevent the suggested

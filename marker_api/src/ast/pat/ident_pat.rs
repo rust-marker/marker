@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Mutability, SymbolId, VarId},
+    common::{Mutability, SymbolId, VarId},
     context::with_cx,
     ffi::FfiOption,
 };

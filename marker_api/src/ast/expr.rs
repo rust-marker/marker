@@ -1,11 +1,11 @@
 use crate::{
+    common::{ExprId, HasNodeId, SpanId},
     prelude::EmissionNode,
     private::Sealed,
+    sem::TyKind,
     span::{HasSpan, Span},
     CtorBlocker,
 };
-
-use super::{ty::SemTyKind, ExprId, HasNodeId, SpanId};
 
 use std::{fmt::Debug, marker::PhantomData};
 
@@ -37,7 +37,7 @@ pub trait ExprData<'ast>: Debug + EmissionNode<'ast> + HasSpan<'ast> + HasNodeId
     fn id(&self) -> ExprId;
 
     /// Returns the semantic type of this expression.
-    fn ty(&self) -> SemTyKind<'ast>;
+    fn ty(&self) -> TyKind<'ast>;
 
     /// Returns the [`ExprPrecedence`] of this expression.
     fn precedence(&self) -> ExprPrecedence;
@@ -91,12 +91,12 @@ pub enum ExprKind<'ast> {
 impl<'ast> ExprKind<'ast> {
     impl_expr_kind_fn!(ExprKind: span() -> &Span<'ast>);
     impl_expr_kind_fn!(ExprKind: id() -> ExprId);
-    impl_expr_kind_fn!(ExprKind: ty() -> SemTyKind<'ast>);
+    impl_expr_kind_fn!(ExprKind: ty() -> TyKind<'ast>);
     impl_expr_kind_fn!(ExprKind: precedence() -> ExprPrecedence);
 }
 
 crate::span::impl_spanned_for!(ExprKind<'ast>);
-crate::ast::impl_identifiable_for!(ExprKind<'ast>);
+crate::common::impl_identifiable_for!(ExprKind<'ast>);
 impl Sealed for ExprKind<'_> {}
 
 #[repr(C)]
@@ -117,12 +117,12 @@ pub enum LitExprKind<'ast> {
 impl<'ast> LitExprKind<'ast> {
     impl_expr_kind_fn!(LitExprKind: span() -> &Span<'ast>);
     impl_expr_kind_fn!(LitExprKind: id() -> ExprId);
-    impl_expr_kind_fn!(LitExprKind: ty() -> SemTyKind<'ast>);
+    impl_expr_kind_fn!(LitExprKind: ty() -> TyKind<'ast>);
     impl_expr_kind_fn!(LitExprKind: precedence() -> ExprPrecedence);
 }
 
 crate::span::impl_spanned_for!(LitExprKind<'ast>);
-crate::ast::impl_identifiable_for!(LitExprKind<'ast>);
+crate::common::impl_identifiable_for!(LitExprKind<'ast>);
 impl Sealed for LitExprKind<'_> {}
 
 impl<'ast> From<LitExprKind<'ast>> for ExprKind<'ast> {
@@ -317,17 +317,17 @@ macro_rules! impl_expr_data {
     };
     ($self_ty:ty, $enum_name:ident, $precedence_fn:item) => {
         impl<'ast> super::ExprData<'ast> for $self_ty {
-            fn id(&self) -> crate::ast::ExprId {
+            fn id(&self) -> crate::common::ExprId {
                 self.data.id
             }
 
-            fn ty(&self) -> $crate::ast::ty::SemTyKind<'ast> {
+            fn ty(&self) -> $crate::sem::TyKind<'ast> {
                 $crate::context::with_cx(self, |cx| cx.expr_ty(self.data.id))
             }
 
             $precedence_fn
 
-            fn as_expr(&'ast self) -> crate::ast::expr::ExprKind<'ast> {
+            fn as_expr(&'ast self) -> crate::ast::ExprKind<'ast> {
                 $crate::ast::expr::ExprKind::$enum_name(self)
             }
         }
@@ -337,7 +337,7 @@ macro_rules! impl_expr_data {
                 $crate::context::with_cx(self, |cx| cx.span(self.data.span))
             }
         }
-        $crate::ast::impl_identifiable_for!($self_ty, use $crate::ast::expr::ExprData);
+        $crate::common::impl_identifiable_for!($self_ty, use $crate::ast::expr::ExprData);
 
         impl<'ast> $crate::private::Sealed for $self_ty {}
 

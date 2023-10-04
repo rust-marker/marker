@@ -1,8 +1,8 @@
 use marker_api::{
-    ast::item::{EnumVariant, Field},
+    ast::{EnumVariant, ItemField},
+    common::Level,
     context::{AstMap, AstMapCallbacks, AstMapData},
     ffi,
-    lint::Level,
     prelude::*,
 };
 
@@ -37,8 +37,8 @@ impl<'ast> AstMapWrapper<'ast> {
 pub trait AstMapDriver<'ast> {
     fn item(&'ast self, id: ItemId) -> Option<ItemKind<'ast>>;
     fn variant(&'ast self, id: VariantId) -> Option<&'ast EnumVariant<'ast>>;
-    fn field(&'ast self, id: FieldId) -> Option<&'ast Field<'ast>>;
-    fn body(&'ast self, id: BodyId) -> &'ast Body<'ast>;
+    fn field(&'ast self, id: FieldId) -> Option<&'ast ItemField<'ast>>;
+    fn body(&'ast self, id: BodyId) -> &'ast ast::Body<'ast>;
     fn stmt(&'ast self, id: StmtId) -> StmtKind<'ast>;
     fn expr(&'ast self, id: ExprId) -> ExprKind<'ast>;
 
@@ -52,10 +52,10 @@ extern "C" fn item<'ast>(data: &'ast AstMapData, id: ItemId) -> ffi::FfiOption<I
 extern "C" fn variant<'ast>(data: &'ast AstMapData, id: VariantId) -> ffi::FfiOption<&'ast EnumVariant<'ast>> {
     unsafe { as_driver(data) }.variant(id).into()
 }
-extern "C" fn field<'ast>(data: &'ast AstMapData, id: FieldId) -> ffi::FfiOption<&'ast Field<'ast>> {
+extern "C" fn field<'ast>(data: &'ast AstMapData, id: FieldId) -> ffi::FfiOption<&'ast ItemField<'ast>> {
     unsafe { as_driver(data) }.field(id).into()
 }
-extern "C" fn body<'ast>(data: &'ast AstMapData, id: BodyId) -> &'ast Body<'ast> {
+extern "C" fn body<'ast>(data: &'ast AstMapData, id: BodyId) -> &'ast ast::Body<'ast> {
     unsafe { as_driver(data) }.body(id)
 }
 #[allow(improper_ctypes_definitions)] // FP because `StmtKind` is non-exhaustive

@@ -1,12 +1,8 @@
 use crate::{
-    ast::{
-        expr::ExprKind,
-        item::{Body, EnumVariant, Field, ItemKind},
-        stmt::StmtKind,
-        BodyId, ExprId, FieldId, ItemId, StmtId, VariantId,
-    },
+    ast::{Body, EnumVariant, ExprKind, ItemField, ItemKind, StmtKind},
+    common::{BodyId, ExprId, FieldId, ItemId, Level, StmtId, VariantId},
     ffi,
-    lint::{Level, Lint},
+    lint::Lint,
     prelude::{HasNodeId, NodeId},
 };
 
@@ -89,22 +85,22 @@ impl<'ast> AstMap<'ast> {
             .unwrap_or_else(|| panic!("The requested enum variant is unavailable (id = {id:?})"))
     }
 
-    /// Returns the [`Field`] belonging to the given [`FieldId`], if available.
+    /// Returns the [`ItemField`] belonging to the given [`FieldId`], if available.
     ///
     /// Checkout the documentation of [`AstMap`] for more information, when a node
     /// might be unavailable, even if the given ID is valid.
-    pub fn field(&self, id: FieldId) -> Option<&Field<'ast>> {
+    pub fn field(&self, id: FieldId) -> Option<&ItemField<'ast>> {
         (self.callbacks.field)(self.callbacks.data, id).copy()
     }
 
-    /// Returns the [`Field`] belonging to the given [`FieldId`].
+    /// Returns the [`ItemField`] belonging to the given [`FieldId`].
     ///
     /// # Panics
     ///
     /// Panics if the requested enum variant is currently unavailable. Checkout the
     /// documentation of [`AstMap`] for an explanation, when AST nodes might be
     /// unavailable. [`AstMap::variant`] can be used as a non-panicking alternative.
-    pub fn unwrap_field(&self, id: FieldId) -> &Field<'ast> {
+    pub fn unwrap_field(&self, id: FieldId) -> &ItemField<'ast> {
         self.field(id)
             .unwrap_or_else(|| panic!("The requested field is unavailable (id = {id:?})"))
     }
@@ -136,7 +132,7 @@ struct AstMapCallbacks<'ast> {
 
     pub item: extern "C" fn(data: &'ast AstMapData, id: ItemId) -> ffi::FfiOption<ItemKind<'ast>>,
     pub variant: extern "C" fn(data: &'ast AstMapData, id: VariantId) -> ffi::FfiOption<&'ast EnumVariant<'ast>>,
-    pub field: extern "C" fn(data: &'ast AstMapData, id: FieldId) -> ffi::FfiOption<&'ast Field<'ast>>,
+    pub field: extern "C" fn(data: &'ast AstMapData, id: FieldId) -> ffi::FfiOption<&'ast ItemField<'ast>>,
     pub body: extern "C" fn(data: &'ast AstMapData, id: BodyId) -> &'ast Body<'ast>,
     pub stmt: extern "C" fn(data: &'ast AstMapData, id: StmtId) -> StmtKind<'ast>,
     pub expr: extern "C" fn(data: &'ast AstMapData, id: ExprId) -> ExprKind<'ast>,

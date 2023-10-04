@@ -1,7 +1,8 @@
 //! This module contains all expressions, which are typically used to construct data.
 
 use crate::{
-    ast::{AstQPath, SpanId},
+    ast::AstQPath,
+    common::SpanId,
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
     span::{Ident, Span},

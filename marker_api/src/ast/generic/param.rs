@@ -4,17 +4,17 @@ use std::marker::PhantomData;
 use crate::{
     ast::{
         expr::ConstExpr,
-        generic::{Lifetime, SynGenericParams},
-        ty::SynTyKind,
-        GenericId, SpanId, SymbolId,
+        generic::{GenericParams, Lifetime},
+        ty::TyKind,
     },
+    common::{GenericId, SpanId, SymbolId},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
     private::Sealed,
     span::Span,
 };
 
-use super::SynTyParamBound;
+use super::TyParamBound;
 
 /// A singular generic parameter, like `'a` and `T` in this example:
 ///
@@ -29,35 +29,35 @@ use super::SynTyParamBound;
 /// ```
 ///
 /// Bounds declared with the parameter, like the `: Copy` in the example above,
-/// are stored in the [`SynGenericParams`](`super::SynGenericParams`) of the item, that
+/// are stored in the [`GenericParams`](`super::GenericParams`) of the item, that
 /// introduced this parameter.
 ///
 /// See: <https://doc.rust-lang.org/reference/items/generics.html>
 #[repr(C)]
 #[derive(Debug)]
 #[non_exhaustive]
-pub enum SynGenericParamKind<'ast> {
-    Lifetime(&'ast SynLifetimeParam<'ast>),
-    Ty(&'ast SynTyParam<'ast>),
-    Const(&'ast SynConstParam<'ast>),
+pub enum GenericParamKind<'ast> {
+    Lifetime(&'ast LifetimeParam<'ast>),
+    Ty(&'ast TyParam<'ast>),
+    Const(&'ast ConstParam<'ast>),
 }
 
-impl<'ast> SynGenericParamKind<'ast> {
+impl<'ast> GenericParamKind<'ast> {
     /// This returns the [`Span`], of the defined parameter, if this parameter originates from
     /// source code.
     pub fn span(&self) -> Option<&Span<'ast>> {
         match self {
-            SynGenericParamKind::Lifetime(lt) => lt.span(),
-            SynGenericParamKind::Ty(ty) => ty.span(),
-            SynGenericParamKind::Const(con) => con.span(),
+            GenericParamKind::Lifetime(lt) => lt.span(),
+            GenericParamKind::Ty(ty) => ty.span(),
+            GenericParamKind::Const(con) => con.span(),
         }
     }
 
     pub fn id(&self) -> GenericId {
         match self {
-            SynGenericParamKind::Ty(param) => param.id(),
-            SynGenericParamKind::Lifetime(param) => param.id(),
-            SynGenericParamKind::Const(param) => param.id(),
+            GenericParamKind::Ty(param) => param.id(),
+            GenericParamKind::Lifetime(param) => param.id(),
+            GenericParamKind::Const(param) => param.id(),
         }
     }
 }
@@ -84,7 +84,7 @@ pub trait SynGenericParamData<'ast>: Debug + Sealed {
 /// ```
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynTyParam<'ast> {
+pub struct TyParam<'ast> {
     _data: PhantomData<&'ast ()>,
     id: GenericId,
     name: SymbolId,
@@ -92,7 +92,7 @@ pub struct SynTyParam<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynTyParam<'ast> {
+impl<'ast> TyParam<'ast> {
     pub fn new(span: Option<SpanId>, name: SymbolId, id: GenericId) -> Self {
         Self {
             _data: PhantomData,
@@ -103,7 +103,7 @@ impl<'ast> SynTyParam<'ast> {
     }
 }
 
-impl<'ast> SynTyParam<'ast> {
+impl<'ast> TyParam<'ast> {
     pub fn id(&self) -> GenericId {
         self.id
     }
@@ -113,16 +113,16 @@ impl<'ast> SynTyParam<'ast> {
     }
 }
 
-impl<'ast> SynGenericParamData<'ast> for SynTyParam<'ast> {
+impl<'ast> SynGenericParamData<'ast> for TyParam<'ast> {
     fn span(&self) -> Option<&Span<'ast>> {
         self.span.get().map(|span| with_cx(self, |cx| cx.span(*span)))
     }
 }
 
-impl Sealed for SynTyParam<'_> {}
+impl Sealed for TyParam<'_> {}
 
-impl<'ast> From<&'ast SynTyParam<'ast>> for SynGenericParamKind<'ast> {
-    fn from(src: &'ast SynTyParam<'ast>) -> Self {
+impl<'ast> From<&'ast TyParam<'ast>> for GenericParamKind<'ast> {
+    fn from(src: &'ast TyParam<'ast>) -> Self {
         Self::Ty(src)
     }
 }
@@ -136,7 +136,7 @@ impl<'ast> From<&'ast SynTyParam<'ast>> for SynGenericParamKind<'ast> {
 /// ```
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynLifetimeParam<'ast> {
+pub struct LifetimeParam<'ast> {
     _data: PhantomData<&'ast ()>,
     id: GenericId,
     name: SymbolId,
@@ -144,7 +144,7 @@ pub struct SynLifetimeParam<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynLifetimeParam<'ast> {
+impl<'ast> LifetimeParam<'ast> {
     pub fn new(id: GenericId, name: SymbolId, span: Option<SpanId>) -> Self {
         Self {
             _data: PhantomData,
@@ -155,7 +155,7 @@ impl<'ast> SynLifetimeParam<'ast> {
     }
 }
 
-impl<'ast> SynLifetimeParam<'ast> {
+impl<'ast> LifetimeParam<'ast> {
     pub fn id(&self) -> GenericId {
         self.id
     }
@@ -165,16 +165,16 @@ impl<'ast> SynLifetimeParam<'ast> {
     }
 }
 
-impl<'ast> SynGenericParamData<'ast> for SynLifetimeParam<'ast> {
+impl<'ast> SynGenericParamData<'ast> for LifetimeParam<'ast> {
     fn span(&self) -> Option<&Span<'ast>> {
         self.span.get().map(|span| with_cx(self, |cx| cx.span(*span)))
     }
 }
 
-impl Sealed for SynLifetimeParam<'_> {}
+impl Sealed for LifetimeParam<'_> {}
 
-impl<'ast> From<&'ast SynLifetimeParam<'ast>> for SynGenericParamKind<'ast> {
-    fn from(src: &'ast SynLifetimeParam<'ast>) -> Self {
+impl<'ast> From<&'ast LifetimeParam<'ast>> for GenericParamKind<'ast> {
+    fn from(src: &'ast LifetimeParam<'ast>) -> Self {
         Self::Lifetime(src)
     }
 }
@@ -187,15 +187,15 @@ impl<'ast> From<&'ast SynLifetimeParam<'ast>> for SynGenericParamKind<'ast> {
 /// ```
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynConstParam<'ast> {
+pub struct ConstParam<'ast> {
     id: GenericId,
     name: SymbolId,
-    ty: SynTyKind<'ast>,
+    ty: TyKind<'ast>,
     default: FfiOption<ConstExpr<'ast>>,
     span: SpanId,
 }
 
-impl<'ast> SynConstParam<'ast> {
+impl<'ast> ConstParam<'ast> {
     pub fn id(&self) -> GenericId {
         self.id
     }
@@ -204,7 +204,7 @@ impl<'ast> SynConstParam<'ast> {
         with_cx(self, |cx| cx.symbol_str(self.name))
     }
 
-    pub fn ty(&self) -> SynTyKind<'ast> {
+    pub fn ty(&self) -> TyKind<'ast> {
         self.ty
     }
 
@@ -213,20 +213,20 @@ impl<'ast> SynConstParam<'ast> {
     }
 }
 
-impl Sealed for SynConstParam<'_> {}
+impl Sealed for ConstParam<'_> {}
 
-impl<'ast> SynGenericParamData<'ast> for SynConstParam<'ast> {
+impl<'ast> SynGenericParamData<'ast> for ConstParam<'ast> {
     fn span(&self) -> Option<&Span<'ast>> {
         Some(with_cx(self, |cx| cx.span(self.span)))
     }
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynConstParam<'ast> {
+impl<'ast> ConstParam<'ast> {
     pub fn new(
         id: GenericId,
         name: SymbolId,
-        ty: SynTyKind<'ast>,
+        ty: TyKind<'ast>,
         default: Option<ConstExpr<'ast>>,
         span: SpanId,
     ) -> Self {
@@ -255,19 +255,19 @@ impl<'ast> SynConstParam<'ast> {
 #[repr(C)]
 #[derive(Debug)]
 #[non_exhaustive]
-pub enum SynWhereClauseKind<'ast> {
-    Lifetime(&'ast SynLifetimeClause<'ast>),
-    Ty(&'ast SynTyClause<'ast>),
+pub enum WhereClauseKind<'ast> {
+    Lifetime(&'ast LifetimeClause<'ast>),
+    Ty(&'ast TyClause<'ast>),
 }
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynLifetimeClause<'ast> {
+pub struct LifetimeClause<'ast> {
     lifetime: Lifetime<'ast>,
     bounds: FfiSlice<'ast, Lifetime<'ast>>,
 }
 
-impl<'ast> SynLifetimeClause<'ast> {
+impl<'ast> LifetimeClause<'ast> {
     pub fn lifetime(&self) -> &Lifetime<'ast> {
         &self.lifetime
     }
@@ -278,7 +278,7 @@ impl<'ast> SynLifetimeClause<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynLifetimeClause<'ast> {
+impl<'ast> LifetimeClause<'ast> {
     pub fn new(lifetime: Lifetime<'ast>, bounds: &'ast [Lifetime<'ast>]) -> Self {
         Self {
             lifetime,
@@ -289,36 +289,32 @@ impl<'ast> SynLifetimeClause<'ast> {
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynTyClause<'ast> {
-    params: FfiOption<SynGenericParams<'ast>>,
-    ty: SynTyKind<'ast>,
-    bounds: FfiSlice<'ast, SynTyParamBound<'ast>>,
+pub struct TyClause<'ast> {
+    params: FfiOption<GenericParams<'ast>>,
+    ty: TyKind<'ast>,
+    bounds: FfiSlice<'ast, TyParamBound<'ast>>,
 }
 
-impl<'ast> SynTyClause<'ast> {
+impl<'ast> TyClause<'ast> {
     /// Additional parameters introduced as a part of this where clause with a `for`.
-    pub fn params(&self) -> Option<&SynGenericParams<'ast>> {
+    pub fn params(&self) -> Option<&GenericParams<'ast>> {
         self.params.get()
     }
 
     /// The bound type
-    pub fn ty(&self) -> SynTyKind<'ast> {
+    pub fn ty(&self) -> TyKind<'ast> {
         self.ty
     }
 
     /// The bounds applied to the specified type.
-    pub fn bounds(&self) -> &'ast [SynTyParamBound<'ast>] {
+    pub fn bounds(&self) -> &'ast [TyParamBound<'ast>] {
         self.bounds.get()
     }
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynTyClause<'ast> {
-    pub fn new(
-        params: Option<SynGenericParams<'ast>>,
-        ty: SynTyKind<'ast>,
-        bounds: &'ast [SynTyParamBound<'ast>],
-    ) -> Self {
+impl<'ast> TyClause<'ast> {
+    pub fn new(params: Option<GenericParams<'ast>>, ty: TyKind<'ast>, bounds: &'ast [TyParamBound<'ast>]) -> Self {
         Self {
             params: params.into(),
             ty,

@@ -1,10 +1,11 @@
 use crate::{
-    ast::{expr::ConstExpr, ty::SynTyKind, SpanId, SymbolId, TraitRef},
+    ast::{expr::ConstExpr, ty::TyKind, TraitRef},
+    common::{SpanId, SymbolId},
     context::with_cx,
     span::Span,
 };
 
-use super::super::Lifetime;
+use super::Lifetime;
 
 /// The syntactic representation of a generic argument, like this:
 ///
@@ -15,11 +16,11 @@ use super::super::Lifetime;
 #[repr(C)]
 #[derive(Debug)]
 #[allow(clippy::exhaustive_enums)]
-pub struct SynLifetimeArg<'ast> {
+pub struct LifetimeArg<'ast> {
     lifetime: Lifetime<'ast>,
 }
 
-impl<'ast> SynLifetimeArg<'ast> {
+impl<'ast> LifetimeArg<'ast> {
     pub fn lifetime(&self) -> &Lifetime<'ast> {
         &self.lifetime
     }
@@ -33,7 +34,7 @@ impl<'ast> SynLifetimeArg<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynLifetimeArg<'ast> {
+impl<'ast> LifetimeArg<'ast> {
     pub fn new(lifetime: Lifetime<'ast>) -> Self {
         Self { lifetime }
     }
@@ -48,12 +49,12 @@ impl<'ast> SynLifetimeArg<'ast> {
 #[repr(C)]
 #[derive(Debug)]
 #[allow(clippy::exhaustive_enums)]
-pub struct SynTyArg<'ast> {
-    ty: SynTyKind<'ast>,
+pub struct TyArg<'ast> {
+    ty: TyKind<'ast>,
 }
 
-impl<'ast> SynTyArg<'ast> {
-    pub fn ty(&self) -> SynTyKind<'_> {
+impl<'ast> TyArg<'ast> {
+    pub fn ty(&self) -> TyKind<'_> {
         self.ty
     }
 
@@ -64,8 +65,8 @@ impl<'ast> SynTyArg<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynTyArg<'ast> {
-    pub fn new(ty: SynTyKind<'ast>) -> Self {
+impl<'ast> TyArg<'ast> {
+    pub fn new(ty: TyKind<'ast>) -> Self {
         Self { ty }
     }
 }
@@ -85,13 +86,13 @@ impl<'ast> SynTyArg<'ast> {
 /// for more information.
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynBindingArg<'ast> {
+pub struct BindingArg<'ast> {
     span: SpanId,
     ident: SymbolId,
-    ty: SynTyKind<'ast>,
+    ty: TyKind<'ast>,
 }
 
-impl<'ast> SynBindingArg<'ast> {
+impl<'ast> BindingArg<'ast> {
     /// The name of the identifier used in the binding. For example:
     ///
     /// ```ignore
@@ -112,7 +113,7 @@ impl<'ast> SynBindingArg<'ast> {
     /// ```
     ///
     /// Would return `i32` as the type.
-    pub fn ty(&self) -> SynTyKind<'ast> {
+    pub fn ty(&self) -> TyKind<'ast> {
         self.ty
     }
 
@@ -123,8 +124,8 @@ impl<'ast> SynBindingArg<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynBindingArg<'ast> {
-    pub fn new(span: SpanId, ident: SymbolId, ty: SynTyKind<'ast>) -> Self {
+impl<'ast> BindingArg<'ast> {
+    pub fn new(span: SpanId, ident: SymbolId, ty: TyKind<'ast>) -> Self {
         Self { span, ident, ty }
     }
 }
@@ -150,12 +151,12 @@ impl<'ast> SynBindingArg<'ast> {
 /// }
 /// ```
 #[derive(Debug)]
-pub struct SynConstArg<'ast> {
+pub struct ConstArg<'ast> {
     span: SpanId,
     expr: ConstExpr<'ast>,
 }
 
-impl<'ast> SynConstArg<'ast> {
+impl<'ast> ConstArg<'ast> {
     /// The [`ConstExpr`] that is used as an argument.
     pub fn expr(&self) -> &ConstExpr<'ast> {
         &self.expr
@@ -167,7 +168,7 @@ impl<'ast> SynConstArg<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynConstArg<'ast> {
+impl<'ast> ConstArg<'ast> {
     pub fn new(span: SpanId, expr: ConstExpr<'ast>) -> Self {
         Self { span, expr }
     }
@@ -176,14 +177,14 @@ impl<'ast> SynConstArg<'ast> {
 #[repr(C)]
 #[derive(Debug)]
 #[non_exhaustive]
-pub enum SynTyParamBound<'ast> {
+pub enum TyParamBound<'ast> {
     Lifetime(&'ast Lifetime<'ast>),
-    TraitBound(&'ast SynTraitBound<'ast>),
+    TraitBound(&'ast TraitBound<'ast>),
 }
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct SynTraitBound<'ast> {
+pub struct TraitBound<'ast> {
     /// This is used for relaxed type bounds like `?Size`. This is probably not
     /// the best representation. Rustc uses a `TraitBoundModifier` enum which
     /// is interesting, but would only have two states right now.
@@ -192,7 +193,7 @@ pub struct SynTraitBound<'ast> {
     span: SpanId,
 }
 
-impl<'ast> SynTraitBound<'ast> {
+impl<'ast> TraitBound<'ast> {
     pub fn trait_ref(&self) -> &TraitRef<'ast> {
         &self.trait_ref
     }
@@ -211,7 +212,7 @@ impl<'ast> SynTraitBound<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SynTraitBound<'ast> {
+impl<'ast> TraitBound<'ast> {
     pub fn new(is_relaxed: bool, trait_ref: TraitRef<'ast>, span: SpanId) -> Self {
         Self {
             is_relaxed,

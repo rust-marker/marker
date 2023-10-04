@@ -91,7 +91,7 @@ warning: print test
                           ),
                           ty: Some(
                               Num(
-                                  SynNumTy {
+                                  NumTy {
                                       data: CommonSynTyData {
                                           _lifetime: PhantomData<&()>,
                                           span: SpanId(..),
@@ -118,7 +118,7 @@ warning: print test
                           ),
                           ty: Some(
                               Num(
-                                  SynNumTy {
+                                  NumTy {
                                       data: CommonSynTyData {
                                           _lifetime: PhantomData<&()>,
                                           span: SpanId(..),
@@ -260,7 +260,7 @@ warning: print test
                            ),
                            ty: Some(
                                Inferred(
-                                   SynInferredTy {
+                                   InferredTy {
                                        data: CommonSynTyData {
                                            _lifetime: PhantomData<&()>,
                                            span: SpanId(..),

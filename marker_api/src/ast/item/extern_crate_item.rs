@@ -1,5 +1,4 @@
-use crate::ast::SymbolId;
-use crate::context::with_cx;
+use crate::{common::SymbolId, context::with_cx};
 
 use super::CommonItemData;
 

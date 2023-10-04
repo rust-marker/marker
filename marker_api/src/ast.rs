@@ -1,16 +1,22 @@
+//! A module containing the AST of Marker, which is the main syntactic
+//! representation of the written code.
+
 mod common;
+mod expr;
+mod generic;
+mod item;
+mod pat;
+mod stmt;
+mod ty;
 pub use common::*;
+pub use expr::*;
+pub use generic::*;
+pub use item::*;
+pub use pat::*;
+pub use stmt::*;
+pub use ty::*;
 
-use crate::ffi::FfiSlice;
-
-use self::item::ItemKind;
-
-pub mod expr;
-pub mod generic;
-pub mod item;
-pub mod pat;
-pub mod stmt;
-pub mod ty;
+use crate::{common::CrateId, ffi::FfiSlice};
 
 #[derive(Debug)]
 pub struct Crate<'ast> {

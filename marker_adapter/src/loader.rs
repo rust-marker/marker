@@ -1,7 +1,7 @@
 use crate::error::prelude::*;
 use camino::Utf8PathBuf;
 use libloading::Library;
-use marker_api::{interface::LintCrateBindings, MarkerContext};
+use marker_api::{LintCrateBindings, MarkerContext};
 use marker_api::{LintPass, LintPassInfo, MARKER_API_VERSION};
 
 use super::LINT_CRATES_ENV;
@@ -82,13 +82,13 @@ impl LintPass for LintCrateRegistry {
         panic!("`registered_lints` should not be called on `LintCrateRegistry`");
     }
 
-    fn check_item<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, item: marker_api::ast::item::ItemKind<'ast>) {
+    fn check_item<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, item: marker_api::ast::ItemKind<'ast>) {
         for lp in &self.passes {
             (lp.bindings.check_item)(cx, item);
         }
     }
 
-    fn check_field<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, field: &'ast marker_api::ast::item::Field<'ast>) {
+    fn check_field<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, field: &'ast marker_api::ast::ItemField<'ast>) {
         for lp in &self.passes {
             (lp.bindings.check_field)(cx, field);
         }
@@ -97,26 +97,26 @@ impl LintPass for LintCrateRegistry {
     fn check_variant<'ast>(
         &mut self,
         cx: &'ast MarkerContext<'ast>,
-        variant: &'ast marker_api::ast::item::EnumVariant<'ast>,
+        variant: &'ast marker_api::ast::EnumVariant<'ast>,
     ) {
         for lp in &self.passes {
             (lp.bindings.check_variant)(cx, variant);
         }
     }
 
-    fn check_body<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, body: &'ast marker_api::ast::item::Body<'ast>) {
+    fn check_body<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, body: &'ast marker_api::ast::Body<'ast>) {
         for lp in &self.passes {
             (lp.bindings.check_body)(cx, body);
         }
     }
 
-    fn check_stmt<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, stmt: marker_api::ast::stmt::StmtKind<'ast>) {
+    fn check_stmt<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, stmt: marker_api::ast::StmtKind<'ast>) {
         for lp in &self.passes {
             (lp.bindings.check_stmt)(cx, stmt);
         }
     }
 
-    fn check_expr<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, expr: marker_api::ast::expr::ExprKind<'ast>) {
+    fn check_expr<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, expr: marker_api::ast::ExprKind<'ast>) {
         for lp in &self.passes {
             (lp.bindings.check_expr)(cx, expr);
         }

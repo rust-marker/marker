@@ -15,7 +15,7 @@ warning: printing item with body
                           span: $DIR/print_async_fn.rs:1:10 - 1:29,
                       },
                   },
-                  generics: SynGenericParams {
+                  generics: GenericParams {
                       params: [],
                       clauses: [],
                   },
@@ -28,7 +28,7 @@ warning: printing item with body
                   params: [],
                   return_ty: Some(
                       Num(
-                          SynNumTy {
+                          NumTy {
                               data: CommonSynTyData {
                                   _lifetime: PhantomData<&()>,
                                   span: SpanId(..),
@@ -91,7 +91,7 @@ warning: printing item with body
                           span: $DIR/print_async_fn.rs:9:10 - 9:29,
                       },
                   },
-                  generics: SynGenericParams {
+                  generics: GenericParams {
                       params: [],
                       clauses: [],
                   },
@@ -104,7 +104,7 @@ warning: printing item with body
                   params: [],
                   return_ty: Some(
                       Num(
-                          SynNumTy {
+                          NumTy {
                               data: CommonSynTyData {
                                   _lifetime: PhantomData<&()>,
                                   span: SpanId(..),
@@ -150,7 +150,7 @@ warning: printing item with body
                                   ),
                                   ty: Some(
                                       Num(
-                                          SynNumTy {
+                                          NumTy {
                                               data: CommonSynTyData {
                                                   _lifetime: PhantomData<&()>,
                                                   span: SpanId(..),
@@ -191,7 +191,7 @@ warning: printing item with body
                                                                                   name: "foo",
                                                                                   span: $DIR/print_async_fn.rs:10:17 - 10:20,
                                                                               },
-                                                                              generics: SynGenericArgs {
+                                                                              generics: GenericArgs {
                                                                                   args: [],
                                                                               },
                                                                           },
@@ -234,7 +234,7 @@ warning: printing item with body
                                   ),
                                   ty: Some(
                                       Num(
-                                          SynNumTy {
+                                          NumTy {
                                               data: CommonSynTyData {
                                                   _lifetime: PhantomData<&()>,
                                                   span: SpanId(..),
@@ -275,7 +275,7 @@ warning: printing item with body
                                                                                   name: "foo",
                                                                                   span: $DIR/print_async_fn.rs:11:17 - 11:20,
                                                                               },
-                                                                              generics: SynGenericArgs {
+                                                                              generics: GenericArgs {
                                                                                   args: [],
                                                                               },
                                                                           },
@@ -318,7 +318,7 @@ warning: printing item with body
                                   ),
                                   ty: Some(
                                       Num(
-                                          SynNumTy {
+                                          NumTy {
                                               data: CommonSynTyData {
                                                   _lifetime: PhantomData<&()>,
                                                   span: SpanId(..),
@@ -359,7 +359,7 @@ warning: printing item with body
                                                                                   name: "foo",
                                                                                   span: $DIR/print_async_fn.rs:12:17 - 12:20,
                                                                               },
-                                                                              generics: SynGenericArgs {
+                                                                              generics: GenericArgs {
                                                                                   args: [],
                                                                               },
                                                                           },
@@ -413,7 +413,7 @@ warning: printing item with body
                                                                       name: "a",
                                                                       span: $DIR/print_async_fn.rs:13:5 - 13:6,
                                                                   },
-                                                                  generics: SynGenericArgs {
+                                                                  generics: GenericArgs {
                                                                       args: [],
                                                                   },
                                                               },
@@ -442,7 +442,7 @@ warning: printing item with body
                                                                       name: "b",
                                                                       span: $DIR/print_async_fn.rs:13:9 - 13:10,
                                                                   },
-                                                                  generics: SynGenericArgs {
+                                                                  generics: GenericArgs {
                                                                       args: [],
                                                                   },
                                                               },
@@ -474,7 +474,7 @@ warning: printing item with body
                                                               name: "c",
                                                               span: $DIR/print_async_fn.rs:13:13 - 13:14,
                                                           },
-                                                          generics: SynGenericArgs {
+                                                          generics: GenericArgs {
                                                               args: [],
                                                           },
                                                       },
@@ -515,7 +515,7 @@ warning: printing item with body
                            span: $DIR/print_async_fn.rs:16:10 - 16:39,
                        },
                    },
-                   generics: SynGenericParams {
+                   generics: GenericParams {
                        params: [],
                        clauses: [],
                    },
@@ -542,7 +542,7 @@ warning: printing item with body
                                },
                            ),
                            ty: Ref(
-                               SynRefTy {
+                               RefTy {
                                    data: CommonSynTyData {
                                        _lifetime: PhantomData<&()>,
                                        span: SpanId(..),
@@ -550,7 +550,7 @@ warning: printing item with body
                                    lifetime: None,
                                    mutability: Unmut,
                                    inner_ty: Num(
-                                       SynNumTy {
+                                       NumTy {
                                            data: CommonSynTyData {
                                                _lifetime: PhantomData<&()>,
                                                span: SpanId(..),
@@ -564,7 +564,7 @@ warning: printing item with body
                    ],
                    return_ty: Some(
                        Num(
-                           SynNumTy {
+                           NumTy {
                                data: CommonSynTyData {
                                    _lifetime: PhantomData<&()>,
                                    span: SpanId(..),
@@ -613,7 +613,7 @@ warning: printing item with body
                                                                name: "x",
                                                                span: $DIR/print_async_fn.rs:17:6 - 17:7,
                                                            },
-                                                           generics: SynGenericArgs {
+                                                           generics: GenericArgs {
                                                                args: [],
                                                            },
                                                        },

@@ -1,12 +1,8 @@
 use std::mem::{size_of, transmute};
 
-use marker_api::lint::Level;
 use marker_api::{
-    ast::{
-        generic::SynGenericArgs, ty::SynTyKind, Abi, AstPath, AstPathSegment, AstPathTarget, AstQPath, BodyId,
-        Constness, CrateId, ExpnId, ExprId, FieldId, GenericId, ItemId, MacroId, Mutability, Safety, SpanId, SpanSrcId,
-        StmtId, SymbolId, Syncness, TraitRef, TyDefId, VarId, VariantId,
-    },
+    ast::{AstPath, AstPathSegment, AstPathTarget, AstQPath, GenericArgs, TraitRef, TyKind},
+    common::*,
     span::Ident,
 };
 use rustc_hir as hir;
@@ -15,9 +11,6 @@ use crate::conversion::common::{BodyIdLayout, DefIdLayout, ExpnIdLayout, HirIdLa
 use crate::transmute_id;
 
 use super::MarkerConverterInner;
-
-mod span;
-pub use span::*;
 
 impl From<hir::def_id::LocalDefId> for DefIdLayout {
     fn from(value: hir::def_id::LocalDefId) -> Self {
@@ -246,7 +239,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             hir::QPath::TypeRelative(rustc_ty, segment) => {
                 // Segment and type conversion
                 let marker_ty = self.to_syn_ty(rustc_ty);
-                let mut segments = if let SynTyKind::Path(ty_path) = marker_ty {
+                let mut segments = if let TyKind::Path(ty_path) = marker_ty {
                     ty_path.path().segments().to_vec()
                 } else {
                     Vec::with_capacity(1)
@@ -294,7 +287,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                             }),
                             self.to_span_id(*span),
                         ),
-                        SynGenericArgs::new(&[]),
+                        GenericArgs::new(&[]),
                     )])),
                     AstPathTarget::Item(self.to_item_id(id)),
                 )

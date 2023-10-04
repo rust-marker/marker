@@ -1,4 +1,4 @@
-thread 'rustc' panicked at marker_rustc_driver/src/conversion/marker/item.rs
+thread 'rustc' panicked at marker_rustc_driver/src/conversion/marker/ast/item.rs
 this is your captain talking, we are about to ICE
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 

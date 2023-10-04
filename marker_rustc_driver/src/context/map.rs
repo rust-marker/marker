@@ -1,7 +1,7 @@
 use marker_adapter::context::AstMapDriver;
 use marker_api::{
-    ast::item::{EnumVariant, Field},
-    lint::Level,
+    ast::{EnumVariant, ItemField},
+    common::Level,
     prelude::*,
 };
 
@@ -17,11 +17,11 @@ impl<'ast, 'tcx: 'ast> AstMapDriver<'ast> for RustcContext<'ast, 'tcx> {
         self.marker_converter.variant(id)
     }
 
-    fn field(&'ast self, id: FieldId) -> Option<&'ast Field<'ast>> {
+    fn field(&'ast self, id: FieldId) -> Option<&'ast ItemField<'ast>> {
         self.marker_converter.field(id)
     }
 
-    fn body(&'ast self, id: BodyId) -> &'ast Body<'ast> {
+    fn body(&'ast self, id: BodyId) -> &'ast ast::Body<'ast> {
         let rustc_id = self.rustc_converter.to_body_id(id);
         self.marker_converter.body(rustc_id)
     }

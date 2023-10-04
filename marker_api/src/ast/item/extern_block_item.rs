@@ -1,5 +1,4 @@
-use crate::ast::Abi;
-use crate::ffi::FfiSlice;
+use crate::{common::Abi, ffi::FfiSlice};
 
 use super::{CommonItemData, ExternItemKind};
 

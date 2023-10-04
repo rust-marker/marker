@@ -2,7 +2,7 @@ use std::cell::{OnceCell, RefCell};
 
 use marker_adapter::context::{AstMapWrapper, MarkerContextDriver, MarkerContextWrapper};
 use marker_api::{
-    ast::{SpanId, SymbolId},
+    common::{SpanId, SymbolId},
     diagnostic::Diagnostic,
     prelude::*,
 };
@@ -190,7 +190,7 @@ impl<'ast, 'tcx: 'ast> MarkerContextDriver<'ast> for RustcContext<'ast, 'tcx> {
         ids
     }
 
-    fn expr_ty(&'ast self, expr: ExprId) -> marker_api::ast::ty::SemTyKind<'ast> {
+    fn expr_ty(&'ast self, expr: ExprId) -> marker_api::sem::TyKind<'ast> {
         let hir_id = self.rustc_converter.to_hir_id(expr);
         self.marker_converter.expr_ty(hir_id)
     }
@@ -222,7 +222,10 @@ impl<'ast, 'tcx: 'ast> MarkerContextDriver<'ast> for RustcContext<'ast, 'tcx> {
         )
     }
 
-    fn span_expn_info(&'ast self, expn_id: marker_api::ast::ExpnId) -> Option<&'ast marker_api::span::ExpnInfo<'ast>> {
+    fn span_expn_info(
+        &'ast self,
+        expn_id: marker_api::common::ExpnId,
+    ) -> Option<&'ast marker_api::span::ExpnInfo<'ast>> {
         let id = self.rustc_converter.to_expn_id(expn_id);
         self.marker_converter.try_to_expn_info(id)
     }

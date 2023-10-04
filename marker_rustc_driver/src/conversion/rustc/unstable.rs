@@ -1,4 +1,4 @@
-use marker_api::lint::{Lint, MacroReport};
+use marker_api::{common::MacroReport, Lint};
 
 use super::RustcConverter;
 

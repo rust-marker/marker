@@ -5,7 +5,7 @@ warning: print type test
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Alias(
-               SemAliasTy {
+               AliasTy {
                    _lifetime: PhantomData<&()>,
                    alias_item: ItemId(..),
                },
@@ -19,7 +19,7 @@ warning: print type test
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Alias(
-               SemAliasTy {
+               AliasTy {
                    _lifetime: PhantomData<&()>,
                    alias_item: ItemId(..),
                },
@@ -32,7 +32,7 @@ warning: print type test
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Num(
-               SemNumTy {
+               NumTy {
                    _ast: PhantomData<&()>,
                    numeric_kind: U32,
                },
@@ -45,7 +45,7 @@ warning: print type test
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Num(
-               SemNumTy {
+               NumTy {
                    _ast: PhantomData<&()>,
                    numeric_kind: U32,
                },
@@ -58,7 +58,7 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Generic(
-               SemGenericTy {
+               GenericTy {
                    _lifetime: PhantomData<&()>,
                    generic_id: GenericId(..),
                },
@@ -71,7 +71,7 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^
    |
    = note: Num(
-               SemNumTy {
+               NumTy {
                    _ast: PhantomData<&()>,
                    numeric_kind: U32,
                },
@@ -84,46 +84,46 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
-               SemAdtTy {
+               AdtTy {
                    def_id: TyDefId(..),
-                   generics: SemGenericArgs {
+                   generics: GenericArgs {
                        args: [
                            Ty(
                                Tuple(
-                                   SemTupleTy {
+                                   TupleTy {
                                        types: [
                                            Num(
-                                               SemNumTy {
+                                               NumTy {
                                                    _ast: PhantomData<&()>,
                                                    numeric_kind: U8,
                                                },
                                            ),
                                            Num(
-                                               SemNumTy {
+                                               NumTy {
                                                    _ast: PhantomData<&()>,
                                                    numeric_kind: U16,
                                                },
                                            ),
                                            Num(
-                                               SemNumTy {
+                                               NumTy {
                                                    _ast: PhantomData<&()>,
                                                    numeric_kind: U32,
                                                },
                                            ),
                                            Num(
-                                               SemNumTy {
+                                               NumTy {
                                                    _ast: PhantomData<&()>,
                                                    numeric_kind: U64,
                                                },
                                            ),
                                            Num(
-                                               SemNumTy {
+                                               NumTy {
                                                    _ast: PhantomData<&()>,
                                                    numeric_kind: U128,
                                                },
                                            ),
                                            Num(
-                                               SemNumTy {
+                                               NumTy {
                                                    _ast: PhantomData<&()>,
                                                    numeric_kind: Usize,
                                                },
@@ -144,46 +144,46 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
-               SemAdtTy {
+               AdtTy {
                    def_id: TyDefId(..),
-                   generics: SemGenericArgs {
+                   generics: GenericArgs {
                        args: [
                            Ty(
                                Tuple(
-                                   SemTupleTy {
+                                   TupleTy {
                                        types: [
                                            Num(
-                                               SemNumTy {
+                                               NumTy {
                                                    _ast: PhantomData<&()>,
                                                    numeric_kind: I8,
                                                },
                                            ),
                                            Num(
-                                               SemNumTy {
+                                               NumTy {
                                                    _ast: PhantomData<&()>,
                                                    numeric_kind: I16,
                                                },
                                            ),
                                            Num(
-                                               SemNumTy {
+                                               NumTy {
                                                    _ast: PhantomData<&()>,
                                                    numeric_kind: I32,
                                                },
                                            ),
                                            Num(
-                                               SemNumTy {
+                                               NumTy {
                                                    _ast: PhantomData<&()>,
                                                    numeric_kind: I64,
                                                },
                                            ),
                                            Num(
-                                               SemNumTy {
+                                               NumTy {
                                                    _ast: PhantomData<&()>,
                                                    numeric_kind: I128,
                                                },
                                            ),
                                            Num(
-                                               SemNumTy {
+                                               NumTy {
                                                    _ast: PhantomData<&()>,
                                                    numeric_kind: Isize,
                                                },
@@ -204,30 +204,30 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
-               SemAdtTy {
+               AdtTy {
                    def_id: TyDefId(..),
-                   generics: SemGenericArgs {
+                   generics: GenericArgs {
                        args: [
                            Ty(
                                Tuple(
-                                   SemTupleTy {
+                                   TupleTy {
                                        types: [
                                            Text(
                                                Char,
                                            ),
                                            Bool(
-                                               SemBoolTy {
+                                               BoolTy {
                                                    _lt: PhantomData<&()>,
                                                },
                                            ),
                                            Num(
-                                               SemNumTy {
+                                               NumTy {
                                                    _ast: PhantomData<&()>,
                                                    numeric_kind: F32,
                                                },
                                            ),
                                            Num(
-                                               SemNumTy {
+                                               NumTy {
                                                    _ast: PhantomData<&()>,
                                                    numeric_kind: F64,
                                                },
@@ -248,9 +248,9 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Array(
-               SemArrayTy {
+               ArrayTy {
                    inner_ty: Num(
-                       SemNumTy {
+                       NumTy {
                            _ast: PhantomData<&()>,
                            numeric_kind: U32,
                        },
@@ -266,12 +266,12 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Ref(
-               SemRefTy {
+               RefTy {
                    mutability: Unmut,
                    inner_ty: Slice(
                        [
                            Num(
-                               SemNumTy {
+                               NumTy {
                                    _ast: PhantomData<&()>,
                                    numeric_kind: U32,
                                },
@@ -288,16 +288,16 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
-               SemAdtTy {
+               AdtTy {
                    def_id: TyDefId(..),
-                   generics: SemGenericArgs {
+                   generics: GenericArgs {
                        args: [
                            Ty(
                                Tuple(
-                                   SemTupleTy {
+                                   TupleTy {
                                        types: [
                                            Ref(
-                                               SemRefTy {
+                                               RefTy {
                                                    mutability: Unmut,
                                                    inner_ty: Text(
                                                        Str,
@@ -305,10 +305,10 @@ warning: print type test
                                                },
                                            ),
                                            RawPtr(
-                                               SemRawPtrTy {
+                                               RawPtrTy {
                                                    mutability: Unmut,
                                                    inner_ty: Num(
-                                                       SemNumTy {
+                                                       NumTy {
                                                            _ast: PhantomData<&()>,
                                                            numeric_kind: I32,
                                                        },
@@ -316,10 +316,10 @@ warning: print type test
                                                },
                                            ),
                                            RawPtr(
-                                               SemRawPtrTy {
+                                               RawPtrTy {
                                                    mutability: Mut,
                                                    inner_ty: Num(
-                                                       SemNumTy {
+                                                       NumTy {
                                                            _ast: PhantomData<&()>,
                                                            numeric_kind: I32,
                                                        },
@@ -342,9 +342,9 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: FnTy(
-               SemFnTy {
+               FnTy {
                    fn_id: ItemId(..),
-                   generics: SemGenericArgs {
+                   generics: GenericArgs {
                        args: [],
                    },
                },
@@ -357,13 +357,13 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: ClosureTy(
-               SemClosureTy {
+               ClosureTy {
                    closure_ty_id: TyDefId(..),
-                   generics: SemGenericArgs {
+                   generics: GenericArgs {
                        args: [
                            Ty(
                                Num(
-                                   SemNumTy {
+                                   NumTy {
                                        _ast: PhantomData<&()>,
                                        numeric_kind: I16,
                                    },
@@ -371,18 +371,18 @@ warning: print type test
                            ),
                            Ty(
                                FnPtr(
-                                   SemFnPtrTy {
+                                   FnPtrTy {
                                        safety: Safe,
                                        abi: Other,
                                        params: [
                                            Tuple(
-                                               SemTupleTy {
+                                               TupleTy {
                                                    types: [],
                                                },
                                            ),
                                        ],
                                        return_ty: Tuple(
-                                           SemTupleTy {
+                                           TupleTy {
                                                types: [],
                                            },
                                        ),
@@ -391,13 +391,13 @@ warning: print type test
                            ),
                            Ty(
                                Tuple(
-                                   SemTupleTy {
+                                   TupleTy {
                                        types: [
                                            Ref(
-                                               SemRefTy {
+                                               RefTy {
                                                    mutability: Mut,
                                                    inner_ty: Num(
-                                                       SemNumTy {
+                                                       NumTy {
                                                            _ast: PhantomData<&()>,
                                                            numeric_kind: I32,
                                                        },
@@ -420,19 +420,19 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: FnPtr(
-               SemFnPtrTy {
+               FnPtrTy {
                    safety: Safe,
                    abi: Default,
                    params: [
                        Num(
-                           SemNumTy {
+                           NumTy {
                                _ast: PhantomData<&()>,
                                numeric_kind: U32,
                            },
                        ),
                    ],
                    return_ty: Num(
-                       SemNumTy {
+                       NumTy {
                            _ast: PhantomData<&()>,
                            numeric_kind: F32,
                        },
@@ -447,13 +447,13 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
-               SemAdtTy {
+               AdtTy {
                    def_id: TyDefId(..),
-                   generics: SemGenericArgs {
+                   generics: GenericArgs {
                        args: [
                            Ty(
                                Num(
-                                   SemNumTy {
+                                   NumTy {
                                        _ast: PhantomData<&()>,
                                        numeric_kind: U32,
                                    },
@@ -461,9 +461,9 @@ warning: print type test
                            ),
                            Ty(
                                Adt(
-                                   SemAdtTy {
+                                   AdtTy {
                                        def_id: TyDefId(..),
-                                       generics: SemGenericArgs {
+                                       generics: GenericArgs {
                                            args: [],
                                        },
                                    },
@@ -481,9 +481,9 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
-               SemAdtTy {
+               AdtTy {
                    def_id: TyDefId(..),
-                   generics: SemGenericArgs {
+                   generics: GenericArgs {
                        args: [],
                    },
                },
@@ -496,24 +496,24 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
-               SemAdtTy {
+               AdtTy {
                    def_id: TyDefId(..),
-                   generics: SemGenericArgs {
+                   generics: GenericArgs {
                        args: [
                            Ty(
                                Adt(
-                                   SemAdtTy {
+                                   AdtTy {
                                        def_id: TyDefId(..),
-                                       generics: SemGenericArgs {
+                                       generics: GenericArgs {
                                            args: [
                                                Ty(
                                                    TraitObj(
-                                                       SemTraitObjTy {
+                                                       TraitObjTy {
                                                            bound: [
-                                                               SemTraitBound {
+                                                               TraitBound {
                                                                    is_relaxed: false,
                                                                    trait_id: TyDefId(..),
-                                                                   trait_generic_args: SemGenericArgs {
+                                                                   trait_generic_args: GenericArgs {
                                                                        args: [],
                                                                    },
                                                                },
@@ -523,9 +523,9 @@ warning: print type test
                                                ),
                                                Ty(
                                                    Adt(
-                                                       SemAdtTy {
+                                                       AdtTy {
                                                            def_id: TyDefId(..),
-                                                           generics: SemGenericArgs {
+                                                           generics: GenericArgs {
                                                                args: [],
                                                            },
                                                        },
@@ -548,30 +548,30 @@ warning: print type test
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: Adt(
-               SemAdtTy {
+               AdtTy {
                    def_id: TyDefId(..),
-                   generics: SemGenericArgs {
+                   generics: GenericArgs {
                        args: [
                            Ty(
                                Adt(
-                                   SemAdtTy {
+                                   AdtTy {
                                        def_id: TyDefId(..),
-                                       generics: SemGenericArgs {
+                                       generics: GenericArgs {
                                            args: [
                                                Ty(
                                                    TraitObj(
-                                                       SemTraitObjTy {
+                                                       TraitObjTy {
                                                            bound: [
-                                                               SemTraitBound {
+                                                               TraitBound {
                                                                    is_relaxed: false,
                                                                    trait_id: TyDefId(..),
-                                                                   trait_generic_args: SemGenericArgs {
+                                                                   trait_generic_args: GenericArgs {
                                                                        args: [
                                                                            Binding(
-                                                                               SemBindingArg {
+                                                                               BindingArg {
                                                                                    binding_target: ItemId(..),
                                                                                    ty: Num(
-                                                                                       SemNumTy {
+                                                                                       NumTy {
                                                                                            _ast: PhantomData<&()>,
                                                                                            numeric_kind: I32,
                                                                                        },
@@ -587,9 +587,9 @@ warning: print type test
                                                ),
                                                Ty(
                                                    Adt(
-                                                       SemAdtTy {
+                                                       AdtTy {
                                                            def_id: TyDefId(..),
-                                                           generics: SemGenericArgs {
+                                                           generics: GenericArgs {
                                                                args: [],
                                                            },
                                                        },

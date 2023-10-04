@@ -1,5 +1,6 @@
 use crate::{
-    ast::{expr::ConstExpr, generic::SynGenericParams, ty::SynTyKind, FieldId, SpanId, SymbolId, VariantId},
+    ast::{expr::ConstExpr, generic::GenericParams, ty::TyKind},
+    common::{FieldId, SpanId, SymbolId, VariantId},
     context::with_cx,
     ffi::{FfiOption, FfiSlice},
     span::{HasSpan, Span},
@@ -19,25 +20,25 @@ use super::{CommonItemData, Visibility};
 #[derive(Debug)]
 pub struct UnionItem<'ast> {
     data: CommonItemData<'ast>,
-    generics: SynGenericParams<'ast>,
-    fields: FfiSlice<'ast, Field<'ast>>,
+    generics: GenericParams<'ast>,
+    fields: FfiSlice<'ast, ItemField<'ast>>,
 }
 
 super::impl_item_data!(UnionItem, Union);
 
 impl<'ast> UnionItem<'ast> {
-    pub fn generics(&self) -> &SynGenericParams<'ast> {
+    pub fn generics(&self) -> &GenericParams<'ast> {
         &self.generics
     }
 
-    pub fn fields(&self) -> &[Field<'ast>] {
+    pub fn fields(&self) -> &[ItemField<'ast>] {
         self.fields.get()
     }
 }
 
 #[cfg(feature = "driver-api")]
 impl<'ast> UnionItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, generics: SynGenericParams<'ast>, fields: &'ast [Field<'ast>]) -> Self {
+    pub fn new(data: CommonItemData<'ast>, generics: GenericParams<'ast>, fields: &'ast [ItemField<'ast>]) -> Self {
         Self {
             data,
             generics,
@@ -64,14 +65,14 @@ impl<'ast> UnionItem<'ast> {
 #[derive(Debug)]
 pub struct EnumItem<'ast> {
     data: CommonItemData<'ast>,
-    generics: SynGenericParams<'ast>,
+    generics: GenericParams<'ast>,
     variants: FfiSlice<'ast, EnumVariant<'ast>>,
 }
 
 super::impl_item_data!(EnumItem, Enum);
 
 impl<'ast> EnumItem<'ast> {
-    pub fn generics(&self) -> &SynGenericParams<'ast> {
+    pub fn generics(&self) -> &GenericParams<'ast> {
         &self.generics
     }
 
@@ -82,11 +83,7 @@ impl<'ast> EnumItem<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> EnumItem<'ast> {
-    pub fn new(
-        data: CommonItemData<'ast>,
-        generics: SynGenericParams<'ast>,
-        variants: &'ast [EnumVariant<'ast>],
-    ) -> Self {
+    pub fn new(data: CommonItemData<'ast>, generics: GenericParams<'ast>, variants: &'ast [EnumVariant<'ast>]) -> Self {
         Self {
             data,
             generics,
@@ -152,7 +149,7 @@ impl<'ast> EnumVariant<'ast> {
         matches!(self.kind, AdtKind::Field(..))
     }
 
-    pub fn fields(&self) -> &[Field<'ast>] {
+    pub fn fields(&self) -> &[ItemField<'ast>] {
         match &self.kind {
             AdtKind::Unit => &[],
             AdtKind::Tuple(fields) | AdtKind::Field(fields) => fields.get(),
@@ -171,7 +168,7 @@ impl<'ast> HasSpan<'ast> for EnumVariant<'ast> {
     }
 }
 
-crate::ast::impl_identifiable_for!(EnumVariant<'ast>);
+crate::common::impl_identifiable_for!(EnumVariant<'ast>);
 impl<'ast> crate::private::Sealed for EnumVariant<'ast> {}
 
 #[cfg(feature = "driver-api")]
@@ -207,14 +204,14 @@ impl<'ast> EnumVariant<'ast> {
 #[derive(Debug)]
 pub struct StructItem<'ast> {
     data: CommonItemData<'ast>,
-    generics: SynGenericParams<'ast>,
+    generics: GenericParams<'ast>,
     kind: AdtKind<'ast>,
 }
 
 super::impl_item_data!(StructItem, Struct);
 
 impl<'ast> StructItem<'ast> {
-    pub fn generics(&self) -> &SynGenericParams<'ast> {
+    pub fn generics(&self) -> &GenericParams<'ast> {
         &self.generics
     }
 
@@ -248,7 +245,7 @@ impl<'ast> StructItem<'ast> {
         matches!(self.kind, AdtKind::Field(..))
     }
 
-    pub fn fields(&self) -> &[Field<'ast>] {
+    pub fn fields(&self) -> &[ItemField<'ast>] {
         match &self.kind {
             AdtKind::Unit => &[],
             AdtKind::Tuple(fields) | AdtKind::Field(fields) => fields.get(),
@@ -258,7 +255,7 @@ impl<'ast> StructItem<'ast> {
 
 #[cfg(feature = "driver-api")]
 impl<'ast> StructItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, generics: SynGenericParams<'ast>, kind: AdtKind<'ast>) -> Self {
+    pub fn new(data: CommonItemData<'ast>, generics: GenericParams<'ast>, kind: AdtKind<'ast>) -> Self {
         Self { data, generics, kind }
     }
 }
@@ -268,14 +265,14 @@ impl<'ast> StructItem<'ast> {
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 enum AdtKind<'ast> {
     Unit,
-    Tuple(FfiSlice<'ast, Field<'ast>>),
-    Field(FfiSlice<'ast, Field<'ast>>),
+    Tuple(FfiSlice<'ast, ItemField<'ast>>),
+    Field(FfiSlice<'ast, ItemField<'ast>>),
 }
 
 impl<'ast> AdtKind<'ast> {
     // The slice lifetime here is explicitly denoted, as this is used by the
     // driver for convenience and is not part of the public API
-    pub fn fields(self) -> &'ast [Field<'ast>] {
+    pub fn fields(self) -> &'ast [ItemField<'ast>] {
         match self {
             AdtKind::Tuple(fields) | AdtKind::Field(fields) => fields.get(),
             AdtKind::Unit => &[],
@@ -287,15 +284,15 @@ impl<'ast> AdtKind<'ast> {
 /// type and span.
 #[repr(C)]
 #[derive(Debug)]
-pub struct Field<'ast> {
+pub struct ItemField<'ast> {
     id: FieldId,
     vis: Visibility<'ast>,
     ident: SymbolId,
-    ty: SynTyKind<'ast>,
+    ty: TyKind<'ast>,
     span: SpanId,
 }
 
-impl<'ast> Field<'ast> {
+impl<'ast> ItemField<'ast> {
     pub fn id(&self) -> FieldId {
         self.id
     }
@@ -309,25 +306,25 @@ impl<'ast> Field<'ast> {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
 
-    pub fn ty(&self) -> SynTyKind<'ast> {
+    pub fn ty(&self) -> TyKind<'ast> {
         self.ty
     }
 
     // FIXME(xFrednet): Add `fn attrs() -> ??? {}`, see rust-marker/marker#51
 }
 
-impl<'ast> HasSpan<'ast> for Field<'ast> {
+impl<'ast> HasSpan<'ast> for ItemField<'ast> {
     fn span(&self) -> &Span<'ast> {
         with_cx(self, |cx| cx.span(self.span))
     }
 }
 
-crate::ast::impl_identifiable_for!(Field<'ast>);
-impl<'ast> crate::private::Sealed for Field<'ast> {}
+crate::common::impl_identifiable_for!(ItemField<'ast>);
+impl<'ast> crate::private::Sealed for ItemField<'ast> {}
 
 #[cfg(feature = "driver-api")]
-impl<'ast> Field<'ast> {
-    pub fn new(id: FieldId, vis: Visibility<'ast>, ident: SymbolId, ty: SynTyKind<'ast>, span: SpanId) -> Self {
+impl<'ast> ItemField<'ast> {
+    pub fn new(id: FieldId, vis: Visibility<'ast>, ident: SymbolId, ty: TyKind<'ast>, span: SpanId) -> Self {
         Self {
             id,
             vis,

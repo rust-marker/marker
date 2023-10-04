@@ -1,9 +1,9 @@
 mod args;
-pub use args::*;
 mod param;
+pub use args::*;
 pub use param::*;
 
-use crate::{ast::ty::SemTyKind, ffi::FfiSlice};
+use crate::{ffi::FfiSlice, sem::ty::TyKind};
 
 /// The semantic representation of generic arguments for an item or path.
 ///
@@ -23,15 +23,15 @@ use crate::{ast::ty::SemTyKind, ffi::FfiSlice};
 /// ```
 ///
 /// See:
-/// * [`SynGenericParams`][super::SynGenericParams]
+/// * [`GenericParams`][crate::ast::GenericParams]
 #[repr(C)]
 #[derive(Debug)]
-pub struct SemGenericArgs<'ast> {
-    args: FfiSlice<'ast, SemGenericArgKind<'ast>>,
+pub struct GenericArgs<'ast> {
+    args: FfiSlice<'ast, GenericArgKind<'ast>>,
 }
 
-impl<'ast> SemGenericArgs<'ast> {
-    pub fn args(&self) -> &[SemGenericArgKind<'ast>] {
+impl<'ast> GenericArgs<'ast> {
+    pub fn args(&self) -> &[GenericArgKind<'ast>] {
         self.args.get()
     }
 
@@ -41,8 +41,8 @@ impl<'ast> SemGenericArgs<'ast> {
 }
 
 #[cfg(feature = "driver-api")]
-impl<'ast> SemGenericArgs<'ast> {
-    pub fn new(args: &'ast [SemGenericArgKind<'ast>]) -> Self {
+impl<'ast> GenericArgs<'ast> {
+    pub fn new(args: &'ast [GenericArgKind<'ast>]) -> Self {
         Self { args: args.into() }
     }
 }
@@ -54,21 +54,21 @@ impl<'ast> SemGenericArgs<'ast> {
 #[non_exhaustive]
 #[derive(Debug)]
 #[cfg_attr(feature = "driver-api", derive(Clone))]
-pub enum SemGenericArgKind<'ast> {
+pub enum GenericArgKind<'ast> {
     /// A type as a generic argument, like this:
     ///
     /// ```
     /// let _bar: Vec<String> = vec!();
     /// //            ^^^^^^
     /// ```
-    Ty(SemTyKind<'ast>),
+    Ty(TyKind<'ast>),
     /// A type binding as a generic argument, like this:
     ///
     /// ```ignore
     /// let _baz: &dyn Iterator<Item=String> = todo!();
     /// //                      ^^^^^^^^^^^
     /// ```
-    Binding(&'ast SemBindingArg<'ast>),
+    Binding(&'ast BindingArg<'ast>),
     /// A constant expression as a generic argument, like this:
     ///
     /// ```ignore
@@ -79,5 +79,5 @@ pub enum SemGenericArgKind<'ast> {
     /// let _bat: Vec<3> = todo!();
     /// //            ^
     /// ```
-    Const(&'ast SemConstArg<'ast>),
+    Const(&'ast ConstArg<'ast>),
 }

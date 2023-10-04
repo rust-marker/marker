@@ -1,8 +1,12 @@
 use std::marker::PhantomData;
 
-use crate::{ast::SpanId, context::with_cx, diagnostic::Applicability, ffi, private::Sealed};
-
-use crate::ast::{ExpnId, MacroId, SpanSrcId, SymbolId};
+use crate::{
+    common::{ExpnId, MacroId, SpanId, SpanSrcId, SymbolId},
+    context::with_cx,
+    diagnostic::Applicability,
+    ffi,
+    private::Sealed,
+};
 
 /// A byte position used for the start and end position of [`Span`]s.
 ///
@@ -190,7 +194,7 @@ impl<'ast> ExpnInfo<'ast> {
 ///
 /// Handling macros during linting can be difficult, generally it's advised to
 /// abort, if the code originates from a macro. The API provides an automatic way
-/// by setting the [`MacroReport`][crate::lint::MacroReport] value during lint
+/// by setting the [`MacroReport`][crate::common::MacroReport] value during lint
 /// creation. If your lint is targeting code from macro expansions, please
 /// consider that users might not be able to influence the generated code. It's
 /// also worth checking that all linted nodes originate from the same macro expansion.

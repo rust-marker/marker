@@ -1,6 +1,7 @@
 use std::{fmt::Debug, marker::PhantomData};
 
 use crate::{
+    common::{HasNodeId, ItemId, SpanId},
     diagnostic::EmissionNode,
     private::Sealed,
     span::{HasSpan, Ident, Span},
@@ -8,7 +9,6 @@ use crate::{
 };
 
 use super::expr::ExprKind;
-use super::{HasNodeId, ItemId, SpanId};
 
 // Item implementations
 mod extern_crate_item;
@@ -94,7 +94,7 @@ impl<'ast> ItemKind<'ast> {
 }
 
 crate::span::impl_spanned_for!(ItemKind<'ast>);
-crate::ast::impl_identifiable_for!(ItemKind<'ast>);
+crate::common::impl_identifiable_for!(ItemKind<'ast>);
 impl<'ast> crate::private::Sealed for ItemKind<'ast> {}
 
 #[non_exhaustive]
@@ -116,7 +116,7 @@ impl<'ast> AssocItemKind<'ast> {
 }
 
 crate::span::impl_spanned_for!(AssocItemKind<'ast>);
-crate::ast::impl_identifiable_for!(AssocItemKind<'ast>);
+crate::common::impl_identifiable_for!(AssocItemKind<'ast>);
 impl<'ast> crate::private::Sealed for AssocItemKind<'ast> {}
 
 impl<'ast> From<AssocItemKind<'ast>> for ItemKind<'ast> {
@@ -146,7 +146,7 @@ impl<'ast> ExternItemKind<'ast> {
 }
 
 crate::span::impl_spanned_for!(ExternItemKind<'ast>);
-crate::ast::impl_identifiable_for!(ExternItemKind<'ast>);
+crate::common::impl_identifiable_for!(ExternItemKind<'ast>);
 impl<'ast> crate::private::Sealed for ExternItemKind<'ast> {}
 
 impl<'ast> From<ExternItemKind<'ast>> for ItemKind<'ast> {
@@ -226,7 +226,7 @@ macro_rules! impl_item_data {
             }
         }
 
-        $crate::ast::impl_identifiable_for!($self_name<'ast>, use $crate::ast::item::ItemData);
+        $crate::common::impl_identifiable_for!($self_name<'ast>, use $crate::ast::item::ItemData);
         impl $crate::private::Sealed for $self_name<'_> {}
 
         impl<'ast> From<&'ast $self_name<'ast>> for crate::ast::item::ItemKind<'ast> {
@@ -284,8 +284,8 @@ impl<'ast> Visibility<'ast> {
 /// Bodies act like a barrier between the item and expression level. When items
 /// are requested, only the item information is retrieved and converted. Any
 /// expression parts of these items are wrapped into a body, identified via a
-/// [`BodyId`](`super::BodyId`). The body and its content will only be converted
-/// request.
+/// [`BodyId`](`crate::common::BodyId`). The body and its content will only be
+/// converted request.
 #[repr(C)]
 #[derive(Debug)]
 pub struct Body<'ast> {

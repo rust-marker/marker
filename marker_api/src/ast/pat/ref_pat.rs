@@ -1,4 +1,4 @@
-use crate::ast::Mutability;
+use crate::common::Mutability;
 
 use super::{CommonPatData, PatKind};
 

@@ -3,7 +3,7 @@ mod unstable;
 
 use std::{cell::RefCell, marker::PhantomData};
 
-use marker_api::lint::Lint;
+use marker_api::Lint;
 use rustc_hash::FxHashMap;
 
 thread_local! {

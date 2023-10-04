@@ -20,12 +20,12 @@ warning: testing `AstMap::variant`
                    span: SpanId(..),
                    kind: Tuple(
                        [
-                           Field {
+                           ItemField {
                                id: FieldId(..),
                                vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                                ident: SymbolId(..),
                                ty: Path(
-                                   SynPathTy {
+                                   PathTy {
                                        data: CommonSynTyData {
                                            _lifetime: PhantomData<&()>,
                                            span: SpanId(..),
@@ -40,7 +40,7 @@ warning: testing `AstMap::variant`
                                                            name: "T",
                                                            span: $DIR/test_ast_map.rs:2:12 - 2:13,
                                                        },
-                                                       generics: SynGenericArgs {
+                                                       generics: GenericArgs {
                                                            args: [],
                                                        },
                                                    },
@@ -78,18 +78,18 @@ warning: testing `AstMap::item`
                                span: $DIR/test_ast_map.rs:6:8 - 6:19,
                            },
                        },
-                       generics: SynGenericParams {
+                       generics: GenericParams {
                            params: [],
                            clauses: [],
                        },
                        kind: Field(
                            [
-                               Field {
+                               ItemField {
                                    id: FieldId(..),
                                    vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
                                    ident: SymbolId(..),
                                    ty: Num(
-                                       SynNumTy {
+                                       NumTy {
                                            data: CommonSynTyData {
                                                _lifetime: PhantomData<&()>,
                                                span: SpanId(..),

@@ -3,23 +3,17 @@
 //! are implemented as methods of the [`MarkerConverterInner`] to group them
 //! together and share access to common objects easily.
 
+mod ast;
 mod common;
-mod expr;
-mod generics;
-mod item;
-mod pat;
-mod stmts;
-mod ty;
+mod sem;
+mod span;
 
 use std::cell::RefCell;
 
 use crate::context::storage::Storage;
 use marker_api::{
-    ast::{
-        item::{EnumVariant, Field},
-        Crate, SymbolId,
-    },
-    lint::Level,
+    ast::{Body, Crate, EnumVariant, ItemField},
+    common::{Level, SymbolId},
     prelude::*,
     span::{ExpnInfo, FilePos, Span, SpanSource},
 };
@@ -64,7 +58,7 @@ impl<'ast, 'tcx> MarkerConverter<'ast, 'tcx> {
         res
     }
 
-    pub fn expr_ty(&self, id: hir::HirId) -> SemTyKind<'ast> {
+    pub fn expr_ty(&self, id: hir::HirId) -> marker_api::sem::TyKind<'ast> {
         self.with_body(id, |inner| {
             let ty = inner.rustc_ty_check().node_type(id);
             inner.to_sem_ty(ty)
@@ -136,7 +130,7 @@ impl<'ast, 'tcx> MarkerConverter<'ast, 'tcx> {
         self.inner.variants.borrow().get(&id).copied()
     }
 
-    pub fn field(&self, id: FieldId) -> Option<&'ast Field<'ast>> {
+    pub fn field(&self, id: FieldId) -> Option<&'ast ItemField<'ast>> {
         // See docs of the `variant` method for an explanation, why it's
         // enough to only check the cache.
         self.inner.fields.borrow().get(&id).copied()
@@ -176,7 +170,7 @@ struct MarkerConverterInner<'ast, 'tcx> {
     bodies: RefCell<FxHashMap<BodyId, &'ast Body<'ast>>>,
     exprs: RefCell<FxHashMap<ExprId, ExprKind<'ast>>>,
     stmts: RefCell<FxHashMap<StmtId, StmtKind<'ast>>>,
-    fields: RefCell<FxHashMap<FieldId, &'ast Field<'ast>>>,
+    fields: RefCell<FxHashMap<FieldId, &'ast ItemField<'ast>>>,
     variants: RefCell<FxHashMap<VariantId, &'ast EnumVariant<'ast>>>,
 
     num_symbols: RefCell<FxHashMap<u32, SymbolId>>,

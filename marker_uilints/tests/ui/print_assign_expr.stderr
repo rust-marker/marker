@@ -55,7 +55,7 @@ warning: print test
                                                                            name: "a",
                                                                            span: $DIR/print_assign_expr.rs:15:9 - 15:10,
                                                                        },
-                                                                       generics: SynGenericArgs {
+                                                                       generics: GenericArgs {
                                                                            args: [],
                                                                        },
                                                                    },
@@ -93,7 +93,7 @@ warning: print test
                                                                            name: "bar",
                                                                            span: $DIR/print_assign_expr.rs:15:13 - 15:16,
                                                                        },
-                                                                       generics: SynGenericArgs {
+                                                                       generics: GenericArgs {
                                                                            args: [],
                                                                        },
                                                                    },
@@ -150,7 +150,7 @@ warning: print test
                                                                            name: "a",
                                                                            span: $DIR/print_assign_expr.rs:16:9 - 16:10,
                                                                        },
-                                                                       generics: SynGenericArgs {
+                                                                       generics: GenericArgs {
                                                                            args: [],
                                                                        },
                                                                    },
@@ -226,7 +226,7 @@ warning: print test
                                                                                        name: "a",
                                                                                        span: $DIR/print_assign_expr.rs:17:10 - 17:11,
                                                                                    },
-                                                                                   generics: SynGenericArgs {
+                                                                                   generics: GenericArgs {
                                                                                        args: [],
                                                                                    },
                                                                                },
@@ -263,7 +263,7 @@ warning: print test
                                                                                        name: "b",
                                                                                        span: $DIR/print_assign_expr.rs:17:13 - 17:14,
                                                                                    },
-                                                                                   generics: SynGenericArgs {
+                                                                                   generics: GenericArgs {
                                                                                        args: [],
                                                                                    },
                                                                                },
@@ -349,7 +349,7 @@ warning: print test
                                                                    name: "S",
                                                                    span: $DIR/print_assign_expr.rs:18:9 - 18:10,
                                                                },
-                                                               generics: SynGenericArgs {
+                                                               generics: GenericArgs {
                                                                    args: [],
                                                                },
                                                            },
@@ -401,7 +401,7 @@ warning: print test
                                                                                                        name: "a",
                                                                                                        span: $DIR/print_assign_expr.rs:19:24 - 19:25,
                                                                                                    },
-                                                                                                   generics: SynGenericArgs {
+                                                                                                   generics: GenericArgs {
                                                                                                        args: [],
                                                                                                    },
                                                                                                },
@@ -460,7 +460,7 @@ warning: print test
                                                                                                        name: "b",
                                                                                                        span: $DIR/print_assign_expr.rs:20:21 - 20:22,
                                                                                                    },
-                                                                                                   generics: SynGenericArgs {
+                                                                                                   generics: GenericArgs {
                                                                                                        args: [],
                                                                                                    },
                                                                                                },
@@ -508,7 +508,7 @@ warning: print test
                                                            self_ty: None,
                                                            path_ty: Some(
                                                                Path(
-                                                                   SynPathTy {
+                                                                   PathTy {
                                                                        data: CommonSynTyData {
                                                                            _lifetime: PhantomData<&()>,
                                                                            span: SpanId(..),
@@ -523,7 +523,7 @@ warning: print test
                                                                                            name: "S",
                                                                                            span: $DIR/print_assign_expr.rs:21:13 - 21:14,
                                                                                        },
-                                                                                       generics: SynGenericArgs {
+                                                                                       generics: GenericArgs {
                                                                                            args: [],
                                                                                        },
                                                                                    },
@@ -543,7 +543,7 @@ warning: print test
                                                                            name: "S",
                                                                            span: $DIR/print_assign_expr.rs:21:13 - 21:14,
                                                                        },
-                                                                       generics: SynGenericArgs {
+                                                                       generics: GenericArgs {
                                                                            args: [],
                                                                        },
                                                                    },
@@ -552,7 +552,7 @@ warning: print test
                                                                            name: "default",
                                                                            span: $DIR/print_assign_expr.rs:21:16 - 21:23,
                                                                        },
-                                                                       generics: SynGenericArgs {
+                                                                       generics: GenericArgs {
                                                                            args: [],
                                                                        },
                                                                    },

@@ -1,6 +1,4 @@
-use crate::{private::Sealed, span::Span};
-
-use super::SpanId;
+use crate::{common::SpanId, private::Sealed, span::Span};
 
 use std::{fmt::Debug, marker::PhantomData};
 

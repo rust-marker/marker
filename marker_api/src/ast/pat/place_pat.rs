@@ -1,4 +1,4 @@
-use crate::prelude::ExprKind;
+use crate::ast::ExprKind;
 
 use super::CommonPatData;
 
