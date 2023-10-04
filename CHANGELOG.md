@@ -1,4 +1,4 @@
-[Unreleased]: https://github.com/rust-marker/marker/releases/tag/v0.3.0...HEAD
+[Unreleased]: https://github.com/rust-marker/marker/compare/v0.3.0...HEAD
 [0.3.0]: https://github.com/rust-marker/marker/releases/tag/v0.3.0
 [0.2.1]: https://github.com/rust-marker/marker/releases/tag/v0.2.1
 [0.1.1]: https://github.com/rust-marker/marker/releases/tag/v0.1.1
@@ -21,9 +21,15 @@ The following components are considered to be internal and they are excluded fro
 - `marker_adapter`
 - `marker_error`
 
+## [Unreleased]
+
+The [v0.4.0 milestone] contains a list of planned changes.
+
+[v0.4.0 milestone]: https://github.com/rust-marker/marker/milestone/4
+
 ## [0.3.0] - 2023-10-05
 
-This version introduces precompiled binaries and CI templates. This version also tried to combine all breaking changes, to make `v0.3.0` a stable baseline for new additions.
+This version introduces precompiled binaries and CI templates. This version also tried to combine all breaking changes, to make `v0.3.0` a solid baseline for new additions.
 
 The [v0.3.0 milestone] contains a full list of all changes.
 
