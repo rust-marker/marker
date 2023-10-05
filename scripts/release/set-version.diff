@@ -1,0 +1,198 @@
+
+=== CONTRIBUTING.md ===
+     ```sh
+-    cargo marker --lints "marker_lints = 'X.Y.Z'"
++    cargo marker --lints "marker_lints = '0.1.0'"
+     ```
+
+=== Cargo.lock ===
+ name = "cargo_marker"
+-version = "X.Y.Z-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_adapter"
+-version = "X.Y.Z-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_api"
+-version = "X.Y.Z-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_error"
+-version = "X.Y.Z-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_lints"
+-version = "X.Y.Z-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_rustc_driver"
+-version = "X.Y.Z-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_uilints"
+-version = "X.Y.Z-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_uitest"
+-version = "X.Y.Z-dev"
++version = "0.1.0"
+ dependencies = [
+ name = "marker_utils"
+-version = "X.Y.Z-dev"
++version = "0.1.0"
+ dependencies = [
+
+=== Cargo.toml ===
+ # region replace-version dev
+-version = "X.Y.Z-dev"
++version = "0.1.0"
+ # endregion replace-version dev
+ # region replace-version dev
+-marker_adapter = { path = "./marker_adapter", version = "X.Y.Z-dev" }
+-marker_api     = { path = "./marker_api", version = "X.Y.Z-dev" }
+-marker_error   = { path = "./marker_error", version = "X.Y.Z-dev" }
++marker_adapter = { path = "./marker_adapter", version = "0.1.0" }
++marker_api     = { path = "./marker_api", version = "0.1.0" }
++marker_error   = { path = "./marker_error", version = "0.1.0" }
+ marker_uitest  = { path = "./marker_uitest", features = ["dev-build"] }
+-marker_utils   = { path = "./marker_utils", version = "X.Y.Z-dev" }
++marker_utils   = { path = "./marker_utils", version = "0.1.0" }
+ # endregion replace-version dev
+
+=== README.md ===
+ ```bash
+-curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/vX.Y/scripts/release/install.sh | bash
++curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.sh | bash
+ ```
+ ```ps1
+-curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/vX.Y/scripts/release/install.ps1 | powershell -command -
++curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.ps1 | powershell -command -
+ ```
+ 
+-The provided scripts use a sliding git tag `vX.Y`, to allow for automatic patch version updates, however a fixed tag `vX.Y.Z` is also available.
++The provided scripts use a sliding git tag `v0.1`, to allow for automatic patch version updates, however a fixed tag `v0.1.0` is also available.
+ 
+ ```yml
+-- uses: rust-marker/marker@vX.Y
++- uses: rust-marker/marker@v0.1
+ ```
+ ```yml
+-- uses: rust-marker/marker@vX.Y
++- uses: rust-marker/marker@v0.1
+   with:
+ # An external crate from a registry
+-marker_lints = "X.Y.Z"
++marker_lints = "0.1.0"
+ ```
+
+=== cargo-marker/src/backend/driver.rs ===
+         // region replace-version dev
+-        version: "X.Y.Z-dev".to_string(),
+-        api_version: "X.Y.Z-dev".to_string(),
++        version: "0.1.0".to_string(),
++        api_version: "0.1.0".to_string(),
+         // endregion replace-version dev
+
+=== cargo-marker/src/error.rs ===
+ # An external crate from a registry
+-marker_lints = "X.Y.Z""#
++marker_lints = "0.1.0""#
+         ),
+-        cli_example = display::cli(r#"cargo marker --lints "marker_lints = 'X.Y.Z'""#),
++        cli_example = display::cli(r#"cargo marker --lints "marker_lints = '0.1.0'""#),
+         lints = "--lints".blue(),
+
+=== docs/book/src/usage/ci.md ===
+ ```yml
+-- uses: rust-marker/marker@vX.Y
++- uses: rust-marker/marker@v0.1
+ ```
+ 
+-- **Sliding tags, like `vX.Y` *(recommended)*:**
++- **Sliding tags, like `v0.1` *(recommended)*:**
+ 
+ 
+-- **Fixed tags, like `vX.Y.Z`:**
++- **Fixed tags, like `v0.1.0`:**
+ 
+     --retry-connrefused \
+-    https://raw.githubusercontent.com/rust-marker/marker/vX.Y/scripts/release/install.sh \
++    https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.sh \
+     | bash
+     --retry-connrefused `
+-    https://raw.githubusercontent.com/rust-marker/marker/vX.Y/scripts/release/install.ps1 `
++    https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.ps1 `
+     | powershell -command -
+
+=== docs/book/src/usage/installation.md ===
+ ```bash
+-curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/vX.Y/scripts/release/install.sh | bash
++curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.sh | bash
+ ```
+ ```ps1
+-curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/vX.Y/scripts/release/install.ps1 | powershell -command -
++curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.ps1 | powershell -command -
+ ```
+ 
+-The provided scripts use a sliding git tag `vX.Y`, to allow for automatic patch version updates, however a fixed tag `vX.Y.Z` is also available.
++The provided scripts use a sliding git tag `v0.1`, to allow for automatic patch version updates, however a fixed tag `v0.1.0` is also available.
+ 
+
+=== docs/book/src/usage/lint-crate-declaration.md ===
+ # An external crate from a registry
+-marker_lints = "X.Y.Z"
++marker_lints = "0.1.0"
+ 
+ # An external crate from a registry
+-cargo marker --lint "marker_lints = 'X.Y.Z'"
++cargo marker --lint "marker_lints = '0.1.0'"
+ 
+
+=== docs/internal/release.md ===
+ <!-- region replace-version stable -->
+-This [`install.sh`](https://raw.githubusercontent.com/rust-marker/marker/vX.Y.Z/scripts/release/install.sh) script, can be used to automatically download and verify Marker's binaries.
++This [`install.sh`](https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.sh) script, can be used to automatically download and verify Marker's binaries.
+ <!-- endregion replace-version stable -->
+
+=== marker_api/README.md ===
+ [dependencies]
+-marker_api = "X.Y.Z"
+-marker_utils = "X.Y.Z"
++marker_api = "0.1.0"
++marker_utils = "0.1.0"
+ ```
+
+=== marker_lints/README.md ===
+ [workspace.metadata.marker.lints]
+-marker_lints = "X.Y.Z"
++marker_lints = "0.1.0"
+ ```
+
+=== marker_uitest/README.md ===
+ [dev-dependencies]
+-marker_uitest = "X.Y.Z"
++marker_uitest = "0.1.0"
+ 
+
+=== marker_utils/README.md ===
+ [dependencies]
+-marker_api = "X.Y.Z"
++marker_api = "0.1.0"
+ ```
+ [workspace.metadata.marker.lints]
+-marker_lints = "X.Y.Z"
++marker_lints = "0.1.0"
+ ```
+
+=== scripts/release/install.ps1 ===
+ # region replace-version unstable
+-$version = "X.Y.Z"
++$version = "0.1.0"
+ # endregion replace-version unstable
+
+=== scripts/release/install.sh ===
+ # region replace-version unstable
+-version=X.Y.Z
++version=0.1.0
+ # endregion replace-version unstable

@@ -21,50 +21,14 @@
 * **Automatic Lint-Crate Compilation**: *cargo_marker* automatically fetches and builds specified lint crates, streamlining the process of incorporating additional linting rules into your project.
 * **User-Friendly Setup**: *cargo_marker* can automatically set up the driver and toolchain, allowing you to focus on writing quality code. (This version will setup rustc's driver for `nightly-2023-08-24`)
 
+[Clippy]: https://github.com/rust-lang/rust-clippy
+
 ## Usage
 
-<!-- Please keep this section in sync with the main readme -->
+See the installation and usage instructions in the [main Marker repository README][Marker].
+Installation and usage instructions are available in [The Marker Book].
 
-The following is an abbreviated guide. Check out [The Marker Book] for detailed instructions and additional information.
-
-[The Marker Book]: rust-marker.github.io/marker/book
-
-### Installation
-
-```sh
-cargo install cargo_marker
-
-# Automatically setup the toolchain and driver
-cargo marker setup --auto-install-toolchain
-```
-
-### Specifying lints
-
-Marker requires lint crates to be specified. The best way is to add them to the `Cargo.toml` file, like this:
-
-<!-- region replace-version stable -->
-```toml
-[workspace.metadata.marker.lints]
-# A local crate as a path
-marker_lints = { path = './marker_lints' }
-# An external crate via git
-marker_lints = { git = "https://github.com/rust-marker/marker" }
-# An external crate from a registry
-marker_lints = "0.2.1"
-```
-<!-- endregion replace-version stable -->
-
-### Running Marker
-
-Running Marker is as simple as running its sibling *[Clippy]*. Navigate to your Rust project directory and run the following command:
-
-```sh
-cargo marker
-```
-
-This will initialize Marker, compile the lint crates and start linting.
-
-[Clippy]: https://github.com/rust-lang/rust-clippy
+[The Marker Book]: https://rust-marker.github.io/marker/book
 
 ## Contributing
 

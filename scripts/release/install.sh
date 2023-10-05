@@ -12,7 +12,7 @@
 # windows `install.ps1` script. If you modify this script, please check if the modifications
 # should also apply to the windows one.
 
-set -Eeuo pipefail
+set -euo pipefail
 
 # This script isn't meant to be run from `master`, but if it is, then
 # it will install the latest version be it a stable version or a pre-release.

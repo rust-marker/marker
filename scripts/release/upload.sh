@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -Eeuo pipefail
+set -euo pipefail
 
 script_dir=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
 
