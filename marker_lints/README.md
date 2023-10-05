@@ -28,7 +28,7 @@ To use `marker_lints` in your project, simply add it to your `Cargo.toml` under 
 <!-- region replace-version stable -->
 ```toml
 [workspace.metadata.marker.lints]
-marker_lints = "0.2.1"
+marker_lints = "0.3.0"
 ```
 <!-- endregion replace-version stable -->
 

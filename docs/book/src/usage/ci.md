@@ -11,18 +11,18 @@ Marker provides a GitHub Action that downloads the pre-compiled binaries and run
 <!-- region replace-version stable -->
 
 ```yml
-- uses: rust-marker/marker@v0.2
+- uses: rust-marker/marker@v0.3
 ```
 
 ### Git tags
 
 The git tag specified in the GitHub Action indicates which version of Marker should be installed. There are several tag flavors available:
 
-- **Sliding tags, like `v0.2` *(recommended)*:**
+- **Sliding tags, like `v0.3` *(recommended)*:**
 
   Use this to get automatic patch updates.
 
-- **Fixed tags, like `v0.2.1`:**
+- **Fixed tags, like `v0.3.0`:**
 
   Use this to pin a specific patch version. If you find a regression in a patch version, please create a [new issue]. Patch versions must never break anything!
 
@@ -111,7 +111,7 @@ curl \
     --show-error \
     --retry 5 \
     --retry-connrefused \
-    https://raw.githubusercontent.com/rust-marker/marker/v0.2/scripts/release/install.sh \
+    https://raw.githubusercontent.com/rust-marker/marker/v0.3/scripts/release/install.sh \
     | bash
 ```
 
@@ -124,7 +124,7 @@ curl.exe `
     --show-error `
     --retry 5 `
     --retry-connrefused `
-    https://raw.githubusercontent.com/rust-marker/marker/v0.2/scripts/release/install.ps1 `
+    https://raw.githubusercontent.com/rust-marker/marker/v0.3/scripts/release/install.ps1 `
     | powershell -command -
 ```
 

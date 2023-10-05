@@ -18,8 +18,8 @@ pub(crate) fn default_driver_info() -> DriverVersionInfo {
     DriverVersionInfo {
         toolchain: "nightly-2023-08-24".to_string(),
         // region replace-version dev
-        version: "0.3.0-dev".to_string(),
-        api_version: "0.3.0-dev".to_string(),
+        version: "0.3.0".to_string(),
+        api_version: "0.3.0".to_string(),
         // endregion replace-version dev
     }
 }

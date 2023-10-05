@@ -22,14 +22,14 @@ To get started, just include *marker_utils* as a dependency:
 <!-- region replace-version stable -->
 ```toml
 [dependencies]
-marker_api = "0.2.1"
+marker_api = "0.3.0"
 ```
 
 You can also add [marker_lints] as a lint crate, designed for this crate:
 
 ```toml
 [workspace.metadata.marker.lints]
-marker_lints = "0.2.1"
+marker_lints = "0.3.0"
 ```
 <!-- endregion replace-version stable -->
 
