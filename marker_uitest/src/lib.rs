@@ -2,7 +2,7 @@
 
 use std::{
     collections::HashMap,
-    env, fs,
+    env,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -31,7 +31,10 @@ macro_rules! simple_ui_test_config {
         $crate::simple_ui_test_config!("tests/ui");
     };
     ($ui_dir:expr) => {
-        $crate::simple_ui_test_config!("tests/ui", "./target/ui_test");
+        $crate::simple_ui_test_config!(
+            "tests/ui",
+            &std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "./target".into())
+        );
     };
     ($ui_dir:expr, $target_dir:expr) => {
         $crate::create_ui_test_config(
@@ -53,7 +56,7 @@ macro_rules! simple_ui_test_config {
 /// ```rust,ignore
 /// let config = create_ui_test_config(
 ///     PathBuf::from("tests/ui"),
-///     Path::new("./target/ui_test"),
+///     Path::new(std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "./target".into())),
 ///     env!("CARGO_PKG_NAME"),
 ///     Path::new(env!("CARGO_MANIFEST_DIR")),
 ///     marker_api::MARKER_API_VERSION,
@@ -82,6 +85,10 @@ pub fn create_ui_test_config(
         ui_test::OutputConflictHandling::Error("cargo test -- -- --bless".into())
     };
 
+    let ui_target_dir = target_dir.join("ui_test");
+    std::fs::create_dir_all(&ui_target_dir)?;
+    let ui_target_dir = std::fs::canonicalize(ui_target_dir)?;
+
     // Create config
     let mut config = ui_test::Config {
         mode: ui_test::Mode::Yolo {
@@ -90,7 +97,7 @@ pub fn create_ui_test_config(
         filter_files: env::var("TESTNAME")
             .map(|filters| filters.split(',').map(str::to_string).collect())
             .unwrap_or_default(),
-        out_dir: fs::canonicalize(target_dir)?,
+        out_dir: ui_target_dir,
         output_conflict_handling,
         ..ui_test::Config::rustc(ui_dir)
     };
