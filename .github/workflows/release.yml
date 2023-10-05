@@ -55,7 +55,7 @@ jobs:
           --commit "🚧 Development v${{ env.next_dev_version }}"
 
       # Push the changes to the remote
-      - run: git push origin ${{ github.ref_name }}
+      - run: git push origin ${{ github.ref_name }} --force-with-lease
 
       # We use `--force` because the tags that are pushed here will include the
       # sliding `v{major}` and `v{major}.{minor}` tags, so we have to overwrite
