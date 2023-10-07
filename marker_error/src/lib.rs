@@ -128,6 +128,22 @@ impl<Kind> Error<Kind> {
         })
     }
 
+    /// Accepts an iterator of errors and returns `Ok` if it is empty,
+    /// otherwise returns a single [`Error`] if it contains exactly one error,
+    /// and returns an error with many [`Error`]s inside if there are more than one.
+    pub fn try_many(errors: impl IntoIterator<Item = Self>, message: impl Into<String>) -> Result<(), Kind> {
+        let mut errors = errors.into_iter();
+        let Some(first) = errors.next() else {
+            return Ok(());
+        };
+
+        let Some(second) = errors.next() else {
+            return Err(first);
+        };
+
+        Err(Self::many([first, second].into_iter().chain(errors), message))
+    }
+
     /// Many related errors happened. They don't form the chain of causality, but
     /// they are related to each other.
     pub fn many(errors: impl IntoIterator<Item = Error<Kind>>, message: impl Into<String>) -> Self {

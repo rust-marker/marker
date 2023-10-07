@@ -15,6 +15,7 @@ marker_error = { workspace = true }
 marker_utils = { workspace = true }
 
 camino     = { workspace = true }
+itertools  = { workspace = true }
 libloading = { workspace = true }
 miette     = { workspace = true }
 thiserror  = { workspace = true }

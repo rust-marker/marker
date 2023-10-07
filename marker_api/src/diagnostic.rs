@@ -60,9 +60,9 @@ impl<'ast> DiagnosticBuilder<'ast> {
     ///   | ^^^^                 <-- The main span set by this function
     ///   |
     /// ```
-    pub fn span(&mut self, span: &Span<'ast>) -> &mut Self {
+    pub fn span(&mut self, span: impl HasSpan<'ast>) -> &mut Self {
         if let Some(inner) = self.inner.as_mut() {
-            inner.span = span.clone();
+            inner.span = span.span().clone();
         }
 
         self
@@ -111,11 +111,11 @@ impl<'ast> DiagnosticBuilder<'ast> {
     /// ```
     ///
     /// [`Self::note`] can be used to add text notes without a span.
-    pub fn span_note(&mut self, msg: impl Into<String>, span: &Span<'ast>) -> &mut Self {
+    pub fn span_note(&mut self, msg: impl Into<String>, span: impl HasSpan<'ast>) -> &mut Self {
         if let Some(inner) = self.inner.as_mut() {
             inner.parts.push(DiagnosticPart::NoteSpan {
                 msg: msg.into(),
-                span: span.clone(),
+                span: span.span().clone(),
             });
         }
 
@@ -167,11 +167,11 @@ impl<'ast> DiagnosticBuilder<'ast> {
     ///
     /// [`Self::help`] can be used to add a text help message without a [`Span`].
     /// [`Self::span_suggestion`] can be used to add a help message with a suggestion.
-    pub fn span_help(&mut self, msg: impl Into<String>, span: &Span<'ast>) -> &mut Self {
+    pub fn span_help(&mut self, msg: impl Into<String>, span: impl HasSpan<'ast>) -> &mut Self {
         if let Some(inner) = self.inner.as_mut() {
             inner.parts.push(DiagnosticPart::HelpSpan {
                 msg: msg.into(),
-                span: span.clone(),
+                span: span.span().clone(),
             });
         }
 
@@ -197,14 +197,14 @@ impl<'ast> DiagnosticBuilder<'ast> {
     pub fn span_suggestion(
         &mut self,
         msg: impl Into<String>,
-        span: &Span<'ast>,
+        span: impl HasSpan<'ast>,
         suggestion: impl Into<String>,
         app: Applicability,
     ) -> &mut Self {
         if let Some(inner) = self.inner.as_mut() {
             inner.parts.push(DiagnosticPart::Suggestion {
                 msg: msg.into(),
-                span: span.clone(),
+                span: span.span().clone(),
                 sugg: suggestion.into(),
                 app,
             });

@@ -60,6 +60,10 @@ pub struct Lint {
     /// See [`MacroReport`] for the possible levels.
     pub report_in_macro: MacroReport,
 
+    /// Fully qualiefied name name of the static variable that defines the lint.
+    /// It includes the module and the name of the variable.
+    pub fqn: &'static str,
+
     /// This struct should always be instantiated using the [`declare_lint`](crate::declare_lint)
     /// macro. This value is simply here, to force any construction to acknowledge the
     /// instability of manual construction.
@@ -118,6 +122,7 @@ macro_rules! declare_lint {
             default_level: $crate::common::Level::$LEVEL,
             explanation: concat!($($doc, '\n',)*),
             report_in_macro: $REPORT_IN_MACRO,
+            fqn: concat!(module_path!(), "::", stringify!($NAME)),
             _unstable_i_accept_the_risk_of_instability: (),
         };
     };

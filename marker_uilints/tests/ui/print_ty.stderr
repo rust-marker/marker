@@ -998,5 +998,39 @@ Path(
 )
 
 
-warning: 6 warnings emitted
+warning: printing type for
+  --> $DIR/print_ty.rs:19:31
+   |
+19 | static PRINT_TYPE_GROUPED_1: (u32) = 0;
+   |                               ^^^
+
+Num(
+    NumTy {
+        data: CommonSynTyData {
+            _lifetime: PhantomData<&()>,
+            span: SpanId(..),
+        },
+        numeric_kind: U32,
+    },
+)
+
+
+warning: printing type for
+  --> $DIR/print_ty.rs:20:32
+   |
+20 | static PRINT_TYPE_GROUPED_2: ((u32)) = 0;
+   |                                ^^^
+
+Num(
+    NumTy {
+        data: CommonSynTyData {
+            _lifetime: PhantomData<&()>,
+            span: SpanId(..),
+        },
+        numeric_kind: U32,
+    },
+)
+
+
+warning: 8 warnings emitted
 

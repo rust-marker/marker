@@ -1,7 +1,8 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-use crate::{common::SpanId, private::Sealed, span::Span};
+use crate::span::{HasSpan, Span};
+use crate::{common::SpanId, private::Sealed};
 
 mod other_ty;
 mod prim_ty;
@@ -20,15 +21,12 @@ pub use user_ty::*;
 ///
 /// This trait is only meant to be implemented inside this crate. The `Sealed`
 /// super trait prevents external implementations.
-pub trait TyData<'ast>: Debug + Sealed {
+pub trait TyData<'ast>: Debug + HasSpan<'ast> + Sealed {
     /// Returns `&self` wrapped in it's [`TyKind`] variant.
     ///
     /// In function parameters, it's recommended to use `Into<SynTyKind<'ast>>`
     /// as a bound to support all expressions and `SynTyKind<'ast>` as parameters.
     fn as_kind(&'ast self) -> TyKind<'ast>;
-
-    /// The [`Span`] of the type, if it's written in the source code.
-    fn span(&self) -> &Span<'ast>;
 }
 
 #[repr(C)]
@@ -129,11 +127,42 @@ impl<'ast> TyKind<'ast> {
     pub fn is_inferred(&self) -> bool {
         matches!(self, Self::Inferred(..))
     }
+
+    /// Peel off all reference types in this type until there are none left.
+    ///
+    /// This method is idempotent, i.e. `ty.peel_refs().peel_refs() == ty.peel_refs()`.
+    ///
+    /// # Examples
+    ///
+    /// - `u8` -> `u8`
+    /// - `&'a mut u8` -> `u8`
+    /// - `&'a &'b u8` -> `u8`
+    /// - `&'a *const &'b u8 -> *const &'b u8`
+    ///
+    /// # Acknowledgements
+    ///
+    /// This method was based on rustc's internal [`peel_refs`] method.
+    ///
+    /// [`peel_refs`]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html#method.peel_refs
+    #[must_use]
+    pub fn peel_refs(self) -> Self {
+        // XXX: exactly the same `peel_refs` method exists on `sem::TyKind`.
+        // If you modify this method here, please check if the modifications
+        // should also apply to `sem::TyKind` as well.
+
+        let mut ty = self;
+        while let Self::Ref(ref_ty) = ty {
+            ty = ref_ty.inner_ty();
+        }
+        ty
+    }
 }
 
 impl<'ast> TyKind<'ast> {
     impl_syn_ty_data_fn!(span() -> &Span<'ast>);
 }
+
+crate::span::impl_spanned_for!(TyKind<'ast>);
 
 /// Until [trait upcasting](https://github.com/rust-lang/rust/issues/65991) has been implemented
 /// and stabilized we need this to call [`SynTyData`] functions for every [`SynTyKind`].
@@ -182,11 +211,9 @@ macro_rules! impl_ty_data {
             fn as_kind(&'ast self) -> $crate::ast::ty::TyKind<'ast> {
                 self.into()
             }
-
-            fn span(&self) -> &$crate::span::Span<'ast> {
-                $crate::context::with_cx(self, |cx| cx.span(self.data.span))
-            }
         }
+
+        $crate::span::impl_has_span_via_field!($self_ty, data.span);
 
         impl<'ast> $crate::private::Sealed for $self_ty {}
 

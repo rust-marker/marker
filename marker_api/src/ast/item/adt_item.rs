@@ -169,7 +169,6 @@ impl<'ast> HasSpan<'ast> for EnumVariant<'ast> {
 }
 
 crate::common::impl_identifiable_for!(EnumVariant<'ast>);
-impl<'ast> crate::private::Sealed for EnumVariant<'ast> {}
 
 #[cfg(feature = "driver-api")]
 impl<'ast> EnumVariant<'ast> {
@@ -320,7 +319,6 @@ impl<'ast> HasSpan<'ast> for ItemField<'ast> {
 }
 
 crate::common::impl_identifiable_for!(ItemField<'ast>);
-impl<'ast> crate::private::Sealed for ItemField<'ast> {}
 
 #[cfg(feature = "driver-api")]
 impl<'ast> ItemField<'ast> {

@@ -26,6 +26,12 @@ The following components are considered to be internal and they are excluded fro
 The [v0.4.0 milestone] contains a list of planned changes.
 
 [v0.4.0 milestone]: https://github.com/rust-marker/marker/milestone/4
+[#278]: https://github.com/rust-marker/marker/pull/278
+
+### Breaking Changes
+- [#278]: Moved the `span()` method from the inherent impl to `HasSpan` trait for `ClosureParam`, `FnParam`, `StructFieldPat`.
+- [#278]: The trait `TyData` no longer has own `span()` method, but instead requires `HasSpan` as a supertrait.
+- [#278]: All public methods that took `&Span` as a parameter now take `impl HasSpan`. This is a minor breaking change, as `&Span` implements `HasSpan`, but if you relied on type inference based on the function parameter type, then making a method generic may break your code.
 
 ## [0.3.0] - 2023-10-05
 

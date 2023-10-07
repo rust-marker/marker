@@ -1,5 +1,6 @@
 use crate::error::prelude::*;
 use camino::Utf8PathBuf;
+use itertools::Itertools;
 use libloading::Library;
 use marker_api::{LintCrateBindings, MarkerContext};
 use marker_api::{LintPass, LintPassInfo, MARKER_API_VERSION};
@@ -61,6 +62,22 @@ impl LintCrateRegistry {
         for krate in lint_crates {
             new_self.passes.push(LoadedLintCrate::try_from_info(krate.clone())?);
         }
+
+        let lint_passes = new_self.collect_lint_pass_info();
+
+        let errors = lint_passes
+            .iter()
+            .flat_map(LintPassInfo::lints)
+            .into_group_map_by(|lint| lint.name.to_ascii_lowercase())
+            .into_iter()
+            .filter(|(_, lints)| lints.len() > 1)
+            .map(|(lint_name, lints)| {
+                let defs = lints.iter().map(|lint| format!("- {}", lint.fqn)).format("\n");
+
+                Error::root(format!("The lint `{lint_name}` is defined multiple times:\n{defs}",))
+            });
+
+        Error::try_many(errors, "Found several lint name conflicts")?;
 
         Ok(new_self)
     }
