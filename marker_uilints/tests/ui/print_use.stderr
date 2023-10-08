@@ -1,0 +1,107 @@
+warning: printing item
+ --> $DIR/print_use.rs:1:36
+  |
+1 | use std::collections::{BTreeMap as PrintMeBTreeMap, HashMap as PrintMeHashMap};
+  |                                    ^^^^^^^^^^^^^^^
+  |
+  = note: Use(
+              UseItem {
+                  data: CommonItemData {
+                      id: ItemId(..),
+                      span: SpanId(..),
+                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      ident: Ident {
+                          name: "PrintMeBTreeMap",
+                          span: $DIR/print_use.rs:1:36 - 1:51,
+                      },
+                  },
+                  use_path: AstPath {
+                      segments: [
+                          AstPathSegment {
+                              ident: Ident {
+                                  name: "std",
+                                  span: $DIR/print_use.rs:1:5 - 1:8,
+                              },
+                              generics: GenericArgs {
+                                  args: [],
+                              },
+                          },
+                          AstPathSegment {
+                              ident: Ident {
+                                  name: "collections",
+                                  span: $DIR/print_use.rs:1:10 - 1:21,
+                              },
+                              generics: GenericArgs {
+                                  args: [],
+                              },
+                          },
+                          AstPathSegment {
+                              ident: Ident {
+                                  name: "BTreeMap",
+                                  span: $DIR/print_use.rs:1:24 - 1:32,
+                              },
+                              generics: GenericArgs {
+                                  args: [],
+                              },
+                          },
+                      ],
+                  },
+                  use_kind: Single,
+              },
+          )
+  = note: `#[warn(marker::test_lint)]` on by default
+
+warning: printing item
+ --> $DIR/print_use.rs:1:64
+  |
+1 | use std::collections::{BTreeMap as PrintMeBTreeMap, HashMap as PrintMeHashMap};
+  |                                                                ^^^^^^^^^^^^^^
+  |
+  = note: Use(
+              UseItem {
+                  data: CommonItemData {
+                      id: ItemId(..),
+                      span: SpanId(..),
+                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      ident: Ident {
+                          name: "PrintMeHashMap",
+                          span: $DIR/print_use.rs:1:64 - 1:78,
+                      },
+                  },
+                  use_path: AstPath {
+                      segments: [
+                          AstPathSegment {
+                              ident: Ident {
+                                  name: "std",
+                                  span: $DIR/print_use.rs:1:5 - 1:8,
+                              },
+                              generics: GenericArgs {
+                                  args: [],
+                              },
+                          },
+                          AstPathSegment {
+                              ident: Ident {
+                                  name: "collections",
+                                  span: $DIR/print_use.rs:1:10 - 1:21,
+                              },
+                              generics: GenericArgs {
+                                  args: [],
+                              },
+                          },
+                          AstPathSegment {
+                              ident: Ident {
+                                  name: "HashMap",
+                                  span: $DIR/print_use.rs:1:53 - 1:60,
+                              },
+                              generics: GenericArgs {
+                                  args: [],
+                              },
+                          },
+                      ],
+                  },
+                  use_kind: Single,
+              },
+          )
+
+warning: 2 warnings emitted
+
