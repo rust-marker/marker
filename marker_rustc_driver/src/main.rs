@@ -78,7 +78,7 @@ impl rustc_driver::Callbacks for MarkerCallback {
             register_tracked_files(sess, &lint_crates);
         }));
 
-        // Make it possible to use `#[allow(marker::{lint_name}]` without
+        // Make it possible to use `#[allow(marker::{lint_name})]` without
         // having to add `#![feature(register_tool)]` and `#![register_tool(marker)]`.
         config.override_queries = Some(|_sess, providers, _extern_providers| {
             // We have to do the dance with a static because `registered_tools` is
