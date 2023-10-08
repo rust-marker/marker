@@ -49,7 +49,7 @@ $ErrorActionPreference = "Stop"
 $version = "0.3.0"
 # endregion replace-version unstable
 
-$toolchain = "nightly-2023-08-24"
+$toolchain = "nightly-2023-10-05"
 
 # Log the command, execute, and fail if its exit code is non-zero.
 # Surprisingly PowerShell can't do the exit code checks for us out of the box.

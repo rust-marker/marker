@@ -175,7 +175,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let header = fn_sig.header;
         let return_ty = if let hir::FnRetTy::Return(rust_ty) = fn_sig.decl.output {
             // Unwrap `impl Future<Output = <ty>>` for async
-            if let hir::IsAsync::Async = header.asyncness
+            if let hir::IsAsync::Async(_) = header.asyncness
                 && let hir::TyKind::OpaqueDef(item_id, _bounds, _) = rust_ty.kind
                 && let item = self.rustc_cx.hir().item(item_id)
                 && let hir::ItemKind::OpaqueTy(opty) = &item.kind

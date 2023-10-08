@@ -6,7 +6,7 @@ then
     exit 1
 fi
 
-sed -i "s/nightly-2023-08-24/$1/g" \
+sed -i "s/nightly-2023-10-05/$1/g" \
     ./marker_rustc_driver/src/main.rs \
     ./marker_rustc_driver/README.md \
     ./rust-toolchain.toml \

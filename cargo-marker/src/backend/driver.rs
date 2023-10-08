@@ -16,7 +16,7 @@ pub fn marker_driver_bin_name() -> String {
 /// to install the driver.
 pub(crate) fn default_driver_info() -> DriverVersionInfo {
     DriverVersionInfo {
-        toolchain: "nightly-2023-08-24".to_string(),
+        toolchain: "nightly-2023-10-05".to_string(),
         // region replace-version dev
         version: "0.4.0-dev".to_string(),
         api_version: "0.4.0-dev".to_string(),

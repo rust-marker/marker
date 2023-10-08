@@ -20,7 +20,7 @@ set -euo pipefail
 version=0.3.0
 # endregion replace-version unstable
 
-toolchain=nightly-2023-08-24
+toolchain=nightly-2023-10-05
 
 function step {
     local cmd="$1"
