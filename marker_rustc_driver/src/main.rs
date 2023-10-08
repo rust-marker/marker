@@ -46,7 +46,7 @@ use rustc_session::config::ErrorOutputType;
 use rustc_session::EarlyErrorHandler;
 
 use crate::conversion::rustc::RustcConverter;
-use std::sync::OnceLock;
+use std::cell::OnceCell;
 
 // region replace rust toolchain dev
 const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-08-24";
@@ -83,22 +83,28 @@ impl rustc_driver::Callbacks for MarkerCallback {
         config.override_queries = Some(|_sess, providers, _extern_providers| {
             // We have to do the dance with a static because `registered_tools` is
             // required to be a stateless function pointer.
-            static ORIG_TOOLS: OnceLock<fn(rustc_middle::ty::TyCtxt<'_>, ()) -> rustc_lint_defs::RegisteredTools> =
-                OnceLock::new();
 
-            ORIG_TOOLS
-                .set(providers.registered_tools)
-                .expect("we assume `override_queries` is called only once");
+            thread_local! {
+                static ORIG_TOOLS: OnceCell<fn(rustc_middle::ty::TyCtxt<'_>, ()) -> rustc_lint_defs::RegisteredTools>
+                    = OnceCell::new();
+            }
+
+            ORIG_TOOLS.with(|cell| {
+                cell.set(providers.registered_tools)
+                    .expect("we assume `override_queries` is called only once");
+            });
 
             providers.registered_tools = |tcx, ()| {
-                let orig_tools = ORIG_TOOLS
-                    .get()
-                    .expect("ORIG must have been initialized before this callback was even set");
+                ORIG_TOOLS.with(|it| {
+                    let orig_tools = it
+                        .get()
+                        .expect("ORIG must have been initialized before this callback was even set");
 
-                let mut orig_tools = orig_tools(tcx, ());
-                let marker = rustc_span::symbol::Ident::from_str("marker");
-                orig_tools.insert(marker);
-                orig_tools
+                    let mut orig_tools = orig_tools(tcx, ());
+                    let marker = rustc_span::symbol::Ident::from_str("marker");
+                    orig_tools.insert(marker);
+                    orig_tools
+                })
             };
         });
 
