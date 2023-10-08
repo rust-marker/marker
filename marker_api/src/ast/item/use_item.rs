@@ -19,6 +19,11 @@ use super::CommonItemData;
 /// // `use_kind()` -> `Single`
 /// ```
 ///
+/// There is a separate [`UseItem`] per each path in a `use` declaration.
+/// For example, if you have `use foo::{bar, baz};` there will be two [`UseItem`]s
+/// one for `bar` and one for `baz` and they will share a prefix in their
+/// [`UseItem::use_path()`].
+///
 /// See <https://doc.rust-lang.org/stable/reference/items/use-declarations.html>
 #[repr(C)]
 #[derive(Debug)]
