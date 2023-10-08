@@ -97,7 +97,7 @@ impl rustc_driver::Callbacks for MarkerCallback {
                 ORIG_TOOLS.with(|it| {
                     let orig_tools = it
                         .get()
-                        .expect("ORIG must have been initialized before this callback was even set");
+                        .expect("ORIG_TOOLS must have been initialized before this callback was even set");
 
                     let mut orig_tools = orig_tools(tcx, ());
                     let marker = rustc_span::symbol::Ident::from_str("marker");
