@@ -32,13 +32,14 @@ macro_rules! simple_ui_test_config {
     };
     ($ui_dir:expr) => {
         $crate::simple_ui_test_config!(
-            "tests/ui",
+            $ui_dir,
             &std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "./target".into())
         );
     };
     ($ui_dir:expr, $target_dir:expr) => {
         $crate::create_ui_test_config(
-            std::path::PathBuf::from($ui_dir),
+            // Normalize path separators
+            std::path::PathBuf::from_iter(std::path::Path::new($ui_dir)),
             std::path::Path::new($target_dir),
             env!("CARGO_PKG_NAME"),
             std::path::Path::new(env!("CARGO_MANIFEST_DIR")),
