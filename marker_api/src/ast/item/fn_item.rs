@@ -1,9 +1,7 @@
 use crate::{
     ast::{generic::GenericParams, pat::PatKind, ty::TyKind},
     common::{Abi, BodyId, Constness, Safety, SpanId, Syncness},
-    context::with_cx,
     ffi::{FfiOption, FfiSlice},
-    prelude::Span,
 };
 
 use super::CommonItemData;
@@ -173,10 +171,6 @@ pub struct FnParam<'ast> {
 }
 
 impl<'ast> FnParam<'ast> {
-    pub fn span(&self) -> &Span<'ast> {
-        with_cx(self, |cx| cx.span(self.span))
-    }
-
     pub fn pat(&self) -> PatKind<'ast> {
         self.pat
     }
@@ -185,6 +179,8 @@ impl<'ast> FnParam<'ast> {
         self.ty
     }
 }
+
+crate::span::impl_has_span_via_field!(FnParam<'ast>);
 
 #[cfg(feature = "driver-api")]
 impl<'ast> FnParam<'ast> {

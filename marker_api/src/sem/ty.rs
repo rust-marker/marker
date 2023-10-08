@@ -79,3 +79,34 @@ pub enum TyKind<'ast> {
     /// and therefor not represented as part of the API.
     Unstable(&'ast UnstableTy<'ast>),
 }
+
+impl<'ast> TyKind<'ast> {
+    /// Peel off all reference types in this type until there are none left.
+    ///
+    /// This method is idempotent, i.e. `ty.peel_refs().peel_refs() == ty.peel_refs()`.
+    ///
+    /// # Examples
+    ///
+    /// - `u8` -> `u8`
+    /// - `&'a mut u8` -> `u8`
+    /// - `&'a &'b u8` -> `u8`
+    /// - `&'a *const &'b u8 -> *const &'b u8`
+    ///
+    /// # Acknowledgements
+    ///
+    /// This method was based on rustc's internal [`peel_refs`] method.
+    ///
+    /// [`peel_refs`]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html#method.peel_refs
+    #[must_use]
+    pub fn peel_refs(self) -> Self {
+        // XXX: exactly the same `peel_refs` method exists on `ast::TyKind`.
+        // If you modify this method here, please check if the modifications
+        // should also apply to `ast::TyKind` as well.
+
+        let mut ty = self;
+        while let Self::Ref(ref_ty) = ty {
+            ty = ref_ty.inner_ty();
+        }
+        ty
+    }
+}

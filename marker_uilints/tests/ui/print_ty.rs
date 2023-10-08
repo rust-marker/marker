@@ -16,6 +16,8 @@ static PRINT_TYPE_COMPLEX: Option<
         Box<dyn Iterator<Item = i32> + 'static>,
     )>,
 > = None;
+static PRINT_TYPE_GROUPED_1: (u32) = 0;
+static PRINT_TYPE_GROUPED_2: ((u32)) = 0;
 
 type AliasTy = (u8, u16);
 

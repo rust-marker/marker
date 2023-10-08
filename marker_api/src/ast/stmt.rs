@@ -55,7 +55,6 @@ impl<'ast> StmtKind<'ast> {
 
 crate::span::impl_spanned_for!(StmtKind<'ast>);
 crate::common::impl_identifiable_for!(StmtKind<'ast>);
-impl<'ast> crate::private::Sealed for StmtKind<'ast> {}
 
 #[repr(C)]
 #[derive(Debug)]
@@ -81,12 +80,7 @@ macro_rules! impl_stmt_data {
             }
         }
 
-        impl<'ast> $crate::span::HasSpan<'ast> for $self_ty {
-            fn span(&self) -> &crate::span::Span<'ast> {
-                $crate::context::with_cx(self, |cx| cx.span(self.data.span))
-            }
-        }
-
+        $crate::span::impl_has_span_via_field!($self_ty, data.span);
         $crate::common::impl_identifiable_for!($self_ty, use StmtData);
 
         impl<'ast> From<&'ast $self_ty> for $crate::ast::stmt::StmtKind<'ast> {

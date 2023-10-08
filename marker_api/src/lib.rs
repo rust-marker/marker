@@ -7,10 +7,22 @@
 #![allow(clippy::missing_panics_doc)] // Temporary allow for `todo!`s
 #![allow(clippy::new_without_default)] // Not very helpful as `new` is almost always cfged
 #![cfg_attr(not(feature = "driver-api"), allow(dead_code))]
+// FIXME(#26): this is commented out because it is the lint that we want to enable
+// here makes sense only on a public items, but it triggers of private/pub(crate)
+// methods today. There isn't a way to inspect the item visibility in this lint's
+// impl yet. Once #26 is done and lint impl ignores private functions we may enable
+// this lint.
+// #![cfg_attr(
+//     marker,
+//     feature(register_tool),
+//     register_tool(marker),
+//     warn(marker::not_using_has_span_trait)
+// )]
 
 pub static MARKER_API_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 mod interface;
+mod private;
 pub use interface::*;
 mod lint;
 pub use lint::*;
@@ -42,16 +54,6 @@ pub trait LintPass {
     fn check_body<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _body: &'ast ast::Body<'ast>) {}
     fn check_stmt<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _stmt: ast::StmtKind<'ast>) {}
     fn check_expr<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _expr: ast::ExprKind<'ast>) {}
-}
-
-pub(crate) mod private {
-    /// A private super trait, to prevent other creates from implementing Marker's
-    /// API traits.
-    ///
-    /// See: [Sealed traits](https://rust-lang.github.io/api-guidelines/future-proofing.html)
-    pub trait Sealed {}
-
-    impl<N: Sealed> Sealed for &N {}
 }
 
 /// This struct blocks the construction of enum variants, similar to the `#[non_exhaustive]`

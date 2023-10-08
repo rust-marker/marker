@@ -97,7 +97,6 @@ impl<'ast> ExprKind<'ast> {
 
 crate::span::impl_spanned_for!(ExprKind<'ast>);
 crate::common::impl_identifiable_for!(ExprKind<'ast>);
-impl Sealed for ExprKind<'_> {}
 
 #[repr(C)]
 #[non_exhaustive]
@@ -123,7 +122,6 @@ impl<'ast> LitExprKind<'ast> {
 
 crate::span::impl_spanned_for!(LitExprKind<'ast>);
 crate::common::impl_identifiable_for!(LitExprKind<'ast>);
-impl Sealed for LitExprKind<'_> {}
 
 impl<'ast> From<LitExprKind<'ast>> for ExprKind<'ast> {
     fn from(value: LitExprKind<'ast>) -> Self {
@@ -332,11 +330,7 @@ macro_rules! impl_expr_data {
             }
         }
 
-        impl<'ast> $crate::span::HasSpan<'ast> for $self_ty {
-            fn span(&self) -> &crate::span::Span<'ast> {
-                $crate::context::with_cx(self, |cx| cx.span(self.data.span))
-            }
-        }
+        $crate::span::impl_has_span_via_field!($self_ty, data.span);
         $crate::common::impl_identifiable_for!($self_ty, use $crate::ast::expr::ExprData);
 
         impl<'ast> $crate::private::Sealed for $self_ty {}

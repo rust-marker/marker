@@ -3,7 +3,6 @@ use crate::{
     common::{SpanId, SymbolId},
     context::with_cx,
     ffi::FfiSlice,
-    span::Span,
 };
 
 use super::{CommonPatData, PatKind};
@@ -67,10 +66,6 @@ pub struct StructFieldPat<'ast> {
 }
 
 impl<'ast> StructFieldPat<'ast> {
-    pub fn span(&self) -> &Span<'ast> {
-        with_cx(self, |cx| cx.span(self.span))
-    }
-
     pub fn ident(&self) -> &str {
         with_cx(self, |cx| cx.symbol_str(self.ident))
     }
@@ -79,6 +74,8 @@ impl<'ast> StructFieldPat<'ast> {
         self.pat
     }
 }
+
+crate::span::impl_has_span_via_field!(StructFieldPat<'ast>);
 
 #[cfg(feature = "driver-api")]
 impl<'ast> StructFieldPat<'ast> {

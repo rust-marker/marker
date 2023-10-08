@@ -32,16 +32,7 @@ impl RustcLintPass {
     }
 
     pub fn marker_lints() -> Vec<&'static Lint> {
-        ADAPTER.with(|adapter| {
-            adapter
-                .get()
-                .unwrap()
-                .lint_pass_infos()
-                .iter()
-                .flat_map(marker_api::LintPassInfo::lints)
-                .copied()
-                .collect()
-        })
+        ADAPTER.with(|adapter| adapter.get().unwrap().marker_lints())
     }
 }
 

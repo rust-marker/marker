@@ -95,7 +95,6 @@ impl<'ast> ItemKind<'ast> {
 
 crate::span::impl_spanned_for!(ItemKind<'ast>);
 crate::common::impl_identifiable_for!(ItemKind<'ast>);
-impl<'ast> crate::private::Sealed for ItemKind<'ast> {}
 
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone)]
@@ -117,7 +116,6 @@ impl<'ast> AssocItemKind<'ast> {
 
 crate::span::impl_spanned_for!(AssocItemKind<'ast>);
 crate::common::impl_identifiable_for!(AssocItemKind<'ast>);
-impl<'ast> crate::private::Sealed for AssocItemKind<'ast> {}
 
 impl<'ast> From<AssocItemKind<'ast>> for ItemKind<'ast> {
     fn from(value: AssocItemKind<'ast>) -> Self {
@@ -147,7 +145,6 @@ impl<'ast> ExternItemKind<'ast> {
 
 crate::span::impl_spanned_for!(ExternItemKind<'ast>);
 crate::common::impl_identifiable_for!(ExternItemKind<'ast>);
-impl<'ast> crate::private::Sealed for ExternItemKind<'ast> {}
 
 impl<'ast> From<ExternItemKind<'ast>> for ItemKind<'ast> {
     fn from(value: ExternItemKind<'ast>) -> Self {

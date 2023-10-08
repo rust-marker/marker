@@ -395,7 +395,6 @@ impl<'ast> HasSpan<'ast> for Span<'ast> {
         self
     }
 }
-impl Sealed for Span<'_> {}
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Span<'ast> {
@@ -527,7 +526,6 @@ impl<'ast> HasSpan<'ast> for Ident<'ast> {
         with_cx(self, |cx| cx.span(self.span))
     }
 }
-impl<'ast> crate::private::Sealed for Ident<'ast> {}
 
 #[cfg(feature = "driver-api")]
 impl<'ast> Ident<'ast> {
@@ -585,11 +583,45 @@ impl_ident_eq_for!(
     std::borrow::Cow<'_, str>
 );
 
-/// A trait for nodes, that provide a [`Span`].
+/// A trait for types, that provide a [`Span`]. It is implemented for all
+/// AST nodes, [`Span`] itself, and for references to them as well.
+///
+/// This gives you the ability to invoke functions that take `impl HasSpan`
+/// in many different ways. Just choose the one that fits your use case the best.
+///
+/// ```
+/// # use marker_api::prelude::*;
+///
+/// fn takes_span<'ast>(span: impl HasSpan<'ast>) {
+///     let span: &Span<'ast> = span.span();
+///     // ...
+/// }
+///
+/// fn visit_expr(expr: ExprKind<'_>) {
+///     takes_span(expr);
+///     takes_span(&expr);
+///     takes_span(expr.span());
+///     takes_span(&expr.span());
+/// }
+/// ```
 pub trait HasSpan<'ast>: Sealed {
     /// This returns the [`Span`] of the implementing AST node.
     fn span(&self) -> &Span<'ast>;
 }
+
+macro_rules! impl_has_span_via_field {
+    ($ty:ty) => {
+        $crate::span::impl_has_span_via_field!($ty, span);
+    };
+    ($ty:ty, $($field_access:ident).*) => {
+        impl<'ast> $crate::span::HasSpan<'ast> for $ty {
+            fn span(&self) -> &$crate::span::Span<'ast> {
+                $crate::context::with_cx(self, |cx| cx.span(self.$($field_access).*))
+            }
+        }
+    }
+}
+pub(crate) use impl_has_span_via_field;
 
 /// This macro implements the [`HasSpan`] trait for data types, that provide a
 /// `span()` method.

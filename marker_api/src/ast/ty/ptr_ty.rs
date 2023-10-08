@@ -1,10 +1,8 @@
 use crate::{
     ast::generic::Lifetime,
     common::{Abi, Mutability, Safety, SpanId},
-    context::with_cx,
     ffi::{FfiOption, FfiSlice},
-    private::Sealed,
-    span::{HasSpan, Ident},
+    span::Ident,
 };
 
 use super::{CommonSynTyData, TyKind};
@@ -151,9 +149,4 @@ impl<'ast> FnTyParameter<'ast> {
     }
 }
 
-impl Sealed for FnTyParameter<'_> {}
-impl<'ast> HasSpan<'ast> for FnTyParameter<'ast> {
-    fn span(&self) -> &crate::span::Span<'ast> {
-        with_cx(self, |cx| cx.span(self.span))
-    }
-}
+crate::span::impl_has_span_via_field!(FnTyParameter<'ast>);

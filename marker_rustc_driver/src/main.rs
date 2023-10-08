@@ -80,17 +80,24 @@ impl rustc_driver::Callbacks for MarkerCallback {
         // code is executed.
         assert!(config.register_lints.is_none());
         let lint_crates = std::mem::take(&mut self.lint_crates);
+
         config.register_lints = Some(Box::new(move |_sess, lint_store| {
             // It looks like it can happen, that the `config` function is called
             // with a different thread than the actual lint pass later, how interesting.
             // This will not make sure that the adapter is always initiated.
-            lint_pass::RustcLintPass::init_adapter(&lint_crates).unwrap();
+            if let Err(err) = lint_pass::RustcLintPass::init_adapter(&lint_crates) {
+                err.print();
+                // FIXME: we need to figure out the way to run the initialization code
+                // earlier where we can cleanly report an error and exit the process.
+                std::process::exit(1);
+            }
             // Register lints from lint crates. This is required to have rustc track
             // the lint level correctly.
             let lints: Vec<_> = lint_pass::RustcLintPass::marker_lints()
                 .into_iter()
                 .map(RustcConverter::static_to_lint)
                 .collect();
+
             lint_store.register_lints(&lints);
 
             lint_store.register_late_pass(|_| Box::new(lint_pass::RustcLintPass));

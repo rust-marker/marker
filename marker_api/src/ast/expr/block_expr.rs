@@ -1,9 +1,8 @@
 use crate::{
     ast::{pat::PatKind, stmt::StmtKind, ty::TyKind},
     common::{BodyId, Safety, SpanId, Syncness},
-    context::with_cx,
     ffi::{FfiOption, FfiSlice},
-    span::{Ident, Span},
+    span::Ident,
 };
 
 use super::{CommonExprData, ExprKind};
@@ -218,10 +217,6 @@ pub struct ClosureParam<'ast> {
 }
 
 impl<'ast> ClosureParam<'ast> {
-    pub fn span(&self) -> &Span<'ast> {
-        with_cx(self, |cx| cx.span(self.span))
-    }
-
     pub fn pat(&self) -> PatKind<'ast> {
         self.pat
     }
@@ -230,6 +225,8 @@ impl<'ast> ClosureParam<'ast> {
         self.ty.copy()
     }
 }
+
+crate::span::impl_has_span_via_field!(ClosureParam<'ast>);
 
 #[cfg(feature = "driver-api")]
 impl<'ast> ClosureParam<'ast> {

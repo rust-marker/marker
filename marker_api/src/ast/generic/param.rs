@@ -119,8 +119,6 @@ impl<'ast> SynGenericParamData<'ast> for TyParam<'ast> {
     }
 }
 
-impl Sealed for TyParam<'_> {}
-
 impl<'ast> From<&'ast TyParam<'ast>> for GenericParamKind<'ast> {
     fn from(src: &'ast TyParam<'ast>) -> Self {
         Self::Ty(src)
@@ -171,8 +169,6 @@ impl<'ast> SynGenericParamData<'ast> for LifetimeParam<'ast> {
     }
 }
 
-impl Sealed for LifetimeParam<'_> {}
-
 impl<'ast> From<&'ast LifetimeParam<'ast>> for GenericParamKind<'ast> {
     fn from(src: &'ast LifetimeParam<'ast>) -> Self {
         Self::Lifetime(src)
@@ -212,8 +208,6 @@ impl<'ast> ConstParam<'ast> {
         self.default.get()
     }
 }
-
-impl Sealed for ConstParam<'_> {}
 
 impl<'ast> SynGenericParamData<'ast> for ConstParam<'ast> {
     fn span(&self) -> Option<&Span<'ast>> {
