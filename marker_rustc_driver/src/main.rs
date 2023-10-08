@@ -83,7 +83,6 @@ impl rustc_driver::Callbacks for MarkerCallback {
         config.override_queries = Some(|_sess, providers, _extern_providers| {
             // We have to do the dance with a static because `registered_tools` is
             // required to be a stateless function pointer.
-
             thread_local! {
                 static ORIG_TOOLS: OnceCell<fn(rustc_middle::ty::TyCtxt<'_>, ()) -> rustc_lint_defs::RegisteredTools>
                     = OnceCell::new();
