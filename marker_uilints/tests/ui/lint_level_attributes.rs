@@ -1,6 +1,3 @@
-#![feature(register_tool)]
-#![register_tool(marker)]
-
 const FIND_ME_DEFAULT: i32 = 0;
 
 #[allow(marker::marker_uilints::item_with_test_name)]

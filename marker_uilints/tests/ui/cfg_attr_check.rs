@@ -1,6 +1,3 @@
-#![cfg_attr(marker, feature(register_tool))]
-#![cfg_attr(marker, register_tool(marker))]
-
 mod allow_with_simple_attr {
     #[cfg_attr(marker, allow(marker::marker_uilints::item_with_test_name))]
     fn find_me_fn() {}

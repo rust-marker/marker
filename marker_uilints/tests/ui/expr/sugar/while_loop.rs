@@ -1,6 +1,3 @@
-#![feature(register_tool)]
-#![register_tool(marker)]
-
 fn main() {
     let mut something = Some(12);
 

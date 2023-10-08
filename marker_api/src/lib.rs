@@ -12,12 +12,7 @@
 // methods today. There isn't a way to inspect the item visibility in this lint's
 // impl yet. Once #26 is done and lint impl ignores private functions we may enable
 // this lint.
-// #![cfg_attr(
-//     marker,
-//     feature(register_tool),
-//     register_tool(marker),
-//     warn(marker::not_using_has_span_trait)
-// )]
+// #![cfg_attr(marker, warn(marker::not_using_has_span_trait))]
 
 pub static MARKER_API_VERSION: &str = env!("CARGO_PKG_VERSION");
 
