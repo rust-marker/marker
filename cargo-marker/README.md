@@ -16,10 +16,12 @@
 
 ## Key Features
 
+<!-- region replace rust toolchain release -->
 * **Simple CLI**: *cargo_marker* does all the heavy lifting for you, making custom code analysis, as simple as a single console command.
 * **Seamless Integration**: *cargo_marker* reuses Rust's existing infrastructure for linting, running Marker as part of your workflow is close to the effort needed for its sibling *[Clippy]*.
 * **Automatic Lint-Crate Compilation**: *cargo_marker* automatically fetches and builds specified lint crates, streamlining the process of incorporating additional linting rules into your project.
 * **User-Friendly Setup**: *cargo_marker* can automatically set up the driver and toolchain, allowing you to focus on writing quality code. (This version will setup rustc's driver for `nightly-2023-08-24`)
+<!-- endregion replace rust toolchain release -->
 
 [Clippy]: https://github.com/rust-lang/rust-clippy
 

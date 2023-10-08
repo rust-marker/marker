@@ -166,11 +166,11 @@ The following is a small collection of ways you can test Marker right now:
 
     Simply run Marker on any Rust project you can find and report bugs or unexpected behavior. Once you've installed Marker, you can use the following command to run Marker with the `marker_lints` lint crate:
 
-<!-- region replace-version stable -->
+<!-- region replace marker version stable -->
     ```sh
     cargo marker --lints "marker_lints = '0.3.0'"
     ```
-<!-- endregion replace-version stable -->
+<!-- endregion replace marker version stable -->
 
     If you find any bugs or unexpected behavior, please [create an issue]. [rust-marker/marker#198] is a collection of all crates that were linted successfully. You can also add your own crates to the ever-growing list by commenting on the issue.
 

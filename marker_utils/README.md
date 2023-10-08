@@ -19,7 +19,7 @@ Marker utils aims to be the standard library for the development of lint crates 
 
 To get started, just include *marker_utils* as a dependency:
 
-<!-- region replace-version stable -->
+<!-- region replace marker version stable -->
 ```toml
 [dependencies]
 marker_api = "0.3.0"
@@ -31,7 +31,7 @@ You can also add [marker_lints] as a lint crate, designed for this crate:
 [workspace.metadata.marker.lints]
 marker_lints = "0.3.0"
 ```
-<!-- endregion replace-version stable -->
+<!-- endregion replace marker version stable -->
 
 If you want to develop something with Marker, you might want to check out the [lint crate template] which already contains everything you need to get started.
 

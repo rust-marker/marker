@@ -28,7 +28,7 @@ For a full list of supported features and magic comments, please refer to the do
 
 First add `marker_utils` to the dev-dependencies of the lint crate, and specify that the ui-test doesn't require a test harness, like this:
 
-<!-- region replace-version stable -->
+<!-- region replace marker version stable -->
 ```toml
 [dev-dependencies]
 marker_uitest = "0.3.0"
@@ -37,7 +37,7 @@ marker_uitest = "0.3.0"
 name = "uitest"
 harness = false
 ```
-<!-- endregion replace-version stable -->
+<!-- endregion replace marker version stable -->
 
 ### Setup test file
 

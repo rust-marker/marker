@@ -17,7 +17,9 @@ The rustc driver for [Marker], an experimental linting interface for Rust. This 
 
 ## Toolchain
 
+<!-- region replace rust toolchain release -->
 The driver is linked to a specific nightly rust toolchain. The crate will be updated about every six weeks with a new release of Rust. This version of the driver has been developed for: `nightly-2023-08-24`
+<!-- endregion replace rust toolchain release -->
 
 ## Contributing
 
@@ -30,4 +32,3 @@ Copyright (c) 2022-2023 Rust-Marker
 Rust-marker is distributed under the terms of the MIT license or the Apache License (Version 2.0).
 
 See [LICENSE-APACHE](https://github.com/rust-marker/marker/blob/master/LICENSE-APACHE), [LICENSE-MIT](https://github.com/rust-marker/marker/blob/master/LICENSE-MIT).
-
