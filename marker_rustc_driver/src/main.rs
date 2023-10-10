@@ -320,7 +320,6 @@ fn try_main() -> Result<(), MainError> {
         // having to add `#![feature(register_tool)]` and `#![register_tool(marker)]`.
         "-Zcrate-attr=feature(register_tool)",
         "-Zcrate-attr=register_tool(marker)",
-
         // We need to provide a marker cfg flag to allow conditional compilation,
         // we add a simple `marker` config for the common use case, but also provide
         // `marker=crate_name` for more complex uses
