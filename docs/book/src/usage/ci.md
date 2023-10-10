@@ -133,4 +133,4 @@ curl.exe `
 The available version git tags that you may use in the URL are described in the [git tags](#git-tags) paragraph of the Github Action.
 
 [new issue]: https://gitHub.com/rust-marker/marker/issues/new/choose
-[OS images supported by managed GitHub Actions runners]: https://docs.gitHub.com/en/actions/using-gitHub-hosted-runners/about-gitHub-hosted-runners/about-gitHub-hosted-runners#supported-runners-and-hardware-resources
+[OS images supported by managed GitHub Actions runners]: https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
