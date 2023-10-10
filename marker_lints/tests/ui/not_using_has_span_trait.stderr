@@ -7,8 +7,8 @@ warning: use impl HasSpan instead of Span for more flexibility
 note: the lint level is defined here
   --> $DIR/not_using_has_span_trait.rs:5:10
    |
-5  |     warn(marker::not_using_has_span_trait)
-   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5  |     warn(marker::marker_lints::not_using_has_span_trait)
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: use impl HasSpan instead of Span for more flexibility
   --> $DIR/not_using_has_span_trait.rs:11:19

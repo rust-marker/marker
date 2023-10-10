@@ -118,7 +118,7 @@ warning: print test
                   capture_kind: Default,
               },
           )
-  = note: `#[warn(marker::test_lint)]` on by default
+  = note: `#[warn(marker::marker_uilints::test_lint)]` on by default
 
 warning: print test
   --> $DIR/print_loop_expr.rs:12:5

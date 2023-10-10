@@ -32,7 +32,7 @@ warning: printing item
                   ),
               },
           )
-  = note: `#[warn(marker::test_lint)]` on by default
+  = note: `#[warn(marker::marker_uilints::test_lint)]` on by default
 
 warning: printing item
  --> $DIR/print_fn_item.rs:3:21

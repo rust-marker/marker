@@ -2,7 +2,7 @@
     marker,
     feature(register_tool),
     register_tool(marker),
-    warn(marker::not_using_has_span_trait)
+    warn(marker::marker_lints::not_using_has_span_trait)
 )]
 
 use marker_api::prelude::*;

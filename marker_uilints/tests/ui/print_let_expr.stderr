@@ -17,7 +17,7 @@ warning: print test
                   ),
               },
           )
-  = note: `#[warn(marker::test_lint)]` on by default
+  = note: `#[warn(marker::marker_uilints::test_lint)]` on by default
 
 warning: print test
  --> $DIR/print_let_expr.rs:3:5

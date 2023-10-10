@@ -72,7 +72,7 @@ warning: printing item with body
                   },
               ),
           }
-  = note: `#[warn(marker::test_lint)]` on by default
+  = note: `#[warn(marker::marker_uilints::test_lint)]` on by default
 
 warning: printing item with body
  --> $DIR/print_async_fn.rs:9:10

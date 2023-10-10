@@ -19,7 +19,7 @@ warning: print test
                   body_id: BodyId(..),
               },
           )
-  = note: `#[warn(marker::test_lint)]` on by default
+  = note: `#[warn(marker::marker_uilints::test_lint)]` on by default
 
 warning: print test
  --> $DIR/print_closure_expr.rs:7:5

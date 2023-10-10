@@ -27,6 +27,11 @@ The [v0.4.0 milestone] contains a list of planned changes.
 
 [v0.4.0 milestone]: https://github.com/rust-marker/marker/milestone/4
 [#278]: https://github.com/rust-marker/marker/pull/278
+[#288]: https://github.com/rust-marker/marker/pull/288
+
+### Changes
+
+- [288]: Lint identifiers use the lint crate name as a new infix, to prevent name collisions across lint crates.
 
 ### Breaking Changes
 - [#278]: Moved the `span()` method from the inherent impl to `HasSpan` trait for `ClosureParam`, `FnParam`, `StructFieldPat`.

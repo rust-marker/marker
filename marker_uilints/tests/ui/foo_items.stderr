@@ -10,7 +10,7 @@ warning: found a `module` item with a test name
 19 | | }
    | |_^
    |
-   = note: `#[warn(marker::item_with_test_name)]` on by default
+   = note: `#[warn(marker::marker_uilints::item_with_test_name)]` on by default
 
 warning: found a `const` item with a test name
  --> $DIR/foo_items.rs:2:5

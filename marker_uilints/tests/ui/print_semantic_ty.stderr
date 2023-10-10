@@ -10,7 +10,7 @@ warning: print type test
                    alias_item: ItemId(..),
                },
            )
-   = note: `#[warn(marker::test_lint)]` on by default
+   = note: `#[warn(marker::marker_uilints::test_lint)]` on by default
 
 warning: print type test
   --> $DIR/print_semantic_ty.rs:25:9
