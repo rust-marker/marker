@@ -11,11 +11,6 @@ function replace_in_regions_for_file {
     local comment_end="( -->)?$"
 
     # Replace both the version itself, and the sliding tags
-    #
-    # There is a caveat here for the major version. It is rather ambiguous, because
-    # it is just a single number, there are no dots in it that could identify it as
-    # semver version. So for the major version we require that it is always specified
-    # with the `v` prefix e.g. `v1`.
     with_log sed --regexp-extended --follow-symlinks --in-place --file - "$file" <<EOF
         /$comment_begin region $region$comment_end/,/$comment_begin endregion $region$comment_end/ \
         {
