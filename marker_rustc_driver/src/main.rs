@@ -46,7 +46,6 @@ use rustc_session::config::ErrorOutputType;
 use rustc_session::EarlyErrorHandler;
 
 use crate::conversion::rustc::RustcConverter;
-use std::cell::OnceCell;
 
 // region replace rust toolchain dev
 const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-08-24";
@@ -77,35 +76,6 @@ impl rustc_driver::Callbacks for MarkerCallback {
             register_tracked_env(sess, &env_vars);
             register_tracked_files(sess, &lint_crates);
         }));
-
-        // Make it possible to use `#[allow(marker::{lint_name})]` without
-        // having to add `#![feature(register_tool)]` and `#![register_tool(marker)]`.
-        config.override_queries = Some(|_sess, providers, _extern_providers| {
-            // We have to do the dance with a static because `registered_tools` is
-            // required to be a stateless function pointer.
-            thread_local! {
-                static ORIG_TOOLS: OnceCell<fn(rustc_middle::ty::TyCtxt<'_>, ()) -> rustc_lint_defs::RegisteredTools>
-                    = OnceCell::new();
-            }
-
-            ORIG_TOOLS.with(|cell| {
-                cell.set(providers.registered_tools)
-                    .expect("we assume `override_queries` is called only once");
-            });
-
-            providers.registered_tools = |tcx, ()| {
-                ORIG_TOOLS.with(|it| {
-                    let orig_tools = it
-                        .get()
-                        .expect("ORIG_TOOLS must have been initialized before this callback was even set");
-
-                    let mut orig_tools = orig_tools(tcx, ());
-                    let marker = rustc_span::symbol::Ident::from_str("marker");
-                    orig_tools.insert(marker);
-                    orig_tools
-                })
-            };
-        });
 
         // Clippy explicitly calls any previous `register_lints` functions. This
         // will not be done here to keep it simple and to ensure that only known
@@ -345,15 +315,26 @@ fn try_main() -> Result<(), MainError> {
         .context(|| "Error while determining the lint crates to load")?
         .unwrap_or_default();
 
-    // We need to provide a marker cfg flag to allow conditional compilation,
-    // we add a simple `marker` config for the common use case, but also provide
-    // `marker=crate_name` for more complex uses
-    orig_args.push("--cfg=marker".into());
-    orig_args.extend(
+    let additional_args = [
+        // Make it possible to use `#[allow(marker::{lint_name})]` without
+        // having to add `#![feature(register_tool)]` and `#![register_tool(marker)]`.
+        "-Zcrate-attr=feature(register_tool)",
+        "-Zcrate-attr=register_tool(marker)",
+
+        // We need to provide a marker cfg flag to allow conditional compilation,
+        // we add a simple `marker` config for the common use case, but also provide
+        // `marker=crate_name` for more complex uses
+        "--cfg=marker",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .chain(
         lint_crates
             .iter()
-            .map(|krate| format!(r#"--cfg=marker="{}""#, krate.name)),
+            .map(|krate| format!("--cfg=marker=\"{}\"", krate.name)),
     );
+
+    orig_args.extend(additional_args);
 
     let mut callback = MarkerCallback { env_vars, lint_crates };
     rustc_driver::RunCompiler::new(&orig_args, &mut callback).run()?;
