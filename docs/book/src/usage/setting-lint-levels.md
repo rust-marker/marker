@@ -17,7 +17,7 @@ Marker uses the `marker::` tool prefix for lints. This is to make sure that your
 
 After `marker::` there must be the name of the [lint crate](./lint-crate-declaration.md). This is to make sure that lints from different lint crates never collide with each other. The name of the lint crate must be in snake case. The rule is the same as when you reference the crate in your code as a dependency. If the name of the crate contains dashes, they will be replaced with underscores.
 
-The last segment is the name of the lint itself derived from the name of the static variable that defines it in the lint crate but converted to lower case.
+The last segment is the name of the lint itself, which is the lowercaed name of the static variable that defines it in the lint crate.
 
 ## Conditional compilation
 
