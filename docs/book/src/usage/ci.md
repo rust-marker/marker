@@ -8,7 +8,7 @@ Marker's primary objective is to offer an excellent linting interface, including
 
 Marker provides a GitHub Action that downloads the pre-compiled binaries and runs `cargo marker`.
 
-<!-- region replace-version stable -->
+<!-- region replace marker version stable -->
 
 ```yml
 - uses: rust-marker/marker@v0.3
@@ -26,7 +26,7 @@ The git tag specified in the GitHub Action indicates which version of Marker sho
 
   Use this to pin a specific patch version. If you find a regression in a patch version, please create a [new issue]. Patch versions must never break anything!
 
-<!-- endregion replace-version stable -->
+<!-- endregion replace marker version stable -->
 
 > ⚠️ The minor versions before Marker `v1` contain breaking changes. While there is a sliding `v0` tag, it's highly recommended to include the minor version as well. This prevents uncontrolled CI breakage with every release.
 
@@ -100,7 +100,7 @@ These curl commands differ slightly from the scripts mentioned in the [installat
 
 You can run these scripts on any CI system of your choice, and they will make the `cargo marker` command available for you.
 
-<!-- region replace-version stable -->
+<!-- region replace marker version stable -->
 
 **Linux or MacOS (Bash)**:
 ```bash
@@ -128,7 +128,7 @@ curl.exe `
     | powershell -command -
 ```
 
-<!-- endregion replace-version stable -->
+<!-- endregion replace marker version stable -->
 
 The available version git tags that you may use in the URL are described in the [git tags](#git-tags) paragraph of the Github Action.
 

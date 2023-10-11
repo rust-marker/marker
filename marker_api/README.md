@@ -40,7 +40,7 @@ The simplest way to get started, is to use Marker's [lint crate template], which
 
 To get started, create a new Rust crate that compiles to a library (`cargo init --lib`). Afterwards, edit the `Cargo.toml` to compile the crate to a dynamic library and include `marker_api` as a dependency. You can simply add the following to your `Cargo.toml` file:
 
-<!-- region replace-version stable -->
+<!-- region replace marker version stable -->
 ```toml
 [lib]
 crate-type = ["cdylib"]
@@ -49,7 +49,7 @@ crate-type = ["cdylib"]
 marker_api = "0.3.0"
 marker_utils = "0.3.0"
 ```
-<!-- endregion replace-version stable -->
+<!-- endregion replace marker version stable -->
 
 #### src/lib.rs
 

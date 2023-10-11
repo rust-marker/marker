@@ -6,9 +6,7 @@
 
 set -euo pipefail
 
-script_dir=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
-
-. $script_dir/../lib.sh
+. $(dirname ${BASH_SOURCE[0]})/../lib.sh
 
 trap cleanup SIGINT SIGTERM ERR EXIT
 
@@ -25,6 +23,13 @@ with_log rsync --archive --exclude-from .gitignore . "$temp_dir"
 
 with_log pushd "$temp_dir"
 
+# Set a static toolchain version so that it doesn't change between releases
+# and the test snapshot is more stable
+sed --regexp-extended \
+    --in-place \
+    's/(channel\s*=\s*"nightly-)(.*)"/\12023-01-01"/' \
+    rust-toolchain.toml
+
 # Make sure any dirty files in the repo at this point don't influence the diff
 with_log git add --all
 
@@ -32,8 +37,8 @@ with_log git add --all
 
 snap=scripts/release/set-version.diff
 
-# sed doesn't support non-capturing groups, so we have to use a capturing one
-num='[0-9]+'
+d='[0-9]'
+num="$d+"
 
 # Make the git diff snapshot and sanitize it from the noise and variable parts
 #
@@ -49,6 +54,7 @@ actual=$(\
         /^-/ s/$num\.$num\.$num/X.Y.Z/g
         /^-/ s/$num\.$num/X.Y/g
         /^-/ s/v$num/vX/g
+        /^-/ s/$d{4}-$d{2}-$d{2}/YYYY-MM-DD/g
     " \
 )
 

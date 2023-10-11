@@ -19,7 +19,7 @@ We provide pre-compiled binaries for the mainstream platforms. See the list of a
 
 Select one of the installation scripts below according to your platform. The script will install the required Rust toolchain dependency on your machine, download the current version of `cargo-marker` CLI, and the internal driver.
 
-<!-- region replace-version stable -->
+<!-- region replace marker version stable -->
 
 **Linux or MacOS (Bash)**:
 ```bash
@@ -33,7 +33,7 @@ curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.3/scripts
 
 The provided scripts use a sliding git tag `v0.3`, to allow for automatic patch version updates, however a fixed tag `v0.3.0` is also available.
 
-<!-- endregion replace-version stable -->
+<!-- endregion replace marker version stable -->
 
 If you are on a platform that isn't supported yet by the pre-compiled binaries, then you should fall back to building from sources as described below.
 

@@ -16,11 +16,13 @@ pub fn marker_driver_bin_name() -> String {
 /// to install the driver.
 pub(crate) fn default_driver_info() -> DriverVersionInfo {
     DriverVersionInfo {
+        // region replace rust toolchain dev
         toolchain: "nightly-2023-08-24".to_string(),
-        // region replace-version dev
+        // endregion replace rust toolchain dev
+        // region replace marker version dev
         version: "0.4.0-dev".to_string(),
         api_version: "0.4.0-dev".to_string(),
-        // endregion replace-version dev
+        // endregion replace marker version dev
     }
 }
 

@@ -45,11 +45,13 @@ $ErrorActionPreference = "Stop"
 
 # This script isn't meant to be run from `master`, but if it is, then
 # it will install the latest version be it a stable version or a pre-release.
-# region replace-version unstable
+# region replace marker version unstable
 $version = "0.3.0"
-# endregion replace-version unstable
+# endregion replace marker version unstable
 
+# region replace rust toolchain release
 $toolchain = "nightly-2023-08-24"
+# endregion replace rust toolchain release
 
 # Log the command, execute, and fail if its exit code is non-zero.
 # Surprisingly PowerShell can't do the exit code checks for us out of the box.

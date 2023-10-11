@@ -47,7 +47,7 @@ We provide pre-compiled binaries for the mainstream platforms. See the list of a
 
 Select one of the installation scripts below according to your platform. The script will install the required Rust toolchain dependency on your machine, download the current version of `cargo-marker` CLI, and the internal driver.
 
-<!-- region replace-version stable -->
+<!-- region replace marker version stable -->
 
 **Linux or MacOS (Bash)**:
 ```bash
@@ -61,7 +61,7 @@ curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.3/scripts
 
 The provided scripts use a sliding git tag `v0.3`, to allow for automatic patch version updates, however a fixed tag `v0.3.0` is also available.
 
-<!-- endregion replace-version stable -->
+<!-- endregion replace marker version stable -->
 
 If you are on a platform that isn't supported yet by the pre-compiled binaries, then you should fall back to building from sources as described below.
 
@@ -78,7 +78,7 @@ cargo marker setup --auto-install-toolchain
 
 Marker provides a Github Action that downloads the pre-compiled binaries and runs `cargo marker`.
 
-<!-- region replace-version stable -->
+<!-- region replace marker version stable -->
 
 ```yml
 - uses: rust-marker/marker@v0.3
@@ -97,13 +97,13 @@ If you want to only install Marker, and not run it, there is an option for that.
 
 See [The Marker Book] for more details and examples of workflows.
 
-<!-- endregion replace-version stable -->
+<!-- endregion replace marker version stable -->
 
 ### Specifying lints
 
 Marker requires lint crates to be specified. The best way is to add them to the `Cargo.toml` file, like this:
 
-<!-- region replace-version stable -->
+<!-- region replace marker version stable -->
 ```toml
 [workspace.metadata.marker.lints]
 # A local crate as a path
@@ -113,7 +113,7 @@ marker_lints = { git = "https://github.com/rust-marker/marker" }
 # An external crate from a registry
 marker_lints = "0.3.0"
 ```
-<!-- endregion replace-version stable -->
+<!-- endregion replace marker version stable -->
 
 ### Making Your Own Lints
 

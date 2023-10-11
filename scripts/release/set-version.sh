@@ -5,12 +5,10 @@ set -euo pipefail
 script_dir=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
 
 . $script_dir/../lib.sh
+. $script_dir/../replace-in-regions.sh
 
 new_version="$1"
 shift
-
-new_major_minor=$(echo "$new_version" | cut --delimiter . --fields 1-2)
-new_major=$(echo "$new_version" | cut --delimiter . --fields 1)
 
 commit=""
 
@@ -28,61 +26,25 @@ do
     esac
 done
 
-function replace {
-    local file="$1"
-    local region="replace-version"
+# Set the rust toolchain in the installation scripts and other docs to the version
+# that was used in the development of the current release.
+rust_toolchain=$(sed -n 's/^channel\s*=\s*"nightly-\(.*\)"/\1/p' rust-toolchain.toml)
 
-    if (( $# == 2 )); then
-        region="$region $2"
-    fi
+replace_date_in_regions "rust toolchain release" "$rust_toolchain"
 
-    comment_begin="(#|\/\/|<!--)"
-    comment_end="( -->)?$"
+# Dev means all kinds of versions including stable `x.y.z`, unstable `x.y.z-suffix`
+# and dev `x.y.z-dev`. Yes, we treat `-dev` as a special one that we never release.
+replace_semver_in_regions "marker version dev" "$new_version"
 
-    suffix='(-[0-9a-zA-Z.]+)?'
-    num='[0-9]+'
-    # Replace both the version itself, and the sliding tags
-    #
-    # There is a caveat here for the major version. It is rather ambiguous, because
-    # it is just a single number, there are no dots in it that could identify it as
-    # semver version. So for the major version we require that it is always specified
-    # with the `v` prefix e.g. `v1`.
-    with_log sed --regexp-extended --in-place --file - "$file" <<EOF
-        /$comment_begin region $region$comment_end/,/$comment_begin endregion $region$comment_end/ \
-        {
-            s/(v|\W)$num\.$num\.$num$suffix/\1$new_version/g
-            s/(v|\W)$num\.$num$suffix/\1$new_major_minor/g
-            s/v$num$suffix/v$new_major/g
-        }
-EOF
-}
+# Unstable means all kinds of versions including unstable `x.y.z-suffix`, but excluding `x.y.z-dev`
+if [[ "$new_version" != *-dev ]]; then
+    replace_semver_in_regions "marker version unstable" "$new_version"
+fi
 
-files=($(\
-    find . -type f \
-        \( -name "*.rs" \
-        -o -name "*.md" \
-        -o -name "*.toml" \
-        -o -name "*.sh" \
-        -o -name "*.ps1" \
-        \)\
-))
-
-for file in "${files[@]}"
-do
-    # Dev means all kinds of versions including stable `x.y.z`, unstable `x.y.z-suffix`
-    # and dev `x.y.z-dev`. Yes, we treat `-dev` as a special one that we never release.
-    replace "$file" dev
-
-    # Unstable means all kinds of versions including unstable `x.y.z-suffix`, but excluding `x.y.z-dev`
-    if [[ "$new_version" != *-dev ]]; then
-        replace "$file" unstable
-    fi
-
-    # Only suffixless `x.y.z` versions are replaced in stable mode
-    if [[ "$new_version" != *-* ]]; then
-        replace "$file" stable
-    fi
-done
+# Only suffixless `x.y.z` versions are replaced in stable mode
+if [[ "$new_version" != *-* ]]; then
+    replace_semver_in_regions "marker version stable" "$new_version"
+fi
 
 # We need any version of cargo executable to update the `Cargo.lock` file.
 # Github runners have `cargo` installed by default, but because this repo

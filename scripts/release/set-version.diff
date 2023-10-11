@@ -44,11 +44,11 @@
  dependencies = [
 
 === Cargo.toml ===
- # region replace-version dev
+ # region replace marker version dev
 -version = "X.Y.Z-dev"
 +version = "0.1.0"
- # endregion replace-version dev
- # region replace-version dev
+ # endregion replace marker version dev
+ # region replace marker version dev
 -marker_adapter = { path = "./marker_adapter", version = "X.Y.Z-dev" }
 -marker_api     = { path = "./marker_api", version = "X.Y.Z-dev" }
 -marker_error   = { path = "./marker_error", version = "X.Y.Z-dev" }
@@ -58,7 +58,7 @@
  marker_uitest  = { path = "./marker_uitest", features = ["dev-build"] }
 -marker_utils   = { path = "./marker_utils", version = "X.Y.Z-dev" }
 +marker_utils   = { path = "./marker_utils", version = "0.1.0" }
- # endregion replace-version dev
+ # endregion replace marker version dev
 
 === README.md ===
  ```bash
@@ -86,13 +86,20 @@
 +marker_lints = "0.1.0"
  ```
 
+=== cargo-marker/README.md ===
+@@ -22,3 +22,3 @@
+ * **Automatic Lint-Crate Compilation**: *cargo_marker* automatically fetches and builds specified lint crates, streamlining the process of incorporating additional linting rules into your project.
+-* **User-Friendly Setup**: *cargo_marker* can automatically set up the driver and toolchain, allowing you to focus on writing quality code. (This version will setup rustc's driver for `nightly-YYYY-MM-DD`)
++* **User-Friendly Setup**: *cargo_marker* can automatically set up the driver and toolchain, allowing you to focus on writing quality code. (This version will setup rustc's driver for `nightly-2023-01-01`)
+ <!-- endregion replace rust toolchain release -->
+
 === cargo-marker/src/backend/driver.rs ===
-         // region replace-version dev
+         // region replace marker version dev
 -        version: "X.Y.Z-dev".to_string(),
 -        api_version: "X.Y.Z-dev".to_string(),
 +        version: "0.1.0".to_string(),
 +        api_version: "0.1.0".to_string(),
-         // endregion replace-version dev
+         // endregion replace marker version dev
 
 === cargo-marker/src/error.rs ===
  # An external crate from a registry
@@ -150,10 +157,10 @@
  
 
 === docs/internal/release.md ===
- <!-- region replace-version stable -->
+ <!-- region replace marker version stable -->
 -This [`install.sh`](https://raw.githubusercontent.com/rust-marker/marker/vX.Y.Z/scripts/release/install.sh) script, can be used to automatically download and verify Marker's binaries.
 +This [`install.sh`](https://raw.githubusercontent.com/rust-marker/marker/v0.1.0/scripts/release/install.sh) script, can be used to automatically download and verify Marker's binaries.
- <!-- endregion replace-version stable -->
+ <!-- endregion replace marker version stable -->
 
 === marker_api/README.md ===
  [dependencies]
@@ -168,6 +175,12 @@
 -marker_lints = "X.Y.Z"
 +marker_lints = "0.1.0"
  ```
+
+=== marker_rustc_driver/README.md ===
+ <!-- region replace rust toolchain release -->
+-The driver is linked to a specific nightly rust toolchain. The crate will be updated about every six weeks with a new release of Rust. This version of the driver has been developed for: `nightly-YYYY-MM-DD`
++The driver is linked to a specific nightly rust toolchain. The crate will be updated about every six weeks with a new release of Rust. This version of the driver has been developed for: `nightly-2023-01-01`
+ <!-- endregion replace rust toolchain release -->
 
 === marker_uitest/README.md ===
  [dev-dependencies]
@@ -186,13 +199,21 @@
  ```
 
 === scripts/release/install.ps1 ===
- # region replace-version unstable
+ # region replace marker version unstable
 -$version = "X.Y.Z"
 +$version = "0.1.0"
- # endregion replace-version unstable
+ # endregion replace marker version unstable
+ # region replace rust toolchain release
+-$toolchain = "nightly-YYYY-MM-DD"
++$toolchain = "nightly-2023-01-01"
+ # endregion replace rust toolchain release
 
 === scripts/release/install.sh ===
- # region replace-version unstable
+ # region replace marker version unstable
 -version=X.Y.Z
 +version=0.1.0
- # endregion replace-version unstable
+ # endregion replace marker version unstable
+ # region replace rust toolchain release
+-toolchain=nightly-YYYY-MM-DD
++toolchain=nightly-2023-01-01
+ # endregion replace rust toolchain release

@@ -50,7 +50,7 @@ or:
     BuildDriver,
 }
 
-// region replace-version stable
+// region replace marker version stable
 fn help_for_no_lints() -> String {
     format!(
         r#"The are two ways to specify lints.
@@ -76,7 +76,7 @@ marker_lints = "0.3.0""#
         lints = "--lints".blue(),
     )
 }
-// endregion replace-version stable
+// endregion replace marker version stable
 
 fn help_for_driver_not_found() -> String {
     format!(
