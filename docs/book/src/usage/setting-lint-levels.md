@@ -1,24 +1,26 @@
 # Setting Lint Levels
-Once your crate is configured to run some lints, it quickly becomes important to control the lint levels within your
-code. Marker provides the ability to use normal lint control attributes like `#[allow(...)]` `#[deny(...)]` and others
-to control the behavior of marker lints.
 
-Marker uses the `marker::` tool prefix for lints. You can then use all of the normal lint attributes you might usually use, on marker provided lints, like `#[allow(marker::my_lint)]`, but you have to put them under `#[cfg_attr(marker, ...)]`. This is because normally `rustc` doesn't know anything about `marker` and it will complain about an unknown lint if yo u run simple `cargo check/build`.
+Once your crate is configured to run some lints, it quickly becomes important to control the lint levels within your code.
 
-Marker provides config arguments to `rustc` during the lint passes, so that your linted code can conditionally apply attributes only during the marker run.
+Marker provides the ability to use normal lint control attributes `#[allow(...)]`, `#[deny(...)]`, and `#[warn(....)]` to change the behavior of marker lints. One caveat is that you need to put these attributes under a [conditionally-compiled attribute](#conditional-compilation) `#[cfg_attr(marker, ...)]`.
 
-Specifically marker passes `--cfg=marker` and a `--cfg=marker="my_crate"` flag for each lint crate. This means that you
-can use `#[cfg_attr(marker, foo)]` to conditionally apply the `foo` attribute only during lint runs.
+**Example:**
 
-This conditional compilation can be used to leverage the fact that marker uses a custom rustc implementation, without requiring the project to use that implementation by default. Then you can apply lint level attributes like `#[cfg_attr(marker, allow(marker::foo))]` to control your marker lints.
-
-Additionally, you can check if a specific lint crate is in the set of loaded lint crates. This is useful, when you
-only want to enable some attributes if specific lints are loaded. For this you can use a `marker = "<lint-crate-name>"`
-check, like this: `#[cfg_attr(marker = "my_crate", allow(marker::foo))]`.
-
-#### Conditional Lint Attribute
 ```rust
-// Marker lints can be controlled like this
-#[cfg_attr(marker, allow(marker::my_lint))]
+#[cfg_attr(marker, allow(marker::lint_crate::lint_name))]
 fn foo() {}
 ```
+
+## Lints namespacing
+
+Marker uses the `marker::` tool prefix for lints. This is to make sure that your lints never collide with the [native `rustc` lints](https://doc.rust-lang.org/rustc/lints/listing/index.html). This is similar to how `clippy` puts all of its lints under `clippy::` prefix.
+
+After `marker::` there must be the name of the [lint crate](./lint-crate-declaration.md). This is to make sure that lints from different lint crates never collide with each other. The name of the lint crate must be in snake case. The rule is the same as when you reference the crate in your code as a dependency. If the name of the crate contains dashes, they will be replaced with underscores.
+
+The last segment is the name of the lint itself derived from the name of the static variable that defines it in the lint crate but converted to lower case.
+
+## Conditional compilation
+
+There is a problem that if you run a regular `cargo check/build` knows nothing about Marker and it will complain about unknown lints unless marker-specific attributes are compiled-out. To work around this Marker passes a `--cfg=marker` flag that you can use in your code.
+
+This allows you to conditionally include `allow/warn/deny` attributes such that only `cargo marker` sees them, and regular builds ignore them allowing you to continue using the version of the Rust toolchain you are using in your project.
