@@ -13,7 +13,7 @@ fn foo() {}
 
 ## Lints namespacing
 
-Marker uses the `marker::` tool prefix for lints. This is to make sure that your lints never collide with the [native `rustc` lints](https://doc.rust-lang.org/rustc/lints/listing/index.html). This is similar to how `clippy` puts all of its lints under `clippy::` prefix.
+Marker uses the `marker::` tool prefix for lints. This is to make sure that your lints never collide with the [native `rustc` lints](https://doc.rust-lang.org/rustc/lints/listing/index.html) and lints from any other linting tools. This is similar to how `clippy` puts all of its lints under `clippy::` prefix.
 
 After `marker::` there must be the name of the [lint crate](./lint-crate-declaration.md). This is to make sure that lints from different lint crates never collide with each other. The name of the lint crate must be in snake case. The rule is the same as when you reference the crate in your code as a dependency. If the name of the crate contains dashes, they will be replaced with underscores.
 
