@@ -21,6 +21,6 @@ The last segment is the name of the lint itself, which is the lowercaed name of 
 
 ## Conditional compilation
 
-There is a problem that if you run a regular `cargo check/build` knows nothing about Marker and it will complain about unknown lints unless marker-specific attributes are compiled-out. To work around this Marker passes a `--cfg=marker` flag that you can use in your code.
+There is a problem that a regular `cargo check/build` knows nothing about Marker and it will complain about unknown lints unless marker-specific attributes are compiled-out. To work around this Marker passes a `--cfg=marker` flag that you can use in your code.
 
 This allows you to conditionally include `allow/warn/deny` attributes such that only `cargo marker` sees them, and regular builds ignore them allowing you to continue using the version of the Rust toolchain you are using in your project.
