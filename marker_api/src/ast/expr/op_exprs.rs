@@ -144,7 +144,7 @@ impl<'ast> RefExpr<'ast> {
 }
 
 /// The `?` operator that unwraps valid values or propagates erroneous values to
-/// the the calling function.
+/// the calling function.
 ///
 /// Here is an example of the operator:
 ///
@@ -155,7 +155,7 @@ impl<'ast> RefExpr<'ast> {
 ///     //             v
 ///     let value = opt?;
 ///     // `value` has the type `i32`
-///     
+///
 ///     // [...]
 ///     # Some(value.to_string())
 /// }
@@ -166,7 +166,7 @@ impl<'ast> RefExpr<'ast> {
 ///     //             v
 ///     let value = res?;
 ///     // `value` has the type `i32`
-///     
+///
 ///     // [...]
 ///     # Ok(value.to_string())
 /// }
