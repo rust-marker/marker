@@ -10,7 +10,7 @@ on:
     # Match only on specific tags. We don't want this workflow to be invoked when
     # we put sliding `v{major}` and `v{major}.{minor}` tags on the same commit.
     tags: ['v[0-9]+.[0-9]+.[0-9]+*']
-    workflow_dispatch:
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always

@@ -48,7 +48,7 @@ warning: check type resolution
   = note: Is this a "std::string::String" -> false
   = note: Is this a "std::option::Option" -> false
   = note: Is this a "crate::TestType" -> false
-  = note: `#[warn(marker::test_lint)]` on by default
+  = note: `#[warn(marker::marker_uilints::test_lint)]` on by default
 
 warning: check type resolution
  --> $DIR/item_id_resolution.rs:6:5

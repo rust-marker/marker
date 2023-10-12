@@ -4,7 +4,7 @@ warning: testing `contains_return` -> false
 3 | fn test_contains_return_1_false() {
   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
-  = note: `#[warn(marker::test_contains_return)]` on by default
+  = note: `#[warn(marker::marker_uilints::test_contains_return)]` on by default
 
 warning: testing `contains_return` -> false
  --> $DIR/contains_return.rs:7:4

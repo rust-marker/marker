@@ -12,7 +12,7 @@ warning: print span
                   span_src: SpanSrcId(..),
               },
           )
-  = note: `#[warn(marker::print_span_lint)]` on by default
+  = note: `#[warn(marker::marker_uilints::print_span_lint)]` on by default
 
 warning: print span
   --> $DIR/print_span.rs:14:5

@@ -5,7 +5,7 @@ warning: testing `AstMap::variant`
    |                          ^^^^^^^^^^^^^^^^
    |
    = note: `AstMap::variant()` --> None
-   = note: `#[warn(marker::test_ast_map)]` on by default
+   = note: `#[warn(marker::marker_uilints::test_ast_map)]` on by default
 
 warning: testing `AstMap::variant`
   --> $DIR/test_ast_map.rs:12:26

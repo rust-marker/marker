@@ -1,8 +1,8 @@
-warning: unknown lint: `marker::some_unknown_lint_that_doesnt_exist`
+warning: unknown lint: `marker::hey::some_unknown_lint_that_doesnt_exist`
   --> $DIR/cfg_attr_check.rs:20:30
    |
-20 |     #[cfg_attr(marker, allow(marker::some_unknown_lint_that_doesnt_exist))]
-   |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+20 |     #[cfg_attr(marker, allow(marker::hey::some_unknown_lint_that_doesnt_exist))]
+   |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: `#[warn(unknown_lints)]` on by default
 
@@ -12,7 +12,7 @@ warning: found a `fn` item with a test name
 16 |     fn find_me_fn() {}
    |     ^^^^^^^^^^^^^^^^^^
    |
-   = note: `#[warn(marker::item_with_test_name)]` on by default
+   = note: `#[warn(marker::marker_uilints::item_with_test_name)]` on by default
 
 warning: 2 warnings emitted
 

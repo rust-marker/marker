@@ -99,7 +99,7 @@ warning: printing item
                   ),
               },
           )
-  = note: `#[warn(marker::test_lint)]` on by default
+  = note: `#[warn(marker::marker_uilints::test_lint)]` on by default
 
 warning: printing item
  --> $DIR/print_const_generics.rs:5:4
