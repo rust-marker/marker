@@ -61,7 +61,7 @@ pub struct Lint {
     /// See [`MacroReport`] for the possible levels.
     pub report_in_macro: MacroReport,
 
-    /// Fully qualiefied name name of the static variable that defines the lint.
+    /// Fully qualiefied name of the static variable that defines the lint.
     /// It includes the module and the name of the variable.
     pub fqn: &'static str,
 

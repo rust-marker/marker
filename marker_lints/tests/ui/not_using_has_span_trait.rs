@@ -1,9 +1,4 @@
-#![cfg_attr(
-    marker,
-    feature(register_tool),
-    register_tool(marker),
-    warn(marker::marker_lints::not_using_has_span_trait)
-)]
+#![cfg_attr(marker, warn(marker::marker_lints::not_using_has_span_trait))]
 
 use marker_api::prelude::*;
 

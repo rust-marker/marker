@@ -1,20 +1,20 @@
 warning: use impl HasSpan instead of Span for more flexibility
-  --> $DIR/not_using_has_span_trait.rs:10:29
-   |
-10 | pub fn blackjack(_: u32, _: &Span<'_>) {}
-   |                             ^^^^^^^^^
-   |
+ --> $DIR/not_using_has_span_trait.rs:5:29
+  |
+5 | pub fn blackjack(_: u32, _: &Span<'_>) {}
+  |                             ^^^^^^^^^
+  |
 note: the lint level is defined here
-  --> $DIR/not_using_has_span_trait.rs:5:10
-   |
-5  |     warn(marker::marker_lints::not_using_has_span_trait)
-   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ --> $DIR/not_using_has_span_trait.rs:1:26
+  |
+1 | #![cfg_attr(marker, warn(marker::marker_lints::not_using_has_span_trait))]
+  |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: use impl HasSpan instead of Span for more flexibility
-  --> $DIR/not_using_has_span_trait.rs:11:19
-   |
-11 | pub fn rampage(_: &marker_api::span::Span<'_>, _: bool) {}
-   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ --> $DIR/not_using_has_span_trait.rs:6:19
+  |
+6 | pub fn rampage(_: &marker_api::span::Span<'_>, _: bool) {}
+  |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: 2 warnings emitted
 

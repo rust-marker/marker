@@ -1,6 +1,3 @@
-#![feature(register_tool)]
-#![register_tool(marker)]
-
 fn try_something() -> Option<u32> {
     #[warn(marker::marker_uilints::print_every_expr)]
     Some(21)?;

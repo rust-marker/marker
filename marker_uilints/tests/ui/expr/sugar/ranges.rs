@@ -1,6 +1,3 @@
-#![feature(register_tool)]
-#![register_tool(marker)]
-
 fn main() {
     #[warn(marker::marker_uilints::print_every_expr)]
     let _ = 1..2;

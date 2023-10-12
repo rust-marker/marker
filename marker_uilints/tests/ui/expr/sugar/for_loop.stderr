@@ -1,28 +1,28 @@
 warning: expr
-  --> $DIR/for_loop.rs:9:5
-   |
-9  | /     for i in range {
-10 | |         total += i;
-11 | |     }
-   | |_____^
-   |
-   = note: SpanSource: File(
-               FileInfo {
-                   file: "$DIR/for_loop.rs",
-                   span_src: SpanSrcId(..),
-               },
-           )
-   = note: Snippet: "for i in range {\n        total += i;\n    }"
+ --> $DIR/for_loop.rs:6:5
+  |
+6 | /     for i in range {
+7 | |         total += i;
+8 | |     }
+  | |_____^
+  |
+  = note: SpanSource: File(
+              FileInfo {
+                  file: "$DIR/for_loop.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
+  = note: Snippet: "for i in range {\n        total += i;\n    }"
 note: the lint level is defined here
-  --> $DIR/for_loop.rs:8:12
-   |
-8  |     #[warn(marker::marker_uilints::print_every_expr)]
-   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ --> $DIR/for_loop.rs:5:12
+  |
+5 |     #[warn(marker::marker_uilints::print_every_expr)]
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: expr
- --> $DIR/for_loop.rs:9:14
+ --> $DIR/for_loop.rs:6:14
   |
-9 |     for i in range {
+6 |     for i in range {
   |              ^^^^^
   |
   = note: SpanSource: File(
@@ -34,49 +34,49 @@ warning: expr
   = note: Snippet: "range"
 
 warning: expr
-  --> $DIR/for_loop.rs:9:20
-   |
-9  |       for i in range {
-   |  ____________________^
-10 | |         total += i;
-11 | |     }
-   | |_____^
-   |
-   = note: SpanSource: File(
-               FileInfo {
-                   file: "$DIR/for_loop.rs",
-                   span_src: SpanSrcId(..),
-               },
-           )
-   = note: Snippet: "{\n        total += i;\n    }"
+ --> $DIR/for_loop.rs:6:20
+  |
+6 |       for i in range {
+  |  ____________________^
+7 | |         total += i;
+8 | |     }
+  | |_____^
+  |
+  = note: SpanSource: File(
+              FileInfo {
+                  file: "$DIR/for_loop.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
+  = note: Snippet: "{\n        total += i;\n    }"
 
 warning: expr
-  --> $DIR/for_loop.rs:10:9
-   |
-10 |         total += i;
-   |         ^^^^^^^^^^
-   |
-   = note: SpanSource: File(
-               FileInfo {
-                   file: "$DIR/for_loop.rs",
-                   span_src: SpanSrcId(..),
-               },
-           )
-   = note: Snippet: "total += i"
+ --> $DIR/for_loop.rs:7:9
+  |
+7 |         total += i;
+  |         ^^^^^^^^^^
+  |
+  = note: SpanSource: File(
+              FileInfo {
+                  file: "$DIR/for_loop.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
+  = note: Snippet: "total += i"
 
 warning: expr
-  --> $DIR/for_loop.rs:10:18
-   |
-10 |         total += i;
-   |                  ^
-   |
-   = note: SpanSource: File(
-               FileInfo {
-                   file: "$DIR/for_loop.rs",
-                   span_src: SpanSrcId(..),
-               },
-           )
-   = note: Snippet: "i"
+ --> $DIR/for_loop.rs:7:18
+  |
+7 |         total += i;
+  |                  ^
+  |
+  = note: SpanSource: File(
+              FileInfo {
+                  file: "$DIR/for_loop.rs",
+                  span_src: SpanSrcId(..),
+              },
+          )
+  = note: Snippet: "i"
 
 warning: 5 warnings emitted
 

@@ -315,15 +315,25 @@ fn try_main() -> Result<(), MainError> {
         .context(|| "Error while determining the lint crates to load")?
         .unwrap_or_default();
 
-    // We need to provide a marker cfg flag to allow conditional compilation,
-    // we add a simple `marker` config for the common use case, but also provide
-    // `marker=crate_name` for more complex uses
-    orig_args.push("--cfg=marker".into());
-    orig_args.extend(
+    let additional_args = [
+        // Make it possible to use `#[allow(marker::{lint_name})]` without
+        // having to add `#![feature(register_tool)]` and `#![register_tool(marker)]`.
+        "-Zcrate-attr=feature(register_tool)",
+        "-Zcrate-attr=register_tool(marker)",
+        // We need to provide a marker cfg flag to allow conditional compilation,
+        // we add a simple `marker` config for the common use case, but also provide
+        // `marker=crate_name` for more complex uses
+        "--cfg=marker",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .chain(
         lint_crates
             .iter()
-            .map(|krate| format!(r#"--cfg=marker="{}""#, krate.name)),
+            .map(|krate| format!("--cfg=marker=\"{}\"", krate.name)),
     );
+
+    orig_args.extend(additional_args);
 
     let mut callback = MarkerCallback { env_vars, lint_crates };
     rustc_driver::RunCompiler::new(&orig_args, &mut callback).run()?;
