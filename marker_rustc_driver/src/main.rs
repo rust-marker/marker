@@ -48,7 +48,7 @@ use rustc_session::EarlyErrorHandler;
 use crate::conversion::rustc::RustcConverter;
 
 // region replace rust toolchain dev
-const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-08-24";
+const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-10-05";
 // endregion replace rust toolchain dev
 
 struct DefaultCallbacks {

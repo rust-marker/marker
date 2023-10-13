@@ -17,7 +17,7 @@ pub fn marker_driver_bin_name() -> String {
 pub(crate) fn default_driver_info() -> DriverVersionInfo {
     DriverVersionInfo {
         // region replace rust toolchain dev
-        toolchain: "nightly-2023-08-24".to_string(),
+        toolchain: "nightly-2023-10-05".to_string(),
         // endregion replace rust toolchain dev
         // region replace marker version dev
         version: "0.4.0-dev".to_string(),
