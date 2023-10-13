@@ -206,7 +206,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
     pub fn to_syncness(&self, syncness: hir::IsAsync) -> Syncness {
         match syncness {
-            hir::IsAsync::Async => Syncness::Async,
+            hir::IsAsync::Async(_) => Syncness::Async,
             hir::IsAsync::NotAsync => Syncness::Sync,
         }
     }

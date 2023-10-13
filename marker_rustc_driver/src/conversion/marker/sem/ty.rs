@@ -96,9 +96,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 self.to_ty_def_id(*id),
                 self.to_sem_generic_args(generics),
             ))),
-            mid::ty::TyKind::Generator(_, _, _)
-            | mid::ty::TyKind::GeneratorWitness(_)
-            | mid::ty::TyKind::GeneratorWitnessMIR(_, _) => TyKind::Unstable(self.alloc(UnstableTy::new())),
+            mid::ty::TyKind::Generator(_, _, _) | mid::ty::TyKind::GeneratorWitness(_, _) => {
+                TyKind::Unstable(self.alloc(UnstableTy::new()))
+            },
             mid::ty::TyKind::Never => TyKind::Never(self.alloc(NeverTy::new())),
             mid::ty::TyKind::Alias(_, info) => TyKind::Alias(self.alloc(AliasTy::new(self.to_item_id(info.def_id)))),
             mid::ty::TyKind::Param(param) => {

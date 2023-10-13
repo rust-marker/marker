@@ -67,11 +67,11 @@ mod tests {
     fn test_into_utf8_fail() {
         assert_into_utf8(
             vec![97, 98, 255u8],
-            &expect![[r#"
+            &expect![[r"
                 Error: Failed to convert to UTF-8 encoded string (dumped it on the line bellow):
                 ---
                 ab�
-                ---"#]],
+                ---"]],
         );
     }
 
