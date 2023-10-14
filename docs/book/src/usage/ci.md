@@ -46,6 +46,7 @@ These example workflows will use the lint crates specified in the `Cargo.toml` f
 
 Checkout the repository code, install the toolchain, Marker, and start linting.
 
+<!-- region replace marker action version stable -->
 ```yml
 jobs:
   rust-marker-lints:
@@ -55,8 +56,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - uses: rust-marker/marker@v0.2
+      - uses: rust-marker/marker@v0.3
 ```
+<!-- endregion replace marker action version stable -->
+
 
 #### Advanced usage
 
@@ -64,6 +67,7 @@ If you need something more than just the `cargo marker` command, you may use the
 
 Here is an example of how you could limit the set of crates that you want to lint. Refer to `cargo marker --help` for a full list of available options.
 
+<!-- region replace marker action version stable -->
 ```yml
 jobs:
   rust-marker-lints:
@@ -73,11 +77,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - uses: rust-marker/marker@v0.2
+      - uses: rust-marker/marker@v0.3
         with:
           install-only: true
       - run: cargo marker -- -p crate-foo -p crate-bar
 ```
+<!-- endregion replace marker action version stable -->
 
 If you have an example of advanced usage of `cargo marker` command that you have to repeat in your CI template again and again consider opening a [new issue] in our repository. We will be glad to hear any suggestions about extending the inputs for the GitHub Action for your use case.
 

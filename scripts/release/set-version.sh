@@ -44,6 +44,14 @@ fi
 # Only suffixless `x.y.z` versions are replaced in stable mode
 if [[ "$new_version" != *-* ]]; then
     replace_semver_in_regions "marker version stable" "$new_version"
+
+    # Special case for the GitHub action syntax used in examples of `yml` markdown
+    # fenced code blocks where there we can't limit the region to exclude other
+    # semver versions of other GitHub actions in the region.
+    replace_semver_in_regions \
+        "marker action version stable" \
+        "$new_version" \
+        --prefix "rust-marker\/marker@"
 fi
 
 # We need any version of cargo executable to update the `Cargo.lock` file.
