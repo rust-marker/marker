@@ -123,6 +123,14 @@
 -- **Fixed tags, like `vX.Y.Z`:**
 +- **Fixed tags, like `v0.1.0`:**
  
+       - uses: actions-rust-lang/setup-rust-toolchain@v1
+-      - uses: rust-marker/marker@vX.Y
++      - uses: rust-marker/marker@v0.1
+ ```
+       - uses: actions-rust-lang/setup-rust-toolchain@v1
+-      - uses: rust-marker/marker@vX.Y
++      - uses: rust-marker/marker@v0.1
+         with:
      --retry-connrefused \
 -    https://raw.githubusercontent.com/rust-marker/marker/vX.Y/scripts/release/install.sh \
 +    https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.sh \

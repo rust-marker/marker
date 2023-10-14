@@ -42,6 +42,14 @@ function replace_semver_in_regions {
     local region="$1"
     local x_y_z="$2"
 
+    # Optionally require a prefix before the version. This may be used to
+    # disambiguate the version from other text that we don't want to consider for replacement.
+    local prefix=""
+
+    if [[ "${3:-}" == "--prefix" ]]; then
+        prefix="$4"
+    fi
+
     local suffix='(-[0-9a-zA-Z.\-]+)?'
     local num='[0-9]+'
     local pattern="$num\.$num\.$num$suffix"
@@ -54,9 +62,9 @@ function replace_semver_in_regions {
     local x=$(echo "$x_y_z" | cut --delimiter . --fields 1)
 
     replace_in_regions "$region" "
-        s/(v|\W)$pattern/\1$x_y_z/g
-        s/(v|\W)$num\.$num$suffix/\1$x_y/g
-        s/v$num$suffix/v$x/g
+        s/${prefix}(v|\W)$pattern/${prefix}\1$x_y_z/g
+        s/${prefix}(v|\W)$num\.$num$suffix/${prefix}\1$x_y/g
+        s/${prefix}v$num$suffix/${prefix}v$x/g
     "
 }
 
