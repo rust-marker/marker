@@ -1,29 +1,12 @@
 #![doc = include_str!("../../README.md")]
 #![feature(rustc_private)]
 #![feature(lint_reasons)]
-#![feature(non_exhaustive_omitted_patterns_lint)]
 #![warn(clippy::pedantic)]
-#![warn(non_exhaustive_omitted_patterns)]
 #![allow(clippy::missing_panics_doc)]
-#![allow(clippy::module_name_repetitions)]
-#![allow(clippy::needless_lifetimes, reason = "lifetimes will be required to fix ICEs")]
-#![allow(clippy::needless_collect, reason = "false positives for `alloc_slice`")]
-#![allow(clippy::too_many_lines, reason = "long functions are unavoidable for matches")]
 
-extern crate rustc_ast;
-extern crate rustc_data_structures;
 extern crate rustc_driver;
-extern crate rustc_errors;
-extern crate rustc_hash;
-extern crate rustc_hir;
-extern crate rustc_hir_analysis;
-extern crate rustc_interface;
-extern crate rustc_lint;
-extern crate rustc_lint_defs;
-extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_span;
-extern crate rustc_target;
 
 use std::env;
 
