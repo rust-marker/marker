@@ -55,7 +55,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - uses: rust-marker/marker@v0.2
+      - uses: rust-marker/marker@v0.3
 ```
 
 #### Advanced usage
@@ -73,7 +73,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - uses: rust-marker/marker@v0.2
+      - uses: rust-marker/marker@v0.3
         with:
           install-only: true
       - run: cargo marker -- -p crate-foo -p crate-bar
