@@ -56,10 +56,15 @@ marker_api::declare_lint! {
 
 marker_api::declare_lint! {
     /// # What it does
-    /// A lint used for marker's uitests.
-    ///
     /// A lint to test [`marker_api::AstMap`].
     TEST_AST_MAP,
+    Warn,
+}
+
+marker_api::declare_lint! {
+    /// # What it does
+    /// A lint to test Marker's `Visibility` representation.
+    TEST_ITEM_VISIBILITY,
     Warn,
 }
 
@@ -142,6 +147,26 @@ impl LintPass for TestLintPass {
                         diag.span(item.ident().unwrap().span());
                         diag.note(format!("Item: {item:#?}"));
                         diag.note(format!("Body: {:#?}", cx.ast().body(func.body_id().unwrap())));
+                    });
+            }
+            if matches!(
+                item.ident().map(marker_api::span::Ident::name),
+                Some(name) if name.starts_with("test_vis")
+            ) {
+                cx.emit_lint(TEST_ITEM_VISIBILITY, item, "can you see this item?")
+                    .decorate(|diag| {
+                        let vis = item.visibility();
+                        diag.span(item.ident().unwrap().span());
+                        diag.note(format!("vis.is_pub()                  -> {}", vis.is_pub()));
+                        diag.note(format!("vis.is_pub_with_path()        -> {}", vis.is_pub_with_path()));
+                        diag.note(format!("vis.is_pub_crate()            -> {}", vis.is_pub_crate()));
+                        diag.note(format!("vis.is_defined()              -> {}", vis.is_defined()));
+                        diag.note(format!(
+                            "vis.pub_with_path_module_id() -> {:?}",
+                            vis.pub_with_path_module_id()
+                        ));
+                        diag.note(format!("vis.module_id()               -> {:?}", vis.module_id()));
+                        diag.note(format!("vis.span(): `{:?}`", vis.span().map(|s| s.snippet_or(""))));
                     });
             }
         }

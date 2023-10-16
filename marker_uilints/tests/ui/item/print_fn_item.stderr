@@ -9,7 +9,13 @@ warning: printing item
                   data: CommonItemData {
                       id: ItemId(..),
                       span: SpanId(..),
-                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      vis: Visibility {
+                          _lifetime: PhantomData<&()>,
+                          span: Some(
+                              SpanId(..),
+                          ),
+                          kind: Public,
+                      },
                       ident: Ident {
                           name: "print_me_simple",
                           span: $DIR/print_fn_item.rs:1:8 - 1:23,
@@ -45,7 +51,13 @@ warning: printing item
                   data: CommonItemData {
                       id: ItemId(..),
                       span: SpanId(..),
-                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      vis: Visibility {
+                          _lifetime: PhantomData<&()>,
+                          span: Some(
+                              SpanId(..),
+                          ),
+                          kind: Public,
+                      },
                       ident: Ident {
                           name: "print_me_special",
                           span: $DIR/print_fn_item.rs:3:21 - 3:37,
@@ -80,7 +92,13 @@ warning: printing item
                   data: CommonItemData {
                       id: ItemId(..),
                       span: SpanId(..),
-                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      vis: Visibility {
+                          _lifetime: PhantomData<&()>,
+                          span: Some(
+                              SpanId(..),
+                          ),
+                          kind: Public,
+                      },
                       ident: Ident {
                           name: "print_me_params",
                           span: $DIR/print_fn_item.rs:5:8 - 5:23,
@@ -237,7 +255,11 @@ warning: printing item
                    data: CommonItemData {
                        id: ItemId(..),
                        span: SpanId(..),
-                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                       vis: Visibility {
+                           _lifetime: PhantomData<&()>,
+                           span: None,
+                           kind: DefaultPub,
+                       },
                        ident: Ident {
                            name: "print_me_trait_with_body",
                            span: $DIR/print_fn_item.rs:10:8 - 10:32,
@@ -394,7 +416,11 @@ warning: printing item
                    data: CommonItemData {
                        id: ItemId(..),
                        span: SpanId(..),
-                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                       vis: Visibility {
+                           _lifetime: PhantomData<&()>,
+                           span: None,
+                           kind: DefaultPub,
+                       },
                        ident: Ident {
                            name: "print_me_trait_no_body",
                            span: $DIR/print_fn_item.rs:14:8 - 14:30,

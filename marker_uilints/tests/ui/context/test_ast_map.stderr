@@ -22,7 +22,13 @@ warning: testing `AstMap::variant`
                        [
                            ItemField {
                                id: FieldId(..),
-                               vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                               vis: Visibility {
+                                   _lifetime: PhantomData<&()>,
+                                   span: None,
+                                   kind: Default(
+                                       ItemId(..),
+                                   ),
+                               },
                                ident: SymbolId(..),
                                ty: Path(
                                    PathTy {
@@ -72,7 +78,13 @@ warning: testing `AstMap::item`
                        data: CommonItemData {
                            id: ItemId(..),
                            span: SpanId(..),
-                           vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                           vis: Visibility {
+                               _lifetime: PhantomData<&()>,
+                               span: None,
+                               kind: Default(
+                                   ItemId(..),
+                               ),
+                           },
                            ident: Ident {
                                name: "LocalStruct",
                                span: $DIR/test_ast_map.rs:6:8 - 6:19,
@@ -86,7 +98,13 @@ warning: testing `AstMap::item`
                            [
                                ItemField {
                                    id: FieldId(..),
-                                   vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                                   vis: Visibility {
+                                       _lifetime: PhantomData<&()>,
+                                       span: None,
+                                       kind: Default(
+                                           ItemId(..),
+                                       ),
+                                   },
                                    ident: SymbolId(..),
                                    ty: Num(
                                        NumTy {

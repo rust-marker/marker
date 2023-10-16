@@ -2,7 +2,9 @@ use std::{fmt::Debug, marker::PhantomData};
 
 use crate::{
     common::{HasNodeId, ItemId, SpanId},
+    context::with_cx,
     diagnostic::EmissionNode,
+    ffi::FfiOption,
     private::Sealed,
     span::{HasSpan, Ident, Span},
     CtorBlocker,
@@ -238,42 +240,182 @@ use impl_item_data;
 
 #[cfg(feature = "driver-api")]
 impl<'ast> CommonItemData<'ast> {
-    pub fn new(id: ItemId, span: SpanId, ident: Ident<'ast>) -> Self {
-        Self {
-            id,
-            span,
-            vis: Visibility::new(id),
-            ident,
-        }
+    // Here we can't `derive(TypedBuilder)`, as the created builder is private,
+    // due to the declaration of the item not being pub.
+    pub fn new(id: ItemId, span: SpanId, vis: Visibility<'ast>, ident: Ident<'ast>) -> Self {
+        Self { id, span, vis, ident }
     }
 }
 
-/// This struct represents the visibility of an item.
+/// The declared visibility of an item or field.
 ///
-/// Currently, it's only a placeholder until a proper representation is implemented.
-/// rust-marker/marker#26 tracks the task of implementing this. You're welcome to
-/// leave any comments in that issue.
+/// Note that this is only the syntactic visibility. The item or field might be
+/// reexported with a higher visibility, or have a high default visibility.
+///
+/// ```
+/// // An item without a visibility
+/// fn moon() {}
+///
+/// // A public item
+/// pub fn sun() {}
+///
+/// // An item with a restricted scope
+/// pub(crate) fn star() {}
+///
+/// pub trait Planet {
+///     // An item without a visibility. But it still has the semantic visibility
+///     // of `pub` as this is inside a trait declaration.
+///     fn mass();
+/// }
+/// ```
 #[repr(C)]
+#[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct Visibility<'ast> {
+    #[cfg_attr(feature = "driver-api", builder(setter(skip), default))]
     _lifetime: PhantomData<&'ast ()>,
-    _item_id: ItemId,
+    #[cfg_attr(feature = "driver-api", builder(setter(into)))]
+    #[cfg_attr(feature = "driver-api", builder(default = FfiOption::None))]
+    span: FfiOption<SpanId>,
+    kind: VisibilityKind,
+    // * The rustc model makes sense, so have a kind with a restriction
+    // * have according methods, that check for `pub(crate)`
+    // * document possible equivalency between `pub(crate)` and `pub(super)`
+    // * Document that things can be reexported
+    // * Test how visibility only to lower scopes works `pub(self::sub_module)`
 }
 
-impl<'ast> Debug for Visibility<'ast> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Visibility {{ /* WIP: See rust-marker/marker#26 */}}")
-            .finish()
-    }
-}
-
-#[cfg(feature = "driver-api")]
 impl<'ast> Visibility<'ast> {
-    pub fn new(item_id: ItemId) -> Self {
-        Self {
-            _lifetime: PhantomData,
-            _item_id: item_id,
+    pub fn span(&self) -> Option<&Span<'ast>> {
+        self.span.copy().map(|span| with_cx(self, |cx| cx.span(span)))
+    }
+
+    /// Returns `true` if the item is declared as public, without any restrictions.
+    ///
+    /// ```
+    /// // This returns `true`
+    /// pub fn unicorn() {}
+    ///
+    /// // This returns `false`, since the visibility is restricted to a specified path.
+    /// pub(crate) fn giraffe() {}
+    ///
+    /// // This returns `false`, since the visibility is not defined
+    /// fn dragon() {}
+    /// ```
+    ///
+    /// See [`Visibility::is_pub_with_path`] to detect pub declarations with a
+    /// defined path.
+    pub fn is_pub(&self) -> bool {
+        matches!(self.kind, VisibilityKind::Public | VisibilityKind::DefaultPub)
+    }
+
+    /// Returns `true` if the item is declared as `pub(...)` with a path in brackets
+    /// that defines the scope, where the item is visible.
+    pub fn is_pub_with_path(&self) -> bool {
+        matches!(self.kind, VisibilityKind::Path(_) | VisibilityKind::Crate(_))
+    }
+
+    /// Returns `true` if the visibility is declared as `pub(crate)`. This is a
+    /// special case of the `pub(<path>)` visibility.
+    ///
+    /// This function checks if the visibility is restricted and the defined path
+    /// belongs to the root module of the crate. Meaning, that this can also be `true`,
+    /// if the visibility uses `pub(super)` to travel up to the crate root.
+    ///
+    /// ```rs
+    /// // lib.rs
+    ///
+    /// mod example_1 {
+    ///     // Returns `false` since no visibility is declared
+    ///     fn foo() {}
+    ///
+    ///     // Returns `false` since the item is not visible from the root of the crate.
+    ///     pub(in crate::example_1) fn bar() {}
+    ///
+    ///     // Returns `true` as the visibility is restricted to the root of the crate.
+    ///     pub(crate) baz() {}
+    ///
+    ///     // Returns `true` as the visibility is restricted to `super` which is the
+    ///     // root of the crate.
+    ///     pub(crate) boo() {}
+    /// }
+    ///
+    /// // Returns `false` since the visibility is not restricted
+    /// fn example_in_root() {}
+    /// ```
+    pub fn is_pub_crate(&self) -> bool {
+        matches!(self.kind, VisibilityKind::Crate(_))
+    }
+
+    /// Returns `true` if a visibility has been defined.
+    pub fn is_defined(&self) -> bool {
+        !matches!(self.kind, VisibilityKind::Default(_) | VisibilityKind::DefaultPub)
+    }
+
+    /// Returns the [`ItemId`] of the module where this item is visible in, if the
+    /// visibility is defined to be public inside a specified path.
+    ///
+    /// See [`Visibility::module_id`] to get the `ItemId`, even if the item or
+    /// field uses the default visibility.
+    pub fn pub_with_path_module_id(&self) -> Option<ItemId> {
+        match self.kind {
+            VisibilityKind::Path(id) | VisibilityKind::Crate(id) => Some(id),
+            _ => None,
         }
     }
+
+    /// Returns the [`ItemId`] of the module that this item or field is visible in.
+    /// It will return `None`, if the item is public, as the visibility extends even past
+    /// the root module of the crate.
+    ///
+    /// This function also works for items which have the default visibility, of the
+    /// module they are declared in.
+    ///
+    /// ```
+    /// mod scope {
+    ///     // Returns `None` since this is even visible outside the current crate
+    ///     pub fn turtle() {}
+    ///     
+    ///     // Returns the `ItemId` of the root module of the crate
+    ///     pub(crate) fn shark() {}
+    ///
+    ///     // Returns the `ItemId` of the module it is declared in
+    ///     fn dolphin() {}
+    /// }
+    /// ```
+    ///
+    /// Note that this only returns the [`ItemId`] that this item is visible in
+    /// based on the declared visibility. The item might be reexported, which can
+    /// increase the visibility.
+    pub fn module_id(&self) -> Option<ItemId> {
+        match self.kind {
+            VisibilityKind::Path(id) | VisibilityKind::Crate(id) | VisibilityKind::Default(id) => Some(id),
+            _ => None,
+        }
+    }
+
+    // FIXME(xFrednet): Implement functions to check if an item is visible from a
+    // given `ItemId`. This can be done once rust-marker/marker#242 is implemented.
+}
+
+#[derive(Debug)]
+#[allow(clippy::exhaustive_enums)]
+#[cfg_attr(feature = "driver-api", visibility::make(pub))]
+enum VisibilityKind {
+    /// The item is declared as `pub` without any restrictions
+    Public,
+    /// The visibility is restricted to a specific module using `pub(<path>)`.
+    /// The module, targeted by the path is identified by the [`ItemId`].
+    /// The `pub(crate)` has it's own variant in this struct.
+    Path(ItemId),
+    /// The visibility is restricted to the root module of the crate. The [`ItemId`]
+    /// identifies the root module.
+    Crate(ItemId),
+    /// The items doesn't have a declared visibility. The default is restricted to
+    /// a module, identified by the stored [`ItemId`]
+    Default(ItemId),
+    /// For items which are `pub` by default, like trait functions or enum variants
+    DefaultPub,
 }
 
 /// A body represents the expression of items.

@@ -9,7 +9,13 @@ warning: printing item with body
                   data: CommonItemData {
                       id: ItemId(..),
                       span: SpanId(..),
-                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      vis: Visibility {
+                          _lifetime: PhantomData<&()>,
+                          span: None,
+                          kind: Default(
+                              ItemId(..),
+                          ),
+                      },
                       ident: Ident {
                           name: "print_with_body_foo",
                           span: $DIR/print_async_fn.rs:1:10 - 1:29,
@@ -85,7 +91,13 @@ warning: printing item with body
                   data: CommonItemData {
                       id: ItemId(..),
                       span: SpanId(..),
-                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      vis: Visibility {
+                          _lifetime: PhantomData<&()>,
+                          span: None,
+                          kind: Default(
+                              ItemId(..),
+                          ),
+                      },
                       ident: Ident {
                           name: "print_with_body_bar",
                           span: $DIR/print_async_fn.rs:9:10 - 9:29,
@@ -509,7 +521,13 @@ warning: printing item with body
                    data: CommonItemData {
                        id: ItemId(..),
                        span: SpanId(..),
-                       vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                       vis: Visibility {
+                           _lifetime: PhantomData<&()>,
+                           span: None,
+                           kind: Default(
+                               ItemId(..),
+                           ),
+                       },
                        ident: Ident {
                            name: "print_with_body_with_lifetime",
                            span: $DIR/print_async_fn.rs:16:10 - 16:39,

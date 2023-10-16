@@ -9,7 +9,13 @@ warning: printing item
                   data: CommonItemData {
                       id: ItemId(..),
                       span: SpanId(..),
-                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      vis: Visibility {
+                          _lifetime: PhantomData<&()>,
+                          span: None,
+                          kind: Default(
+                              ItemId(..),
+                          ),
+                      },
                       ident: Ident {
                           name: "PrintMeBTreeMap",
                           span: $DIR/print_use.rs:1:36 - 1:51,
@@ -62,7 +68,13 @@ warning: printing item
                   data: CommonItemData {
                       id: ItemId(..),
                       span: SpanId(..),
-                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      vis: Visibility {
+                          _lifetime: PhantomData<&()>,
+                          span: None,
+                          kind: Default(
+                              ItemId(..),
+                          ),
+                      },
                       ident: Ident {
                           name: "PrintMeHashMap",
                           span: $DIR/print_use.rs:1:64 - 1:78,
