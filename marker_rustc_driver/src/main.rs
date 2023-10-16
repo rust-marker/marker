@@ -1,4 +1,4 @@
-//! This is the source file for the `rustc_marker_driver` binary. However, the bulk of its logic is
+//! This is the source file for the `marker_rustc_driver` binary. However, the bulk of its logic is
 //! in `../lib.rs`.
 
 #![doc = include_str!("../README.md")]
