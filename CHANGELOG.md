@@ -28,10 +28,12 @@ The [v0.4.0 milestone] contains a list of planned changes.
 [v0.4.0 milestone]: https://github.com/rust-marker/marker/milestone/4
 [#278]: https://github.com/rust-marker/marker/pull/278
 [#288]: https://github.com/rust-marker/marker/pull/288
+[#294]: https://github.com/rust-marker/marker/pull/294
 [#306]: https://github.com/rust-marker/marker/pull/306
 
 ### Added
 - [#306]: The `LintPass` trait now as a new `check_crate` method.
+- [#294]: Items and fields now provide information about their visibility
 
 ### Fixed
 - [#306]: Rustc's driver no longer ICEs on spans from compiler generated code.
