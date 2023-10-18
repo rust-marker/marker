@@ -7,12 +7,7 @@
 #![allow(clippy::missing_panics_doc)] // Temporary allow for `todo!`s
 #![allow(clippy::new_without_default)] // Not very helpful as `new` is almost always cfged
 #![cfg_attr(not(feature = "driver-api"), allow(dead_code))]
-// FIXME(#26): this is commented out because it is the lint that we want to enable
-// here makes sense only on a public items, but it triggers of private/pub(crate)
-// methods today. There isn't a way to inspect the item visibility in this lint's
-// impl yet. Once #26 is done and lint impl ignores private functions we may enable
-// this lint.
-// #![cfg_attr(marker, warn(marker::not_using_has_span_trait))]
+#![cfg_attr(marker, warn(marker::marker_lints::not_using_has_span_trait))]
 
 pub static MARKER_API_VERSION: &str = env!("CARGO_PKG_VERSION");
 
