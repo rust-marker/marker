@@ -4,7 +4,7 @@ marker_api::declare_lint! {
     /// ### What it does
     /// Suggests using `impl HasSpan` for functions that need to take `Span` as
     /// a parameter to make them more ergonomic.
-    /// 
+    ///
     /// This function only triggers on public items, as it's targeted to towards
     /// the public interface of crates.
     NOT_USING_HAS_SPAN_TRAIT,

@@ -454,25 +454,31 @@ impl<'ast> Body<'ast> {
 #[cfg(all(test, target_arch = "x86_64", target_pointer_width = "64"))]
 mod test {
     use super::*;
-    use std::mem::size_of;
+    use expect_test::{expect, Expect};
+
+    #[track_caller]
+    fn assert_size_of<T>(expected: &Expect) {
+        let actual = std::mem::size_of::<T>();
+        expected.assert_eq(&actual.to_string());
+    }
 
     #[test]
     fn test_item_struct_size() {
         // These sizes are allowed to change, this is just a check to have a
         // general overview and to prevent accidental changes
-        assert_eq!(56, size_of::<ModItem<'_>>(), "ModItem");
-        assert_eq!(48, size_of::<ExternCrateItem<'_>>(), "ExternCrateItem");
-        assert_eq!(64, size_of::<UseItem<'_>>(), "UseItem");
-        assert_eq!(80, size_of::<StaticItem<'_>>(), "StaticItem");
-        assert_eq!(72, size_of::<ConstItem<'_>>(), "ConstItem");
-        assert_eq!(144, size_of::<FnItem<'_>>(), "FnItem");
-        assert_eq!(112, size_of::<TyAliasItem<'_>>(), "TyAliasItem");
-        assert_eq!(96, size_of::<StructItem<'_>>(), "StructItem");
-        assert_eq!(88, size_of::<EnumItem<'_>>(), "EnumItem");
-        assert_eq!(88, size_of::<UnionItem<'_>>(), "UnionItem");
-        assert_eq!(112, size_of::<TraitItem<'_>>(), "TraitItem");
-        assert_eq!(144, size_of::<ImplItem<'_>>(), "ImplItem");
-        assert_eq!(64, size_of::<ExternBlockItem<'_>>(), "ExternBlockItem");
-        assert_eq!(48, size_of::<UnstableItem<'_>>(), "UnstableItem");
+        assert_size_of::<ModItem<'_>>(&expect!["80"]);
+        assert_size_of::<ExternCrateItem<'_>>(&expect!["72"]);
+        assert_size_of::<UseItem<'_>>(&expect!["88"]);
+        assert_size_of::<StaticItem<'_>>(&expect!["104"]);
+        assert_size_of::<ConstItem<'_>>(&expect!["96"]);
+        assert_size_of::<FnItem<'_>>(&expect!["168"]);
+        assert_size_of::<TyAliasItem<'_>>(&expect!["136"]);
+        assert_size_of::<StructItem<'_>>(&expect!["120"]);
+        assert_size_of::<EnumItem<'_>>(&expect!["112"]);
+        assert_size_of::<UnionItem<'_>>(&expect!["112"]);
+        assert_size_of::<TraitItem<'_>>(&expect!["136"]);
+        assert_size_of::<ImplItem<'_>>(&expect!["168"]);
+        assert_size_of::<ExternBlockItem<'_>>(&expect!["88"]);
+        assert_size_of::<UnstableItem<'_>>(&expect!["72"]);
     }
 }
