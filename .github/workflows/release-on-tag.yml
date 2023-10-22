@@ -156,9 +156,9 @@ jobs:
           run: |
             export PATH="/root/.cargo/bin:$PATH"
             cargo build -p marker_rustc_driver --release
-            cp target/release/marker_rustc_driver /artifacts/${{ env.artifact }}
+            cp target/release/marker_rustc_driver /artifacts/marker_rustc_driver
 
-      - run: ./scripts/release/upload.sh ${{ github.ref_name }} ${{ env.artifact }}
+      - run: ./scripts/release/upload.sh ${{ github.ref_name }} marker_rustc_driver ${{ env.artifact }}
         env:
           GH_TOKEN: ${{ github.token }}
 

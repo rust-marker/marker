@@ -55,11 +55,8 @@ jobs:
           --commit "🚧 Development v${{ env.next_dev_version }}"
 
       # Push the changes to the remote
-      - run: git push origin ${{ github.ref_name }} --force-with-lease
-
-      # We use `--force` because the tags that are pushed here will include the
-      # sliding `v{major}` and `v{major}.{minor}` tags, so we have to overwrite
-      # them with the new ones. To prevent force-pushing the master branch we
-      # do this push with --force in a separate step, so it's not fully atomic,
-      # but it's good enough.
-      - run: git push --force --atomic origin ${{ env.tags }}
+      #
+      # We use `--force-with-lease` because the tags that are pushed here will
+      # include the  sliding `v{major}` and `v{major}.{minor}` tags, so we have
+      # to overwrite them with the new ones.
+      - run: git push --force-with-lease --atomic origin ${{ github.ref_name }} ${{ env.tags }}
