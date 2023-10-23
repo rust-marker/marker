@@ -38,7 +38,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
 
-      - run: cargo test --locked
+      - run: cargo test --locked --all-features --all-targets
+      - run: cargo test --locked --all-features --doc
 
   rust-lint:
     runs-on: ${{ matrix.os }}-latest

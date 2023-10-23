@@ -505,7 +505,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     /// understand how this desugaring works. Here is a simple example to
     /// illustrate the current desugar:
     ///
-    /// ```
+    /// ```ignore
     /// # let mut a = 0;
     /// # let mut b = 0;
     /// // This expression
@@ -603,6 +603,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     /// # let range = 0..10;
     /// // This expression
     /// for _ in range { /* body */ }
+    /// # let range = 0..10;
     /// // Is desugared to:
     /// match IntoIterator::into_iter(range) {
     ///     mut iter =>
