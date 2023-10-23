@@ -17,6 +17,9 @@ pub use interface::*;
 mod lint;
 pub use lint::*;
 
+#[cfg(test)]
+pub(crate) mod test;
+
 pub mod ast;
 pub mod common;
 pub mod context;

@@ -372,14 +372,10 @@ impl<'ast> ConstExpr<'ast> {
 
 #[cfg(all(test, target_arch = "x86_64", target_pointer_width = "64"))]
 mod test {
-    use super::*;
-    use expect_test::{expect, Expect};
+    use crate::test::assert_size_of;
 
-    #[track_caller]
-    fn assert_size_of<T>(expected: &Expect) {
-        let actual = std::mem::size_of::<T>();
-        expected.assert_eq(&actual.to_string());
-    }
+    use super::*;
+    use expect_test::expect;
 
     #[test]
     fn expr_struct_size() {

@@ -84,9 +84,10 @@ impl std::hash::Hash for FfiStr<'_> {
 /// This is an FFI safe option. In most cases it's better to pass a pointer and
 /// then use `as_ref()` but this doesn't work for owned return values.
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub enum FfiOption<T> {
     Some(T),
+    #[default]
     None,
 }
 

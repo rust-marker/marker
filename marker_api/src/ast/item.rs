@@ -190,6 +190,7 @@ use impl_item_type_fn;
 #[repr(C)]
 #[derive(Debug)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 struct CommonItemData<'ast> {
     id: ItemId,
     span: SpanId,
@@ -238,15 +239,6 @@ macro_rules! impl_item_data {
 
 use impl_item_data;
 
-#[cfg(feature = "driver-api")]
-impl<'ast> CommonItemData<'ast> {
-    // Here we can't `derive(TypedBuilder)`, as the created builder is private,
-    // due to the declaration of the item not being pub.
-    pub fn new(id: ItemId, span: SpanId, vis: Visibility<'ast>, ident: Ident<'ast>) -> Self {
-        Self { id, span, vis, ident }
-    }
-}
-
 /// The declared visibility of an item or field.
 ///
 /// Note that this is only the syntactic visibility. The item or field might be
@@ -274,15 +266,9 @@ impl<'ast> CommonItemData<'ast> {
 pub struct Visibility<'ast> {
     #[cfg_attr(feature = "driver-api", builder(setter(skip), default))]
     _lifetime: PhantomData<&'ast ()>,
-    #[cfg_attr(feature = "driver-api", builder(setter(into)))]
-    #[cfg_attr(feature = "driver-api", builder(default = FfiOption::None))]
+    #[cfg_attr(feature = "driver-api", builder(setter(into), default))]
     span: FfiOption<SpanId>,
     kind: VisibilityKind,
-    // * The rustc model makes sense, so have a kind with a restriction
-    // * have according methods, that check for `pub(crate)`
-    // * document possible equivalency between `pub(crate)` and `pub(super)`
-    // * Document that things can be reexported
-    // * Test how visibility only to lower scopes works `pub(self::sub_module)`
 }
 
 impl<'ast> Visibility<'ast> {
@@ -321,8 +307,8 @@ impl<'ast> Visibility<'ast> {
     /// This function checks if the visibility is restricted and the defined path
     /// belongs to the root module of the crate. Meaning, that this can also be `true`,
     /// if the visibility uses `pub(super)` to travel up to the crate root.
-    ///
-    /// ```rs
+    // Ignore, since the `in crate::example_1` path doesn't work for doc tests
+    /// ```ignore
     /// // lib.rs
     ///
     /// mod example_1 {
@@ -333,11 +319,11 @@ impl<'ast> Visibility<'ast> {
     ///     pub(in crate::example_1) fn bar() {}
     ///
     ///     // Returns `true` as the visibility is restricted to the root of the crate.
-    ///     pub(crate) baz() {}
+    ///     pub(crate) fn baz() {}
     ///
     ///     // Returns `true` as the visibility is restricted to `super` which is the
     ///     // root of the crate.
-    ///     pub(crate) boo() {}
+    ///     pub(super) fn boo() {}
     /// }
     ///
     /// // Returns `false` since the visibility is not restricted
@@ -453,14 +439,10 @@ impl<'ast> Body<'ast> {
 
 #[cfg(all(test, target_arch = "x86_64", target_pointer_width = "64"))]
 mod test {
-    use super::*;
-    use expect_test::{expect, Expect};
+    use crate::test::assert_size_of;
 
-    #[track_caller]
-    fn assert_size_of<T>(expected: &Expect) {
-        let actual = std::mem::size_of::<T>();
-        expected.assert_eq(&actual.to_string());
-    }
+    use super::*;
+    use expect_test::expect;
 
     #[test]
     fn test_item_struct_size() {

@@ -149,10 +149,7 @@ impl LintPass for TestLintPass {
                         diag.note(format!("Body: {:#?}", cx.ast().body(func.body_id().unwrap())));
                     });
             }
-            if matches!(
-                item.ident().map(marker_api::span::Ident::name),
-                Some(name) if name.starts_with("test_vis")
-            ) {
+            if item.ident().is_some_and(|ident| ident.name().starts_with("test_vis")) {
                 cx.emit_lint(TEST_ITEM_VISIBILITY, item, "can you see this item?")
                     .decorate(|diag| {
                         let vis = item.visibility();
