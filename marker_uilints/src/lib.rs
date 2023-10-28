@@ -162,7 +162,7 @@ impl LintPass for TestLintPass {
                         diag.note(format!("vis.is_pub()                  -> {}", vis.is_pub()));
                         diag.note(format!("vis.is_pub_with_path()        -> {}", vis.is_pub_with_path()));
                         diag.note(format!("vis.is_pub_crate()            -> {}", vis.is_pub_crate()));
-                        diag.note(format!("vis.is_defined()              -> {}", vis.is_defined()));
+                        diag.note(format!("vis.is_explicit()             -> {}", vis.is_explicit()));
                         diag.note(format!(
                             "vis.pub_with_path_module_id() -> {:?}",
                             vis.pub_with_path_module_id()

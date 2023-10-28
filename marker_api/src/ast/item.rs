@@ -333,8 +333,8 @@ impl<'ast> Visibility<'ast> {
         matches!(self.kind, VisibilityKind::Crate(_))
     }
 
-    /// Returns `true` if a visibility has been defined.
-    pub fn is_defined(&self) -> bool {
+    /// Returns `true` if a visibility has been explicitly specified.
+    pub fn is_explicit(&self) -> bool {
         !matches!(self.kind, VisibilityKind::Default(_) | VisibilityKind::DefaultPub)
     }
 
