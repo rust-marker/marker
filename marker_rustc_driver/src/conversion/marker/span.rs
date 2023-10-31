@@ -25,7 +25,13 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let ctxt = rust_span.ctxt();
 
         if !ctxt.is_root() {
-            return SpanSource::Macro(self.alloc(self.to_expn_info(&ctxt.outer_expn_data())));
+            let expn_data = ctxt.outer_expn_data();
+            return match expn_data.kind {
+                rustc_span::ExpnKind::Macro(_, _) => SpanSource::Macro(self.alloc(self.to_expn_info(&expn_data))),
+                rustc_span::ExpnKind::AstPass(_) => SpanSource::Buildin(self.buildin_span_source),
+                rustc_span::ExpnKind::Desugaring(_) => unreachable!("desugaring spans should never be crated"),
+                rustc_span::ExpnKind::Root => unreachable!("checked above"),
+            };
         }
 
         let src_file = self.rustc_cx.sess.source_map().lookup_source_file(rust_span.lo());
