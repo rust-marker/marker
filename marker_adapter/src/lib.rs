@@ -73,6 +73,7 @@ impl Adapter {
 
         inner.external_lint_crates.set_ast_context(cx);
 
+        inner.external_lint_crates.check_crate(cx, krate);
         visitor::traverse_item::<()>(cx, inner, ItemKind::Mod(krate.root_mod()));
     }
 }
