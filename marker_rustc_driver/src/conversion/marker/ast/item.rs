@@ -82,9 +82,14 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                         hir::TraitFn::Provided(*body_id),
                     )))
                 },
-                hir::ItemKind::Mod(rustc_mod) => {
-                    ItemKind::Mod(self.alloc(ModItem::new(data, self.to_items(rustc_mod.item_ids))))
-                },
+                hir::ItemKind::Mod(rustc_mod) => ItemKind::Mod(
+                    self.alloc(
+                        ModItem::builder()
+                            .data(data)
+                            .items(self.to_items(rustc_mod.item_ids))
+                            .build(),
+                    ),
+                ),
                 hir::ItemKind::ForeignMod { abi, items } => ItemKind::ExternBlock(self.alloc({
                     let abi = self.to_abi(*abi);
                     ExternBlockItem::new(data, abi, self.to_external_items(items, abi))

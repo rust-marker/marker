@@ -8,11 +8,11 @@ mod common;
 mod sem;
 mod span;
 
-use std::cell::RefCell;
+use std::cell::{OnceCell, RefCell};
 
 use crate::context::storage::Storage;
 use marker_api::{
-    ast::{Body, Crate, EnumVariant, ItemField},
+    ast::{Body, CommonItemData, Crate, EnumVariant, ItemField, ModItem},
     common::{Level, SymbolId},
     prelude::*,
     span::{ExpnInfo, FilePos, Span, SpanSource},
@@ -145,10 +145,8 @@ impl<'ast, 'tcx> MarkerConverter<'ast, 'tcx> {
         scx: rustc_span::SyntaxContext,
         pos: rustc_span::BytePos,
     ) -> Option<FilePos<'ast>>);
-    forward_to_inner!(pub fn to_crate(
+    forward_to_inner!(pub fn local_crate(
         &self,
-        rustc_crate_id: hir::def_id::CrateNum,
-        rustc_root_mod: &'tcx hir::Mod<'tcx>,
     ) -> &'ast Crate<'ast>);
 }
 
@@ -166,6 +164,7 @@ struct MarkerConverterInner<'ast, 'tcx> {
     storage: &'ast Storage<'ast>,
 
     // Converted nodes cache
+    krate: OnceCell<&'ast Crate<'ast>>,
     items: RefCell<FxHashMap<ItemId, ItemKind<'ast>>>,
     bodies: RefCell<FxHashMap<BodyId, &'ast Body<'ast>>>,
     exprs: RefCell<FxHashMap<ExprId, ExprKind<'ast>>>,
@@ -218,6 +217,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let s = Self {
             rustc_cx,
             storage,
+            krate: OnceCell::default(),
             items: RefCell::default(),
             bodies: RefCell::default(),
             exprs: RefCell::default(),
@@ -304,14 +304,37 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
 impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
-    fn to_crate(
-        &self,
-        rustc_crate_id: hir::def_id::CrateNum,
-        rustc_root_mod: &'tcx hir::Mod<'tcx>,
-    ) -> &'ast Crate<'ast> {
-        self.alloc(Crate::new(
-            self.to_crate_id(rustc_crate_id),
-            self.to_items(rustc_root_mod.item_ids),
-        ))
+    fn local_crate(&self) -> &'ast Crate<'ast> {
+        if let Some(krate) = self.krate.get() {
+            return krate;
+        };
+
+        let krate = self.alloc(
+            Crate::builder()
+                .id(self.to_crate_id(hir::def_id::LOCAL_CRATE))
+                .root_mod(self.local_crate_mod())
+                .build(),
+        );
+        self.krate
+            .set(krate)
+            .expect("this can't be filled, since we checked earlier and this stage is single threaded");
+
+        let root_mod = krate.root_mod();
+        self.items.borrow_mut().insert(root_mod.id(), ItemKind::Mod(root_mod));
+        krate
+    }
+
+    fn local_crate_mod(&self) -> ModItem<'ast> {
+        let id = self.to_item_id(hir::def_id::DefId::from(hir::CRATE_OWNER_ID));
+        let krate_mod = self.rustc_cx.hir().root_module();
+        let ident = Ident::new(
+            self.to_symbol_id(self.rustc_cx.crate_name(hir::def_id::LOCAL_CRATE)),
+            self.to_span_id(rustc_span::DUMMY_SP),
+        );
+        let data = CommonItemData::new(id, self.to_span_id(krate_mod.spans.inner_span), ident);
+        ModItem::builder()
+            .data(data)
+            .items(self.to_items(krate_mod.item_ids))
+            .build()
     }
 }
