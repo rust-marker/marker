@@ -173,7 +173,7 @@ struct MarkerConverterInner<'ast, 'tcx> {
     variants: RefCell<FxHashMap<VariantId, &'ast EnumVariant<'ast>>>,
 
     // Cached/Dummy values
-    buildin_span_source: &'ast marker_api::span::BuildinInfo<'ast>,
+    builtin_span_source: &'ast marker_api::span::BuiltinInfo<'ast>,
     num_symbols: RefCell<FxHashMap<u32, SymbolId>>,
 
     /// Lang-items are weird, and if I'm being honest, I'm uncertain that I
@@ -226,7 +226,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             stmts: RefCell::default(),
             fields: RefCell::default(),
             variants: RefCell::default(),
-            buildin_span_source: storage.alloc(marker_api::span::BuildinInfo::default()),
+            builtin_span_source: storage.alloc(marker_api::span::BuiltinInfo::default()),
             num_symbols: RefCell::default(),
             lang_item_map: RefCell::default(),
             rustc_body: RefCell::default(),
@@ -308,23 +308,18 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     fn local_crate(&self) -> &'ast Crate<'ast> {
-        if let Some(krate) = self.krate.get() {
-            return krate;
-        };
+        self.krate.get_or_init(|| {
+            let krate = self.alloc(
+                Crate::builder()
+                    .id(self.to_crate_id(hir::def_id::LOCAL_CRATE))
+                    .root_mod(self.local_crate_mod())
+                    .build(),
+            );
 
-        let krate = self.alloc(
-            Crate::builder()
-                .id(self.to_crate_id(hir::def_id::LOCAL_CRATE))
-                .root_mod(self.local_crate_mod())
-                .build(),
-        );
-        self.krate
-            .set(krate)
-            .expect("this can't be filled, since we checked earlier and this stage is single threaded");
-
-        let root_mod = krate.root_mod();
-        self.items.borrow_mut().insert(root_mod.id(), ItemKind::Mod(root_mod));
-        krate
+            let root_mod = krate.root_mod();
+            self.items.borrow_mut().insert(root_mod.id(), ItemKind::Mod(root_mod));
+            krate
+        })
     }
 
     fn local_crate_mod(&self) -> ModItem<'ast> {

@@ -235,7 +235,7 @@ impl<'ast> std::fmt::Debug for Span<'ast> {
                 fmt_pos(file.try_to_file_pos(self.end))
             ),
             SpanSource::Macro(expn) => format!("[Inside Macro] {:#?}", expn.call_site()),
-            SpanSource::Buildin(_) => "[From Prelude]".to_string(),
+            SpanSource::Builtin(_) => "[From Prelude]".to_string(),
         };
         f.debug_struct(&name).finish()
     }
@@ -421,7 +421,7 @@ impl<'ast> Span<'ast> {
 pub enum SpanSource<'ast> {
     File(&'ast FileInfo<'ast>),
     Macro(&'ast ExpnInfo<'ast>),
-    Buildin(&'ast BuildinInfo<'ast>),
+    Builtin(&'ast BuiltinInfo<'ast>),
 }
 
 #[repr(C)]
@@ -514,7 +514,7 @@ impl<'ast> FilePos<'ast> {
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "driver-api", derive(Default))]
-pub struct BuildinInfo<'ast> {
+pub struct BuiltinInfo<'ast> {
     /// The lifetime is not needed right now, but I want to have it, to potentualy
     /// add more behavior to this struct.
     _lifetime: PhantomData<&'ast ()>,

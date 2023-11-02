@@ -41,6 +41,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             return Some(*item);
         }
 
+        if self.is_compiler_generated(rustc_item.span) {
+            return None;
+        }
+
         let ident = self.to_ident(rustc_item.ident);
         let data = CommonItemData::new(id, self.to_span_id(rustc_item.span), ident);
         let item =
@@ -162,6 +166,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
         self.items.borrow_mut().insert(id, item);
         Some(item)
+    }
+
+    fn is_compiler_generated(&self, span: rustc_span::Span) -> bool {
+        let ctxt = span.ctxt();
+
+        !ctxt.is_root() && matches!(ctxt.outer_expn_data().kind, rustc_span::ExpnKind::AstPass(_))
     }
 
     fn to_fn_item(
