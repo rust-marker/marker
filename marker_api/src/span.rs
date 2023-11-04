@@ -235,7 +235,7 @@ impl<'ast> std::fmt::Debug for Span<'ast> {
                 fmt_pos(file.try_to_file_pos(self.end))
             ),
             SpanSource::Macro(expn) => format!("[Inside Macro] {:#?}", expn.call_site()),
-            SpanSource::Builtin(_) => "[From Prelude]".to_string(),
+            SpanSource::Builtin(_) => "[Builtin]".to_string(),
         };
         f.debug_struct(&name).finish()
     }
