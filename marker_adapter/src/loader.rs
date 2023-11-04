@@ -99,6 +99,12 @@ impl LintPass for LintCrateRegistry {
         panic!("`registered_lints` should not be called on `LintCrateRegistry`");
     }
 
+    fn check_crate<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, krate: &'ast marker_api::ast::Crate<'ast>) {
+        for lp in &self.passes {
+            (lp.bindings.check_crate)(cx, krate);
+        }
+    }
+
     fn check_item<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, item: marker_api::ast::ItemKind<'ast>) {
         for lp in &self.passes {
             (lp.bindings.check_item)(cx, item);

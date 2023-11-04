@@ -12,6 +12,7 @@ pub struct LintCrateBindings {
 
     // lint pass functions
     pub info: for<'ast> extern "C" fn() -> LintPassInfo,
+    pub check_crate: for<'ast> extern "C" fn(&'ast MarkerContext<'ast>, &'ast crate::ast::Crate<'ast>),
     pub check_item: for<'ast> extern "C" fn(&'ast MarkerContext<'ast>, crate::ast::ItemKind<'ast>),
     pub check_field: for<'ast> extern "C" fn(&'ast MarkerContext<'ast>, &'ast crate::ast::ItemField<'ast>),
     pub check_variant: for<'ast> extern "C" fn(&'ast MarkerContext<'ast>, &'ast crate::ast::EnumVariant<'ast>),
@@ -78,6 +79,12 @@ macro_rules! export_lint_pass {
                 extern "C" fn info() -> $crate::LintPassInfo {
                     super::__MARKER_STATE.with(|state| state.borrow_mut().info())
                 }
+                extern "C" fn check_crate<'ast>(
+                    cx: &'ast $crate::MarkerContext<'ast>,
+                    krate: &'ast $crate::ast::Crate<'ast>,
+                ) {
+                    super::__MARKER_STATE.with(|state| state.borrow_mut().check_crate(cx, krate));
+                }
                 extern "C" fn check_item<'ast>(
                     cx: &'ast $crate::MarkerContext<'ast>,
                     item: $crate::ast::ItemKind<'ast>,
@@ -118,6 +125,7 @@ macro_rules! export_lint_pass {
                 $crate::LintCrateBindings {
                     set_ast_context,
                     info,
+                    check_crate,
                     check_item,
                     check_field,
                     check_variant,

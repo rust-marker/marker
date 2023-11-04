@@ -43,6 +43,7 @@ pub use interface::{LintPassInfo, LintPassInfoBuilder};
 pub trait LintPass {
     fn info(&self) -> LintPassInfo;
 
+    fn check_crate<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _krate: &'ast ast::Crate<'ast>) {}
     fn check_item<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _item: ast::ItemKind<'ast>) {}
     fn check_field<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _field: &'ast ast::ItemField<'ast>) {}
     fn check_variant<'ast>(&mut self, _cx: &'ast MarkerContext<'ast>, _variant: &'ast ast::EnumVariant<'ast>) {}

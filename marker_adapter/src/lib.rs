@@ -68,14 +68,13 @@ impl Adapter {
         self.inner.borrow().external_lint_crates.collect_lint_pass_info()
     }
 
-    pub fn process_krate<'ast>(&self, cx: &'ast MarkerContext<'ast>, krate: &Crate<'ast>) {
+    pub fn process_krate<'ast>(&self, cx: &'ast MarkerContext<'ast>, krate: &'ast Crate<'ast>) {
         let inner = &mut *self.inner.borrow_mut();
 
         inner.external_lint_crates.set_ast_context(cx);
 
-        for item in krate.items() {
-            visitor::traverse_item::<()>(cx, inner, *item);
-        }
+        inner.external_lint_crates.check_crate(cx, krate);
+        visitor::traverse_item::<()>(cx, inner, ItemKind::Mod(krate.root_mod()));
     }
 }
 

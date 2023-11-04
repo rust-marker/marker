@@ -41,6 +41,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             return Some(*item);
         }
 
+        if self.is_compiler_generated(rustc_item.span) {
+            return None;
+        }
+
         let ident = self.to_ident(rustc_item.ident);
         let data = CommonItemData::new(id, self.to_span_id(rustc_item.span), ident);
         let item =
@@ -82,9 +86,14 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                         hir::TraitFn::Provided(*body_id),
                     )))
                 },
-                hir::ItemKind::Mod(rustc_mod) => {
-                    ItemKind::Mod(self.alloc(ModItem::new(data, self.to_items(rustc_mod.item_ids))))
-                },
+                hir::ItemKind::Mod(rustc_mod) => ItemKind::Mod(
+                    self.alloc(
+                        ModItem::builder()
+                            .data(data)
+                            .items(self.to_items(rustc_mod.item_ids))
+                            .build(),
+                    ),
+                ),
                 hir::ItemKind::ForeignMod { abi, items } => ItemKind::ExternBlock(self.alloc({
                     let abi = self.to_abi(*abi);
                     ExternBlockItem::new(data, abi, self.to_external_items(items, abi))
@@ -157,6 +166,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
         self.items.borrow_mut().insert(id, item);
         Some(item)
+    }
+
+    fn is_compiler_generated(&self, span: rustc_span::Span) -> bool {
+        let ctxt = span.ctxt();
+
+        !ctxt.is_root() && matches!(ctxt.outer_expn_data().kind, rustc_span::ExpnKind::AstPass(_))
     }
 
     fn to_fn_item(

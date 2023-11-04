@@ -67,9 +67,7 @@ fn process_crate_lifetime<'ast, 'tcx: 'ast>(
     // has their own storage for cx.
     marker_api::context::set_ast_cx(driver_cx.ast_cx());
 
-    let krate = driver_cx
-        .marker_converter
-        .to_crate(rustc_hir::def_id::LOCAL_CRATE, driver_cx.rustc_cx.hir().root_module());
+    let krate = driver_cx.marker_converter.local_crate();
 
     adapter.process_krate(driver_cx.ast_cx(), krate);
 }

@@ -16,8 +16,10 @@ use super::{CommonItemData, ItemKind};
 /// * See <https://doc.rust-lang.org/stable/reference/items/modules.html>
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct ModItem<'ast> {
     data: CommonItemData<'ast>,
+    #[cfg_attr(feature = "driver-api", builder(setter(into)))]
     items: FfiSlice<'ast, ItemKind<'ast>>,
 }
 
@@ -26,15 +28,5 @@ super::impl_item_data!(ModItem, Mod);
 impl<'ast> ModItem<'ast> {
     pub fn items(&self) -> &[ItemKind<'ast>] {
         self.items.get()
-    }
-}
-
-#[cfg(feature = "driver-api")]
-impl<'ast> ModItem<'ast> {
-    pub fn new(data: CommonItemData<'ast>, items: &'ast [ItemKind<'ast>]) -> Self {
-        Self {
-            data,
-            items: items.into(),
-        }
     }
 }

@@ -16,22 +16,13 @@ pub use pat::*;
 pub use stmt::*;
 pub use ty::*;
 
-use crate::{common::CrateId, ffi::FfiSlice};
+use crate::common::CrateId;
 
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct Crate<'ast> {
     id: CrateId,
-    items: FfiSlice<'ast, ItemKind<'ast>>,
-}
-
-#[cfg(feature = "driver-api")]
-impl<'ast> Crate<'ast> {
-    pub fn new(id: CrateId, items: &'ast [ItemKind<'ast>]) -> Self {
-        Self {
-            id,
-            items: items.into(),
-        }
-    }
+    root_mod: ModItem<'ast>,
 }
 
 impl<'ast> Crate<'ast> {
@@ -40,9 +31,8 @@ impl<'ast> Crate<'ast> {
         self.id
     }
 
-    /// This is a list of all items in the root file of the crate. Nested items
-    /// will be represented in the form of items and sub-items
-    pub fn items(&self) -> &[ItemKind<'ast>] {
-        self.items.get()
+    /// Returns the root module of the crate.
+    pub fn root_mod(&self) -> &ModItem<'ast> {
+        &self.root_mod
     }
 }
