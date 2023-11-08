@@ -14,6 +14,13 @@
 
 set -euo pipefail
 
+echo "Bash version: $BASH_VERSION" >&2
+
+# Configure the retries for downloading the release assets
+: "${MARKER_NET_RETRY_COUNT:=5}"
+: "${MARKER_NET_RETRY_MAX_DELAY:=60}"
+: "${RUSTUP_MAX_RETRIES:=$MARKER_NET_RETRY_COUNT}"
+
 # This script isn't meant to be run from `master`, but if it is, then
 # it will install the latest version be it a stable version or a pre-release.
 # region replace marker version unstable
@@ -31,11 +38,22 @@ function step {
     $cmd "$@"
 }
 
-echo "Bash version: $BASH_VERSION" >&2
+cat <<EOF
+Using config env vars (override these if needed):
+    MARKER_NET_RETRY_COUNT=$MARKER_NET_RETRY_COUNT
+    MARKER_NET_RETRY_MAX_DELAY=$MARKER_NET_RETRY_MAX_DELAY
+    RUSTUP_MAX_RETRIES=$RUSTUP_MAX_RETRIES
+EOF
 
 step curl --version
 step grep --version
 step tar --version
+
+curl_version=$(curl --version | grep -o 'curl [0-9]\+\.[0-9]\+\.[0-9]\+')
+curl_major=$(echo "$curl_version" | grep -o ' [0-9]\+\.'  | grep -o '[0-9]\+')
+curl_minor=$(echo "$curl_version" | grep -o '\.[0-9]\+\.' | grep -o '[0-9]\+')
+
+echo "Parsed curl major.minor: $curl_major.$curl_minor"
 
 step rustup install --profile minimal --no-self-update $toolchain
 
@@ -61,6 +79,22 @@ function cleanup {
 
 files="{cargo-marker,marker_rustc_driver}-$host_triple.{tar.gz,sha256}"
 
+# We don't need such a condition in windows installation script because the
+# version of curl on windows 2019 is quite recent (8.2.1). However the GitHub
+# OS image for ubuntu-20.04 uses curl 7.68.0, and this is the environment where
+# this if condition is needed.
+if [[ "$curl_major" -lt 7 || $curl_major -eq 7 && "$curl_minor" -lt 71 ]]; then
+    echo -e "
+\033[33;1m[WARN] Installed curl version is $curl_major.$curl_minor, but \
+--retry-all-errors option is supported only since curl 7.71, so this option \
+will not be set. This means that if the download fails due to an error HTTP status \
+code, it won't be retried. The script will retry only 'connection refused' errors.\033[0m
+" >&2
+    retry_all_errors="--retry-connrefused"
+else
+    retry_all_errors="--retry-all-errors"
+fi
+
 # Download all files using a single TCP connection with HTTP2 multiplexing
 # Unfortunately, `curl 7.68.0` installed on Ubuntu 20.04 Github Actions runner
 # doesn't have the `--output-dir` option (it was added in `7.73.0`), so we have
@@ -71,8 +105,9 @@ step curl \
     --silent \
     --fail \
     --show-error \
-    --retry 5 \
-    --retry-connrefused \
+    --retry "$MARKER_NET_RETRY_COUNT" \
+    --retry-max-time "$MARKER_NET_RETRY_MAX_DELAY" \
+    $retry_all_errors \
     --remote-name \
     "https://github.com/rust-marker/marker/releases/download/v$version/$files"
 step popd

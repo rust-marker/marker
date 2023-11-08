@@ -38,6 +38,16 @@ All inputs are optional, they only allow tweaking the default behavior.
 |----------------|---------------------------------------------------------------|-----------|---------|
 | `install-only` | Only install Marker but don't run the `cargo marker` command. | `boolean` | `false` |
 
+
+### Environment variables
+
+| Name                         | Description                                                              | Type      | Default |
+|------------------------------|--------------------------------------------------------------------------|-----------|---------|
+| `MARKER_NET_RETRY_COUNT`     | Max number of retries for downloads. This also sets `RUSTUP_MAX_RETRIES` | `integer` | `5`     |
+| `MARKER_NET_RETRY_MAX_DELAY` | Max delay between subsequent retries for downloads in seconds            | `integer` | `60`    |
+
+These environment variables configure the behavior of the installation script and they may be used if you run that script directly as well e.g. on [other CI systems](#other-ci-systems).
+
 ### Example workflows
 
 These example workflows will use the lint crates specified in the `Cargo.toml` file by default. Refer to the [*Lint Crate Declaration*](./lint-crate-declaration.md) section for more information.
@@ -115,7 +125,7 @@ curl \
     --fail \
     --show-error \
     --retry 5 \
-    --retry-connrefused \
+    --retry-all-errors \
     https://raw.githubusercontent.com/rust-marker/marker/v0.3/scripts/release/install.sh \
     | bash
 ```
@@ -128,14 +138,17 @@ curl.exe `
     --fail `
     --show-error `
     --retry 5 `
-    --retry-connrefused `
+    --retry-all-errors `
     https://raw.githubusercontent.com/rust-marker/marker/v0.3/scripts/release/install.ps1 `
     | powershell -command -
 ```
 
 <!-- endregion replace marker version stable -->
 
+Both of these scripts are configurable. See the [environment variables](#environment-variables) for details on what's available.
+
 The available version git tags that you may use in the URL are described in the [git tags](#git-tags) paragraph of the Github Action.
 
+[`RUSTUP_MAX_RETRIES`]: https://github.com/rust-lang/rustup/blob/5af4bc4a0d4bc69ea9091a7935fb3783c5fb508e/doc/dev-guide/src/tips-and-tricks.md#rustup_max_retries
 [new issue]: https://gitHub.com/rust-marker/marker/issues/new/choose
 [OS images supported by managed GitHub Actions runners]: https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources

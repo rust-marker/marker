@@ -75,6 +75,9 @@ function try_download_and_decompress {
     rm $archive
 }
 
+# Be careful to use this only for HTTP GET requests! This script does aggressive
+# retries, so if you use it for a non-readonly HTTP method that doesn't use any
+# idempotency token validation mechanism you might end up with duplicate modifications.
 function curl_with_retry {
     with_log curl \
         --location \
@@ -82,7 +85,7 @@ function curl_with_retry {
         --show-error \
         --fail \
         --retry 5 \
-        --retry-connrefused \
+        --retry-all-errors \
         "$@"
 }
 
