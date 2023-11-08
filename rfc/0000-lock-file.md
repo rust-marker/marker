@@ -69,7 +69,7 @@ use marker_api::prelude::*;
 struct LintPass<'ast> {
     // This makes it more convenient. Now methods on `LintPass` don't need to
     // have a separate `MarkerContext` parameter, but can just use `self` only.
-    marker: MarkerContext<'ast>
+    marker: MarkerContext<'ast>,
 
     /// Docs for the lint
     // The field name defines the lint name
