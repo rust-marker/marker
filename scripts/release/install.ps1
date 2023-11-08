@@ -40,8 +40,30 @@
 #      | Command curl failed with exit code 22
 # ```
 
-
 $ErrorActionPreference = "Stop"
+
+Write-Output "PowerShell version: $($PSVersionTable.PSVersion)"
+
+# Configure the retries for downloading the release assets
+if ($env:MARKER_NET_RETRY_COUNT -eq $null) {
+    $env:MARKER_NET_RETRY_COUNT = '5'
+}
+
+if ($env:MARKER_NET_RETRY_MAX_DELAY -eq $null) {
+    $env:MARKER_NET_RETRY_MAX_DELAY = '60'
+}
+
+if ($env:RUSTUP_MAX_RETRIES -eq $null) {
+    $env:RUSTUP_MAX_RETRIES = $env:MARKER_NET_RETRY_COUNT
+}
+
+Write-Output @"
+Using config env vars (override these if needed):
+    MARKER_NET_RETRY_COUNT=$env:MARKER_NET_RETRY_COUNT
+    MARKER_NET_RETRY_MAX_DELAY=$env:MARKER_NET_RETRY_MAX_DELAY
+    RUSTUP_MAX_RETRIES=$env:RUSTUP_MAX_RETRIES
+"@
+
 
 # This script isn't meant to be run from `master`, but if it is, then
 # it will install the latest version be it a stable version or a pre-release.
@@ -151,8 +173,6 @@ function Check-Sha256Sum {
     Write-Error "No checksum found for $file"
 }
 
-Write-Output "PowerShell version: $($PSVersionTable.PSVersion)"
-
 # This script can run on unix too if you have PowerShell installed there.
 # The only difference is that on Windows's old PowerShell 5 there is an alias
 # `curl` for `Invoke-WebRequest`, and if you want to use the real curl, then
@@ -194,8 +214,9 @@ try {
         --silent `
         --fail `
         --show-error `
-        --retry 5 `
-        --retry-connrefused `
+        --retry $env:MARKER_NET_RETRY_COUNT `
+        --retry-max-time $env:MARKER_NET_RETRY_MAX_DELAY `
+        --retry-all-errors `
         --remote-name `
         --output-dir $temp_dir `
         "https://github.com/rust-marker/marker/releases/download/v$version/$files"

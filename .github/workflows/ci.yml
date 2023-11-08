@@ -195,6 +195,12 @@ jobs:
       #
       # At least this checks that our installation script works as expected.
       - uses: ./
+        env:
+          # Given the default retry sequence of 1, 2, 4, 8, 16, 32, 60, 60, 60, ... 60 (seconds),
+          # this number of retries will give us approximately 30 minutes of total retry time.
+          # This is necessary to make CI wait for the release artifacts to be available on Github
+          # when a new version is released.
+          MARKER_NET_RETRY_COUNT: 35
         with:
           install-only: true
 

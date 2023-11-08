@@ -23,7 +23,7 @@ function curl_with_retry {
         --show-error \
         --fail \
         --retry 5 \
-        --retry-connrefused \
+        --retry-all-errors \
         "$@"
 }
 

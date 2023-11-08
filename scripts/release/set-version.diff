@@ -131,11 +131,11 @@
 -      - uses: rust-marker/marker@vX.Y
 +      - uses: rust-marker/marker@v0.1
          with:
-     --retry-connrefused \
+     --retry-all-errors \
 -    https://raw.githubusercontent.com/rust-marker/marker/vX.Y/scripts/release/install.sh \
 +    https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.sh \
      | bash
-     --retry-connrefused `
+     --retry-all-errors `
 -    https://raw.githubusercontent.com/rust-marker/marker/vX.Y/scripts/release/install.ps1 `
 +    https://raw.githubusercontent.com/rust-marker/marker/v0.1/scripts/release/install.ps1 `
      | powershell -command -
