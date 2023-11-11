@@ -5,9 +5,9 @@ warning: can you see this item?
   |    ^^^^^^^^^^^^^^^^
   |
   = note: vis.is_pub()                  -> false
-  = note: vis.is_pub_with_path()        -> false
+  = note: vis.is_pub_in_path()          -> false
   = note: vis.is_pub_crate()            -> false
-  = note: vis.is_explicit()             -> false
+  = note: vis.is_default()              -> true
   = note: vis.pub_with_path_module_id() -> None
   = note: vis.module_id()               -> Some(ItemId(..))
   = note: vis.span(): `None`
@@ -20,9 +20,9 @@ warning: can you see this item?
   |        ^^^^^^^^^^^^^^^
   |
   = note: vis.is_pub()                  -> true
-  = note: vis.is_pub_with_path()        -> false
+  = note: vis.is_pub_in_path()          -> false
   = note: vis.is_pub_crate()            -> false
-  = note: vis.is_explicit()             -> true
+  = note: vis.is_default()              -> false
   = note: vis.pub_with_path_module_id() -> None
   = note: vis.module_id()               -> None
   = note: vis.span(): `Some("pub")`
@@ -34,9 +34,9 @@ warning: can you see this item?
   |                   ^^^^^^^^^^^^^^^^^^
   |
   = note: vis.is_pub()                  -> false
-  = note: vis.is_pub_with_path()        -> true
+  = note: vis.is_pub_in_path()          -> false
   = note: vis.is_pub_crate()            -> true
-  = note: vis.is_explicit()             -> true
+  = note: vis.is_default()              -> false
   = note: vis.pub_with_path_module_id() -> Some(ItemId(..))
   = note: vis.module_id()               -> Some(ItemId(..))
   = note: vis.span(): `Some("pub(crate)")`
@@ -48,9 +48,9 @@ warning: can you see this item?
   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = note: vis.is_pub()                  -> false
-  = note: vis.is_pub_with_path()        -> true
+  = note: vis.is_pub_in_path()          -> false
   = note: vis.is_pub_crate()            -> true
-  = note: vis.is_explicit()             -> true
+  = note: vis.is_default()              -> false
   = note: vis.pub_with_path_module_id() -> Some(ItemId(..))
   = note: vis.module_id()               -> Some(ItemId(..))
   = note: vis.span(): `Some("pub(super)")`
@@ -62,9 +62,9 @@ warning: can you see this item?
    |                       ^^^^^^^^^^^^^^^^^^
    |
    = note: vis.is_pub()                  -> false
-   = note: vis.is_pub_with_path()        -> true
+   = note: vis.is_pub_in_path()          -> true
    = note: vis.is_pub_crate()            -> false
-   = note: vis.is_explicit()             -> true
+   = note: vis.is_default()              -> false
    = note: vis.pub_with_path_module_id() -> Some(ItemId(..))
    = note: vis.module_id()               -> Some(ItemId(..))
    = note: vis.span(): `Some("pub(super)")`
@@ -76,9 +76,9 @@ warning: can you see this item?
    |                                  ^^^^^^^^^^^^^^^^^^^^
    |
    = note: vis.is_pub()                  -> false
-   = note: vis.is_pub_with_path()        -> true
+   = note: vis.is_pub_in_path()          -> true
    = note: vis.is_pub_crate()            -> false
-   = note: vis.is_explicit()             -> true
+   = note: vis.is_default()              -> false
    = note: vis.pub_with_path_module_id() -> Some(ItemId(..))
    = note: vis.module_id()               -> Some(ItemId(..))
    = note: vis.span(): `Some("pub(in crate::module)")`

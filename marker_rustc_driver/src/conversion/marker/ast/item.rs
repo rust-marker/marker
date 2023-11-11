@@ -6,10 +6,10 @@ use marker_api::{
         Visibility,
     },
     common::{Abi, Constness, Mutability, Safety, Syncness},
+    prelude::*,
     CtorBlocker,
 };
 use rustc_hir as hir;
-use rustc_middle as mid;
 
 use crate::conversion::marker::MarkerConverterInner;
 
@@ -183,17 +183,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     fn to_visibility(&self, owner_id: hir::def_id::LocalDefId, vis_span: rustc_span::Span) -> Visibility<'ast> {
         let span = (!vis_span.is_empty()).then(|| self.to_span_id(vis_span));
 
-        let vis = self.rustc_cx.visibility(owner_id);
-        let kind = match vis {
-            mid::ty::Visibility::Public => ast::VisibilityKind::Public,
-            mid::ty::Visibility::Restricted(id) if span.is_none() => ast::VisibilityKind::Default(self.to_item_id(id)),
-            mid::ty::Visibility::Restricted(id) if id == hir::def_id::CRATE_DEF_ID.to_def_id() => {
-                ast::VisibilityKind::Crate(self.to_item_id(id))
-            },
-            mid::ty::Visibility::Restricted(id) => ast::VisibilityKind::Path(self.to_item_id(id)),
-        };
-
-        Visibility::builder().span(span).kind(kind).build()
+        Visibility::builder()
+            .span(span)
+            .sem(self.to_sem_visibility(owner_id, span.is_some()))
+            .build()
     }
 
     fn to_fn_item(
@@ -382,7 +375,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let data = CommonItemData::builder()
             .id(id)
             .span(self.to_span_id(rustc_item.span))
-            .vis(Visibility::builder().kind(ast::VisibilityKind::DefaultPub).build())
+            .vis(
+                Visibility::builder()
+                    .sem(sem::Visibility::builder().kind(sem::VisibilityKind::DefaultPub).build())
+                    .build(),
+            )
             .ident(self.to_ident(rustc_item.ident))
             .build();
 

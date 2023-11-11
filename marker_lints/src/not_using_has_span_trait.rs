@@ -13,7 +13,7 @@ marker_api::declare_lint! {
 
 pub(crate) fn check_item<'ast>(cx: &'ast MarkerContext<'ast>, item: ItemKind<'ast>) {
     let ItemKind::Fn(func) = item else { return };
-    if !func.visibility().is_pub() {
+    if !func.visibility().semantics().is_pub() {
         return;
     }
 

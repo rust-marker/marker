@@ -10,11 +10,13 @@ warning: printing item
                       id: ItemId(..),
                       span: SpanId(..),
                       vis: Visibility {
-                          _lifetime: PhantomData<&()>,
                           span: Some(
                               SpanId(..),
                           ),
-                          kind: Public,
+                          sem: Visibility {
+                              _lifetime: PhantomData<&()>,
+                              kind: Public,
+                          },
                       },
                       ident: Ident {
                           name: "PrintMeEnum",

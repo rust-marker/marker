@@ -10,11 +10,13 @@ warning: printing item
                       id: ItemId(..),
                       span: SpanId(..),
                       vis: Visibility {
-                          _lifetime: PhantomData<&()>,
                           span: None,
-                          kind: Default(
-                              ItemId(..),
-                          ),
+                          sem: Visibility {
+                              _lifetime: PhantomData<&()>,
+                              kind: Default(
+                                  ItemId(..),
+                              ),
+                          },
                       },
                       ident: Ident {
                           name: "PrintMeConstGenerics",
@@ -48,11 +50,13 @@ warning: printing item
                           ItemField {
                               id: FieldId(..),
                               vis: Visibility {
-                                  _lifetime: PhantomData<&()>,
                                   span: None,
-                                  kind: Default(
-                                      ItemId(..),
-                                  ),
+                                  sem: Visibility {
+                                      _lifetime: PhantomData<&()>,
+                                      kind: Default(
+                                          ItemId(..),
+                                      ),
+                                  },
                               },
                               ident: SymbolId(..),
                               ty: Array(
@@ -125,11 +129,13 @@ warning: printing item
                       id: ItemId(..),
                       span: SpanId(..),
                       vis: Visibility {
-                          _lifetime: PhantomData<&()>,
                           span: None,
-                          kind: Default(
-                              ItemId(..),
-                          ),
+                          sem: Visibility {
+                              _lifetime: PhantomData<&()>,
+                              kind: Default(
+                                  ItemId(..),
+                              ),
+                          },
                       },
                       ident: Ident {
                           name: "print_me",

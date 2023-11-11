@@ -10,11 +10,13 @@ warning: printing item
                       id: ItemId(..),
                       span: SpanId(..),
                       vis: Visibility {
-                          _lifetime: PhantomData<&()>,
                           span: Some(
                               SpanId(..),
                           ),
-                          kind: Public,
+                          sem: Visibility {
+                              _lifetime: PhantomData<&()>,
+                              kind: Public,
+                          },
                       },
                       ident: Ident {
                           name: "print_me_simple",
@@ -52,11 +54,13 @@ warning: printing item
                       id: ItemId(..),
                       span: SpanId(..),
                       vis: Visibility {
-                          _lifetime: PhantomData<&()>,
                           span: Some(
                               SpanId(..),
                           ),
-                          kind: Public,
+                          sem: Visibility {
+                              _lifetime: PhantomData<&()>,
+                              kind: Public,
+                          },
                       },
                       ident: Ident {
                           name: "print_me_special",
@@ -93,11 +97,13 @@ warning: printing item
                       id: ItemId(..),
                       span: SpanId(..),
                       vis: Visibility {
-                          _lifetime: PhantomData<&()>,
                           span: Some(
                               SpanId(..),
                           ),
-                          kind: Public,
+                          sem: Visibility {
+                              _lifetime: PhantomData<&()>,
+                              kind: Public,
+                          },
                       },
                       ident: Ident {
                           name: "print_me_params",
@@ -256,9 +262,11 @@ warning: printing item
                        id: ItemId(..),
                        span: SpanId(..),
                        vis: Visibility {
-                           _lifetime: PhantomData<&()>,
                            span: None,
-                           kind: DefaultPub,
+                           sem: Visibility {
+                               _lifetime: PhantomData<&()>,
+                               kind: DefaultPub,
+                           },
                        },
                        ident: Ident {
                            name: "print_me_trait_with_body",
@@ -417,9 +425,11 @@ warning: printing item
                        id: ItemId(..),
                        span: SpanId(..),
                        vis: Visibility {
-                           _lifetime: PhantomData<&()>,
                            span: None,
-                           kind: DefaultPub,
+                           sem: Visibility {
+                               _lifetime: PhantomData<&()>,
+                               kind: DefaultPub,
+                           },
                        },
                        ident: Ident {
                            name: "print_me_trait_no_body",
