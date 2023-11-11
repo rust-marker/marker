@@ -43,7 +43,7 @@ impl<'ast> Visibility<'ast> {
     /// fn dragon() {}
     /// ```
     ///
-    /// See [`Visibility::is_pub_with_path`] to detect pub declarations with a
+    /// See [`Visibility::is_pub_in_path`] to detect pub declarations with a
     /// defined path.
     pub fn is_pub(&self) -> bool {
         matches!(self.kind, VisibilityKind::Public | VisibilityKind::DefaultPub)
