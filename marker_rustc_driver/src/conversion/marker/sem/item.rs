@@ -9,11 +9,20 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let vis = self.rustc_cx.visibility(owner_id);
         let kind = match vis {
             mid::ty::Visibility::Public => sem::VisibilityKind::Public,
-            mid::ty::Visibility::Restricted(id) if !has_span => sem::VisibilityKind::Default(self.to_item_id(id)),
             mid::ty::Visibility::Restricted(id) if id == hir::def_id::CRATE_DEF_ID.to_def_id() => {
-                sem::VisibilityKind::Crate(self.to_item_id(id))
+                if has_span {
+                    sem::VisibilityKind::Crate(self.to_item_id(id))
+                } else {
+                    sem::VisibilityKind::DefaultCrate(self.to_item_id(id))
+                }
             },
-            mid::ty::Visibility::Restricted(id) => sem::VisibilityKind::Path(self.to_item_id(id)),
+            mid::ty::Visibility::Restricted(id) => {
+                if has_span {
+                    sem::VisibilityKind::Path(self.to_item_id(id))
+                } else {
+                    sem::VisibilityKind::Default(self.to_item_id(id))
+                }
+            },
         };
 
         sem::Visibility::builder().kind(kind).build()

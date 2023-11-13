@@ -4,12 +4,10 @@ warning: can you see this item?
 1 | fn test_vis_private() {}
   |    ^^^^^^^^^^^^^^^^
   |
-  = note: vis.is_pub()                  -> false
-  = note: vis.is_pub_in_path()          -> false
-  = note: vis.is_pub_crate()            -> false
-  = note: vis.is_default()              -> true
-  = note: vis.pub_with_path_module_id() -> None
-  = note: vis.module_id()               -> Some(ItemId(..))
+  = note: vis.is_default()      -> true
+  = note: vis.is_pub()          -> false
+  = note: vis.is_crate_scoped() -> true
+  = note: vis.scope()           -> Some(ItemId(..))
   = note: vis.span(): `None`
   = note: `#[warn(marker::marker_uilints::test_item_visibility)]` on by default
 
@@ -19,12 +17,10 @@ warning: can you see this item?
 3 | pub fn test_vis_public() {}
   |        ^^^^^^^^^^^^^^^
   |
-  = note: vis.is_pub()                  -> true
-  = note: vis.is_pub_in_path()          -> false
-  = note: vis.is_pub_crate()            -> false
-  = note: vis.is_default()              -> false
-  = note: vis.pub_with_path_module_id() -> None
-  = note: vis.module_id()               -> None
+  = note: vis.is_default()      -> false
+  = note: vis.is_pub()          -> true
+  = note: vis.is_crate_scoped() -> false
+  = note: vis.scope()           -> None
   = note: vis.span(): `Some("pub")`
 
 warning: can you see this item?
@@ -33,12 +29,10 @@ warning: can you see this item?
 6 |     pub(crate) fn test_vis_pub_crate() {}
   |                   ^^^^^^^^^^^^^^^^^^
   |
-  = note: vis.is_pub()                  -> false
-  = note: vis.is_pub_in_path()          -> false
-  = note: vis.is_pub_crate()            -> true
-  = note: vis.is_default()              -> false
-  = note: vis.pub_with_path_module_id() -> Some(ItemId(..))
-  = note: vis.module_id()               -> Some(ItemId(..))
+  = note: vis.is_default()      -> false
+  = note: vis.is_pub()          -> false
+  = note: vis.is_crate_scoped() -> true
+  = note: vis.scope()           -> Some(ItemId(..))
   = note: vis.span(): `Some("pub(crate)")`
 
 warning: can you see this item?
@@ -47,12 +41,10 @@ warning: can you see this item?
 8 |     pub(super) fn test_vis_pub_super_crate_root() {}
   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
-  = note: vis.is_pub()                  -> false
-  = note: vis.is_pub_in_path()          -> false
-  = note: vis.is_pub_crate()            -> true
-  = note: vis.is_default()              -> false
-  = note: vis.pub_with_path_module_id() -> Some(ItemId(..))
-  = note: vis.module_id()               -> Some(ItemId(..))
+  = note: vis.is_default()      -> false
+  = note: vis.is_pub()          -> false
+  = note: vis.is_crate_scoped() -> true
+  = note: vis.scope()           -> Some(ItemId(..))
   = note: vis.span(): `Some("pub(super)")`
 
 warning: can you see this item?
@@ -61,12 +53,10 @@ warning: can you see this item?
 11 |         pub(super) fn test_vis_pub_super() {}
    |                       ^^^^^^^^^^^^^^^^^^
    |
-   = note: vis.is_pub()                  -> false
-   = note: vis.is_pub_in_path()          -> true
-   = note: vis.is_pub_crate()            -> false
-   = note: vis.is_default()              -> false
-   = note: vis.pub_with_path_module_id() -> Some(ItemId(..))
-   = note: vis.module_id()               -> Some(ItemId(..))
+   = note: vis.is_default()      -> false
+   = note: vis.is_pub()          -> false
+   = note: vis.is_crate_scoped() -> false
+   = note: vis.scope()           -> Some(ItemId(..))
    = note: vis.span(): `Some("pub(super)")`
 
 warning: can you see this item?
@@ -75,12 +65,10 @@ warning: can you see this item?
 13 |         pub(in crate::module) fn test_vis_pub_in_path() {}
    |                                  ^^^^^^^^^^^^^^^^^^^^
    |
-   = note: vis.is_pub()                  -> false
-   = note: vis.is_pub_in_path()          -> true
-   = note: vis.is_pub_crate()            -> false
-   = note: vis.is_default()              -> false
-   = note: vis.pub_with_path_module_id() -> Some(ItemId(..))
-   = note: vis.module_id()               -> Some(ItemId(..))
+   = note: vis.is_default()      -> false
+   = note: vis.is_pub()          -> false
+   = note: vis.is_crate_scoped() -> false
+   = note: vis.scope()           -> Some(ItemId(..))
    = note: vis.span(): `Some("pub(in crate::module)")`
 
 warning: 6 warnings emitted

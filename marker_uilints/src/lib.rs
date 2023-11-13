@@ -160,15 +160,10 @@ impl LintPass for TestLintPass {
                         let ast_vis = item.visibility();
                         let vis = ast_vis.semantics();
                         diag.span(item.ident().unwrap().span());
-                        diag.note(format!("vis.is_pub()                  -> {}", vis.is_pub()));
-                        diag.note(format!("vis.is_pub_in_path()          -> {}", vis.is_pub_in_path()));
-                        diag.note(format!("vis.is_pub_crate()            -> {}", vis.is_pub_crate()));
-                        diag.note(format!("vis.is_default()              -> {}", vis.is_default()));
-                        diag.note(format!(
-                            "vis.pub_with_path_module_id() -> {:?}",
-                            vis.pub_with_path_module_id()
-                        ));
-                        diag.note(format!("vis.module_id()               -> {:?}", vis.module_id()));
+                        diag.note(format!("vis.is_default()      -> {}", vis.is_default()));
+                        diag.note(format!("vis.is_pub()          -> {}", vis.is_pub()));
+                        diag.note(format!("vis.is_crate_scoped() -> {}", vis.is_crate_scoped()));
+                        diag.note(format!("vis.scope()           -> {:?}", vis.scope()));
                         diag.note(format!("vis.span(): `{:?}`", ast_vis.span().map(|s| s.snippet_or(""))));
                     });
             }

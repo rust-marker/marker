@@ -26,7 +26,7 @@ warning: testing `AstMap::variant`
                                    span: None,
                                    sem: Visibility {
                                        _lifetime: PhantomData<&()>,
-                                       kind: Default(
+                                       kind: DefaultCrate(
                                            ItemId(..),
                                        ),
                                    },
@@ -84,7 +84,7 @@ warning: testing `AstMap::item`
                                span: None,
                                sem: Visibility {
                                    _lifetime: PhantomData<&()>,
-                                   kind: Default(
+                                   kind: DefaultCrate(
                                        ItemId(..),
                                    ),
                                },
@@ -106,7 +106,7 @@ warning: testing `AstMap::item`
                                        span: None,
                                        sem: Visibility {
                                            _lifetime: PhantomData<&()>,
-                                           kind: Default(
+                                           kind: DefaultCrate(
                                                ItemId(..),
                                            ),
                                        },

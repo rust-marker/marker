@@ -27,7 +27,7 @@ warning: printing item
                                       span: None,
                                       sem: Visibility {
                                           _lifetime: PhantomData<&()>,
-                                          kind: Default(
+                                          kind: DefaultCrate(
                                               ItemId(..),
                                           ),
                                       },
