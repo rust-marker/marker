@@ -88,10 +88,10 @@ impl<'ast> Visibility<'ast> {
     /// Returns `true` if a visibility is the default visibility, meaning that it wasn't
     /// declared.
     pub fn is_default(&self) -> bool {
-        matches!(
-            self.kind,
-            VisibilityKind::DefaultPub | VisibilityKind::DefaultCrate(_) | VisibilityKind::Default(_)
-        )
+        match self.kind {
+            VisibilityKind::DefaultPub | VisibilityKind::DefaultCrate(_) | VisibilityKind::Default(_) => true,
+            VisibilityKind::Public | VisibilityKind::Crate(_) | VisibilityKind::Path(_) => false,
+        }
     }
 
     /// Returns the [`ItemId`] of the module that this item or field is visible in.
@@ -121,7 +121,7 @@ impl<'ast> Visibility<'ast> {
             | VisibilityKind::Crate(id)
             | VisibilityKind::DefaultCrate(id)
             | VisibilityKind::Default(id) => Some(id),
-            _ => None,
+            VisibilityKind::Public | VisibilityKind::DefaultPub => None,
         }
     }
 
