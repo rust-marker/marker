@@ -76,7 +76,7 @@ warning: print test
                                                    id: ExprId(..),
                                                    span: SpanId(..),
                                                },
-                                               operand: Path(
+                                               func: Path(
                                                    PathExpr {
                                                        data: CommonExprData {
                                                            _lifetime: PhantomData<&()>,
@@ -497,7 +497,7 @@ warning: print test
                                                    id: ExprId(..),
                                                    span: SpanId(..),
                                                },
-                                               operand: Path(
+                                               func: Path(
                                                    PathExpr {
                                                        data: CommonExprData {
                                                            _lifetime: PhantomData<&()>,

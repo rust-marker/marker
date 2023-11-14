@@ -190,7 +190,7 @@ warning: printing item with body
                                                           id: ExprId(..),
                                                           span: SpanId(..),
                                                       },
-                                                      operand: Path(
+                                                      func: Path(
                                                           PathExpr {
                                                               data: CommonExprData {
                                                                   _lifetime: PhantomData<&()>,
@@ -274,7 +274,7 @@ warning: printing item with body
                                                           id: ExprId(..),
                                                           span: SpanId(..),
                                                       },
-                                                      operand: Path(
+                                                      func: Path(
                                                           PathExpr {
                                                               data: CommonExprData {
                                                                   _lifetime: PhantomData<&()>,
@@ -358,7 +358,7 @@ warning: printing item with body
                                                           id: ExprId(..),
                                                           span: SpanId(..),
                                                       },
-                                                      operand: Path(
+                                                      func: Path(
                                                           PathExpr {
                                                               data: CommonExprData {
                                                                   _lifetime: PhantomData<&()>,

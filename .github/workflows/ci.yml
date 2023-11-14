@@ -67,6 +67,33 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       - run: cargo fmt --check
 
+  # This check is allowed to fail, while Marker is still unstable. It's mostly
+  # a sanity check, to make sure we don't have any unintentional API breakage :)
+  semver-checks:
+    runs-on: ubuntu-latest
+    # This CI check isn't required to pass just yet.
+    # Marker isn't stable so semver breaking changes are allowed.
+    continue-on-error: true
+    if: ${{ github.event.pull_request }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: './upstream'
+      - uses: actions/checkout@v4
+        with:
+          path: './downstream'
+      - run: downstream/scripts/download/cargo-semver-checks.sh
+      - run: >-
+          cargo semver-checks
+          --manifest-path './downstream/Cargo.toml'
+          --package marker_api
+          --package marker_utils
+          --package marker_uitest
+          --baseline-root './upstream'
+          --default-features
+          --release-type minor
+
   # This job ensures required packages can be built with a stable toolchain
   # except for some special ones that require nightly
   rust-check-on-stable:
@@ -138,33 +165,6 @@ jobs:
 
       # Check that the release automation works as expected
       - run: scripts/release/test.sh
-
-  # This check is allowed to fail, while Marker is still unstable. It's mostly
-  # a sanity check, to make sure we don't have any unintentional API breakage :)
-  semver-checks:
-    runs-on: ubuntu-latest
-    # This CI check isn't required to pass just yet.
-    # Marker isn't stable so semver breaking changes are allowed.
-    continue-on-error: true
-    if: ${{ github.event.pull_request }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.base_ref }}
-          path: './upstream'
-      - uses: actions/checkout@v4
-        with:
-          path: './downstream'
-      - run: downstream/scripts/download/cargo-semver-checks.sh
-      - run: >-
-          cargo semver-checks
-          --manifest-path './downstream/Cargo.toml'
-          --package marker_api
-          --package marker_utils
-          --package marker_uitest
-          --baseline-root './upstream'
-          --default-features
-          --release-type minor
 
   # Check that the Github Action works
   github-action-test:

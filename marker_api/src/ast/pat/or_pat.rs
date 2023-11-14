@@ -4,14 +4,17 @@ use super::{CommonPatData, PatKind};
 
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct OrPat<'ast> {
     data: CommonPatData<'ast>,
-    patterns: FfiSlice<'ast, PatKind<'ast>>,
+    #[cfg_attr(feature = "driver-api", builder(setter(into)))]
+    pats: FfiSlice<'ast, PatKind<'ast>>,
 }
 
 impl<'ast> OrPat<'ast> {
-    pub fn patterns(&self) -> &[PatKind<'ast>] {
-        (&self.patterns).into()
+    /// The patterns, which are considered by this or pattern.
+    pub fn pats(&self) -> &[PatKind<'ast>] {
+        (&self.pats).into()
     }
 }
 
@@ -22,7 +25,7 @@ impl<'ast> OrPat<'ast> {
     pub fn new(data: CommonPatData<'ast>, patterns: &'ast [PatKind<'ast>]) -> Self {
         Self {
             data,
-            patterns: patterns.into(),
+            pats: patterns.into(),
         }
     }
 }
