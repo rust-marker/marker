@@ -84,10 +84,14 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     ddpos.is_some(),
                 )))
             },
-            hir::PatKind::Or(pats) => PatKind::Or(self.alloc(OrPat::new(
-                data,
-                self.alloc_slice(pats.iter().map(|rpat| self.to_pat_with_hls(rpat, lhs_map))),
-            ))),
+            hir::PatKind::Or(pats) => PatKind::Or(
+                self.alloc(
+                    OrPat::builder()
+                        .data(data)
+                        .pats(self.alloc_slice(pats.iter().map(|rpat| self.to_pat_with_hls(rpat, lhs_map))))
+                        .build(),
+                ),
+            ),
             hir::PatKind::Tuple(pats, dotdot) => {
                 let pats = if let Some(rest_pos) = dotdot.as_opt_usize() {
                     let (start, end) = pats.split_at(rest_pos);
@@ -99,11 +103,15 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 PatKind::Tuple(self.alloc(TuplePat::new(data, pats)))
             },
             hir::PatKind::Box(_) => PatKind::Unstable(self.alloc(UnstablePat::new(data))),
-            hir::PatKind::Ref(pat, muta) => PatKind::Ref(self.alloc(RefPat::new(
-                data,
-                self.to_pat_with_hls(pat, lhs_map),
-                self.to_mutability(*muta),
-            ))),
+            hir::PatKind::Ref(pat, muta) => PatKind::Ref(
+                self.alloc(
+                    RefPat::builder()
+                        .data(data)
+                        .pat(self.to_pat_with_hls(pat, lhs_map))
+                        .mutability(self.to_mutability(*muta))
+                        .build(),
+                ),
+            ),
             hir::PatKind::Slice(start, wild, end) => {
                 let elements = if let Some(wild) = wild {
                     self.chain_pats(start, self.new_rest_pat(wild.span), end, lhs_map)
