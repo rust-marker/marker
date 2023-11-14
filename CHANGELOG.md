@@ -30,6 +30,7 @@ The [v0.4.0 milestone] contains a list of planned changes.
 [#288]: https://github.com/rust-marker/marker/pull/288
 [#294]: https://github.com/rust-marker/marker/pull/294
 [#306]: https://github.com/rust-marker/marker/pull/306
+[#309]: https://github.com/rust-marker/marker/pull/309
 
 ### Added
 - [#306]: The `LintPass` trait now as a new `check_crate` method.
@@ -44,6 +45,9 @@ The [v0.4.0 milestone] contains a list of planned changes.
 - [#278]: All public methods that took `&Span` as a parameter now take `impl HasSpan`. This is a minor breaking change, as `&Span` implements `HasSpan`, but if you relied on type inference based on the function parameter type, then making a method generic may break your code.
 - [#288]: Lint identifiers use the lint crate name as a new infix, to prevent name collisions across lint crates.
 - [#306]: The items of a `Crate` are now wrapped in a `ModItem`, that is the root module of the crate.
+- [#309]: Renamed `CallExpr::operand` to `CallExpr::func`
+- [#309]: Renamed `RefPat::pattern()` -> `RefPat::pat()`
+- [#309]: Renamed `OrPat::patterns()` -> `RefPat::pats()`
 
 ## [0.3.0] - 2023-10-05
 
