@@ -1,8 +1,10 @@
-use std::{fmt::Debug, marker::PhantomData};
+use std::fmt::Debug;
 
 use crate::{
     common::{HasNodeId, ItemId, SpanId},
+    context::with_cx,
     diagnostic::EmissionNode,
+    ffi::FfiOption,
     private::Sealed,
     span::{HasSpan, Ident, Span},
     CtorBlocker,
@@ -188,6 +190,7 @@ use impl_item_type_fn;
 #[repr(C)]
 #[derive(Debug)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 struct CommonItemData<'ast> {
     id: ItemId,
     span: SpanId,
@@ -236,43 +239,47 @@ macro_rules! impl_item_data {
 
 use impl_item_data;
 
-#[cfg(feature = "driver-api")]
-impl<'ast> CommonItemData<'ast> {
-    pub fn new(id: ItemId, span: SpanId, ident: Ident<'ast>) -> Self {
-        Self {
-            id,
-            span,
-            vis: Visibility::new(id),
-            ident,
-        }
-    }
-}
-
-/// This struct represents the visibility of an item.
+/// The declared visibility of an item or field.
 ///
-/// Currently, it's only a placeholder until a proper representation is implemented.
-/// rust-marker/marker#26 tracks the task of implementing this. You're welcome to
-/// leave any comments in that issue.
+/// Note that this is only the syntactic visibility. The item or field might be
+/// reexported with a higher visibility, or have a high default visibility.
+///
+/// ```
+/// // An item without a visibility
+/// fn moon() {}
+///
+/// // A public item
+/// pub fn sun() {}
+///
+/// // An item with a restricted scope
+/// pub(crate) fn star() {}
+///
+/// pub trait Planet {
+///     // An item without a visibility. But it still has the semantic visibility
+///     // of `pub` as this is inside a trait declaration.
+///     fn mass();
+/// }
+/// ```
 #[repr(C)]
+#[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct Visibility<'ast> {
-    _lifetime: PhantomData<&'ast ()>,
-    _item_id: ItemId,
+    #[cfg_attr(feature = "driver-api", builder(setter(into), default))]
+    span: FfiOption<SpanId>,
+    sem: crate::sem::Visibility<'ast>,
 }
 
-impl<'ast> Debug for Visibility<'ast> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Visibility {{ /* WIP: See rust-marker/marker#26 */}}")
-            .finish()
-    }
-}
-
-#[cfg(feature = "driver-api")]
 impl<'ast> Visibility<'ast> {
-    pub fn new(item_id: ItemId) -> Self {
-        Self {
-            _lifetime: PhantomData,
-            _item_id: item_id,
-        }
+    /// The [`Span`] of the visibility, if it has been declared.
+    pub fn span(&self) -> Option<&Span<'ast>> {
+        self.span.copy().map(|span| with_cx(self, |cx| cx.span(span)))
+    }
+
+    /// This function returns the semantic representation for the [`Visibility`]
+    /// of this item. That visibility can be used to check if the item is public
+    /// or restricted to specific modules.
+    pub fn semantics(&self) -> &crate::sem::Visibility<'ast> {
+        &self.sem
     }
 }
 
@@ -311,26 +318,28 @@ impl<'ast> Body<'ast> {
 
 #[cfg(all(test, target_arch = "x86_64", target_pointer_width = "64"))]
 mod test {
+    use crate::test::assert_size_of;
+
     use super::*;
-    use std::mem::size_of;
+    use expect_test::expect;
 
     #[test]
     fn test_item_struct_size() {
         // These sizes are allowed to change, this is just a check to have a
         // general overview and to prevent accidental changes
-        assert_eq!(56, size_of::<ModItem<'_>>(), "ModItem");
-        assert_eq!(48, size_of::<ExternCrateItem<'_>>(), "ExternCrateItem");
-        assert_eq!(64, size_of::<UseItem<'_>>(), "UseItem");
-        assert_eq!(80, size_of::<StaticItem<'_>>(), "StaticItem");
-        assert_eq!(72, size_of::<ConstItem<'_>>(), "ConstItem");
-        assert_eq!(144, size_of::<FnItem<'_>>(), "FnItem");
-        assert_eq!(112, size_of::<TyAliasItem<'_>>(), "TyAliasItem");
-        assert_eq!(96, size_of::<StructItem<'_>>(), "StructItem");
-        assert_eq!(88, size_of::<EnumItem<'_>>(), "EnumItem");
-        assert_eq!(88, size_of::<UnionItem<'_>>(), "UnionItem");
-        assert_eq!(112, size_of::<TraitItem<'_>>(), "TraitItem");
-        assert_eq!(144, size_of::<ImplItem<'_>>(), "ImplItem");
-        assert_eq!(64, size_of::<ExternBlockItem<'_>>(), "ExternBlockItem");
-        assert_eq!(48, size_of::<UnstableItem<'_>>(), "UnstableItem");
+        assert_size_of::<ModItem<'_>>(&expect!["80"]);
+        assert_size_of::<ExternCrateItem<'_>>(&expect!["72"]);
+        assert_size_of::<UseItem<'_>>(&expect!["88"]);
+        assert_size_of::<StaticItem<'_>>(&expect!["104"]);
+        assert_size_of::<ConstItem<'_>>(&expect!["96"]);
+        assert_size_of::<FnItem<'_>>(&expect!["168"]);
+        assert_size_of::<TyAliasItem<'_>>(&expect!["136"]);
+        assert_size_of::<StructItem<'_>>(&expect!["120"]);
+        assert_size_of::<EnumItem<'_>>(&expect!["112"]);
+        assert_size_of::<UnionItem<'_>>(&expect!["112"]);
+        assert_size_of::<TraitItem<'_>>(&expect!["136"]);
+        assert_size_of::<ImplItem<'_>>(&expect!["168"]);
+        assert_size_of::<ExternBlockItem<'_>>(&expect!["88"]);
+        assert_size_of::<UnstableItem<'_>>(&expect!["72"]);
     }
 }

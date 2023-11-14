@@ -12,9 +12,10 @@ use std::cell::{OnceCell, RefCell};
 
 use crate::context::storage::Storage;
 use marker_api::{
-    ast::{Body, CommonItemData, Crate, EnumVariant, ItemField, ModItem},
+    ast::{Body, CommonItemData, Crate, EnumVariant, ItemField, ModItem, Visibility as AstVisibility},
     common::{Level, SymbolId},
     prelude::*,
+    sem::{Visibility as SemVisibility, VisibilityKind},
     span::{ExpnInfo, FilePos, Span, SpanSource},
 };
 use rustc_hash::FxHashMap;
@@ -329,7 +330,17 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             self.to_symbol_id(self.rustc_cx.crate_name(hir::def_id::LOCAL_CRATE)),
             self.to_span_id(rustc_span::DUMMY_SP),
         );
-        let data = CommonItemData::new(id, self.to_span_id(krate_mod.spans.inner_span), ident);
+        let data = CommonItemData::builder()
+            .id(id)
+            .span(self.to_span_id(krate_mod.spans.inner_span))
+            .vis(
+                AstVisibility::builder()
+                    .span(None)
+                    .sem(SemVisibility::builder().kind(VisibilityKind::DefaultPub).build())
+                    .build(),
+            )
+            .ident(ident)
+            .build();
         ModItem::builder()
             .data(data)
             .items(self.to_items(krate_mod.item_ids))

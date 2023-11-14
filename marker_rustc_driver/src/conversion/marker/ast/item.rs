@@ -6,6 +6,7 @@ use marker_api::{
         Visibility,
     },
     common::{Abi, Constness, Mutability, Safety, Syncness},
+    prelude::*,
     CtorBlocker,
 };
 use rustc_hir as hir;
@@ -46,7 +47,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         let ident = self.to_ident(rustc_item.ident);
-        let data = CommonItemData::new(id, self.to_span_id(rustc_item.span), ident);
+        let data = CommonItemData::builder()
+            .id(id)
+            .span(self.to_span_id(rustc_item.span))
+            .vis(self.to_visibility(rustc_item.owner_id.def_id, rustc_item.vis_span))
+            .ident(ident)
+            .build();
         let item =
             match &rustc_item.kind {
                 hir::ItemKind::ExternCrate(original_name) => ItemKind::ExternCrate(self.alloc({
@@ -174,6 +180,15 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         !ctxt.is_root() && matches!(ctxt.outer_expn_data().kind, rustc_span::ExpnKind::AstPass(_))
     }
 
+    fn to_visibility(&self, owner_id: hir::def_id::LocalDefId, vis_span: rustc_span::Span) -> Visibility<'ast> {
+        let span = (!vis_span.is_empty()).then(|| self.to_span_id(vis_span));
+
+        Visibility::builder()
+            .span(span)
+            .sem(self.to_sem_visibility(owner_id, span.is_some()))
+            .build()
+    }
+
     fn to_fn_item(
         &self,
         data: CommonItemData<'ast>,
@@ -260,11 +275,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
     fn to_fields(&self, fields: &'tcx [hir::FieldDef]) -> &'ast [ItemField<'ast>] {
         let fields = self.alloc_slice(fields.iter().map(|field| {
-            // FIXME update Visibility creation to use the stored local def id inside the
-            // field after the next sync. See #55
             ItemField::new(
                 self.to_field_id(field.hir_id),
-                Visibility::new(self.to_item_id(field.def_id)),
+                self.to_visibility(field.def_id, field.vis_span),
                 self.to_symbol_id(field.ident.name),
                 self.to_syn_ty(field.ty),
                 self.to_span_id(field.span),
@@ -294,7 +307,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         let foreign_item = self.rustc_cx.hir().foreign_item(rustc_item.id);
-        let data = CommonItemData::new(id, self.to_span_id(rustc_item.span), self.to_ident(rustc_item.ident));
+        let data = CommonItemData::builder()
+            .id(id)
+            .span(self.to_span_id(rustc_item.span))
+            .vis(self.to_visibility(foreign_item.owner_id.def_id, foreign_item.vis_span))
+            .ident(self.to_ident(rustc_item.ident))
+            .build();
         let item = match &foreign_item.kind {
             hir::ForeignItemKind::Fn(decl, idents, generics) => {
                 let return_ty = if let hir::FnRetTy::Return(rust_ty) = decl.output {
@@ -354,7 +372,16 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         let trait_item = self.rustc_cx.hir().trait_item(rustc_item.id);
-        let data = CommonItemData::new(id, self.to_span_id(rustc_item.span), self.to_ident(rustc_item.ident));
+        let data = CommonItemData::builder()
+            .id(id)
+            .span(self.to_span_id(rustc_item.span))
+            .vis(
+                Visibility::builder()
+                    .sem(sem::Visibility::builder().kind(sem::VisibilityKind::DefaultPub).build())
+                    .build(),
+            )
+            .ident(self.to_ident(rustc_item.ident))
+            .build();
 
         let item = match &trait_item.kind {
             hir::TraitItemKind::Const(ty, body_id) => AssocItemKind::Const(
@@ -403,7 +430,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         let impl_item = self.rustc_cx.hir().impl_item(rustc_item.id);
-        let data = CommonItemData::new(id, self.to_span_id(rustc_item.span), self.to_ident(rustc_item.ident));
+        let data = CommonItemData::builder()
+            .id(id)
+            .span(self.to_span_id(rustc_item.span))
+            .vis(self.to_visibility(rustc_item.id.owner_id.def_id, impl_item.vis_span))
+            .ident(self.to_ident(rustc_item.ident))
+            .build();
 
         let item = match &impl_item.kind {
             hir::ImplItemKind::Const(ty, body_id) => AssocItemKind::Const(

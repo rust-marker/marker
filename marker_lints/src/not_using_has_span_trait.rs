@@ -4,15 +4,18 @@ marker_api::declare_lint! {
     /// ### What it does
     /// Suggests using `impl HasSpan` for functions that need to take `Span` as
     /// a parameter to make them more ergonomic.
+    ///
+    /// This function only triggers on public items, as it's targeted to towards
+    /// the public interface of crates.
     NOT_USING_HAS_SPAN_TRAIT,
-    // FIXME(#26): This allow by default until we have the item visibility info
-    // in the AST. Once that is in place the lint should be made `warn` by default,
-    // and it should ignore non `pub` functions.
     Allow,
 }
 
 pub(crate) fn check_item<'ast>(cx: &'ast MarkerContext<'ast>, item: ItemKind<'ast>) {
     let ItemKind::Fn(func) = item else { return };
+    if !func.visibility().semantics().is_pub() {
+        return;
+    }
 
     for param in func.params() {
         let ast::TyKind::Path(path) = param.ty().peel_refs() else {

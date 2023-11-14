@@ -9,7 +9,15 @@ warning: printing item
                   data: CommonItemData {
                       id: ItemId(..),
                       span: SpanId(..),
-                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      vis: Visibility {
+                          span: None,
+                          sem: Visibility {
+                              _lifetime: PhantomData<&()>,
+                              kind: DefaultCrate(
+                                  ItemId(..),
+                              ),
+                          },
+                      },
                       ident: Ident {
                           name: "PrintMeConstGenerics",
                           span: $DIR/print_const_generics.rs:1:8 - 1:28,
@@ -41,7 +49,15 @@ warning: printing item
                       [
                           ItemField {
                               id: FieldId(..),
-                              vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                              vis: Visibility {
+                                  span: None,
+                                  sem: Visibility {
+                                      _lifetime: PhantomData<&()>,
+                                      kind: DefaultCrate(
+                                          ItemId(..),
+                                      ),
+                                  },
+                              },
                               ident: SymbolId(..),
                               ty: Array(
                                   ArrayTy {
@@ -112,7 +128,15 @@ warning: printing item
                   data: CommonItemData {
                       id: ItemId(..),
                       span: SpanId(..),
-                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      vis: Visibility {
+                          span: None,
+                          sem: Visibility {
+                              _lifetime: PhantomData<&()>,
+                              kind: DefaultCrate(
+                                  ItemId(..),
+                              ),
+                          },
+                      },
                       ident: Ident {
                           name: "print_me",
                           span: $DIR/print_const_generics.rs:5:4 - 5:12,

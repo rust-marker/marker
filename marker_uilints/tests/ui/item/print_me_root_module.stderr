@@ -5,7 +5,13 @@ warning: printing item
                   data: CommonItemData {
                       id: ItemId(..),
                       span: SpanId(..),
-                      vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                      vis: Visibility {
+                          span: None,
+                          sem: Visibility {
+                              _lifetime: PhantomData<&()>,
+                              kind: DefaultPub,
+                          },
+                      },
                       ident: Ident {
                           name: "print_me_root_module",
                           span: $DIR/print_me_root_module.rs:1:1 - 1:1,
@@ -17,7 +23,15 @@ warning: printing item
                               data: CommonItemData {
                                   id: ItemId(..),
                                   span: SpanId(..),
-                                  vis: Visibility {{ /* WIP: See rust-marker/marker#26 */}},
+                                  vis: Visibility {
+                                      span: None,
+                                      sem: Visibility {
+                                          _lifetime: PhantomData<&()>,
+                                          kind: DefaultCrate(
+                                              ItemId(..),
+                                          ),
+                                      },
+                                  },
                                   ident: Ident {
                                       name: "main",
                                       span: $DIR/print_me_root_module.rs:7:4 - 7:8,
