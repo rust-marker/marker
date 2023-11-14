@@ -22,17 +22,19 @@ use super::{CommonExprData, ExprKind};
 /// ```
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct CallExpr<'ast> {
     data: CommonExprData<'ast>,
-    operand: ExprKind<'ast>,
+    func: ExprKind<'ast>,
+    #[cfg_attr(feature = "driver-api", builder(setter(into)))]
     args: FfiSlice<'ast, ExprKind<'ast>>,
 }
 
 impl<'ast> CallExpr<'ast> {
     /// The expression identifying what will be called. This will often be a
     /// [`PathExpr`](super::PathExpr).
-    pub fn operand(&self) -> ExprKind<'ast> {
-        self.operand
+    pub fn func(&self) -> ExprKind<'ast> {
+        self.func
     }
 
     /// The arguments given to the operand.
@@ -42,17 +44,6 @@ impl<'ast> CallExpr<'ast> {
 }
 
 super::impl_expr_data!(CallExpr<'ast>, Call);
-
-#[cfg(feature = "driver-api")]
-impl<'ast> CallExpr<'ast> {
-    pub fn new(data: CommonExprData<'ast>, operand: ExprKind<'ast>, args: &'ast [ExprKind<'ast>]) -> Self {
-        Self {
-            data,
-            operand,
-            args: args.into(),
-        }
-    }
-}
 
 #[repr(C)]
 #[derive(Debug)]

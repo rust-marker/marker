@@ -258,7 +258,7 @@ pub fn traverse_expr<'ast, B>(
             traverse_expr(cx, visitor, e.expr())?;
         },
         ExprKind::Call(e) => {
-            traverse_expr(cx, visitor, e.operand())?;
+            traverse_expr(cx, visitor, e.func())?;
             for arg in e.args() {
                 traverse_expr(cx, visitor, *arg)?;
             }

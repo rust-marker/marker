@@ -114,7 +114,15 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     ExprKind::Ctor(self.alloc(CtorExpr::new(data, self.to_qpath_from_expr(qpath, expr), fields, None)))
                 },
 
-                _ => ExprKind::Call(self.alloc(CallExpr::new(data, self.to_expr(operand), self.to_exprs(args)))),
+                _ => ExprKind::Call(
+                    self.alloc(
+                        CallExpr::builder()
+                            .data(data)
+                            .func(self.to_expr(operand))
+                            .args(self.to_exprs(args))
+                            .build(),
+                    ),
+                ),
             },
             hir::ExprKind::MethodCall(method, receiver, args, _span) => ExprKind::Method(self.alloc({
                 MethodExpr::new(
