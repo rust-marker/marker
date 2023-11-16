@@ -1,4 +1,5 @@
-[Unreleased]: https://github.com/rust-marker/marker/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/rust-marker/marker/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/rust-marker/marker/releases/tag/v0.4.0
 [0.3.0]: https://github.com/rust-marker/marker/releases/tag/v0.3.0
 [0.2.1]: https://github.com/rust-marker/marker/releases/tag/v0.2.1
 [0.1.1]: https://github.com/rust-marker/marker/releases/tag/v0.1.1
@@ -23,7 +24,13 @@ The following components are considered to be internal and they are excluded fro
 
 ## [Unreleased]
 
-The [v0.4.0 milestone] contains a list of planned changes.
+The [v0.5.0 milestone] contains a list of planned changes.
+
+[v0.5.0 milestone]: https://github.com/rust-marker/marker/milestone/5
+
+## [0.4.0] - 2023-11-16
+
+The [v0.4.0 milestone] contains a full list of all changes.
 
 [v0.4.0 milestone]: https://github.com/rust-marker/marker/milestone/4
 [#278]: https://github.com/rust-marker/marker/pull/278
