@@ -23,15 +23,15 @@ Select one of the installation scripts below according to your platform. The scr
 
 **Linux or MacOS (Bash)**:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.3/scripts/release/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.4/scripts/release/install.sh | bash
 ```
 
 **Windows (PowerShell)**:
 ```ps1
-curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.3/scripts/release/install.ps1 | powershell -command -
+curl.exe -fsSL https://raw.githubusercontent.com/rust-marker/marker/v0.4/scripts/release/install.ps1 | powershell -command -
 ```
 
-The provided scripts use a sliding git tag `v0.3`, to allow for automatic patch version updates, however a fixed tag `v0.3.0` is also available.
+The provided scripts use a sliding git tag `v0.4`, to allow for automatic patch version updates, however a fixed tag `v0.4.0` is also available.
 
 <!-- endregion replace marker version stable -->
 

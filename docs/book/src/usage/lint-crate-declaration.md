@@ -12,7 +12,7 @@ The main way to declare lint crates, is to add them to the `Cargo.toml` file und
 ```toml
 [workspace.metadata.marker.lints]
 # An external crate from a registry
-marker_lints = "0.3.0"
+marker_lints = "0.4.0"
 
 # An external crate from git
 marker_lints = { git = "https://github.com/rust-marker/marker" }
@@ -31,7 +31,7 @@ A lint crate can be specified with the `--lints` option. The string is expected 
 <!-- region replace marker version stable -->
 ```sh
 # An external crate from a registry
-cargo marker --lint "marker_lints = '0.3.0'"
+cargo marker --lint "marker_lints = '0.4.0'"
 
 # An external crate from git
 cargo marker --lint "marker_lints = { git = 'https://github.com/rust-marker/marker' }"

@@ -24,7 +24,7 @@ license    = "MIT OR Apache-2.0"
 repository = "https://github.com/rust-marker/marker"
 
 # region replace marker version dev
-version = "0.4.0-dev"
+version = "0.4.0"
 # endregion replace marker version dev
 
 # The MSRV is applied to the public library crates published to crates.io
@@ -32,11 +32,11 @@ rust-version = "1.66"
 
 [workspace.dependencies]
 # region replace marker version dev
-marker_adapter = { path = "./marker_adapter", version = "0.4.0-dev" }
-marker_api     = { path = "./marker_api", version = "0.4.0-dev" }
-marker_error   = { path = "./marker_error", version = "0.4.0-dev" }
+marker_adapter = { path = "./marker_adapter", version = "0.4.0" }
+marker_api     = { path = "./marker_api", version = "0.4.0" }
+marker_error   = { path = "./marker_error", version = "0.4.0" }
 marker_uitest  = { path = "./marker_uitest", features = ["dev-build"] }
-marker_utils   = { path = "./marker_utils", version = "0.4.0-dev" }
+marker_utils   = { path = "./marker_utils", version = "0.4.0" }
 # endregion replace marker version dev
 
 bumpalo            = "3.14"

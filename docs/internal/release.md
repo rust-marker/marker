@@ -31,7 +31,7 @@ GitHub is very generous with the releases storage limits. They are [almost unlim
 The `sha256` sum is a small file that users may optionally download together with the archive itself to verify the integrity of the archive. It serves as a signature of the artifact to make sure it was downloaded as expected bit-by-bit with what was published effectively detecting corruptions during the download and making it harder to forge artifacts for malicious actors.
 
 <!-- region replace marker version stable -->
-This [`install.sh`](https://raw.githubusercontent.com/rust-marker/marker/v0.3.0/scripts/release/install.sh) script, can be used to automatically download and verify Marker's binaries.
+This [`install.sh`](https://raw.githubusercontent.com/rust-marker/marker/v0.4.0/scripts/release/install.sh) script, can be used to automatically download and verify Marker's binaries.
 <!-- endregion replace marker version stable -->
 
 ### Operating system versions coverage
