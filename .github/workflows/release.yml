@@ -40,7 +40,6 @@ jobs:
       - run: |
           git config user.name "rust-marker-ci"
           git config user.email "rust.marker.ci@gmail.com"
-      - run: git fetch
 
       # Create a release commit and tag
       - run: scripts/release/set-version.sh ${{ env.release_version }}
@@ -60,4 +59,4 @@ jobs:
       # We use `--force-with-lease` because the tags that are pushed here will
       # include the  sliding `v{major}` and `v{major}.{minor}` tags, so we have
       # to overwrite them with the new ones.
-      - run: git push --force-with-lease --atomic origin ${{ github.ref_name }} ${{ env.tags }}
+      - run: git push --force --atomic origin ${{ github.ref_name }} ${{ env.tags }}
