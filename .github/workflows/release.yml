@@ -40,6 +40,7 @@ jobs:
       - run: |
           git config user.name "rust-marker-ci"
           git config user.email "rust.marker.ci@gmail.com"
+      - run: git fetch
 
       # Create a release commit and tag
       - run: scripts/release/set-version.sh ${{ env.release_version }}
