@@ -17,13 +17,15 @@ apt-get-install \
     curl
 
 function curl_with_retry {
+    # FIXME: replace `--retry-connrefused` with `--retry-all-errors` when we
+    # remove support for ubuntu20.04 which has an old curl version.
     with_log curl \
         --location \
         --silent \
         --show-error \
         --fail \
         --retry 5 \
-        --retry-all-errors \
+        --retry-connrefused \
         "$@"
 }
 
