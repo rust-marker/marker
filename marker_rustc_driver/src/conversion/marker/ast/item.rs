@@ -298,10 +298,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     fn to_external_item(&self, rustc_item: &'tcx hir::ForeignItemRef, abi: Abi) -> ExternItemKind<'ast> {
         let id = self.to_item_id(rustc_item.id.owner_id);
         if let Some(item) = self.items.borrow().get(&id) {
+            #[expect(non_exhaustive_omitted_patterns)]
             return match item {
                 ItemKind::Static(data) => ExternItemKind::Static(data, CtorBlocker::new()),
                 ItemKind::Fn(data) => ExternItemKind::Fn(data, CtorBlocker::new()),
-                #[expect(non_exhaustive_omitted_patterns)]
                 _ => unreachable!("only static and `Static` and `Fn` items can be found a foreign item id"),
             };
         }
@@ -362,11 +362,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     fn to_assoc_item(&self, rustc_item: &hir::TraitItemRef) -> AssocItemKind<'ast> {
         let id = self.to_item_id(rustc_item.id.owner_id);
         if let Some(item) = self.items.borrow().get(&id) {
+            #[expect(non_exhaustive_omitted_patterns)]
             return match item {
                 ItemKind::TyAlias(item) => AssocItemKind::TyAlias(item, CtorBlocker::new()),
                 ItemKind::Const(item) => AssocItemKind::Const(item, CtorBlocker::new()),
                 ItemKind::Fn(item) => AssocItemKind::Fn(item, CtorBlocker::new()),
-                #[expect(non_exhaustive_omitted_patterns)]
                 _ => unreachable!("only static and `TyAlias`, `Const` and `Fn` items can be found as an assoc item"),
             };
         }
@@ -420,11 +420,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     fn to_assoc_item_from_impl(&self, rustc_item: &hir::ImplItemRef) -> AssocItemKind<'ast> {
         let id = self.to_item_id(rustc_item.id.owner_id);
         if let Some(item) = self.items.borrow().get(&id) {
+            #[expect(non_exhaustive_omitted_patterns)]
             return match item {
                 ItemKind::TyAlias(item) => AssocItemKind::TyAlias(item, CtorBlocker::new()),
                 ItemKind::Const(item) => AssocItemKind::Const(item, CtorBlocker::new()),
                 ItemKind::Fn(item) => AssocItemKind::Fn(item, CtorBlocker::new()),
-                #[expect(non_exhaustive_omitted_patterns)]
                 _ => unreachable!("only static and `TyAlias`, `Const` and `Fn` items can be found by an impl ref item"),
             };
         }
@@ -481,7 +481,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         }
 
         // Yield expressions are currently unstable
-        if let Some(hir::GeneratorKind::Gen) = body.generator_kind {
+        if let Some(hir::CoroutineKind::Coroutine) = body.coroutine_kind {
             return self.alloc(Body::new(
                 self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id())),
                 ast::ExprKind::Unstable(self.alloc(ast::UnstableExpr::new(

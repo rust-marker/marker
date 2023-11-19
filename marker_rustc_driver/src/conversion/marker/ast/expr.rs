@@ -424,8 +424,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     ) -> ExprKind<'ast> {
         let body_id = closure.body;
         let body = self.rustc_cx.hir().body(body_id);
-        match body.generator_kind {
-            Some(hir::GeneratorKind::Async(hir::AsyncGeneratorKind::Fn)) => {
+        match body.coroutine_kind {
+            Some(hir::CoroutineKind::Async(hir::CoroutineSource::Fn)) => {
                 if let hir::ExprKind::Block(block, None) = body.value.kind
                     && let Some(temp_drop) = block.expr
                     && let hir::ExprKind::DropTemps(inner_block) = temp_drop.kind
@@ -435,7 +435,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
                 unreachable!("`async fn` body desugar always has the same structure")
             },
-            Some(hir::GeneratorKind::Async(hir::AsyncGeneratorKind::Block)) => {
+            Some(hir::CoroutineKind::Async(hir::CoroutineSource::Block)) => {
                 let block_expr = body.value;
                 if let hir::ExprKind::Block(block, None) = block_expr.kind {
                     let api_block_expr = self.with_body(body_id, || {
@@ -451,9 +451,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 }
                 unreachable!("`async` block desugar always has the same structure")
             },
-            Some(hir::GeneratorKind::Async(hir::AsyncGeneratorKind::Closure) | hir::GeneratorKind::Gen) => {
-                ExprKind::Unstable(self.alloc(UnstableExpr::new(data, ExprPrecedence::Closure)))
-            },
+            Some(
+                hir::CoroutineKind::Async(hir::CoroutineSource::Closure)
+                | hir::CoroutineKind::Coroutine
+                | hir::CoroutineKind::Gen(_),
+            ) => ExprKind::Unstable(self.alloc(UnstableExpr::new(data, ExprPrecedence::Closure))),
             None => ExprKind::Closure(self.alloc(self.to_closure_expr(data, closure))),
         }
     }
@@ -493,7 +495,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
     fn to_capture_kind(&self, capture: hir::CaptureBy) -> CaptureKind {
         match capture {
-            rustc_ast::CaptureBy::Value => CaptureKind::Move,
+            rustc_ast::CaptureBy::Value { .. } => CaptureKind::Move,
             rustc_ast::CaptureBy::Ref => CaptureKind::Default,
         }
     }
@@ -550,7 +552,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 CommonExprData::new(self.to_expr_id(local.hir_id), self.to_span_id(local.span)),
                 self.to_pat_with_hls(local.pat, &lhs_map),
                 self.to_expr(local.init.unwrap()),
-                None
+                None,
             )
         } else {
             unreachable!("assignment expr desugar always has a local as the first statement")
@@ -641,14 +643,14 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             let body = self.to_expr(some_arm.body);
             let data = CommonExprData::new(
                 self.to_expr_id(loop_expr.hir_id),
-                self.to_resugared_span_id(into_match.span)
+                self.to_resugared_span_id(into_match.span),
             );
             return ForExpr::new(
                 data,
                 label.map(|label| self.to_ident(label.ident)),
                 pat,
                 iter_expr,
-                body
+                body,
             );
         }
 
@@ -691,10 +693,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
             && let hir::ExprKind::Call(_into_future_path, [future_expr]) = &into_scrutinee.kind
         {
             return AwaitExpr::new(
-                CommonExprData::new(
-                    self.to_expr_id(await_expr.hir_id),
-                    self.to_span_id(await_expr.span),
-                ),
+                CommonExprData::new(self.to_expr_id(await_expr.hir_id), self.to_span_id(await_expr.span)),
                 self.to_expr(future_expr),
             );
         }

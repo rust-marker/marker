@@ -34,6 +34,7 @@ use crate::{
 #[repr(C)]
 #[derive(Debug)]
 pub struct Lifetime<'ast> {
+    #[allow(clippy::struct_field_names)]
     _lifetime: PhantomData<&'ast ()>,
     span: FfiOption<SpanId>,
     kind: LifetimeKind,
