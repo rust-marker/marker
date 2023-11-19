@@ -151,7 +151,6 @@ Marker is still growing up, and that's a good thing. We can still shape the API 
     * Higher order types
     * Attributes [#51](https://github.com/rust-marker/marker/issues/51)
     * Macros [rust-marker/design#47](https://github.com/rust-marker/design/issues/47)
-    * Item visibility [#26](https://github.com/rust-marker/marker/issues/26) (Will be added in v0.4)
 * **Utility**: The API is currently lacking a lot of utility functions, to handle edge cases and make linting more pleasant.
 * **Documentation**: Marker still requires a lot of documentation, in the form of doc comments and a book, which explains the basic concept and works as a guide for end-users, lint- and marker-devs alike.
 
