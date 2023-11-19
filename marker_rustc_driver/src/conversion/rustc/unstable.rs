@@ -33,7 +33,7 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
                     edition_lint_opts: None,
                     report_in_external_macro,
                     future_incompatible: None,
-                    is_plugin: true,
+                    is_loaded: true,
                     feature_gate: None,
                     crate_level_only: false,
                 }))

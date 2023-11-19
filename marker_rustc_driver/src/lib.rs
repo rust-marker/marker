@@ -46,7 +46,7 @@ use marker_error::Context;
 use crate::conversion::rustc::RustcConverter;
 
 // region replace rust toolchain dev
-const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-10-05";
+const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-11-16";
 // endregion replace rust toolchain dev
 
 struct DefaultCallbacks {

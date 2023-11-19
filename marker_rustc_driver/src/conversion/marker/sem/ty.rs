@@ -96,7 +96,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 self.to_ty_def_id(*id),
                 self.to_sem_generic_args(generics),
             ))),
-            mid::ty::TyKind::Generator(_, _, _) | mid::ty::TyKind::GeneratorWitness(_, _) => {
+            mid::ty::TyKind::Coroutine(_, _, _) | mid::ty::TyKind::CoroutineWitness(_, _) => {
                 TyKind::Unstable(self.alloc(UnstableTy::new()))
             },
             mid::ty::TyKind::Never => TyKind::Never(self.alloc(NeverTy::new())),
