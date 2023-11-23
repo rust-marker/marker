@@ -146,7 +146,7 @@ jobs:
         with:
           arch: aarch64
           distro: ubuntu20.04
-          dockerRunArgs: --volume .:/artifacts
+          dockerRunArgs: --volume ./artifacts:/artifacts
           setup: mkdir -p artifacts
           install: ${{ env.install_script }}
           env: |
@@ -158,7 +158,8 @@ jobs:
             cargo build -p marker_rustc_driver --release
             cp target/release/marker_rustc_driver /artifacts/marker_rustc_driver
 
-      - run: ./scripts/release/upload.sh ${{ github.ref_name }} marker_rustc_driver ${{ env.artifact }}
+      - run: ../scripts/release/upload.sh ${{ github.ref_name }} marker_rustc_driver ${{ env.artifact }}
+        working-directory: artifacts
         env:
           GH_TOKEN: ${{ github.token }}
 
