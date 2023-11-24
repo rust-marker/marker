@@ -31,6 +31,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
 
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
 
@@ -45,6 +46,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
 
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
 
@@ -100,6 +102,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
 
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
 
@@ -174,6 +177,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
 
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
 
@@ -188,6 +192,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         # Make sure we cover all operating systems supported by Github Actions
         os:
