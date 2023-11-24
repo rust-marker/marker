@@ -223,4 +223,5 @@ jobs:
 
       # There may be bugs in the release build of our binaries. For example, in the past
       # we saw that LTO could lead to exit code: 0xc0000005, STATUS_ACCESS_VIOLATION crash
-      - run: cargo marker
+
+      - run: cargo marker -l 'marker_lints="*"'
