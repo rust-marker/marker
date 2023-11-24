@@ -24,9 +24,14 @@ The following components are considered to be internal and they are excluded fro
 
 ## [Unreleased]
 
-The [v0.5.0 milestone] contains a list of planned changes.
+## [0.4.1] - 2023-11-24
 
-[v0.5.0 milestone]: https://github.com/rust-marker/marker/milestone/5
+[#319]: https://github.com/rust-marker/marker/pull/319
+
+### Fixed
+
+- [#319]: Fix compiling driver from sources outside of the marker repo on Windows
+
 
 ## [0.4.0] - 2023-11-16
 
