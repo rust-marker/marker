@@ -166,6 +166,10 @@ jobs:
       # Check that the release automation works as expected
       - run: scripts/release/test.sh
 
+  # This job performs a really simple smoke test that the release build of our binaries
+  # works well. We had to introduce this job after we saw that the release build on windows
+  # couldn't even work without crashing with exit code: 0xc0000005, STATUS_ACCESS_VIOLATION
+  # due to some bug in LTO.
   release-smoke-test:
     runs-on: ${{ matrix.os }}-latest
 
