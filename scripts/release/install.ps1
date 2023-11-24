@@ -68,11 +68,11 @@ Using config env vars (override these if needed):
 # This script isn't meant to be run from `master`, but if it is, then
 # it will install the latest version be it a stable version or a pre-release.
 # region replace marker version unstable
-$version = "0.4.0"
+$version = "0.4.1"
 # endregion replace marker version unstable
 
 # region replace rust toolchain release
-$toolchain = "nightly-2023-10-05"
+$toolchain = "nightly-2023-11-16"
 # endregion replace rust toolchain release
 
 # Log the command, execute, and fail if its exit code is non-zero.

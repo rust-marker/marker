@@ -31,7 +31,7 @@ First add `marker_utils` to the dev-dependencies of the lint crate, and specify 
 <!-- region replace marker version stable -->
 ```toml
 [dev-dependencies]
-marker_uitest = "0.4.0"
+marker_uitest = "0.4.1"
 
 [[test]]
 name = "uitest"
