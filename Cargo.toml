@@ -13,9 +13,11 @@ resolver = "2"
 
 [profile.release]
 codegen-units = 1
-lto           = true
 strip         = false
 
+# ⚠️ Turns there is some bug in LTO on Windows, because it leads to the
+# `marker_rustc_driver` crashing with "exit code: 0xc0000005, STATUS_ACCESS_VIOLATION"
+lto = true
 
 [workspace.package]
 edition    = "2021"
