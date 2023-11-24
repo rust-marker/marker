@@ -143,7 +143,7 @@ fn build_driver(toolchain: &str, version: &str, mut additional_rustc_flags: Opti
     // Build driver
     let mut cmd = Cargo::with_toolchain(toolchain).command();
     if is_local_driver() {
-        cmd.args(["build", "--bin", "marker_rustc_driver", "--release"]);
+        cmd.args(["build", "--bin", "marker_rustc_driver"]);
     } else {
         cmd.args(["install", "marker_rustc_driver", "--version", version, "--force"]);
 
