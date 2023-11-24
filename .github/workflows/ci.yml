@@ -210,4 +210,7 @@ jobs:
       # +stable is to force using the pre-installed `cargo` on the runner instead of
       # what's specified in `rust-toolchain.toml`
       - run: cargo +stable marker --version
+
+      # There may be bugs in the release build of our binaries. For example, in the past
+      # we saw that LTO could lead to exit code: 0xc0000005, STATUS_ACCESS_VIOLATION crash
       - run: cargo marker
