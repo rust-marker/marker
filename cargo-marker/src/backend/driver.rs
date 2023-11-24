@@ -1,3 +1,4 @@
+use super::cargo::Cargo;
 use super::toolchain::{get_toolchain_folder, rustup_which, Toolchain};
 use crate::error::prelude::*;
 use crate::observability::display::print_stage;
@@ -7,7 +8,6 @@ use crate::{utils::is_local_driver, Result};
 use camino::Utf8Path;
 use std::process::Command;
 use yansi::Paint;
-use super::cargo::Cargo;
 
 pub fn marker_driver_bin_name() -> String {
     format!("marker_rustc_driver{}", std::env::consts::EXE_SUFFIX)
