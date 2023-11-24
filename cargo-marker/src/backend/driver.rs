@@ -1,3 +1,4 @@
+use super::cargo::Cargo;
 use super::toolchain::{get_toolchain_folder, rustup_which, Toolchain};
 use crate::error::prelude::*;
 use crate::observability::display::print_stage;
@@ -140,11 +141,10 @@ fn build_driver(toolchain: &str, version: &str, mut additional_rustc_flags: Opti
     }
 
     // Build driver
-    let mut cmd = Command::new("cargo");
+    let mut cmd = Cargo::with_toolchain(toolchain).command();
     if is_local_driver() {
         cmd.args(["build", "--bin", "marker_rustc_driver"]);
     } else {
-        cmd.env("RUSTUP_TOOLCHAIN", toolchain);
         cmd.args(["install", "marker_rustc_driver", "--version", version, "--force"]);
 
         *additional_rustc_flags.get_or_insert_with(Default::default) += " --cap-lints=allow";
