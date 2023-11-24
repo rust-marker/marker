@@ -38,9 +38,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
 
-      - run: MARKER_ALLOW_DRIVER_BUILD=1 cargo build -p cargo_marker -p marker_rustc_driver --release
-      - run:
-
       - run: cargo test --locked --all-features --all-targets
       - run: cargo test --locked --all-features --doc
 
@@ -168,6 +165,19 @@ jobs:
 
       # Check that the release automation works as expected
       - run: scripts/release/test.sh
+
+  release-smoke-test:
+    runs-on: ${{ matrix.os }}-latest
+
+    strategy:
+      matrix:
+        os: [ubuntu, windows, macos]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: MARKER_ALLOW_DRIVER_BUILD=1 cargo build -p cargo_marker -p marker_rustc_driver --release
+      - run: PATH="$PWD/target/release:$PATH" cargo marker
 
   # Check that the Github Action works
   github-action-test:
