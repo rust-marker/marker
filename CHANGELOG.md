@@ -1,4 +1,4 @@
-[Unreleased]: https://github.com/rust-marker/marker/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/rust-marker/marker/compare/v0.4.2...HEAD
 [0.4.2]: https://github.com/rust-marker/marker/releases/tag/v0.4.2
 [0.4.1]: https://github.com/rust-marker/marker/releases/tag/v0.4.1
 [0.4.0]: https://github.com/rust-marker/marker/releases/tag/v0.4.0

@@ -5,8 +5,6 @@ use crate::{
 
 use super::CommonTyData;
 
-// TODO: breaking change remove Ty from Enum
-
 /// A [function item type](https://doc.rust-lang.org/reference/types/function-item.html)
 /// identifying a specific function and potentualy additional generics.
 #[repr(C)]

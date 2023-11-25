@@ -5,7 +5,6 @@ mod ptr_ty;
 mod sequence_ty;
 mod trait_ty;
 mod user_ty;
-use std::{fmt::Debug, marker::PhantomData};
 
 pub use fn_ty::*;
 pub use other_ty::*;
@@ -15,6 +14,7 @@ pub use sequence_ty::*;
 pub use trait_ty::*;
 pub use user_ty::*;
 
+use std::{fmt::Debug, marker::PhantomData};
 use crate::common::DriverTyId;
 
 /// The semantic representation of a type.
