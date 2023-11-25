@@ -21,8 +21,8 @@ pub(crate) fn default_driver_info() -> DriverVersionInfo {
         toolchain: "nightly-2023-11-16".to_string(),
         // endregion replace rust toolchain dev
         // region replace marker version dev
-        version: "0.5.0-dev".to_string(),
-        api_version: "0.5.0-dev".to_string(),
+        version: "0.4.2".to_string(),
+        api_version: "0.4.2".to_string(),
         // endregion replace marker version dev
     }
 }
