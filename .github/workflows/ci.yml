@@ -31,6 +31,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
 
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
 
@@ -45,6 +46,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
 
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
 
@@ -100,6 +102,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
 
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
 
@@ -166,11 +169,30 @@ jobs:
       # Check that the release automation works as expected
       - run: scripts/release/test.sh
 
+  # This job performs a really simple smoke test that the release build of our binaries
+  # works well. We had to introduce this job after we saw that the release build on windows
+  # couldn't even work without crashing with exit code: 0xc0000005, STATUS_ACCESS_VIOLATION
+  # due to some bug in LTO.
+  release-smoke-test:
+    runs-on: ${{ matrix.os }}-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, windows, macos]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: MARKER_ALLOW_DRIVER_BUILD=1 cargo build -p cargo_marker -p marker_rustc_driver --release
+      - run: PATH="$PWD/target/release:$PATH" cargo marker
+
   # Check that the Github Action works
   github-action-test:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         # Make sure we cover all operating systems supported by Github Actions
         os:
@@ -207,3 +229,8 @@ jobs:
       # +stable is to force using the pre-installed `cargo` on the runner instead of
       # what's specified in `rust-toolchain.toml`
       - run: cargo +stable marker --version
+
+      # There may be bugs in the release build of our binaries. For example, in the past
+      # we saw that LTO could lead to exit code: 0xc0000005, STATUS_ACCESS_VIOLATION crash
+
+      - run: cargo marker -l 'marker_lints="*"'
