@@ -30,7 +30,7 @@ impl<'ast> FnTy<'ast> {
     }
 }
 
-super::impl_ty_data!(FnTy<'ast>, FnTy);
+super::impl_ty_data!(FnTy<'ast>, Fn);
 
 /// The semantic representation of a
 /// [closure type](https://doc.rust-lang.org/reference/types/closure.html).
@@ -61,4 +61,4 @@ impl<'ast> ClosureTy<'ast> {
     // parameters and return type.
 }
 
-super::impl_ty_data!(ClosureTy<'ast>, ClosureTy);
+super::impl_ty_data!(ClosureTy<'ast>, Closure);

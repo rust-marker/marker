@@ -354,7 +354,7 @@ warning: print type test
 62 |     let _ty_fn_item: fn(u32) -> f32 = u32_to_f32;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: FnTy(
+   = note: Fn(
                FnTy {
                    data: CommonTyData {...},
                    fn_id: ItemId(..),
@@ -370,7 +370,7 @@ warning: print type test
 63 |     let _ty_closure = || x = 9;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: ClosureTy(
+   = note: Closure(
                ClosureTy {
                    data: CommonTyData {...},
                    ty_id: TyDefId(..),

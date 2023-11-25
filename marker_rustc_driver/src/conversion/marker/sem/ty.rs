@@ -105,7 +105,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                         .build(),
                 ),
             ),
-            mid::ty::TyKind::FnDef(fn_id, generic_args) => TyKind::FnTy(
+            mid::ty::TyKind::FnDef(fn_id, generic_args) => TyKind::Fn(
                 self.alloc(
                     FnTy::builder()
                         .data(data)
@@ -146,7 +146,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     ),
                 )
             },
-            mid::ty::TyKind::Closure(id, generics) => TyKind::ClosureTy(
+            mid::ty::TyKind::Closure(id, generics) => TyKind::Closure(
                 self.alloc(
                     ClosureTy::builder()
                         .data(data)

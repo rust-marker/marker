@@ -47,10 +47,10 @@ pub enum TyKind<'ast> {
     // ================================
     /// A [function item type](https://doc.rust-lang.org/reference/types/function-item.html)
     /// identifying a specific function and potentualy additional generics.
-    FnTy(&'ast FnTy<'ast>),
+    Fn(&'ast FnTy<'ast>),
     /// The semantic representation of a
     /// [closure type](https://doc.rust-lang.org/reference/types/closure.html).
-    ClosureTy(&'ast ClosureTy<'ast>),
+    Closure(&'ast ClosureTy<'ast>),
     // ================================
     // Pointer types
     // ================================
