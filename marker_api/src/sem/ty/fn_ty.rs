@@ -40,14 +40,14 @@ super::impl_ty_data!(FnTy<'ast>, Fn);
 #[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct ClosureTy<'ast> {
     data: CommonTyData<'ast>,
-    ty_id: TyDefId,
+    def_id: TyDefId,
     generics: GenericArgs<'ast>,
 }
 
 impl<'ast> ClosureTy<'ast> {
     /// This returns the [`ItemId`] of the struct that was generated for this closure.
-    pub fn closure_ty_id(&self) -> TyDefId {
-        self.ty_id
+    pub fn def_id(&self) -> TyDefId {
+        self.def_id
     }
 
     /// This returns the [`GenericArgs`] used by closure.

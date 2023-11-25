@@ -150,7 +150,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 self.alloc(
                     ClosureTy::builder()
                         .data(data)
-                        .ty_id(self.to_ty_def_id(*id))
+                        .def_id(self.to_ty_def_id(*id))
                         .generics(self.to_sem_generic_args(generics))
                         .build(),
                 ),

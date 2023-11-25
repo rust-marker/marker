@@ -36,6 +36,7 @@ The following components are considered to be internal and they are excluded fro
 
 - [#322]: Renamed `sem::TyKind::FnTy` -> `sem::TyKind::Fn`
 - [#322]: Renamed `sem::TyKind::ClosureTy` -> `sem::TyKind::Closure`
+- [#322]: Renamed `sem::ClosureTy::closure_ty_id` -> `sem::ClosureTy::def_id`
 
 ## [0.4.2] - 2023-11-25
 

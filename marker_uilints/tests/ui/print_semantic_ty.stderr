@@ -373,7 +373,7 @@ warning: print type test
    = note: Closure(
                ClosureTy {
                    data: CommonTyData {...},
-                   ty_id: TyDefId(..),
+                   def_id: TyDefId(..),
                    generics: GenericArgs {
                        args: [
                            Ty(

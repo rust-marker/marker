@@ -14,8 +14,8 @@ pub use sequence_ty::*;
 pub use trait_ty::*;
 pub use user_ty::*;
 
-use std::{fmt::Debug, marker::PhantomData};
 use crate::common::DriverTyId;
+use std::{fmt::Debug, marker::PhantomData};
 
 /// The semantic representation of a type.
 #[repr(C)]
