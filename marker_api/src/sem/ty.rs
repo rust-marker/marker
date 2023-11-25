@@ -124,7 +124,7 @@ pub(crate) struct CommonTyData<'ast> {
     driver_id: DriverTyId,
 }
 
-impl<'ast> std::fmt::Debug for CommonTyData<'ast> {
+impl<'ast> Debug for CommonTyData<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CommonTyData {...}").finish()
     }
