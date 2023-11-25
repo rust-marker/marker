@@ -3,11 +3,15 @@ use crate::{
     sem::generic::GenericArgs,
 };
 
+use super::CommonTyData;
+
 /// A [function item type](https://doc.rust-lang.org/reference/types/function-item.html)
 /// identifying a specific function and potentualy additional generics.
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct FnTy<'ast> {
+    data: CommonTyData<'ast>,
     fn_id: ItemId,
     generics: GenericArgs<'ast>,
 }
@@ -24,12 +28,7 @@ impl<'ast> FnTy<'ast> {
     }
 }
 
-#[cfg(feature = "driver-api")]
-impl<'ast> FnTy<'ast> {
-    pub fn new(fn_id: ItemId, generics: GenericArgs<'ast>) -> Self {
-        Self { fn_id, generics }
-    }
-}
+super::impl_ty_data!(FnTy<'ast>, Fn);
 
 /// The semantic representation of a
 /// [closure type](https://doc.rust-lang.org/reference/types/closure.html).
@@ -38,18 +37,20 @@ impl<'ast> FnTy<'ast> {
 /// closure. This type on it's own therefore only identifies the type of the closure.
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct ClosureTy<'ast> {
-    closure_ty_id: TyDefId,
+    data: CommonTyData<'ast>,
+    def_id: TyDefId,
     generics: GenericArgs<'ast>,
 }
 
 impl<'ast> ClosureTy<'ast> {
-    /// This returns the [`ItemId`] of the identified function.
-    pub fn closure_ty_id(&self) -> TyDefId {
-        self.closure_ty_id
+    /// This returns the [`ItemId`] of the struct that was generated for this closure.
+    pub fn def_id(&self) -> TyDefId {
+        self.def_id
     }
 
-    /// This returns the [`GenericArgs`] used by identified function
+    /// This returns the [`GenericArgs`] used by closure.
     pub fn generics(&self) -> &GenericArgs<'ast> {
         &self.generics
     }
@@ -58,12 +59,4 @@ impl<'ast> ClosureTy<'ast> {
     // parameters and return type.
 }
 
-#[cfg(feature = "driver-api")]
-impl<'ast> ClosureTy<'ast> {
-    pub fn new(closure_ty_id: TyDefId, generics: GenericArgs<'ast>) -> Self {
-        Self {
-            closure_ty_id,
-            generics,
-        }
-    }
-}
+super::impl_ty_data!(ClosureTy<'ast>, Closure);

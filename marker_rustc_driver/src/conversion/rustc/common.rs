@@ -1,12 +1,13 @@
 use std::mem::{size_of, transmute};
 
 use marker_api::{
-    common::{CrateId, ExpnId, Level, SpanId, SpanSrcId, SymbolId},
+    common::{CrateId, DriverTyId, ExpnId, Level, SpanId, SpanSrcId, SymbolId},
     diagnostic::Applicability,
     prelude::*,
     span::SpanPos,
 };
 use rustc_hir as hir;
+use rustc_middle as mid;
 
 use crate::conversion::common::{BodyIdLayout, DefIdInfo, DefIdLayout, ExpnIdLayout, HirIdLayout};
 use crate::transmute_id;
@@ -159,9 +160,16 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
 
     #[must_use]
     pub fn to_syntax_context(&self, src: SpanSrcId) -> rustc_span::SyntaxContext {
-        // FIXME(xFrednet): This is unsound, since `SyntaxContext` doesn't have
+        // FIXME(xFrednet): This is theoretically unsound, since `SyntaxContext` doesn't have
         // `#[repr(...)]`. See comment in `MarkerConverterInner::to_span_src_id`
         transmute_id!(SpanSrcId as rustc_span::SyntaxContext = src)
+    }
+
+    #[must_use]
+    pub fn to_driver_ty_id(&self, id: DriverTyId) -> mid::ty::Ty<'tcx> {
+        // FIXME(xFrednet): This is theoretically unsound, but should be fine.
+        // See comment in `MarkerConverterInner::to_driver_ty_id`
+        transmute_id!(DriverTyId as mid::ty::Ty<'tcx> = id)
     }
 
     #[must_use]

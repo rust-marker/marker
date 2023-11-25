@@ -1,4 +1,6 @@
-[Unreleased]: https://github.com/rust-marker/marker/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/rust-marker/marker/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/rust-marker/marker/releases/tag/v0.4.2
+[0.4.1]: https://github.com/rust-marker/marker/releases/tag/v0.4.1
 [0.4.0]: https://github.com/rust-marker/marker/releases/tag/v0.4.0
 [0.3.0]: https://github.com/rust-marker/marker/releases/tag/v0.3.0
 [0.2.1]: https://github.com/rust-marker/marker/releases/tag/v0.2.1
@@ -24,9 +26,23 @@ The following components are considered to be internal and they are excluded fro
 
 ## [Unreleased]
 
+[#322]: https://github.com/rust-marker/marker/pull/322
+
+### Added
+
+- [#322]: `sem::TyKind` now implements `From<*>` for all semantic types.
+
+### Breaking Changes
+
+- [#322]: Renamed `sem::TyKind::FnTy` -> `sem::TyKind::Fn`
+- [#322]: Renamed `sem::TyKind::ClosureTy` -> `sem::TyKind::Closure`
+- [#322]: Renamed `sem::ClosureTy::closure_ty_id` -> `sem::ClosureTy::def_id`
+
 ## [0.4.2] - 2023-11-25
 
 [#320]: https://github.com/rust-marker/marker/pull/320
+
+### Fixed
 
 - [#320]: Disable LTO on release builds to fix the crash on Windows with `exit code: 0xc0000005, STATUS_ACCESS_VIOLATION`
 

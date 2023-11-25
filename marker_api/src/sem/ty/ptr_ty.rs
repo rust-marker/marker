@@ -3,7 +3,7 @@ use crate::{
     ffi::FfiSlice,
 };
 
-use super::TyKind;
+use super::{CommonTyData, TyKind};
 
 /// The semantic representation of a reference like [`&T`](prim@reference)
 /// or [`&mut T`](prim@reference)
@@ -13,7 +13,9 @@ use super::TyKind;
 /// from the type also simplifies type comparisons.
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct RefTy<'ast> {
+    data: CommonTyData<'ast>,
     mutability: Mutability,
     inner_ty: TyKind<'ast>,
 }
@@ -30,18 +32,15 @@ impl<'ast> RefTy<'ast> {
     }
 }
 
-#[cfg(feature = "driver-api")]
-impl<'ast> RefTy<'ast> {
-    pub fn new(mutability: Mutability, inner_ty: TyKind<'ast>) -> Self {
-        Self { mutability, inner_ty }
-    }
-}
+super::impl_ty_data!(RefTy<'ast>, Ref);
 
 /// The semantic representation of a raw pointer like [`*const T`](prim@pointer)
 /// or [`*mut T`](prim@pointer)
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct RawPtrTy<'ast> {
+    data: CommonTyData<'ast>,
     mutability: Mutability,
     inner_ty: TyKind<'ast>,
 }
@@ -56,19 +55,17 @@ impl<'ast> RawPtrTy<'ast> {
     }
 }
 
-#[cfg(feature = "driver-api")]
-impl<'ast> RawPtrTy<'ast> {
-    pub fn new(mutability: Mutability, inner_ty: TyKind<'ast>) -> Self {
-        Self { mutability, inner_ty }
-    }
-}
+super::impl_ty_data!(RawPtrTy<'ast>, RawPtr);
 
 /// The semantic representation of a function pointer, like [`fn (T) -> U`](prim@fn)
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct FnPtrTy<'ast> {
+    data: CommonTyData<'ast>,
     safety: Safety,
     abi: Abi,
+    #[cfg_attr(feature = "driver-api", builder(setter(into)))]
     params: FfiSlice<'ast, TyKind<'ast>>,
     return_ty: TyKind<'ast>,
 }
@@ -91,14 +88,4 @@ impl<'ast> FnPtrTy<'ast> {
     }
 }
 
-#[cfg(feature = "driver-api")]
-impl<'ast> FnPtrTy<'ast> {
-    pub fn new(safety: Safety, abi: Abi, params: &'ast [TyKind<'ast>], return_ty: TyKind<'ast>) -> Self {
-        Self {
-            safety,
-            abi,
-            params: params.into(),
-            return_ty,
-        }
-    }
-}
+super::impl_ty_data!(FnPtrTy<'ast>, FnPtr);

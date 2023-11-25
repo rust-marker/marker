@@ -1,9 +1,9 @@
-use std::marker::PhantomData;
-
 use crate::{
     common::{GenericId, ItemId, TyDefId},
     sem::generic::GenericArgs,
 };
+
+use super::CommonTyData;
 
 /// The semantic representation of an abstract data type. This can be an
 /// [`Enum`], [`Struct`], or [`Union`].
@@ -13,7 +13,9 @@ use crate::{
 /// [`Union`]: https://doc.rust-lang.org/reference/types/union.html
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct AdtTy<'ast> {
+    data: CommonTyData<'ast>,
     def_id: TyDefId,
     generics: GenericArgs<'ast>,
 }
@@ -30,12 +32,7 @@ impl<'ast> AdtTy<'ast> {
     }
 }
 
-#[cfg(feature = "driver-api")]
-impl<'ast> AdtTy<'ast> {
-    pub fn new(def_id: TyDefId, generics: GenericArgs<'ast>) -> Self {
-        Self { def_id, generics }
-    }
-}
+super::impl_ty_data!(AdtTy<'ast>, Adt);
 
 /// The semantic representation of a generic type. For example
 ///
@@ -47,8 +44,9 @@ impl<'ast> AdtTy<'ast> {
 /// ```
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct GenericTy<'ast> {
-    _lifetime: PhantomData<&'ast ()>,
+    data: CommonTyData<'ast>,
     generic_id: GenericId,
 }
 
@@ -61,15 +59,7 @@ impl<'ast> GenericTy<'ast> {
     }
 }
 
-#[cfg(feature = "driver-api")]
-impl<'ast> GenericTy<'ast> {
-    pub fn new(generic_id: GenericId) -> Self {
-        Self {
-            _lifetime: PhantomData,
-            generic_id,
-        }
-    }
-}
+super::impl_ty_data!(GenericTy<'ast>, Generic);
 
 /// The semantic representation of a type alias.
 ///
@@ -78,8 +68,9 @@ impl<'ast> GenericTy<'ast> {
 /// known.
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct AliasTy<'ast> {
-    _lifetime: PhantomData<&'ast ()>,
+    data: CommonTyData<'ast>,
     alias_item: ItemId,
 }
 
@@ -90,12 +81,4 @@ impl<'ast> AliasTy<'ast> {
     }
 }
 
-#[cfg(feature = "driver-api")]
-impl<'ast> AliasTy<'ast> {
-    pub fn new(alias_item: ItemId) -> Self {
-        Self {
-            _lifetime: PhantomData,
-            alias_item,
-        }
-    }
-}
+super::impl_ty_data!(AliasTy<'ast>, Alias);
