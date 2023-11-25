@@ -199,6 +199,6 @@ jobs:
       # No idea why this happens, but let's just keep a single cargo release
       # to avoid this issue and to simplify the workflow, because the problem
       # we tried to protect against is not that likely to happen anyway.
-      - run: cargo release publish --no-confirm --no-verify --allow-branch '*'
+      - run: cargo release publish --execute --no-confirm --no-verify --allow-branch '*'
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
