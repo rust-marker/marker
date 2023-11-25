@@ -24,6 +24,12 @@ The following components are considered to be internal and they are excluded fro
 
 ## [Unreleased]
 
+## [0.4.2] - 2023-11-25
+
+[#320]: https://github.com/rust-marker/marker/pull/320
+
+- [#320]: Disable LTO on release builds to fix the crash on Windows with `exit code: 0xc0000005, STATUS_ACCESS_VIOLATION`
+
 ## [0.4.1] - 2023-11-24
 
 [#319]: https://github.com/rust-marker/marker/pull/319
