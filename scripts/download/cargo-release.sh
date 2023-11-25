@@ -6,7 +6,7 @@ script_dir=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
 
 . $script_dir/lib.sh
 
-version=0.24.11
+version=0.25.0
 
 base_url=https://github.com/crate-ci/cargo-release/releases/download/v$version
 
