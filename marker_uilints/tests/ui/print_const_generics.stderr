@@ -216,6 +216,7 @@ warning: print type test
    |
    = note: Adt(
                AdtTy {
+                   data: CommonTyData {...},
                    def_id: TyDefId(..),
                    generics: GenericArgs {
                        args: [

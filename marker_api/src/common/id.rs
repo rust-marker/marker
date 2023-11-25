@@ -143,6 +143,15 @@ new_id! {
 }
 
 new_id! {
+    /// **Unstable**
+    ///
+    /// This id is used by the driver to lint the semantic type representation, back to the
+    /// driver type representation, if needed.
+    #[cfg_attr(feature = "driver-api", visibility::make(pub))]
+    pub(crate) DriverTyId: u64
+}
+
+new_id! {
     /// This ID uniquely identifies a statement during linting.
     pub StmtId: u64
 }

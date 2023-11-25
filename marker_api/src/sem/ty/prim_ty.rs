@@ -1,19 +1,13 @@
-use std::marker::PhantomData;
-
 use crate::common::{NumKind, TextKind};
+
+use super::CommonTyData;
 
 /// The semantic representation of the [`bool`] type.
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct BoolTy<'ast> {
-    _lt: PhantomData<&'ast ()>,
-}
-
-#[cfg(feature = "driver-api")]
-impl<'ast> BoolTy<'ast> {
-    pub fn new() -> Self {
-        Self { _lt: PhantomData }
-    }
+    data: CommonTyData<'ast>,
 }
 
 impl<'ast> std::fmt::Display for BoolTy<'ast> {
@@ -22,22 +16,15 @@ impl<'ast> std::fmt::Display for BoolTy<'ast> {
     }
 }
 
+super::impl_ty_data!(BoolTy<'ast>, Bool);
+
 /// The semantic representation of a numeric type like [`u32`], [`i32`], [`f64`].
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct NumTy<'ast> {
-    _ast: PhantomData<&'ast ()>,
+    data: CommonTyData<'ast>,
     numeric_kind: NumKind,
-}
-
-#[cfg(feature = "driver-api")]
-impl<'ast> NumTy<'ast> {
-    pub fn new(numeric_kind: NumKind) -> Self {
-        Self {
-            _ast: PhantomData,
-            numeric_kind,
-        }
-    }
 }
 
 impl<'ast> NumTy<'ast> {
@@ -62,6 +49,8 @@ impl<'ast> NumTy<'ast> {
     }
 }
 
+super::impl_ty_data!(NumTy<'ast>, Num);
+
 impl<'ast> std::fmt::Display for NumTy<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.numeric_kind)
@@ -70,19 +59,10 @@ impl<'ast> std::fmt::Display for NumTy<'ast> {
 
 /// The semantic representation of a textual type like [`char`] or [`str`].
 #[repr(C)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct TextTy<'ast> {
-    _ast: PhantomData<&'ast ()>,
+    data: CommonTyData<'ast>,
     textual_kind: TextKind,
-}
-
-#[cfg(feature = "driver-api")]
-impl<'ast> TextTy<'ast> {
-    pub fn new(textual_kind: TextKind) -> Self {
-        Self {
-            _ast: PhantomData,
-            textual_kind,
-        }
-    }
 }
 
 impl<'ast> TextTy<'ast> {
@@ -99,6 +79,8 @@ impl<'ast> TextTy<'ast> {
     }
 }
 
+super::impl_ty_data!(TextTy<'ast>, Text);
+
 impl<'ast> std::fmt::Debug for TextTy<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.textual_kind)
@@ -107,16 +89,12 @@ impl<'ast> std::fmt::Debug for TextTy<'ast> {
 
 /// The semantic representation of the never type [`!`](prim@never).
 #[repr(C)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct NeverTy<'ast> {
-    _lt: PhantomData<&'ast ()>,
+    data: CommonTyData<'ast>,
 }
 
-#[cfg(feature = "driver-api")]
-impl<'ast> NeverTy<'ast> {
-    pub fn new() -> Self {
-        Self { _lt: PhantomData }
-    }
-}
+super::impl_ty_data!(NeverTy<'ast>, Never);
 
 impl<'ast> std::fmt::Debug for NeverTy<'ast> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

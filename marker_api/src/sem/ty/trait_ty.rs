@@ -1,23 +1,23 @@
 use crate::{ffi::FfiSlice, sem::generic::TraitBound};
 
+use super::CommonTyData;
+
 /// The semantic representation of a [trait object].
 ///
 /// [trait object]: https://doc.rust-lang.org/reference/types/trait-object.html
 #[repr(C)]
 #[derive(Debug)]
+#[cfg_attr(feature = "driver-api", derive(typed_builder::TypedBuilder))]
 pub struct TraitObjTy<'ast> {
-    bound: FfiSlice<'ast, TraitBound<'ast>>,
+    data: CommonTyData<'ast>,
+    #[cfg_attr(feature = "driver-api", builder(setter(into)))]
+    bounds: FfiSlice<'ast, TraitBound<'ast>>,
 }
 
 impl<'ast> TraitObjTy<'ast> {
     pub fn bounds(&self) -> &[TraitBound<'ast>] {
-        self.bound.get()
+        self.bounds.get()
     }
 }
 
-#[cfg(feature = "driver-api")]
-impl<'ast> TraitObjTy<'ast> {
-    pub fn new(bound: &'ast [TraitBound<'ast>]) -> Self {
-        Self { bound: bound.into() }
-    }
-}
+super::impl_ty_data!(TraitObjTy<'ast>, TraitObj);

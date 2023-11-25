@@ -6,7 +6,7 @@ warning: print type test
    |
    = note: Alias(
                AliasTy {
-                   _lifetime: PhantomData<&()>,
+                   data: CommonTyData {...},
                    alias_item: ItemId(..),
                },
            )
@@ -20,7 +20,7 @@ warning: print type test
    |
    = note: Alias(
                AliasTy {
-                   _lifetime: PhantomData<&()>,
+                   data: CommonTyData {...},
                    alias_item: ItemId(..),
                },
            )
@@ -33,7 +33,7 @@ warning: print type test
    |
    = note: Num(
                NumTy {
-                   _ast: PhantomData<&()>,
+                   data: CommonTyData {...},
                    numeric_kind: U32,
                },
            )
@@ -46,7 +46,7 @@ warning: print type test
    |
    = note: Num(
                NumTy {
-                   _ast: PhantomData<&()>,
+                   data: CommonTyData {...},
                    numeric_kind: U32,
                },
            )
@@ -59,7 +59,7 @@ warning: print type test
    |
    = note: Generic(
                GenericTy {
-                   _lifetime: PhantomData<&()>,
+                   data: CommonTyData {...},
                    generic_id: GenericId(..),
                },
            )
@@ -72,7 +72,7 @@ warning: print type test
    |
    = note: Num(
                NumTy {
-                   _ast: PhantomData<&()>,
+                   data: CommonTyData {...},
                    numeric_kind: U32,
                },
            )
@@ -85,46 +85,48 @@ warning: print type test
    |
    = note: Adt(
                AdtTy {
+                   data: CommonTyData {...},
                    def_id: TyDefId(..),
                    generics: GenericArgs {
                        args: [
                            Ty(
                                Tuple(
                                    TupleTy {
+                                       data: CommonTyData {...},
                                        types: [
                                            Num(
                                                NumTy {
-                                                   _ast: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                    numeric_kind: U8,
                                                },
                                            ),
                                            Num(
                                                NumTy {
-                                                   _ast: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                    numeric_kind: U16,
                                                },
                                            ),
                                            Num(
                                                NumTy {
-                                                   _ast: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                    numeric_kind: U32,
                                                },
                                            ),
                                            Num(
                                                NumTy {
-                                                   _ast: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                    numeric_kind: U64,
                                                },
                                            ),
                                            Num(
                                                NumTy {
-                                                   _ast: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                    numeric_kind: U128,
                                                },
                                            ),
                                            Num(
                                                NumTy {
-                                                   _ast: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                    numeric_kind: Usize,
                                                },
                                            ),
@@ -145,46 +147,48 @@ warning: print type test
    |
    = note: Adt(
                AdtTy {
+                   data: CommonTyData {...},
                    def_id: TyDefId(..),
                    generics: GenericArgs {
                        args: [
                            Ty(
                                Tuple(
                                    TupleTy {
+                                       data: CommonTyData {...},
                                        types: [
                                            Num(
                                                NumTy {
-                                                   _ast: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                    numeric_kind: I8,
                                                },
                                            ),
                                            Num(
                                                NumTy {
-                                                   _ast: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                    numeric_kind: I16,
                                                },
                                            ),
                                            Num(
                                                NumTy {
-                                                   _ast: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                    numeric_kind: I32,
                                                },
                                            ),
                                            Num(
                                                NumTy {
-                                                   _ast: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                    numeric_kind: I64,
                                                },
                                            ),
                                            Num(
                                                NumTy {
-                                                   _ast: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                    numeric_kind: I128,
                                                },
                                            ),
                                            Num(
                                                NumTy {
-                                                   _ast: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                    numeric_kind: Isize,
                                                },
                                            ),
@@ -205,30 +209,32 @@ warning: print type test
    |
    = note: Adt(
                AdtTy {
+                   data: CommonTyData {...},
                    def_id: TyDefId(..),
                    generics: GenericArgs {
                        args: [
                            Ty(
                                Tuple(
                                    TupleTy {
+                                       data: CommonTyData {...},
                                        types: [
                                            Text(
                                                Char,
                                            ),
                                            Bool(
                                                BoolTy {
-                                                   _lt: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                },
                                            ),
                                            Num(
                                                NumTy {
-                                                   _ast: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                    numeric_kind: F32,
                                                },
                                            ),
                                            Num(
                                                NumTy {
-                                                   _ast: PhantomData<&()>,
+                                                   data: CommonTyData {...},
                                                    numeric_kind: F64,
                                                },
                                            ),
@@ -249,9 +255,10 @@ warning: print type test
    |
    = note: Array(
                ArrayTy {
+                   data: CommonTyData {...},
                    inner_ty: Num(
                        NumTy {
-                           _ast: PhantomData<&()>,
+                           data: CommonTyData {...},
                            numeric_kind: U32,
                        },
                    ),
@@ -267,12 +274,13 @@ warning: print type test
    |
    = note: Ref(
                RefTy {
+                   data: CommonTyData {...},
                    mutability: Unmut,
                    inner_ty: Slice(
                        [
                            Num(
                                NumTy {
-                                   _ast: PhantomData<&()>,
+                                   data: CommonTyData {...},
                                    numeric_kind: U32,
                                },
                            ),
@@ -289,15 +297,18 @@ warning: print type test
    |
    = note: Adt(
                AdtTy {
+                   data: CommonTyData {...},
                    def_id: TyDefId(..),
                    generics: GenericArgs {
                        args: [
                            Ty(
                                Tuple(
                                    TupleTy {
+                                       data: CommonTyData {...},
                                        types: [
                                            Ref(
                                                RefTy {
+                                                   data: CommonTyData {...},
                                                    mutability: Unmut,
                                                    inner_ty: Text(
                                                        Str,
@@ -306,10 +317,11 @@ warning: print type test
                                            ),
                                            RawPtr(
                                                RawPtrTy {
+                                                   data: CommonTyData {...},
                                                    mutability: Unmut,
                                                    inner_ty: Num(
                                                        NumTy {
-                                                           _ast: PhantomData<&()>,
+                                                           data: CommonTyData {...},
                                                            numeric_kind: I32,
                                                        },
                                                    ),
@@ -317,10 +329,11 @@ warning: print type test
                                            ),
                                            RawPtr(
                                                RawPtrTy {
+                                                   data: CommonTyData {...},
                                                    mutability: Mut,
                                                    inner_ty: Num(
                                                        NumTy {
-                                                           _ast: PhantomData<&()>,
+                                                           data: CommonTyData {...},
                                                            numeric_kind: I32,
                                                        },
                                                    ),
@@ -343,6 +356,7 @@ warning: print type test
    |
    = note: FnTy(
                FnTy {
+                   data: CommonTyData {...},
                    fn_id: ItemId(..),
                    generics: GenericArgs {
                        args: [],
@@ -358,13 +372,14 @@ warning: print type test
    |
    = note: ClosureTy(
                ClosureTy {
-                   closure_ty_id: TyDefId(..),
+                   data: CommonTyData {...},
+                   ty_id: TyDefId(..),
                    generics: GenericArgs {
                        args: [
                            Ty(
                                Num(
                                    NumTy {
-                                       _ast: PhantomData<&()>,
+                                       data: CommonTyData {...},
                                        numeric_kind: I16,
                                    },
                                ),
@@ -372,17 +387,20 @@ warning: print type test
                            Ty(
                                FnPtr(
                                    FnPtrTy {
+                                       data: CommonTyData {...},
                                        safety: Safe,
                                        abi: Other,
                                        params: [
                                            Tuple(
                                                TupleTy {
+                                                   data: CommonTyData {...},
                                                    types: [],
                                                },
                                            ),
                                        ],
                                        return_ty: Tuple(
                                            TupleTy {
+                                               data: CommonTyData {...},
                                                types: [],
                                            },
                                        ),
@@ -392,13 +410,15 @@ warning: print type test
                            Ty(
                                Tuple(
                                    TupleTy {
+                                       data: CommonTyData {...},
                                        types: [
                                            Ref(
                                                RefTy {
+                                                   data: CommonTyData {...},
                                                    mutability: Mut,
                                                    inner_ty: Num(
                                                        NumTy {
-                                                           _ast: PhantomData<&()>,
+                                                           data: CommonTyData {...},
                                                            numeric_kind: I32,
                                                        },
                                                    ),
@@ -421,19 +441,20 @@ warning: print type test
    |
    = note: FnPtr(
                FnPtrTy {
+                   data: CommonTyData {...},
                    safety: Safe,
                    abi: Default,
                    params: [
                        Num(
                            NumTy {
-                               _ast: PhantomData<&()>,
+                               data: CommonTyData {...},
                                numeric_kind: U32,
                            },
                        ),
                    ],
                    return_ty: Num(
                        NumTy {
-                           _ast: PhantomData<&()>,
+                           data: CommonTyData {...},
                            numeric_kind: F32,
                        },
                    ),
@@ -448,13 +469,14 @@ warning: print type test
    |
    = note: Adt(
                AdtTy {
+                   data: CommonTyData {...},
                    def_id: TyDefId(..),
                    generics: GenericArgs {
                        args: [
                            Ty(
                                Num(
                                    NumTy {
-                                       _ast: PhantomData<&()>,
+                                       data: CommonTyData {...},
                                        numeric_kind: U32,
                                    },
                                ),
@@ -462,6 +484,7 @@ warning: print type test
                            Ty(
                                Adt(
                                    AdtTy {
+                                       data: CommonTyData {...},
                                        def_id: TyDefId(..),
                                        generics: GenericArgs {
                                            args: [],
@@ -482,6 +505,7 @@ warning: print type test
    |
    = note: Adt(
                AdtTy {
+                   data: CommonTyData {...},
                    def_id: TyDefId(..),
                    generics: GenericArgs {
                        args: [],
@@ -497,19 +521,22 @@ warning: print type test
    |
    = note: Adt(
                AdtTy {
+                   data: CommonTyData {...},
                    def_id: TyDefId(..),
                    generics: GenericArgs {
                        args: [
                            Ty(
                                Adt(
                                    AdtTy {
+                                       data: CommonTyData {...},
                                        def_id: TyDefId(..),
                                        generics: GenericArgs {
                                            args: [
                                                Ty(
                                                    TraitObj(
                                                        TraitObjTy {
-                                                           bound: [
+                                                           data: CommonTyData {...},
+                                                           bounds: [
                                                                TraitBound {
                                                                    is_relaxed: false,
                                                                    trait_id: TyDefId(..),
@@ -524,6 +551,7 @@ warning: print type test
                                                Ty(
                                                    Adt(
                                                        AdtTy {
+                                                           data: CommonTyData {...},
                                                            def_id: TyDefId(..),
                                                            generics: GenericArgs {
                                                                args: [],
@@ -549,19 +577,22 @@ warning: print type test
    |
    = note: Adt(
                AdtTy {
+                   data: CommonTyData {...},
                    def_id: TyDefId(..),
                    generics: GenericArgs {
                        args: [
                            Ty(
                                Adt(
                                    AdtTy {
+                                       data: CommonTyData {...},
                                        def_id: TyDefId(..),
                                        generics: GenericArgs {
                                            args: [
                                                Ty(
                                                    TraitObj(
                                                        TraitObjTy {
-                                                           bound: [
+                                                           data: CommonTyData {...},
+                                                           bounds: [
                                                                TraitBound {
                                                                    is_relaxed: false,
                                                                    trait_id: TyDefId(..),
@@ -572,7 +603,7 @@ warning: print type test
                                                                                    binding_target: ItemId(..),
                                                                                    ty: Num(
                                                                                        NumTy {
-                                                                                           _ast: PhantomData<&()>,
+                                                                                           data: CommonTyData {...},
                                                                                            numeric_kind: I32,
                                                                                        },
                                                                                    ),
@@ -588,6 +619,7 @@ warning: print type test
                                                Ty(
                                                    Adt(
                                                        AdtTy {
+                                                           data: CommonTyData {...},
                                                            def_id: TyDefId(..),
                                                            generics: GenericArgs {
                                                                args: [],
