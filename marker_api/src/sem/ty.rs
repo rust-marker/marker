@@ -121,13 +121,39 @@ impl<'ast> TyKind<'ast> {
     #[must_use]
     pub fn implements_trait(self, trait_ref: &UserDefinedTraitRef) -> bool {
         let ids = match &trait_ref.trait_ref {
-            TyDefIdSource::Path(path) => with_cx(&self, |cx| cx.resolve_ty_ids(&path)),
+            TyDefIdSource::Path(path) => with_cx(&self, |cx| cx.resolve_ty_ids(path)),
             TyDefIdSource::Id(_id) => todo!(),
         };
-        let ffi = FfiUserDefinedTraitRef { trait_refs: ids.into() };
+        let ffi = FfiUserDefinedTraitRef { trait_ids: ids.into() };
         with_cx(&self, |cx| cx.ty_implements_trait(self, &ffi))
     }
 }
+
+#[cfg(feature = "driver-api")]
+impl<'ast> TyKind<'ast> {
+    impl_ty_kind_fn!(data() -> &CommonTyData<'ast>);
+}
+
+macro_rules! impl_ty_kind_fn {
+    ($method:ident () -> $return_ty:ty) => {
+        impl_ty_kind_fn!($method() -> $return_ty,
+            Bool, Num, Text, Never,
+            Tuple, Array, Slice,
+            Fn, Closure,
+            Ref, RawPtr, FnPtr,
+            TraitObj, Adt, Generic, Alias,
+            Unstable
+        );
+    };
+    ($method:ident () -> $return_ty:ty $(, $item:ident)+) => {
+        pub fn $method(&self) -> $return_ty {
+            match self {
+                $(TyKind::$item(data) => data.$method(),)*
+            }
+        }
+    };
+}
+use impl_ty_kind_fn;
 
 #[repr(C)]
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
@@ -153,7 +179,7 @@ impl<'ast> CommonTyData<'ast> {
 
 macro_rules! impl_ty_data {
     ($self_ty:ty, $enum_name:ident) => {
-        #[cfg(feature = "driver_api")]
+        #[cfg(feature = "driver-api")]
         impl<'ast> $self_ty {
             pub fn data(&self) -> &$crate::sem::ty::CommonTyData<'ast> {
                 &self.data
@@ -191,8 +217,15 @@ impl UserDefinedTraitRef {
 #[cfg_attr(feature = "driver-api", visibility::make(pub))]
 pub(crate) struct FfiUserDefinedTraitRef<'a> {
     #[allow(dead_code)]
-    trait_refs: FfiSlice<'a, TyDefId>,
+    trait_ids: FfiSlice<'a, TyDefId>,
     // TODO generics
+}
+
+#[cfg(feature = "driver-api")]
+impl<'a> FfiUserDefinedTraitRef<'a> {
+    pub fn trait_ids(&self) -> &'a [TyDefId] {
+        self.trait_ids.get()
+    }
 }
 
 #[derive(Debug)]

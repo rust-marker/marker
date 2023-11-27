@@ -166,7 +166,7 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
     }
 
     #[must_use]
-    pub fn to_driver_ty_id(&self, id: DriverTyId) -> mid::ty::Ty<'tcx> {
+    pub fn to_mid_ty(&self, id: DriverTyId) -> mid::ty::Ty<'tcx> {
         // FIXME(xFrednet): This is theoretically unsound, but should be fine.
         // See comment in `MarkerConverterInner::to_driver_ty_id`
         transmute_id!(DriverTyId as mid::ty::Ty<'tcx> = id)

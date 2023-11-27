@@ -1,7 +1,7 @@
 use marker_api::{diagnostic::DiagnosticBuilder, prelude::*, sem::UserDefinedTraitRef};
 
 pub fn check_expr<'ast>(cx: &'ast MarkerContext<'ast>, expr: ExprKind<'ast>) {
-    test_ty_impls_trait(cx, expr)
+    test_ty_impls_trait(cx, expr);
 }
 
 fn test_ty_impls_trait<'ast>(cx: &'ast MarkerContext<'ast>, input_expr: ExprKind<'ast>) {
@@ -20,8 +20,11 @@ fn test_ty_impls_trait<'ast>(cx: &'ast MarkerContext<'ast>, input_expr: ExprKind
     cx.emit_lint(super::TEST_TY_IMPLS_TRAIT, expr, "checking trait impls:")
         .decorate(|diag| {
             let ty: sem::TyKind<'_> = expr.ty();
+            test_implements_trait(diag, ty, "std::marker::Sized");
+            test_implements_trait(diag, ty, "std::marker::Send");
             test_implements_trait(diag, ty, "std::clone::Clone");
-            // diag.note(&format!("Snippet: {:#?}", expr.span().snippet_or("<..>")));
+            test_implements_trait(diag, ty, "std::default::Default");
+            test_implements_trait(diag, ty, "unknown::Trait");
         });
 }
 
