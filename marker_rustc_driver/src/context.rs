@@ -195,6 +195,11 @@ impl<'ast, 'tcx: 'ast> MarkerContextDriver<'ast> for RustcContext<'ast, 'tcx> {
         self.marker_converter.expr_ty(hir_id)
     }
 
+    fn ty_implements_trait(&'ast self, _ty: sem::TyKind<'ast>, _trait_ref: &sem::FfiUserDefinedTraitRef<'_>) -> bool {
+        // TODO This
+        todo!()
+    }
+
     fn span(&'ast self, span_id: SpanId) -> &'ast Span<'ast> {
         let rustc_span = self.rustc_converter.to_span_from_id(span_id);
         self.storage.alloc(self.marker_converter.to_span(rustc_span))

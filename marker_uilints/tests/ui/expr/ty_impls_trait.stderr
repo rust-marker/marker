@@ -1,0 +1,15 @@
+warning: checking trait impls:
+ --> $DIR/ty_impls_trait.rs:5:13
+  |
+5 |     let _ = check_traits;
+  |             ^^^^^^^^^^^^
+  |
+  = note: Implements: `std::clone::Clone`: false
+note: the lint level is defined here
+ --> $DIR/ty_impls_trait.rs:1:9
+  |
+1 | #![warn(marker::marker_uilints::test_ty_impls_trait)]
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: 1 warning emitted
+

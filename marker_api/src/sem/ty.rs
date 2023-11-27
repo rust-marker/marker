@@ -14,7 +14,11 @@ pub use sequence_ty::*;
 pub use trait_ty::*;
 pub use user_ty::*;
 
-use crate::common::DriverTyId;
+use crate::{
+    common::{DriverTyId, TyDefId},
+    context::with_cx,
+    ffi::FfiSlice,
+};
 use std::{fmt::Debug, marker::PhantomData};
 
 /// The semantic representation of a type.
@@ -113,6 +117,16 @@ impl<'ast> TyKind<'ast> {
         }
         ty
     }
+
+    #[must_use]
+    pub fn implements_trait(self, trait_ref: &UserDefinedTraitRef) -> bool {
+        let ids = match &trait_ref.trait_ref {
+            TyDefIdSource::Path(path) => with_cx(&self, |cx| cx.resolve_ty_ids(&path)),
+            TyDefIdSource::Id(_id) => todo!(),
+        };
+        let ffi = FfiUserDefinedTraitRef { trait_refs: ids.into() };
+        with_cx(&self, |cx| cx.ty_implements_trait(self, &ffi))
+    }
 }
 
 #[repr(C)]
@@ -154,3 +168,49 @@ macro_rules! impl_ty_data {
     };
 }
 use impl_ty_data;
+
+// TODO docs
+// TODO Use a better name
+#[derive(Debug)]
+pub struct UserDefinedTraitRef {
+    #[allow(dead_code)]
+    trait_ref: TyDefIdSource,
+    // TODO generics
+}
+
+impl UserDefinedTraitRef {
+    // TODO Decide how to construct this object, probably a builder since it's user exposed
+    pub fn new(trait_ref: impl Into<TyDefIdSource>) -> Self {
+        Self {
+            trait_ref: trait_ref.into(),
+        }
+    }
+}
+
+#[derive(Debug)]
+#[cfg_attr(feature = "driver-api", visibility::make(pub))]
+pub(crate) struct FfiUserDefinedTraitRef<'a> {
+    #[allow(dead_code)]
+    trait_refs: FfiSlice<'a, TyDefId>,
+    // TODO generics
+}
+
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum TyDefIdSource {
+    Id(TyDefId),
+    // TODO: Handle the path properly, since `Str` is not ABI safe
+    Path(String),
+}
+
+impl From<TyDefId> for TyDefIdSource {
+    fn from(value: TyDefId) -> Self {
+        TyDefIdSource::Id(value)
+    }
+}
+
+impl From<String> for TyDefIdSource {
+    fn from(value: String) -> Self {
+        TyDefIdSource::Path(value)
+    }
+}
