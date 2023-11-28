@@ -8,7 +8,7 @@ use marker_api::{
 use rustc_hir as hir;
 use rustc_middle as mid;
 
-use crate::conversion::common::{BodyIdLayout, DefIdLayout, ExpnIdLayout, HirIdLayout};
+use crate::conversion::common::{BodyIdLayout, DefIdLayout, DriverTyIdLayout, ExpnIdLayout, HirIdLayout};
 use crate::transmute_id;
 
 use super::MarkerConverterInner;
@@ -165,13 +165,29 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     }
 
     #[must_use]
-    pub fn to_driver_ty_id(&self, ty: mid::ty::Ty<'tcx>) -> DriverTyId {
+    pub fn to_driver_ty_id_for_current_body(&self, ty: mid::ty::Ty<'tcx>) -> DriverTyId {
+        self.to_driver_ty_id(
+            ty,
+            self.rustc_cx.hir().body_owner_def_id(
+                self.rustc_body
+                    .borrow()
+                    .expect("should always be some, while converting semantic types"),
+            ),
+        )
+    }
+
+    #[must_use]
+    pub fn to_driver_ty_id(&self, ty: mid::ty::Ty<'tcx>, environment: impl Into<hir::def_id::DefId>) -> DriverTyId {
         // FIXME(xFrednet): This is another theoretically unsafe conversion, since
         // `mid::ty::Ty` doesn't have `#[repr(..)]`. However, it should be fine, as
         // long as we only access it in the driver, which has the same ABI for all
         // types. This specific one, is even a wrapper around rustc's `Interned` typed
         // which should remain valid for `'tcx` and continue to have a small memory footprint.
-        transmute_id!(mid::ty::Ty as DriverTyId = ty)
+        let layout = DriverTyIdLayout {
+            rustc_ty: transmute_id!(mid::ty::Ty<'tcx> as u64 = ty),
+            environment: self.to_item_id(environment.into()),
+        };
+        transmute_id!(DriverTyIdLayout as DriverTyId = layout)
     }
 }
 

@@ -202,7 +202,7 @@ impl<'ast, 'tcx: 'ast> MarkerContextDriver<'ast> for RustcContext<'ast, 'tcx> {
 
         // // TODO: This might be a hack, try what happens with too many generics
         // mid::ty::ParamEnv::empty()
-        let ty = self.rustc_converter.to_mid_ty(api_ty.data().driver_id());
+        let (ty, param_env_src) = self.rustc_converter.to_mid_ty(api_ty.data().driver_id());
         let ty = self.rustc_cx.erase_regions(ty);
         #[allow(clippy::manual_assert)]
         if ty.has_escaping_bound_vars() {
@@ -211,6 +211,7 @@ impl<'ast, 'tcx: 'ast> MarkerContextDriver<'ast> for RustcContext<'ast, 'tcx> {
             // return false;
         }
 
+        // tcx.generics_of(id)
         trait_ref
             .trait_ids()
             .iter()
@@ -225,7 +226,7 @@ impl<'ast, 'tcx: 'ast> MarkerContextDriver<'ast> for RustcContext<'ast, 'tcx> {
                 // TODO Handle generic arguments
                 let test_ref =
                     mid::ty::TraitRef::new(self.rustc_cx, id, std::iter::once(mid::ty::GenericArg::from(ty)));
-                self.check_implements_trait(ty, test_ref)
+                self.check_implements_trait(ty, test_ref, self.rustc_cx.param_env(param_env_src))
             })
     }
 
@@ -331,7 +332,12 @@ fn select_children_with_name(
 }
 
 impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
-    fn check_implements_trait(&'ast self, _ty: mid::ty::Ty<'tcx>, trait_ref: mid::ty::TraitRef<'tcx>) -> bool {
+    fn check_implements_trait(
+        &'ast self,
+        _ty: mid::ty::Ty<'tcx>,
+        trait_ref: mid::ty::TraitRef<'tcx>,
+        param_env: mid::ty::ParamEnv<'tcx>,
+    ) -> bool {
         use rustc_middle::ty::ToPredicate;
         use rustc_trait_selection::infer::TyCtxtInferExt;
         use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt;
@@ -342,7 +348,7 @@ impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
         let obligation = Obligation {
             cause: ObligationCause::dummy(),
             // TODO: This might be a hack, try what happens with too many generics
-            param_env: mid::ty::ParamEnv::empty(),
+            param_env,
             recursion_depth: 0,
             predicate: mid::ty::Binder::dummy(trait_ref).to_predicate(self.rustc_cx),
         };

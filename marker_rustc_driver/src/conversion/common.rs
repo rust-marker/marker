@@ -1,3 +1,5 @@
+use marker_api::common::ItemId;
+
 #[repr(C)]
 pub struct DefIdLayout {
     pub krate: u32,
@@ -43,4 +45,10 @@ macro_rules! transmute_id {
             unsafe { transmute::<$t1, $t2>($e) }
         }
     };
+}
+
+#[repr(C)]
+pub struct DriverTyIdLayout {
+    pub rustc_ty: u64,
+    pub environment: ItemId,
 }

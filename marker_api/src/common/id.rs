@@ -148,7 +148,7 @@ new_id! {
     /// This id is used by the driver to lint the semantic type representation, back to the
     /// driver type representation, if needed.
     #[cfg_attr(feature = "driver-api", visibility::make(pub))]
-    pub(crate) DriverTyId: u64
+    pub(crate) DriverTyId: u128
 }
 
 new_id! {

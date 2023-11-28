@@ -9,7 +9,7 @@ use marker_api::{
 use rustc_hir as hir;
 use rustc_middle as mid;
 
-use crate::conversion::common::{BodyIdLayout, DefIdInfo, DefIdLayout, ExpnIdLayout, HirIdLayout};
+use crate::conversion::common::{BodyIdLayout, DefIdInfo, DefIdLayout, DriverTyIdLayout, ExpnIdLayout, HirIdLayout};
 use crate::transmute_id;
 
 use super::RustcConverter;
@@ -166,10 +166,14 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
     }
 
     #[must_use]
-    pub fn to_mid_ty(&self, id: DriverTyId) -> mid::ty::Ty<'tcx> {
+    pub fn to_mid_ty(&self, id: DriverTyId) -> (mid::ty::Ty<'tcx>, hir::def_id::DefId) {
         // FIXME(xFrednet): This is theoretically unsound, but should be fine.
         // See comment in `MarkerConverterInner::to_driver_ty_id`
-        transmute_id!(DriverTyId as mid::ty::Ty<'tcx> = id)
+        let layout = transmute_id!(DriverTyId as DriverTyIdLayout = id);
+        (
+            transmute_id!(u64 as mid::ty::Ty<'tcx> = layout.rustc_ty),
+            self.to_def_id(layout.environment),
+        )
     }
 
     #[must_use]
