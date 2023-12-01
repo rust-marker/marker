@@ -226,6 +226,8 @@ impl<'ast, 'tcx: 'ast> MarkerContextDriver<'ast> for RustcContext<'ast, 'tcx> {
                 // TODO Handle generic arguments
                 let test_ref =
                     mid::ty::TraitRef::new(self.rustc_cx, id, std::iter::once(mid::ty::GenericArg::from(ty)));
+                    // Generic arg creation:
+                    // `From<mid::ty::Ty<xyz>>`
                 self.check_implements_trait(ty, test_ref, self.rustc_cx.param_env(param_env_src))
             })
     }
