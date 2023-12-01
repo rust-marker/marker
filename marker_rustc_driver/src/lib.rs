@@ -37,9 +37,8 @@ pub mod lint_pass;
 
 use std::env;
 use std::ops::Deref;
-use std::process::Command;
 
-use camino::{Utf8Path, Utf8PathBuf};
+use camino::Utf8Path;
 use marker_adapter::{LintCrateInfo, LINT_CRATES_ENV};
 use marker_error::Context;
 
@@ -49,8 +48,10 @@ use crate::conversion::rustc::RustcConverter;
 const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-11-16";
 // endregion replace rust toolchain dev
 
+pub const MARKER_SYSROOT_ENV: &str = "MARKER_SYSROOT";
+
 struct DefaultCallbacks {
-    env_vars: Vec<(&'static str, String)>,
+    env_vars: Vec<&'static str>,
 }
 impl rustc_driver::Callbacks for DefaultCallbacks {
     fn config(&mut self, config: &mut rustc_interface::Config) {
@@ -62,7 +63,7 @@ impl rustc_driver::Callbacks for DefaultCallbacks {
 }
 
 struct MarkerCallback {
-    env_vars: Vec<(&'static str, String)>,
+    env_vars: Vec<&'static str>,
     lint_crates: Vec<LintCrateInfo>,
 }
 
@@ -105,12 +106,15 @@ impl rustc_driver::Callbacks for MarkerCallback {
     }
 }
 
-fn register_tracked_env(sess: &mut rustc_session::parse::ParseSess, vars: &[(&'static str, String)]) {
+fn register_tracked_env(sess: &mut rustc_session::parse::ParseSess, vars: &[&'static str]) {
     use rustc_span::Symbol;
     let env = sess.env_depinfo.get_mut();
 
-    for (key, value) in vars {
-        env.insert((Symbol::intern(key), Some(Symbol::intern(value))));
+    for key in vars {
+        env.insert((
+            Symbol::intern(key),
+            Some(Symbol::intern(&std::env::var(key).unwrap_or_default())),
+        ));
     }
 }
 
@@ -167,17 +171,6 @@ fn arg_value<'a, T: Deref<Target = str>>(
     None
 }
 
-fn toolchain_path(home: Option<String>, toolchain: Option<String>) -> Option<Utf8PathBuf> {
-    home.and_then(|home| {
-        toolchain.map(|toolchain| {
-            let mut path = Utf8PathBuf::from(home);
-            path.push("toolchains");
-            path.push(toolchain);
-            path
-        })
-    })
-}
-
 fn display_help() {
     println!(
         "\
@@ -208,15 +201,24 @@ pub fn try_main(args: impl Iterator<Item = String>) -> Result<(), MainError> {
     //    values. These are usually driver-independent and handled by the adapter.
     let mut orig_args: Vec<String> = args.collect();
 
-    let sys_root_arg = arg_value(&orig_args, "--sysroot", |_| true);
-    let has_sys_root_arg = sys_root_arg.is_some();
-
-    // Further invocation of rustc require the `--sysroot` flag. We add it here
-    // in preparation.
-    if !has_sys_root_arg {
-        let sys_root = find_sys_root(sys_root_arg);
-        orig_args.extend(["--sysroot".into(), sys_root]);
-    };
+    // Rustc will by default use the location of the rustc library as the system
+    // root. Custom drivers, like Clippy, rustdoc, and Miri have options to override
+    // this directory. This seems to be required for cross compiling and cases where
+    // the driver is invoked directly.
+    //
+    // I haven't found a definite explanation which circumstances require it, but
+    // it's probably best to support the same behavior. This code is an adaptation
+    // of Clippy's solution, with the deviation, that we add the `--sysroot` directly
+    // and have a `MARKER_` prefix for the `SYSROOT` environment value. This is similar
+    // to Miri's `MIRI_SYSROOT` variable.
+    //
+    // The `ui_test` crate used by `marker_uitest` seems to also fiddle around with
+    // the system root, if custom dependencies are defined.
+    if arg_value(&orig_args, "--sysroot", |_| true).is_none()
+        && let Ok(env_sys_root) = std::env::var(MARKER_SYSROOT_ENV)
+    {
+        orig_args.extend(vec!["--sysroot".into(), env_sys_root]);
+    }
 
     // make "marker_rustc_driver --rustc" work like a subcommand that passes
     // all args to "rustc" for example `marker_rustc_driver --rustc --version`
@@ -270,7 +272,7 @@ pub fn try_main(args: impl Iterator<Item = String>) -> Result<(), MainError> {
     let in_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
 
     let enable_marker = !cap_lints_allow && (!no_deps || in_primary_package);
-    let env_vars = vec![(LINT_CRATES_ENV, std::env::var(LINT_CRATES_ENV).unwrap_or_default())];
+    let env_vars = vec![LINT_CRATES_ENV, MARKER_SYSROOT_ENV];
     if !enable_marker {
         rustc_driver::RunCompiler::new(&orig_args, &mut DefaultCallbacks { env_vars }).run()?;
         return Ok(());
@@ -304,51 +306,6 @@ pub fn try_main(args: impl Iterator<Item = String>) -> Result<(), MainError> {
     rustc_driver::RunCompiler::new(&orig_args, &mut callback).run()?;
 
     Ok(())
-}
-
-/// Get the sysroot, looking from most specific to this invocation to the least:
-/// - command line
-/// - runtime environment
-///    - `SYSROOT`
-///    - `RUSTUP_HOME`, `MULTIRUST_HOME`, `RUSTUP_TOOLCHAIN`, `MULTIRUST_TOOLCHAIN`
-/// - sysroot from rustc in the path
-/// - compile-time environment
-///    - `SYSROOT`
-///    - `RUSTUP_HOME`, `MULTIRUST_HOME`, `RUSTUP_TOOLCHAIN`, `MULTIRUST_TOOLCHAIN`
-fn find_sys_root(sys_root_arg: Option<&str>) -> String {
-    sys_root_arg
-        .map(Utf8PathBuf::from)
-        .or_else(|| std::env::var("SYSROOT").ok().map(Utf8PathBuf::from))
-        .or_else(|| {
-            let home = std::env::var("RUSTUP_HOME")
-                .or_else(|_| std::env::var("MULTIRUST_HOME"))
-                .ok();
-            let toolchain = std::env::var("RUSTUP_TOOLCHAIN")
-                .or_else(|_| std::env::var("MULTIRUST_TOOLCHAIN"))
-                .ok();
-            toolchain_path(home, toolchain)
-        })
-        .or_else(|| {
-            Command::new("rustc")
-                .arg("--print")
-                .arg("sysroot")
-                .output()
-                .ok()
-                .and_then(|out| String::from_utf8(out.stdout).ok())
-                .map(|s| Utf8PathBuf::from(s.trim()))
-        })
-        .or_else(|| option_env!("SYSROOT").map(Utf8PathBuf::from))
-        .or_else(|| {
-            let home = option_env!("RUSTUP_HOME")
-                .or(option_env!("MULTIRUST_HOME"))
-                .map(ToString::to_string);
-            let toolchain = option_env!("RUSTUP_TOOLCHAIN")
-                .or(option_env!("MULTIRUST_TOOLCHAIN"))
-                .map(ToString::to_string);
-            toolchain_path(home, toolchain)
-        })
-        .map(Utf8PathBuf::into_string)
-        .expect("need to specify SYSROOT env var during marker compilation, or use rustup or multirust")
 }
 
 pub enum MainError {
