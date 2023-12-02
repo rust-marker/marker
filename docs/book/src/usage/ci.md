@@ -22,7 +22,7 @@ The git tag specified in the GitHub Action indicates which version of Marker sho
 
   Use this to get automatic patch updates.
 
-- **Fixed tags, like `v0.4.2`:**
+- **Fixed tags, like `v0.4.3`:**
 
   Use this to pin a specific patch version. If you find a regression in a patch version, please create a [new issue]. Patch versions must never break anything!
 

@@ -46,8 +46,8 @@ To get started, create a new Rust crate that compiles to a library (`cargo init 
 crate-type = ["cdylib"]
 
 [dependencies]
-marker_api = "0.4.2"
-marker_utils = "0.4.2"
+marker_api = "0.4.3"
+marker_utils = "0.4.3"
 ```
 <!-- endregion replace marker version stable -->
 
