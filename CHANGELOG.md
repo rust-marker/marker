@@ -1,4 +1,7 @@
-[Unreleased]: https://github.com/rust-marker/marker/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/rust-marker/marker/compare/v0.4.3-rc...HEAD
+[0.4.3-rc]: https://github.com/rust-marker/marker/releases/tag/v0.4.3-rc
+[0.4.2]: https://github.com/rust-marker/marker/releases/tag/v0.4.2
+[0.4.1]: https://github.com/rust-marker/marker/releases/tag/v0.4.1
 [0.4.0]: https://github.com/rust-marker/marker/releases/tag/v0.4.0
 [0.3.0]: https://github.com/rust-marker/marker/releases/tag/v0.3.0
 [0.2.1]: https://github.com/rust-marker/marker/releases/tag/v0.2.1
@@ -24,9 +27,19 @@ The following components are considered to be internal and they are excluded fro
 
 ## [Unreleased]
 
+## [0.4.3-rc] - 2023-12-02
+
+[#326]: https://github.com/rust-marker/marker/pull/326
+
+### Fixed
+
+- [#326]: Use rustc's default way of discovering the system root directory, unless `MARKER_SYSROOT` is specified
+
 ## [0.4.2] - 2023-11-25
 
 [#320]: https://github.com/rust-marker/marker/pull/320
+
+### Fixed
 
 - [#320]: Disable LTO on release builds to fix the crash on Windows with `exit code: 0xc0000005, STATUS_ACCESS_VIOLATION`
 
@@ -37,7 +50,6 @@ The following components are considered to be internal and they are excluded fro
 ### Fixed
 
 - [#319]: Fix compiling driver from sources outside of the marker repo on Windows
-
 
 ## [0.4.0] - 2023-11-16
 
