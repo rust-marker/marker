@@ -1,5 +1,5 @@
-[Unreleased]: https://github.com/rust-marker/marker/compare/v0.4.3-rc...HEAD
-[0.4.3-rc]: https://github.com/rust-marker/marker/releases/tag/v0.4.3-rc
+[Unreleased]: https://github.com/rust-marker/marker/compare/v0.4.3...HEAD
+[0.4.3]: https://github.com/rust-marker/marker/releases/tag/v0.4.3
 [0.4.2]: https://github.com/rust-marker/marker/releases/tag/v0.4.2
 [0.4.1]: https://github.com/rust-marker/marker/releases/tag/v0.4.1
 [0.4.0]: https://github.com/rust-marker/marker/releases/tag/v0.4.0
@@ -27,7 +27,7 @@ The following components are considered to be internal and they are excluded fro
 
 ## [Unreleased]
 
-## [0.4.3-rc] - 2023-12-02
+## [0.4.3] - 2023-12-02
 
 [#326]: https://github.com/rust-marker/marker/pull/326
 
