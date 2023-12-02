@@ -1,4 +1,5 @@
-[Unreleased]: https://github.com/rust-marker/marker/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/rust-marker/marker/compare/v0.4.3...HEAD
+[0.4.3]: https://github.com/rust-marker/marker/releases/tag/v0.4.3
 [0.4.2]: https://github.com/rust-marker/marker/releases/tag/v0.4.2
 [0.4.1]: https://github.com/rust-marker/marker/releases/tag/v0.4.1
 [0.4.0]: https://github.com/rust-marker/marker/releases/tag/v0.4.0
@@ -38,6 +39,14 @@ The following components are considered to be internal and they are excluded fro
 - [#322]: Renamed `sem::TyKind::ClosureTy` -> `sem::TyKind::Closure`
 - [#322]: Renamed `sem::ClosureTy::closure_ty_id` -> `sem::ClosureTy::def_id`
 
+## [0.4.3] - 2023-12-02
+
+[#326]: https://github.com/rust-marker/marker/pull/326
+
+### Fixed
+
+- [#326]: Use rustc's default way of discovering the system root directory, unless `MARKER_SYSROOT` is specified
+
 ## [0.4.2] - 2023-11-25
 
 [#320]: https://github.com/rust-marker/marker/pull/320
@@ -53,7 +62,6 @@ The following components are considered to be internal and they are excluded fro
 ### Fixed
 
 - [#319]: Fix compiling driver from sources outside of the marker repo on Windows
-
 
 ## [0.4.0] - 2023-11-16
 
