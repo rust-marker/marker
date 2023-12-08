@@ -197,11 +197,10 @@ impl<'ast, 'tcx: 'ast> MarkerContextDriver<'ast> for RustcContext<'ast, 'tcx> {
         self.marker_converter.expr_ty(hir_id)
     }
 
-    fn ty_implements_trait(&'ast self, api_ty: sem::TyKind<'ast>, trait_ref: &sem::FfiUserDefinedTraitRef<'_>) -> bool {
+    fn ty_implements_trait(&'ast self, api_ty: sem::TyKind<'ast>, trait_ref: &sem::FfiTestTraitRef<'_>) -> bool {
         use rustc_middle::ty::TypeVisitableExt;
 
-        // // TODO: This might be a hack, try what happens with too many generics
-        // mid::ty::ParamEnv::empty()
+        // TODO: Implement test mode
         let (ty, param_env_src) = self.rustc_converter.to_mid_ty(api_ty.data().driver_id());
         let ty = self.rustc_cx.erase_regions(ty);
         #[allow(clippy::manual_assert)]
@@ -226,8 +225,8 @@ impl<'ast, 'tcx: 'ast> MarkerContextDriver<'ast> for RustcContext<'ast, 'tcx> {
                 // TODO Handle generic arguments
                 let test_ref =
                     mid::ty::TraitRef::new(self.rustc_cx, id, std::iter::once(mid::ty::GenericArg::from(ty)));
-                    // Generic arg creation:
-                    // `From<mid::ty::Ty<xyz>>`
+                // Generic arg creation:
+                // `From<mid::ty::Ty<xyz>>`
                 self.check_implements_trait(ty, test_ref, self.rustc_cx.param_env(param_env_src))
             })
     }

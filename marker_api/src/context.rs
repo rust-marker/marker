@@ -259,11 +259,7 @@ impl<'ast> MarkerContext<'ast> {
     pub(crate) fn expr_ty(&self, expr: ExprId) -> TyKind<'ast> {
         self.callbacks.call_expr_ty(expr)
     }
-    pub(crate) fn ty_implements_trait(
-        &self,
-        ty: sem::TyKind<'ast>,
-        trait_ref: &sem::FfiUserDefinedTraitRef<'_>,
-    ) -> bool {
+    pub(crate) fn ty_implements_trait(&self, ty: sem::TyKind<'ast>, trait_ref: &sem::FfiTestTraitRef<'_>) -> bool {
         (self.callbacks.ty_implements_trait)(self.callbacks.data, ty, trait_ref)
     }
 
@@ -330,7 +326,7 @@ struct MarkerContextCallbacks<'ast> {
     // Internal utility
     pub expr_ty: extern "C" fn(&'ast MarkerContextData, ExprId) -> TyKind<'ast>,
     pub ty_implements_trait:
-        extern "C" fn(&'ast MarkerContextData, sem::TyKind<'ast>, &sem::FfiUserDefinedTraitRef<'_>) -> bool,
+        extern "C" fn(&'ast MarkerContextData, sem::TyKind<'ast>, &sem::FfiTestTraitRef<'_>) -> bool,
     pub span: extern "C" fn(&'ast MarkerContextData, SpanId) -> &'ast Span<'ast>,
     pub span_snippet: extern "C" fn(&'ast MarkerContextData, &Span<'ast>) -> ffi::FfiOption<ffi::FfiStr<'ast>>,
     pub span_source: extern "C" fn(&'ast MarkerContextData, &Span<'_>) -> SpanSource<'ast>,

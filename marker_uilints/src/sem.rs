@@ -1,4 +1,4 @@
-use marker_api::{diagnostic::DiagnosticBuilder, prelude::*, sem::UserDefinedTraitRef};
+use marker_api::{diagnostic::DiagnosticBuilder, prelude::*, sem::TestTraitRef};
 
 pub fn check_expr<'ast>(cx: &'ast MarkerContext<'ast>, expr: ExprKind<'ast>) {
     test_ty_impls_trait(cx, expr);
@@ -41,6 +41,6 @@ fn test_implements_trait(
     let path = path.into();
     diag.note(format!(
         "Implements: `{path}`: {} ({comment})",
-        ty.implements_trait(&UserDefinedTraitRef::new(path.clone()))
+        ty.implements_trait(&TestTraitRef::builder().trait_from_path(path.clone()).build())
     ));
 }
