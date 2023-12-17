@@ -31,12 +31,12 @@ A lint crate can be specified with the `--lints` option. The string is expected 
 <!-- region replace marker version stable -->
 ```sh
 # An external crate from a registry
-cargo marker --lint "marker_lints = '0.4.3'"
+cargo marker --lints "marker_lints = '0.4.3'"
 
 # An external crate from git
-cargo marker --lint "marker_lints = { git = 'https://github.com/rust-marker/marker' }"
+cargo marker --lints "marker_lints = { git = 'https://github.com/rust-marker/marker' }"
 
 # A local crate as a path
-cargo marker --lint "marker_lints = { path = './marker_lints' }"
+cargo marker --lints "marker_lints = { path = './marker_lints' }"
 ```
 <!-- endregion replace marker version stable -->
