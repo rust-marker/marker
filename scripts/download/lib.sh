@@ -20,7 +20,7 @@ esac
 
 triple_rust=$arch_rust-$triple_rust
 
-if [[ os == "windows" ]]; then
+if [[ $os == "windows" ]]; then
     export exe=.exe
 else
     export exe=
