@@ -23,6 +23,14 @@ runs:
     - run: ${GITHUB_ACTION_PATH:?}/scripts/release/install.${{ runner.os == 'Windows' && 'ps1' || 'sh' }}
       shell: bash
 
-    - run: cargo marker
+    # Run the check with `--locked` only if there is a `Cargo.lock` file present in the
+    # repository. Not everyone checks in the `Cargo.lock` file into the version control,
+    # but if they do they would want this command to run with `--locked` to ensure that
+    # the lock file is up to date.
+    - run: |
+        cargo marker -- --all-targets --all-features${{
+          hashFiles('./Cargo.lock') != '' && ' --locked' || ''
+        }}
+
       if: ${{ inputs.install-only == 'false' }}
       shell: bash
