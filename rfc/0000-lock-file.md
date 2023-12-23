@@ -60,8 +60,8 @@ mod lint_2;
 use marker_api::prelude::*;
 
 // Generates an implementation of a `LintPassBase` trait that has a method
-// to construct the lint pass from a string of a TOML section passed via FFI. If
-// config parsing fails returns an error.
+// to construct the lint pass from a string of a TOML section passed via FFI. Returns an error if
+// config parsing fails.
 //
 // Not sure what to do with the visibility of this struct. Maybe it would be useful
 // to have it as `pub` for static linking scenario.
@@ -130,7 +130,7 @@ struct Config {
 #[lint_config]
 struct SharedConfig { /**/ }
 
-impl marker_api::LintPass for LintPass {
+impl<'ast> marker_api::LintPass<'ast> for LintPass<'ast> {
     // ...
 }
 ```
@@ -172,10 +172,12 @@ The lint crates and their configuration is specified in a workspace-wide `Marker
 
 [lints]
 lint-crate = { path = "./lint-crate" }
-marker_lints = "0.4.0"
+
+[lints.marker_lints]
+version = "0.4.0"
 
 [lints.marker_lints.config]
-config_foo = "bar"
+foo = "bar"
 ```
 
 I like `Marker.toml` because it also gives `Marker` more visibility. When looking at the repo files this gives you an instant recognition that this project uses Marker. It also makes `Marker.toml` and `Marker.lock` paired just like `Cargo.toml` and `Cargo.lock`.
@@ -195,7 +197,15 @@ Suppose you have your own `lint-crate` inside of the workspace that needs to be 
 - `Marker.lock`: hardlink to `target/marker/Cargo.lock` and contains only `marker_lints` and its `marker_api` entries
 - `target/`
     - `marker/`
-        - `Cargo.toml`: contains a definition of the `buildspace` and the "dispatch" crate. The `[dependencies]` section includes only `marker_lints = "x.y.z"`. The `path` dependencies never get into the `dependencies` here.
+        - `target/`: target directory shared between all buildspaces and all compilations including when lint crates are specified via `path`.
+        - `buildspace/`
+            - `default/`: the default buildspace that persists the `Cargo.lock` as `Marker.lock`
+                - `Cargo.toml`: contains a definition of the `buildspace` and the "dispatch" crate. The `[dependencies]` section includes only `marker_lints = "x.y.z"`. The `path` dependencies never get into the `dependencies` here.
+                - `Cargo.lock`: same as `Marker.lock`
+            - `ephemeral/`: ephemeral buildspace that doesn't persist any state outside of it. It's used when `--no-marker-lock` is specified.
+                - `Cargo.toml`: similar to the one in `default`
+                - `Cargo.lock` (not persisted, regular file)
+
 
 ### `Marker.lock`
 
@@ -210,6 +220,44 @@ The `cargo marker` CLI exposes a command `cargo marker buildspace` that can be s
 - `cargo marker buildspace fetch`
 
 The commands that may be run inside of the buildspace this way aren't limited to make possible the usage of external cargo plugins that manage the lockfile. We'll however try to maintain a list of commands that are known to be safe to use in the docs.
+
+## CLI parameters
+
+The `cargo-marker` CLI has the following options that can override `Marker.toml` and `Marker.lock`:
+- `--config KEY=VALUE`: values are merged with the `Marker.toml`. This follows `cargo`'s behavior of `--config` parameter closely for consistency with it. This parameter accepts a line of TOML that consists only of a single dotted key and value. The implementation for this including validation can be copied from `cargo`'s [code](https://github.com/rust-lang/cargo/blob/74ef21bb3f6b7a94106b2beb72bc63a6d4f7fb4e/src/cargo/util/config/mod.rs#L1324-L1470). It can be specified multiple times, and all its occurrences are merged.
+- `--no-marker-lock`: skip using the `Marker.lock` file. This makes `cargo-marker` use the `ephemeral` buildspace that ignores the `Marker.lock` file and re-generates it's internal `Cargo.lock` file from scratch before running the build.
+- `-l, --lint <LINT_CRATE_NAME>`: this is similar to `-p, --package` parameter of `cargo` which lets the user select a subset of lints from the ones they configured. An unfortunate confusion may happen here because this parameter is named "lint" and not "lint crate", so someone could think as if it refers to a specific lint. However, lints and their leves should be configured via `Marker.toml` or `--config` override. Unfortunatelly, we can't use the [`[lints]`](https://doc.rust-lang.org/cargo/reference/manifest.html#the-lints-section) section of `Cargo.toml` because it's very limited and doesn't support anything except `rust`, `clippy`, `rustdoc`.
+- `--exclude-lint`: excludes the lint crate from the list of lint crates for this run of `cargo-marker`. This is similar to `--exclude` of `cargo`, but `-lint` suffix is to remove ambiguity with the `-- --exclude` parameter that can be specified as the build argument to `cargo` itself at the end of the command line.
+
+The set of these CLI parameters solves some of the following use cases.
+
+### First-user experience
+
+If someone wants to try `cargo-marker` on their repo without writing any config files and persisting `Marker.lock` file in their repo they can start with the following CLI.
+
+```bash
+cargo marker --no-marker-lock --config "lints.marker_lints = '0.4.0'"
+```
+
+Assuming they have no `Marker.toml` yet this will run linting with `marker_lints` for them in an `ephemeral` buildspace and no new files will appear in their version control, and they won't be required to write any config file themselves.
+
+### Selecting specific lint crates on CI
+
+On CI there may be several different jobs that run linting with different parameters and maybe even a different set of lint crates. We assume that in this setup there already is a `Marker.toml` and `Marker.lock` and the users want to select a subset of lint crates to run in the CI job.
+
+```bash
+cargo marker -l foo -l bar --exclude-lint baz -- -p prod-crate --exclude other-crate
+```
+
+This way users can include/exclude lint crates and include/exclude packages they want to lint.
+
+If users need to run some CI job with a different setting they can use `--config` inline-TOML syntax to specify that.
+
+We don't expect that `--no-marker-lock` will ever be used on CI. In fact, `cargo marker` should actually show a warning if it detects a `$CI` env variable when this parameter is specified.
+
+> This design is inspired by `cargo`'s design:
+> - [Cargo command line config issue](https://github.com/rust-lang/cargo/issues/6699)
+> - [Cargo command line config docs](https://doc.rust-lang.org/cargo/reference/config.html#command-line-overrides)
 
 # Reference-level explanation
 
