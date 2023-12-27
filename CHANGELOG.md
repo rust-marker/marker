@@ -28,6 +28,7 @@ The following components are considered to be internal and they are excluded fro
 ## [Unreleased]
 
 [#322]: https://github.com/rust-marker/marker/pull/322
+[#342]: https://github.com/rust-marker/marker/pull/342
 
 ### Added
 
@@ -38,6 +39,7 @@ The following components are considered to be internal and they are excluded fro
 - [#322]: Renamed `sem::TyKind::FnTy` -> `sem::TyKind::Fn`
 - [#322]: Renamed `sem::TyKind::ClosureTy` -> `sem::TyKind::Closure`
 - [#322]: Renamed `sem::ClosureTy::closure_ty_id` -> `sem::ClosureTy::def_id`
+- [#342]: Increased minimal rust version to build `cargo_marker` to 1.70
 
 ## [0.4.3] - 2023-12-02
 

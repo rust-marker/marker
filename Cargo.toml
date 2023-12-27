@@ -30,7 +30,7 @@ version = "0.5.0-dev"
 # endregion replace marker version dev
 
 # The MSRV is applied to the public library crates published to crates.io
-rust-version = "1.66"
+rust-version = "1.70"
 
 [workspace.dependencies]
 # region replace marker version dev
@@ -44,9 +44,9 @@ marker_utils   = { path = "./marker_utils", version = "0.5.0-dev" }
 bumpalo            = "3.14"
 camino             = { version = "1.1", features = ["serde1"] }
 cargo_metadata     = "0.18"
-clap               = { version = "=4.3.24", features = ["string", "derive"] }
+clap               = { version = "4.4.11", features = ["string", "derive"] }
 expect-test        = "1.4"
-itertools          = "0.11"
+itertools          = "0.12"
 libloading         = "0.8.0"
 miette             = { version = "5.10", features = ["fancy-no-backtrace"] }
 rustc_tools_util   = "0.3"
@@ -59,7 +59,7 @@ toml               = "0.8"
 tracing            = "0.1"
 tracing-error      = "0.2"
 tracing-subscriber = "0.3"
-typed-builder      = "0.16.2"
+typed-builder      = "0.18"
 ui_test            = "0.21.2"
 visibility         = "0.1.0"
 yansi              = "1.0.0-rc.1"
