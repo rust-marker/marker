@@ -9,7 +9,9 @@ use marker_api::{
 use rustc_hash::FxHashMap;
 use rustc_hir as hir;
 use rustc_lint::LintStore;
+use rustc_middle as mid;
 use rustc_middle::ty::TyCtxt;
+use rustc_trait_selection::traits::{Obligation, ObligationCause};
 
 use crate::conversion::{marker::MarkerConverter, rustc::RustcConverter};
 
@@ -195,6 +197,40 @@ impl<'ast, 'tcx: 'ast> MarkerContextDriver<'ast> for RustcContext<'ast, 'tcx> {
         self.marker_converter.expr_ty(hir_id)
     }
 
+    fn ty_implements_trait(&'ast self, api_ty: sem::TyKind<'ast>, trait_ref: &sem::FfiTestTraitRef<'_>) -> bool {
+        use rustc_middle::ty::TypeVisitableExt;
+
+        // TODO: Implement test mode
+        let (ty, param_env_src) = self.rustc_converter.to_mid_ty(api_ty.data().driver_id());
+        let ty = self.rustc_cx.erase_regions(ty);
+        #[allow(clippy::manual_assert)]
+        if ty.has_escaping_bound_vars() {
+            // TODO: Remove this panic or handle it
+            panic!("When does this happen? {ty:#?}\n\n{api_ty:#?}\n\n{trait_ref:#?}");
+            // return false;
+        }
+
+        // tcx.generics_of(id)
+        trait_ref
+            .trait_ids()
+            .iter()
+            .map(|api_id| self.rustc_converter.to_def_id(*api_id))
+            .filter(|id| {
+                matches!(
+                    self.rustc_cx.def_kind(id),
+                    hir::def::DefKind::Trait | hir::def::DefKind::TraitAlias
+                )
+            })
+            .any(|id| {
+                // TODO Handle generic arguments
+                let test_ref =
+                    mid::ty::TraitRef::new(self.rustc_cx, id, std::iter::once(mid::ty::GenericArg::from(ty)));
+                // Generic arg creation:
+                // `From<mid::ty::Ty<xyz>>`
+                self.check_implements_trait(ty, test_ref, self.rustc_cx.param_env(param_env_src))
+            })
+    }
+
     fn span(&'ast self, span_id: SpanId) -> &'ast Span<'ast> {
         let rustc_span = self.rustc_converter.to_span_from_id(span_id);
         self.storage.alloc(self.marker_converter.to_span(rustc_span))
@@ -294,4 +330,34 @@ fn select_children_with_name(
     }
 
     next_search
+}
+
+impl<'ast, 'tcx> RustcContext<'ast, 'tcx> {
+    fn check_implements_trait(
+        &'ast self,
+        _ty: mid::ty::Ty<'tcx>,
+        trait_ref: mid::ty::TraitRef<'tcx>,
+        param_env: mid::ty::ParamEnv<'tcx>,
+    ) -> bool {
+        use rustc_middle::ty::ToPredicate;
+        use rustc_trait_selection::infer::TyCtxtInferExt;
+        use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt;
+        use rustc_trait_selection::traits::EvaluationResult;
+
+        let infcx = self.rustc_cx.infer_ctxt().build();
+
+        let obligation = Obligation {
+            cause: ObligationCause::dummy(),
+            // TODO: This might be a hack, try what happens with too many generics
+            param_env,
+            recursion_depth: 0,
+            predicate: mid::ty::Binder::dummy(trait_ref).to_predicate(self.rustc_cx),
+        };
+
+        // Let the record show: I'm not proud of this!!!
+
+        infcx
+            .evaluate_obligation(&obligation)
+            .is_ok_and(EvaluationResult::must_apply_modulo_regions)
+    }
 }

@@ -13,7 +13,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     #[must_use]
     pub fn to_sem_ty(&self, rustc_ty: mid::ty::Ty<'tcx>) -> TyKind<'ast> {
         let data = sem::CommonTyData::builder()
-            .driver_id(self.to_driver_ty_id(rustc_ty))
+            .driver_id(self.to_driver_ty_id_for_current_body(rustc_ty))
             .build();
 
         // Semantic types could be cached, the question is if they should and at

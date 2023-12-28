@@ -128,6 +128,7 @@ impl<'ast> MarkerContextWrapper<'ast> {
             emit_diag,
             resolve_ty_ids,
             expr_ty,
+            ty_implements_trait,
             span,
             span_snippet,
             span_source,
@@ -145,6 +146,7 @@ pub trait MarkerContextDriver<'ast> {
     fn resolve_ty_ids(&'ast self, path: &str) -> &'ast [TyDefId];
 
     fn expr_ty(&'ast self, expr: ExprId) -> marker_api::sem::TyKind<'ast>;
+    fn ty_implements_trait(&'ast self, ty: sem::TyKind<'ast>, trait_ref: &sem::FfiTestTraitRef<'_>) -> bool;
     fn span(&'ast self, owner: SpanId) -> &'ast Span<'ast>;
     fn span_snippet(&'ast self, span: &Span<'_>) -> Option<&'ast str>;
     fn span_source(&'ast self, span: &Span<'_>) -> SpanSource<'ast>;
@@ -165,10 +167,20 @@ extern "C" fn resolve_ty_ids<'ast>(
     unsafe { as_driver(data) }.resolve_ty_ids((&path).into()).into()
 }
 
-// False positive because `SemTyKind` is non-exhaustive
+// False positive because `TyKind` is non-exhaustive
 #[allow(improper_ctypes_definitions)]
 extern "C" fn expr_ty<'ast>(data: &'ast MarkerContextData, expr: ExprId) -> marker_api::sem::TyKind<'ast> {
     unsafe { as_driver(data) }.expr_ty(expr)
+}
+
+// False positive because `TyKind` is non-exhaustive
+#[allow(improper_ctypes_definitions)]
+extern "C" fn ty_implements_trait<'ast>(
+    data: &'ast MarkerContextData,
+    ty: sem::TyKind<'ast>,
+    trait_ref: &sem::FfiTestTraitRef<'_>,
+) -> bool {
+    unsafe { as_driver(data) }.ty_implements_trait(ty, trait_ref)
 }
 
 extern "C" fn span<'ast>(data: &'ast MarkerContextData, span_id: SpanId) -> &'ast Span<'ast> {

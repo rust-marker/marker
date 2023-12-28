@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![warn(clippy::pedantic)]
 
+mod sem;
 mod utils;
 
 use marker_api::{
@@ -68,6 +69,14 @@ marker_api::declare_lint! {
     Warn,
 }
 
+marker_api::declare_lint! {
+    /// # What it does
+    /// Checks if the semantic type of an identifier called `check_traits`
+    /// implements a trait.
+    TEST_TY_IMPLS_TRAIT,
+    Allow,
+}
+
 fn emit_item_with_test_name_lint<'ast>(
     cx: &'ast MarkerContext<'ast>,
     node: impl EmissionNode<'ast>,
@@ -84,6 +93,7 @@ impl LintPass for TestLintPass {
             ITEM_WITH_TEST_NAME,
             PRINT_EVERY_EXPR,
             utils::TEST_CONTAINS_RETURN,
+            TEST_TY_IMPLS_TRAIT,
         ]))
         .build()
     }
@@ -231,6 +241,8 @@ impl LintPass for TestLintPass {
     }
 
     fn check_expr<'ast>(&mut self, cx: &'ast MarkerContext<'ast>, expr: ExprKind<'ast>) {
+        sem::check_expr(cx, expr);
+
         cx.emit_lint(PRINT_EVERY_EXPR, expr, "expr").decorate(|diag| {
             diag.note(&format!("SpanSource: {:#?}", expr.span().source()));
             diag.note(&format!("Snippet: {:#?}", expr.span().snippet_or("<..>")));

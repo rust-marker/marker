@@ -1,0 +1,87 @@
+warning: checking trait impls:
+  --> $DIR/ty_impls_trait.rs:18:13
+   |
+18 |     let _ = check_traits_from_generic.clone();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Implements: `std::marker::Sized`: true ()
+   = note: Implements: `std::marker::Send`: false ()
+   = note: Implements: `std::clone::Clone`: true ()
+   = note: Implements: `std::default::Default`: false ()
+   = note: Implements: `std::cmp::Ord`: false ()
+   = note: Implements: `unknown::Trait`: false (Should always be false)
+   = note: Implements: `crate::SimpleTestTrait`: false ()
+   = note: Implements: `crate::GenericTestTrait`: false (Path without generics)
+   = note: Implements: `crate::AssocTyTestTrait`: false (Path without type)
+note: the lint level is defined here
+  --> $DIR/ty_impls_trait.rs:1:9
+   |
+1  | #![warn(marker::marker_uilints::test_ty_impls_trait)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: checking trait impls:
+  --> $DIR/ty_impls_trait.rs:22:8
+   |
+22 |     if check_traits_ord > y {
+   |        ^^^^^^^^^^^^^^^^
+   |
+   = note: Implements: `std::marker::Sized`: true ()
+   = note: Implements: `std::marker::Send`: false ()
+   = note: Implements: `std::clone::Clone`: false ()
+   = note: Implements: `std::default::Default`: false ()
+   = note: Implements: `std::cmp::Ord`: true ()
+   = note: Implements: `unknown::Trait`: false (Should always be false)
+   = note: Implements: `crate::SimpleTestTrait`: false ()
+   = note: Implements: `crate::GenericTestTrait`: false (Path without generics)
+   = note: Implements: `crate::AssocTyTestTrait`: false (Path without type)
+
+warning: checking trait impls:
+  --> $DIR/ty_impls_trait.rs:35:13
+   |
+35 |     let _ = check_traits_for_impl_clone;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Implements: `std::marker::Sized`: true ()
+   = note: Implements: `std::marker::Send`: true ()
+   = note: Implements: `std::clone::Clone`: true ()
+   = note: Implements: `std::default::Default`: false ()
+   = note: Implements: `std::cmp::Ord`: false ()
+   = note: Implements: `unknown::Trait`: false (Should always be false)
+   = note: Implements: `crate::SimpleTestTrait`: false ()
+   = note: Implements: `crate::GenericTestTrait`: false (Path without generics)
+   = note: Implements: `crate::AssocTyTestTrait`: false (Path without type)
+
+warning: checking trait impls:
+  --> $DIR/ty_impls_trait.rs:40:13
+   |
+40 |     let _ = check_traits_i32;
+   |             ^^^^^^^^^^^^^^^^
+   |
+   = note: Implements: `std::marker::Sized`: true ()
+   = note: Implements: `std::marker::Send`: true ()
+   = note: Implements: `std::clone::Clone`: true ()
+   = note: Implements: `std::default::Default`: true ()
+   = note: Implements: `std::cmp::Ord`: true ()
+   = note: Implements: `unknown::Trait`: false (Should always be false)
+   = note: Implements: `crate::SimpleTestTrait`: false ()
+   = note: Implements: `crate::GenericTestTrait`: false (Path without generics)
+   = note: Implements: `crate::AssocTyTestTrait`: false (Path without type)
+
+warning: checking trait impls:
+  --> $DIR/ty_impls_trait.rs:43:13
+   |
+43 |     let _ = check_traits_string;
+   |             ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Implements: `std::marker::Sized`: true ()
+   = note: Implements: `std::marker::Send`: true ()
+   = note: Implements: `std::clone::Clone`: true ()
+   = note: Implements: `std::default::Default`: true ()
+   = note: Implements: `std::cmp::Ord`: true ()
+   = note: Implements: `unknown::Trait`: false (Should always be false)
+   = note: Implements: `crate::SimpleTestTrait`: true ()
+   = note: Implements: `crate::GenericTestTrait`: true (Path without generics)
+   = note: Implements: `crate::AssocTyTestTrait`: true (Path without type)
+
+warning: 5 warnings emitted
+
