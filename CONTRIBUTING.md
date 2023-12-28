@@ -168,7 +168,7 @@ The following is a small collection of ways you can test Marker right now:
 
 <!-- region replace marker version stable -->
     ```sh
-    cargo marker --lints "marker_lints = '0.4.3'"
+    cargo marker --lints "marker_lints = '0.5.0'"
     ```
 <!-- endregion replace marker version stable -->
 

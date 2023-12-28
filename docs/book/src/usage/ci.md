@@ -11,18 +11,18 @@ Marker provides a GitHub Action that downloads the pre-compiled binaries and run
 <!-- region replace marker version stable -->
 
 ```yml
-- uses: rust-marker/marker@v0.4
+- uses: rust-marker/marker@v0.5
 ```
 
 ### Git tags
 
 The git tag specified in the GitHub Action indicates which version of Marker should be installed. There are several tag flavors available:
 
-- **Sliding tags, like `v0.4` *(recommended)*:**
+- **Sliding tags, like `v0.5` *(recommended)*:**
 
   Use this to get automatic patch updates.
 
-- **Fixed tags, like `v0.4.3`:**
+- **Fixed tags, like `v0.5.0`:**
 
   Use this to pin a specific patch version. If you find a regression in a patch version, please create a [new issue]. Patch versions must never break anything!
 
@@ -66,7 +66,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - uses: rust-marker/marker@v0.4
+      - uses: rust-marker/marker@v0.5
 ```
 <!-- endregion replace marker action version stable -->
 
@@ -87,7 +87,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - uses: rust-marker/marker@v0.4
+      - uses: rust-marker/marker@v0.5
         with:
           install-only: true
       - run: cargo marker -- -p crate-foo -p crate-bar
@@ -126,7 +126,7 @@ curl \
     --show-error \
     --retry 5 \
     --retry-all-errors \
-    https://raw.githubusercontent.com/rust-marker/marker/v0.4/scripts/release/install.sh \
+    https://raw.githubusercontent.com/rust-marker/marker/v0.5/scripts/release/install.sh \
     | bash
 ```
 
@@ -139,7 +139,7 @@ curl.exe `
     --show-error `
     --retry 5 `
     --retry-all-errors `
-    https://raw.githubusercontent.com/rust-marker/marker/v0.4/scripts/release/install.ps1 `
+    https://raw.githubusercontent.com/rust-marker/marker/v0.5/scripts/release/install.ps1 `
     | powershell -command -
 ```
 
