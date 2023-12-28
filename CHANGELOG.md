@@ -28,7 +28,7 @@ The following components are considered to be internal and they are excluded fro
 
 ## [Unreleased]
 
-## [v0.5.0] - 2023-12-28
+## [0.5.0] - 2023-12-28
 
 [#322]: https://github.com/rust-marker/marker/pull/322
 [#342]: https://github.com/rust-marker/marker/pull/342
