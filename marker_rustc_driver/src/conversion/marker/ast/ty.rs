@@ -138,7 +138,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 | hir::def::Res::NonMacroAttr(_) => unreachable!("not a syntactic type {path:#?}"),
                 hir::def::Res::Err => unreachable!("would have triggered a rustc error"),
             },
-            hir::QPath::TypeRelative(_, _) | hir::QPath::LangItem(_, _, _) => {
+            hir::QPath::TypeRelative(_, _) | hir::QPath::LangItem(_, _) => {
                 TyKind::Path(self.alloc(PathTy::new(data, self.to_qpath_from_ty(qpath, rustc_ty))))
             },
         }

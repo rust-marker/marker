@@ -112,7 +112,6 @@ impl<'ast, 'tcx: 'ast> MarkerContextDriver<'ast> for RustcContext<'ast, 'tcx> {
                         _ => unreachable!(),
                     }
                 }
-                builder
             },
         );
     }
@@ -261,7 +260,7 @@ fn select_children_with_name(
             let hir = tcx.hir();
 
             let root_mod;
-            let item = match hir.find_by_def_id(local_id) {
+            let item = match tcx.opt_hir_node_by_def_id(local_id) {
                 Some(hir::Node::Crate(r#mod)) => {
                     root_mod = hir::ItemKind::Mod(r#mod);
                     Some(&root_mod)

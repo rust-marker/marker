@@ -14,14 +14,14 @@ extern crate rustc_span;
 use std::env;
 
 use rustc_session::config::ErrorOutputType;
-use rustc_session::EarlyErrorHandler;
+use rustc_session::EarlyDiagCtxt;
 
 use marker_rustc_driver::{try_main, MainError};
 
 const BUG_REPORT_URL: &str = "https://github.com/rust-marker/marker/issues/new?template=panic.yml";
 
 fn main() {
-    let handler = EarlyErrorHandler::new(ErrorOutputType::default());
+    let handler = EarlyDiagCtxt::new(ErrorOutputType::default());
     rustc_driver::init_rustc_env_logger(&handler);
 
     // FIXME(xFrednet): The ICE hook would ideally distinguish where the error
@@ -31,8 +31,8 @@ fn main() {
     // caused the panic in the lint crate. rust-marker/marker#10
 
     rustc_driver::install_ice_hook(BUG_REPORT_URL, |handler| {
-        handler.note_without_error(format!("{}", rustc_tools_util::get_version_info!()));
-        handler.note_without_error("Achievement Unlocked: [Free Ice Cream]");
+        handler.note(format!("{}", rustc_tools_util::get_version_info!()));
+        handler.note("Achievement Unlocked: [Free Ice Cream]");
     });
 
     std::process::exit(rustc_driver::catch_with_exit_code(|| {

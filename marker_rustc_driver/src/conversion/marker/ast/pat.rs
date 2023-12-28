@@ -102,7 +102,6 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 };
                 PatKind::Tuple(self.alloc(TuplePat::new(data, pats)))
             },
-            hir::PatKind::Box(_) => PatKind::Unstable(self.alloc(UnstablePat::new(data))),
             hir::PatKind::Ref(pat, muta) => PatKind::Ref(
                 self.alloc(
                     RefPat::builder()
@@ -137,6 +136,19 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 end.map(|expr| self.to_expr(expr)),
                 matches!(kind, hir::RangeEnd::Included),
             ))),
+            #[allow(clippy::match_same_arms)]
+            hir::PatKind::Box(_) => {
+                // Unstable:
+                // * Feature `box_patterns`
+                // * Tracking issue: rust#29641
+                PatKind::Unstable(self.alloc(UnstablePat::new(data)))
+            },
+            rustc_hir::PatKind::Never => {
+                // Unstable:
+                // * Feature `never_patterns`
+                // * Tracking issue: rust#118155
+                PatKind::Unstable(self.alloc(UnstablePat::new(data)))
+            },
         }
     }
 

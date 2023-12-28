@@ -140,9 +140,7 @@ impl<'ast, 'tcx> RustcConverter<'ast, 'tcx> {
             _ => unreachable!(),
         };
 
-        def_id
-            .as_local()
-            .map(|id| self.rustc_cx.hir().local_def_id_to_hir_id(id))
+        def_id.as_local().map(|id| self.rustc_cx.local_def_id_to_hir_id(id))
     }
 
     #[must_use]

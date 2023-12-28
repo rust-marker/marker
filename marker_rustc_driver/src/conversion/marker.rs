@@ -96,7 +96,7 @@ impl<'ast, 'tcx> MarkerConverter<'ast, 'tcx> {
         }
 
         self.with_body(hir_id, |inner| {
-            let Some(hir::Node::Stmt(stmt)) = inner.rustc_cx.hir().find(hir_id) else {
+            let Some(hir::Node::Stmt(stmt)) = inner.rustc_cx.opt_hir_node(hir_id) else {
                 return None;
             };
             inner.to_stmt(stmt)
@@ -111,7 +111,7 @@ impl<'ast, 'tcx> MarkerConverter<'ast, 'tcx> {
         }
 
         self.with_body(hir_id, |inner| {
-            let Some(hir::Node::Expr(expr)) = inner.rustc_cx.hir().find(hir_id) else {
+            let Some(hir::Node::Expr(expr)) = inner.rustc_cx.opt_hir_node(hir_id) else {
                 return None;
             };
             Some(inner.to_expr(expr))

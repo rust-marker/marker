@@ -45,7 +45,7 @@ use marker_error::Context;
 use crate::conversion::rustc::RustcConverter;
 
 // region replace rust toolchain dev
-const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-11-16";
+const RUSTC_TOOLCHAIN_VERSION: &str = "nightly-2023-12-28";
 // endregion replace rust toolchain dev
 
 pub const MARKER_SYSROOT_ENV: &str = "MARKER_SYSROOT";
