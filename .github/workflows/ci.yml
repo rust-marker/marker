@@ -234,4 +234,20 @@ jobs:
       # There may be bugs in the release build of our binaries. For example, in the past
       # we saw that LTO could lead to exit code: 0xc0000005, STATUS_ACCESS_VIOLATION crash
 
-      - run: cargo marker -l 'marker_lints="*"'
+      # FIXME: The stable version of Marker tested by this command might use a different toolchain
+      # version then the one used for the development of rustc driver. Running Marker only loads the
+      # library files for the toolchain it's executed with and "ignores" the toolchain defined in
+      # `rust-toolchain.toml`. Therefore, it's not possible to run the stable version of marker
+      # on `marker_rustc_driver`.
+      # In the future it would be better to run this smoke test on bigger libraries like tokio, serde
+      # bevy etc. For that, it would be good to extract the lintcheck tool from Clippy into a standalone
+      # tool.
+      - run: >-
+          cargo +stable marker
+          -l 'marker_lints="*"'
+          -- 
+          --workspace
+          --exclude marker_rustc_driver
+          --exclude marker_lints
+          --exclude marker_uitest
+
