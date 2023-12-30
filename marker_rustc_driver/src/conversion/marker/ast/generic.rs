@@ -1,7 +1,7 @@
 use marker_api::ast::{
     BindingArg, ConstArg, ConstParam, GenericArgKind, GenericArgs, GenericParamKind, GenericParams, Lifetime,
-    LifetimeArg, LifetimeClause, LifetimeKind, LifetimeParam, TraitBound, TraitRef, TyArg, TyClause, TyParam,
-    TyParamBound, WhereClauseKind,
+    LifetimeArg, LifetimeClause, LifetimeKind, LifetimeParam, TraitBound, TyArg, TyClause, TyParam, TyParamBound,
+    WhereClauseKind,
 };
 use rustc_hir as hir;
 
@@ -39,8 +39,8 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let mut args: Vec<_> = rustc_args
             .args
             .iter()
-            .filter(|rustc_arg| !rustc_arg.is_synthetic())
             .filter_map(|rustc_arg| match rustc_arg {
+                rustc_hir::GenericArg::Lifetime(rust_lt) if rust_lt.ident.name.is_empty() => None,
                 rustc_hir::GenericArg::Lifetime(rust_lt) => self
                     .to_lifetime(rust_lt)
                     .map(|lifetime| GenericArgKind::Lifetime(self.alloc(LifetimeArg::new(lifetime)))),
@@ -93,7 +93,9 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                                     .iter()
                                     .filter_map(|bound| match bound {
                                         hir::GenericBound::Outlives(lifetime) => self.to_lifetime(lifetime),
-                                        _ => unreachable!("lifetimes can only be bound by lifetimes"),
+                                        hir::GenericBound::Trait(..) => {
+                                            unreachable!("lifetimes can only be bound by lifetimes")
+                                        },
                                     })
                                     .collect();
                                 let bounds = if bounds.is_empty() {
@@ -141,15 +143,17 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                     hir::GenericParamKind::Type { synthetic: false, .. } => {
                         Some(GenericParamKind::Ty(self.alloc(TyParam::new(Some(span), name, id))))
                     },
-                    hir::GenericParamKind::Const { ty, default } => {
-                        Some(GenericParamKind::Const(self.alloc(ConstParam::new(
-                            id,
-                            name,
-                            self.to_syn_ty(ty),
-                            default.map(|anon| self.to_const_expr(anon)),
-                            span,
-                        ))))
-                    },
+                    hir::GenericParamKind::Const {
+                        ty,
+                        default,
+                        is_host_effect: _,
+                    } => Some(GenericParamKind::Const(self.alloc(ConstParam::new(
+                        id,
+                        name,
+                        self.to_syn_ty(ty),
+                        default.map(|anon| self.to_const_expr(anon)),
+                        span,
+                    )))),
                     _ => None,
                 }
             })
@@ -174,21 +178,6 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                         self.to_span_id(bound.span()),
                     ))))
                 },
-                hir::GenericBound::LangItemTrait(lang_item, span, _, rustc_args) => Some(TyParamBound::TraitBound(
-                    self.alloc(TraitBound::new(
-                        false,
-                        TraitRef::new(
-                            self.to_item_id(
-                                self.rustc_cx
-                                    .get_lang_items(())
-                                    .get(*lang_item)
-                                    .expect("the lang item is used and should therefore be loaded"),
-                            ),
-                            self.to_syn_generic_args(Some(rustc_args)),
-                        ),
-                        self.to_span_id(*span),
-                    )),
-                )),
                 hir::GenericBound::Outlives(rust_lt) => self
                     .to_lifetime(rust_lt)
                     .map(|api_lt| TyParamBound::Lifetime(self.alloc(api_lt))),

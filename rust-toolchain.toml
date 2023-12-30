@@ -1,6 +1,6 @@
 [toolchain]
 # region replace rust toolchain dev
-channel = "nightly-2023-11-16"
+channel = "nightly-2023-12-28"
 # endregion replace rust toolchain dev
 components = [
   "cargo",

@@ -1,9 +1,8 @@
 use marker_api::{
     ast::{
-        self, AdtKind, AssocItemKind, Body, CommonItemData, CommonPatData, ConstItem, EnumItem, EnumVariant,
-        ExternBlockItem, ExternCrateItem, ExternItemKind, FnItem, FnParam, IdentPat, ImplItem, ItemField, ItemKind,
-        ModItem, PatKind, StaticItem, StructItem, TraitItem, TyAliasItem, UnionItem, UnstableItem, UseItem, UseKind,
-        Visibility,
+        AdtKind, AssocItemKind, Body, CommonItemData, CommonPatData, ConstItem, EnumItem, EnumVariant, ExternBlockItem,
+        ExternCrateItem, ExternItemKind, FnItem, FnParam, IdentPat, ImplItem, ItemField, ItemKind, ModItem, PatKind,
+        StaticItem, StructItem, TraitItem, TyAliasItem, UnionItem, UnstableItem, UseItem, UseKind, Visibility,
     },
     common::{Abi, Constness, Mutability, Safety, Syncness},
     prelude::*,
@@ -209,8 +208,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 && let hir::TyKind::OpaqueDef(item_id, _bounds, _) = rust_ty.kind
                 && let item = self.rustc_cx.hir().item(item_id)
                 && let hir::ItemKind::OpaqueTy(opty) = &item.kind
-                && let [output_bound] = opty.bounds
-                && let hir::GenericBound::LangItemTrait(_lang_item, _span, _hir_id, rustc_args) = output_bound
+                && let [hir::GenericBound::Trait(trait_ref, _)] = opty.bounds
+                && let Some(hir::PathSegment {
+                    args: Some(rustc_args), ..
+                }) = trait_ref.trait_ref.path.segments.last()
                 && let [output_bound] = rustc_args.bindings
             {
                 Some(self.to_syn_ty(output_bound.ty()))
@@ -267,7 +268,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
     fn to_adt_kind(&self, var_data: &'tcx hir::VariantData) -> AdtKind<'ast> {
         match var_data {
-            hir::VariantData::Struct(fields, _recovered) => AdtKind::Field(self.to_fields(fields).into()),
+            hir::VariantData::Struct { fields, recovered: _ } => AdtKind::Field(self.to_fields(fields).into()),
             hir::VariantData::Tuple(fields, ..) => AdtKind::Tuple(self.to_fields(fields).into()),
             hir::VariantData::Unit(..) => AdtKind::Unit,
         }
@@ -478,17 +479,6 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
         let id = self.to_body_id(body.id());
         if let Some(&body) = self.bodies.borrow().get(&id) {
             return body;
-        }
-
-        // Yield expressions are currently unstable
-        if let Some(hir::CoroutineKind::Coroutine) = body.coroutine_kind {
-            return self.alloc(Body::new(
-                self.to_item_id(self.rustc_cx.hir().body_owner_def_id(body.id())),
-                ast::ExprKind::Unstable(self.alloc(ast::UnstableExpr::new(
-                    ast::CommonExprData::new(self.to_expr_id(body.value.hir_id), self.to_span_id(body.value.span)),
-                    ast::ExprPrecedence::Unstable(0),
-                ))),
-            ));
         }
 
         self.with_body(body.id(), || {

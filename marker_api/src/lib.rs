@@ -6,6 +6,7 @@
 #![allow(clippy::unused_self)] // `self` is needed to change the behavior later
 #![allow(clippy::missing_panics_doc)] // Temporary allow for `todo!`s
 #![allow(clippy::new_without_default)] // Not very helpful as `new` is almost always cfged
+#![allow(clippy::no_effect_underscore_binding)] // FP with derive macros clippy#12045
 #![cfg_attr(not(feature = "driver-api"), allow(dead_code))]
 #![cfg_attr(marker, warn(marker::marker_lints::not_using_has_span_trait))]
 

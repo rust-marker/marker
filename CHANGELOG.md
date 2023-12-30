@@ -28,6 +28,12 @@ The following components are considered to be internal and they are excluded fro
 
 ## [Unreleased]
 
+[#345]: https://github.com/rust-marker/marker/pull/345
+
+### Internal
+
+- [#345]: Bumped the used nightly toolchain version to 2023-12-28
+
 ## [0.5.0] - 2023-12-28
 
 [#322]: https://github.com/rust-marker/marker/pull/322

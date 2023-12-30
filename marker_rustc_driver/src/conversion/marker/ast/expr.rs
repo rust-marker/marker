@@ -84,7 +84,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 }
             },
             hir::ExprKind::Call(operand, args) => match &operand.kind {
-                hir::ExprKind::Path(hir::QPath::LangItem(hir::LangItem::RangeInclusiveNew, _, _)) => {
+                hir::ExprKind::Path(hir::QPath::LangItem(hir::LangItem::RangeInclusiveNew, _)) => {
                     ExprKind::Range(self.alloc({
                         RangeExpr::new(data, Some(self.to_expr(&args[0])), Some(self.to_expr(&args[1])), true)
                     }))
@@ -156,16 +156,16 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 )))
             },
             hir::ExprKind::Struct(path, fields, base) => match path {
-                hir::QPath::LangItem(hir::LangItem::RangeFull, _, _) => {
+                hir::QPath::LangItem(hir::LangItem::RangeFull, _) => {
                     ExprKind::Range(self.alloc(RangeExpr::new(data, None, None, false)))
                 },
-                hir::QPath::LangItem(hir::LangItem::RangeFrom, _, _) => {
+                hir::QPath::LangItem(hir::LangItem::RangeFrom, _) => {
                     ExprKind::Range(self.alloc(RangeExpr::new(data, Some(self.to_expr(fields[0].expr)), None, false)))
                 },
-                hir::QPath::LangItem(hir::LangItem::RangeTo, _, _) => {
+                hir::QPath::LangItem(hir::LangItem::RangeTo, _) => {
                     ExprKind::Range(self.alloc(RangeExpr::new(data, None, Some(self.to_expr(fields[0].expr)), false)))
                 },
-                hir::QPath::LangItem(hir::LangItem::Range, _, _) => ExprKind::Range(self.alloc({
+                hir::QPath::LangItem(hir::LangItem::Range, _) => ExprKind::Range(self.alloc({
                     RangeExpr::new(
                         data,
                         Some(self.to_expr(fields[0].expr)),
@@ -173,7 +173,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                         false,
                     )
                 })),
-                hir::QPath::LangItem(hir::LangItem::RangeToInclusive, _, _) => {
+                hir::QPath::LangItem(hir::LangItem::RangeToInclusive, _) => {
                     ExprKind::Range(self.alloc(RangeExpr::new(data, None, Some(self.to_expr(fields[0].expr)), true)))
                 },
                 _ => {
@@ -424,8 +424,11 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
     ) -> ExprKind<'ast> {
         let body_id = closure.body;
         let body = self.rustc_cx.hir().body(body_id);
-        match body.coroutine_kind {
-            Some(hir::CoroutineKind::Async(hir::CoroutineSource::Fn)) => {
+        match closure.kind {
+            hir::ClosureKind::Coroutine(hir::CoroutineKind::Desugared(
+                hir::CoroutineDesugaring::Async,
+                hir::CoroutineSource::Fn,
+            )) => {
                 if let hir::ExprKind::Block(block, None) = body.value.kind
                     && let Some(temp_drop) = block.expr
                     && let hir::ExprKind::DropTemps(inner_block) = temp_drop.kind
@@ -435,7 +438,10 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
 
                 unreachable!("`async fn` body desugar always has the same structure")
             },
-            Some(hir::CoroutineKind::Async(hir::CoroutineSource::Block)) => {
+            hir::ClosureKind::Coroutine(hir::CoroutineKind::Desugared(
+                hir::CoroutineDesugaring::Async,
+                hir::CoroutineSource::Block,
+            )) => {
                 let block_expr = body.value;
                 if let hir::ExprKind::Block(block, None) = block_expr.kind {
                     let api_block_expr = self.with_body(body_id, || {
@@ -451,12 +457,12 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 }
                 unreachable!("`async` block desugar always has the same structure")
             },
-            Some(
-                hir::CoroutineKind::Async(hir::CoroutineSource::Closure)
-                | hir::CoroutineKind::Coroutine
-                | hir::CoroutineKind::Gen(_),
+            hir::ClosureKind::Coroutine(
+                hir::CoroutineKind::Desugared(hir::CoroutineDesugaring::Gen | hir::CoroutineDesugaring::AsyncGen, _)
+                | hir::CoroutineKind::Desugared(hir::CoroutineDesugaring::Async, hir::CoroutineSource::Closure)
+                | hir::CoroutineKind::Coroutine(_),
             ) => ExprKind::Unstable(self.alloc(UnstableExpr::new(data, ExprPrecedence::Closure))),
-            None => ExprKind::Closure(self.alloc(self.to_closure_expr(data, closure))),
+            hir::ClosureKind::Closure => ExprKind::Closure(self.alloc(self.to_closure_expr(data, closure))),
         }
     }
 

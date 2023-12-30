@@ -71,9 +71,9 @@ Using config env vars (override these if needed):
 $version = "0.5.0"
 # endregion replace marker version unstable
 
-# region replace rust toolchain release
+# region replace rust toolchain unstable
 $toolchain = "nightly-2023-11-16"
-# endregion replace rust toolchain release
+# endregion replace rust toolchain unstable
 
 # Log the command, execute, and fail if its exit code is non-zero.
 # Surprisingly PowerShell can't do the exit code checks for us out of the box.

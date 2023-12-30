@@ -211,17 +211,9 @@
 -$version = "X.Y.Z"
 +$version = "0.1.0"
  # endregion replace marker version unstable
- # region replace rust toolchain release
--$toolchain = "nightly-YYYY-MM-DD"
-+$toolchain = "nightly-2023-01-01"
- # endregion replace rust toolchain release
 
 === scripts/release/install.sh ===
  # region replace marker version unstable
 -version=X.Y.Z
 +version=0.1.0
  # endregion replace marker version unstable
- # region replace rust toolchain release
--toolchain=nightly-YYYY-MM-DD
-+toolchain=nightly-2023-01-01
- # endregion replace rust toolchain release

@@ -282,7 +282,7 @@ impl<'ast, 'tcx> MarkerConverterInner<'ast, 'tcx> {
                 AstQPath::new(None, Some(marker_ty), path, res)
             },
             // I recommend reading the comment of `Self::lang_item_map` for context
-            hir::QPath::LangItem(item, span, _) => {
+            hir::QPath::LangItem(item, span) => {
                 let id = self
                     .rustc_cx
                     .lang_items()
