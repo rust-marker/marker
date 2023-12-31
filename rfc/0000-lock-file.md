@@ -202,7 +202,7 @@ Suppose you have your own `lint-crate` inside of the workspace that needs to be 
             - `default/`: the default buildspace that persists the `Cargo.lock` as `Marker.lock`
                 - `Cargo.toml`: contains a definition of the `buildspace` and the "dispatch" crate. The `[dependencies]` section includes only `marker_lints = "x.y.z"`. The `path` dependencies never get into the `dependencies` here.
                 - `Cargo.lock`: same as `Marker.lock`
-            - `ephemeral/`: ephemeral buildspace that doesn't persist any state outside of it. It's used when `--no-marker-lock` is specified.
+            - `temp/`: temp buildspace that doesn't persist any state outside of it. It's used when `--no-marker-lock` is specified.
                 - `Cargo.toml`: similar to the one in `default`
                 - `Cargo.lock`: not persisted, regular file, re-generated before every build
 
@@ -227,7 +227,7 @@ The `cargo-marker` CLI has the following options that can override `Marker.toml`
 
 - `--config KEY=VALUE`: values are merged with the `Marker.toml`. This follows `cargo`'s behavior of `--config` parameter closely for consistency with it. This parameter accepts a line of TOML that consists only of a single dotted key and value. The implementation for this including validation can be copied from `cargo`'s [code](https://github.com/rust-lang/cargo/blob/74ef21bb3f6b7a94106b2beb72bc63a6d4f7fb4e/src/cargo/util/config/mod.rs#L1324-L1470). It can be specified multiple times, and all its occurrences are merged.
 
-- `--no-marker-lock`: skip using the `Marker.lock` file. This makes `cargo-marker` use the `ephemeral` buildspace that ignores the `Marker.lock` file and re-generates it's internal `Cargo.lock` file from scratch before running the build.
+- `--no-marker-lock`: skip using the `Marker.lock` file. This makes `cargo-marker` use the `temp` buildspace that ignores the `Marker.lock` file and re-generates it's internal `Cargo.lock` file from scratch before running the build.
 
 - `-l, --lint <LINT_CRATE_NAME>`: this is similar to `-p, --package` parameter of `cargo` which lets the user select a subset of lints from the ones they configured. An unfortunate confusion may happen here because this parameter is named "lint" and not "lint crate", so someone could think as if it refers to a specific lint. However, lints and their levels should be configured via `Marker.toml` or `--config` override. Unfortunately, we can't use the [`[lints]`](https://doc.rust-lang.org/cargo/reference/manifest.html#the-lints-section) section of `Cargo.toml` because it's very limited and doesn't support anything except `rust`, `clippy`, `rustdoc`.
 
@@ -243,7 +243,7 @@ If someone wants to try `cargo-marker` on their repo without writing any config 
 cargo marker --no-marker-lock --config "lints.marker_lints = '0.4.0'"
 ```
 
-Assuming they have no `Marker.toml` yet this will run linting with `marker_lints` for them in an `ephemeral` buildspace and no new files will appear in their version control, and they won't be required to write any config file themselves.
+Assuming they have no `Marker.toml` yet this will run linting with `marker_lints` for them in an `temp` buildspace and no new files will appear in their version control, and they won't be required to write any config file themselves.
 
 ### Selecting specific lint crates on CI
 
