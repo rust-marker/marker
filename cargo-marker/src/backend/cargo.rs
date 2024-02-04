@@ -24,12 +24,9 @@ impl Cargo {
         }
     }
 
-    /// This returns a command calling rustup, which acts as a proxy for the
-    /// Cargo of the selected toolchain.
-    /// It may add additional flags for verbose output.
-    ///
-    /// See also [`super::toolchain::Toolchain::cargo_build_command`] if the
-    /// commands is intended to build a crate.
+    /// This returns a command calling rustup, which acts as a proxy for
+    /// `cargo` of the selected toolchain. If no toolchain is selected, it
+    /// will return a command calling the default `cargo` command.
     pub fn command(&self) -> Command {
         // Marker requires rustc's shared libraries to be available. These are
         // added by rustup, when it acts like a proxy for cargo/rustc/etc.

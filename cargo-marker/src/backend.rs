@@ -4,7 +4,7 @@
 //! `cargo-marker` CLI. However, `cargo-marker` might also be used as a library for UI
 //! tests later down the line.
 
-use self::{lints::LintCrate, toolchain::Toolchain};
+use self::{lints::LintDll, toolchain::Toolchain};
 use crate::config::LintDependencyEntry;
 use crate::error::prelude::*;
 use crate::observability::display::{self, print_stage};
@@ -50,14 +50,6 @@ impl Config {
             toolchain,
         })
     }
-
-    fn markers_target_dir(&self) -> Utf8PathBuf {
-        self.marker_dir.join("target")
-    }
-
-    fn lint_crate_dir(&self) -> Utf8PathBuf {
-        self.marker_dir.join("lints")
-    }
 }
 
 /// This struct contains all information to use rustc as a driver.
@@ -68,9 +60,9 @@ pub struct CheckInfo {
 
 pub fn prepare_check(config: &Config) -> Result<CheckInfo> {
     print_stage("compiling lints");
-    let lints = lints::build_lints(config)?
+    let lints = lints::build(config)?
         .iter()
-        .map(|LintCrate { name, file }| format!("{name}:{file}"))
+        .map(|LintDll { name, file }| format!("{name}:{file}"))
         .join(";");
 
     #[rustfmt::skip]

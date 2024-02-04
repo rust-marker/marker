@@ -1,5 +1,5 @@
 //@rustc-env:RUST_BACKTRACE=0
-//@normalize-stderr-test: "lib.rs:.*" -> "lib.rs"
+//@normalize-stderr-test: "at .*/marker_uilints/src/lib.rs:.*" -> "at marker_uilints/src/lib.rs"
 
 // This function will trigger a panic in the `uilints` lint crate.
 // I want to see how the ICE message looks and make sure that it
