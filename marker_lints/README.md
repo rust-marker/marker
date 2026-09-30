@@ -20,6 +20,7 @@ A collection of lints for the development of lint crates with the [marker_api] a
 
 This crate currently provides the following lints:
 * `marker::diag_msg_uppercase_start`
+* `marker::not_using_has_span_trait`
 
 ## Usage
 
